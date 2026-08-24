@@ -2,8 +2,10 @@
 
 ## Current Position
 - **Milestone:** v1 (MVP)
-- **Phase:** 1 — Stima Free end-to-end (**contesto raccolto**, pronta per il planning)
-- **Status:** Progetto inizializzato, roadmap 4 fasi, CONTEXT Fase 1 scritto e committato.
+- **Phase:** 1 — Stima Free end-to-end (**pianificata e verificata**, pronta per l'esecuzione)
+- **Status:** 4 PLAN + SKELETON scritti; plan-checker PASS; warning W1/W4 chiusi (regola range). Prossimo: `/gsd-execute-phase 1`.
+- **Regola range (locked):** ±% solo sui lavori (4 categorie); extra fissi (€2.806 lordo); totale = Σ card + extra. Oracolo primario: 85 mq · totale = €47.985–€70.575.
+- **Stack (da RESEARCH):** FastAPI + SQLAlchemy 2.0 + Pydantic v2 + Postgres/Alembic · React 19 + Vite + TS 5.9 + react-query + Tailwind/shadcn · autocomplete comuni ISTAT bundlato offline.
 
 ## Last Session
 - **2026-08-24** — Init progetto (analisi computo Excel, decisioni fondanti, PROJECT/config/REQUIREMENTS/ROADMAP). Poi:
