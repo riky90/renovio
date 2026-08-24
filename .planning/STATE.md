@@ -2,14 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-last_updated: "2026-08-24T13:04:33.427Z"
+status: ready_to_plan
+last_updated: 2026-08-24T13:14:58.774Z
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 4
   completed_plans: 4
   percent: 25
+stopped_at: Phase 01 complete (4/4) — ready to discuss Phase 2
 ---
 
 # Project State — ristruttura-stima
@@ -17,11 +18,11 @@ progress:
 ## Current Position
 
 Phase: 01 (stima-free-end-to-end) — COMPLETE
-Plan: 4 of 4 (tutti completati)
+Plan: Not started
 
 - **Milestone:** v1 (MVP)
-- **Phase:** 1 — Stima Free end-to-end (**completa**, Plan 01/02/03/04 tutti completati)
-- **Status:** Phase complete — ready for verification
+- **Phase:** 2
+- **Status:** Ready to plan
 - **Regola range (locked):** ±% solo sui lavori (4 categorie); extra fissi (€2.806 lordo); totale = Σ card + extra. Oracolo primario: 85 mq · totale = €47.985–€70.575.
 - **Stack (da RESEARCH):** FastAPI + SQLAlchemy 2.0 + Pydantic v2 + Postgres/Alembic · React 19 + Vite + TS 5.9 + react-query + Tailwind/shadcn · autocomplete comuni ISTAT bundlato offline.
 
