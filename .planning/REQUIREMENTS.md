@@ -18,7 +18,7 @@
 
 ### Motore parametrico (ENG)
 - [ ] **ENG-01**: Motore Ibrido C: coefficienti €/m² per categoria (Free) e quantità-per-m² sulle voci-chiave (Pro), per ciascun tipo di ristrutturazione
-- [ ] **ENG-02**: I coefficienti e i prezzi sono letti da database, non cablati nel codice
+- [x] **ENG-02**: I coefficienti e i prezzi sono letti da database, non cablati nel codice
 - [ ] **ENG-03**: Bozza iniziale dei coefficienti estratta dal file computo (listino Reggio Emilia)
 
 ### Pro & Monetizzazione (PRO)
