@@ -428,18 +428,12 @@ Non applicabile: fase **greenfield**, nessun rename/refactor/migrazione di stato
 | A6 | Snapshot dataset comuni ~7.900 voci accettabile | City UX | Basso: comuni cambiano di rado; aggiornare snapshot al bundling. |
 | A7 | TypeScript linea 5.9 stabile (non npm `7.0.2` preview) | Stack | Basso: usare 5.9 evita instabilità di preview. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Mappatura categoria ↔ coefficiente impresa (0.65/0.6/0.55/0.5)**
-   - Sappiamo: 4 coefficienti nel foglio `listini`.
-   - Non chiaro: quale coefficiente va a quale categoria.
-   - Raccomandazione: leggere il foglio `listini` in fase di seed; nel dubbio, seedare comunque (non impatta l'output cliente in Fase 1).
-2. **IVA reale Serramenti/Porte e IVA sugli extra**
-   - Sappiamo: default 22% provvisorio.
-   - Raccomandazione: parametro DB (già previsto), default 22%, confermare con dati reali (Fase 4 admin).
-3. **`base_eur_mq` è prezzo cliente o impresa?**
-   - Il seed lo tratta come €/m² di listino (cliente). Confermare per non invertire la logica del margine.
-4. **Regola totale vs somma categorie (arrotondamento):** fissare la convenzione e testarla.
+1. **Mappatura categoria ↔ coefficiente impresa (0.65/0.6/0.55/0.5)** — **RESOLVED.** Mappatura fissata: A→0.65, B→0.6, C→0.55, D→0.5. È margine interno: seedato in `listino_categoria.coefficiente_impresa`, **mai esposto al client** in Fase 1 (non impatta l'output cliente). Da riconfermare sul foglio `listini` prima dell'uso in Fase 3/PDF.
+2. **IVA reale Serramenti/Porte e IVA sugli extra** — **RESOLVED.** Default **0.22** sia per Serramenti/Porte sia per gli extra (CSE/CSP, pratiche), modellato come **parametro admin** in DB (editabile in Fase 4). Nessun blocco per Fase 1.
+3. **`base_eur_mq` è prezzo cliente o impresa?** — **RESOLVED.** È il **prezzo cliente** (€/m² di listino). Confermato dal seed e dagli oracoli di plausibilità riconcilianti (85 mq totale = €47.985–€70.575); il coefficiente impresa resta un margine interno non usato nel calcolo del prezzo cliente Free.
+4. **Regola totale vs somma categorie (arrotondamento)** — **RESOLVED.** Regola di riconciliazione vincolante: il **±range_pct si applica SOLO ai 4 subtotali di categoria** (lavori, IVA per categoria inclusa); gli **extra sono fissi** (CSE/CSP €800 + pratiche €1.500, +22% IVA = €2.806 lordo), **mai scalati** dal range. **Totale mostrato = Σ(range delle 4 categorie) + extra fissi**, così le card + extra riconciliano col totale entro ±1€. Calcolo in Decimal pieno, `quantize` a euro (ROUND_HALF_UP) solo in uscita. Fissata come test di regressione in Plan 02.
 
 ## Security Domain
 
