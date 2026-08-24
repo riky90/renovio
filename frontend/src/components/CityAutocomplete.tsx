@@ -43,10 +43,17 @@ export function CityAutocomplete({ value, onChange, error }: CityAutocompletePro
       .slice(0, 8);
   }, [value]);
 
+  const showList = open && suggestions.length > 0;
+
+  function selectCity(nome: string) {
+    onChange(nome);
+    setOpen(false);
+  }
+
   return (
     <div className="flex flex-col gap-2">
       <Label htmlFor="citta">Città</Label>
-      <Popover open={open && suggestions.length > 0} onOpenChange={setOpen}>
+      <Popover open={showList} onOpenChange={setOpen}>
         <PopoverAnchor asChild>
           <Command shouldFilter={false} className="overflow-visible bg-transparent p-0">
             <CommandInput
@@ -57,10 +64,24 @@ export function CityAutocomplete({ value, onChange, error }: CityAutocompletePro
                 onChange(next);
                 setOpen(true);
               }}
-              onBlur={() => setOpen(false)}
+              onKeyDown={(e) => {
+                // Esc closes the suggestion list without clearing the typed text.
+                if (e.key === "Escape") setOpen(false);
+              }}
               className={cn(error && "text-destructive")}
             />
-            {open && suggestions.length > 0 && (
+            {/*
+             * IMPORTANT: no onBlur-driven close here. Clicking a suggestion
+             * fires a native "click" (mousedown -> blur -> mouseup -> click)
+             * on the CommandItem — cmdk selects on "click", not "mousedown".
+             * Closing on blur would unmount the popover content before that
+             * click event ever reaches the item, so the selection is lost.
+             * Closing is instead handled by:
+             *  - onSelect below (explicit, on successful selection)
+             *  - Escape (onKeyDown above)
+             *  - Radix's own outside-pointerdown dismissal on PopoverContent
+             */}
+            {showList && (
               <PopoverContent
                 className="w-(--radix-popover-trigger-width) p-0"
                 onOpenAutoFocus={(e) => e.preventDefault()}
@@ -73,10 +94,7 @@ export function CityAutocomplete({ value, onChange, error }: CityAutocompletePro
                       <CommandItem
                         key={`${c.nome}-${c.provincia}`}
                         value={c.nome}
-                        onSelect={(selected) => {
-                          onChange(selected);
-                          setOpen(false);
-                        }}
+                        onSelect={selectCity}
                       >
                         <Check
                           className={cn(
