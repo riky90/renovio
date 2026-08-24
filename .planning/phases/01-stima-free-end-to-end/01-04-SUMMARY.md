@@ -180,3 +180,7 @@ None - `frontend/.env` (`VITE_API_BASE=http://localhost:8000/api/v1`) is a local
 ---
 *Phase: 01-stima-free-end-to-end*
 *Completed: 2026-08-24*
+
+## Self-Check: PASSED
+
+All 14 created/key files verified present on disk (`components.json`, `index.css`, `comuni.json`, `lib/utils.ts`, `lib/currency.ts`, `api/stima.ts`, `CityAutocomplete.tsx`, `EstimateForm.tsx`, `CategoryCard.tsx`, `TotalCard.tsx`, `FallbackDisclaimer.tsx`, `SoftWallCta.tsx`, `EstimatePage.tsx`, this SUMMARY.md); all 5 commits (`faa8cae`, `469b056`, `0d7aaa9`, `7826d7f`, `881e115`) verified present in `git log`.

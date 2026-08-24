@@ -18,12 +18,12 @@ Ogni fase consegna una capability utente end-to-end. Il valore centrale (stima a
 4. Prezzi e coefficienti provengono dal database (seed listino RE), non dal codice
 5. Una città senza listino proprio produce comunque una stima con disclaimer esplicito
 
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 Plans:
 - [x] 01-01-PLAN.md — Walking Skeleton: scaffold backend/frontend + schema Alembic + loop health end-to-end (ENG-02)
 - [x] 01-02-PLAN.md — Seed idempotente RE + motore di stima Decimal (IVA/categoria, extra, fallback) [TDD] (ENG-01, ENG-03, EST-03, EST-04, EST-06)
 - [x] 01-03-PLAN.md — API POST /api/v1/stima + schemi anti-leak + test assenza chiavi impresa (EST-01, EST-02, EST-05, EST-06)
-- [ ] 01-04-PLAN.md — UI Free: form input + schermata risultato (4 card + totale + disclaimer + CTA soft-wall) (EST-01, EST-02, EST-06)
+- [x] 01-04-PLAN.md — UI Free: form input + schermata risultato (4 card + totale + disclaimer + CTA soft-wall) (EST-01, EST-02, EST-06)
 
 ### Phase 2: Account & PDF
 **Goal:** L'utente si registra/accede (email + Google), le sue stime vengono salvate e può scaricare un PDF Free brandizzato.
