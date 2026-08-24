@@ -24,16 +24,19 @@ Il file è un computo bottom-up con quantità a 0, quindi il €/m² non è legg
 ## Banda del range (±% per tipo)
 Leggera **±10%** · Moderata **±15%** · Totale **±20%** (più incertezza → banda più larga).
 
+**Regola di applicazione (riconciliazione a schermo):** la ±% si applica **solo alle 4 categorie (i lavori)**. Gli **extra restano fissi** (CSE/CSP, pratiche sono costi certi, non oscillano). Il **totale a schermo = somma dei range delle 4 card + extra**, così le card e il totale quadrano sempre (entro ±1 € da arrotondamento). Niente ±% sul totale complessivo.
+
 ## IVA per categoria
 Edile **10%** · Finiture **22%** · Serramenti **22%** *(provvisorio, da confermare)* · Prodotti **10%**.
 Extra inclusi nel totale: CSE/CSP ~€800, pratiche ~€1.500 (placeholder, editabili). Finanziamento escluso.
 
-## Verifica di plausibilità (IVA + extra inclusi)
+## Verifica di plausibilità (IVA inclusa; ±% sui lavori, extra fissi €2.806 lordo)
+Questi valori sono gli **oracoli di regressione** del motore (test): totale = Σ range 4 categorie + extra fissi.
 | mq | Leggera | Moderata | Totale |
 |---:|---|---|---|
-| 60 | €12.140 – €14.838 | €21.259 – €28.763 | €34.136 – €51.204 |
-| 85 | €16.146 – €19.734 | €29.124 – €39.402 | €47.424 – €71.136 |
-| 110 | €20.153 – €24.631 | €36.988 – €50.042 | €60.712 – €91.068 |
+| 60 | €12.421 – €14.557 | €21.680 – €28.341 | €34.697 – €50.643 |
+| 85 | €16.427 – €19.454 | €29.544 – €38.981 | €47.985 – €70.575 |
+| 110 | €20.434 – €24.350 | €37.409 – €49.621 | €61.273 – €90.507 |
 
 Intensità media: leggera ~210 €/mq · moderata ~400 €/mq · totale ~700 €/mq — coerente col mercato RE.
 
