@@ -1,0 +1,47 @@
+{
+  "listino": "reggio-emilia",
+  "valuta": "EUR",
+  "riferimento": "docs/computo-base-reggio-emilia.xlsx",
+  "nota": "DRAFT auto-generato — €/m² di superficie, base=ristrutturazione totale. Da tarare in admin.",
+  "base_eur_mq": {
+    "A-EDILE": 300,
+    "B-FINITURE": 130,
+    "C-SERRAMENTI": 90,
+    "D-PRODOTTI": 60
+  },
+  "moltiplicatori_tipo": {
+    "leggera": {
+      "A-EDILE": 0.25,
+      "B-FINITURE": 0.45,
+      "C-SERRAMENTI": 0.1,
+      "D-PRODOTTI": 0.2
+    },
+    "moderata": {
+      "A-EDILE": 0.6,
+      "B-FINITURE": 0.6,
+      "C-SERRAMENTI": 0.4,
+      "D-PRODOTTI": 0.5
+    },
+    "totale": {
+      "A-EDILE": 1.0,
+      "B-FINITURE": 1.0,
+      "C-SERRAMENTI": 1.0,
+      "D-PRODOTTI": 1.0
+    }
+  },
+  "range_pct_tipo": {
+    "leggera": 0.1,
+    "moderata": 0.15,
+    "totale": 0.2
+  },
+  "iva_categoria": {
+    "A-EDILE": 0.1,
+    "B-FINITURE": 0.22,
+    "C-SERRAMENTI": 0.22,
+    "D-PRODOTTI": 0.1
+  },
+  "extra": {
+    "CSE_CSP": 800,
+    "pratiche": 1500
+  }
+}
