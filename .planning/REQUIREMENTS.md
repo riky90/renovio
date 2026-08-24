@@ -11,15 +11,15 @@
 ### Input & Stima (EST)
 - [ ] **EST-01**: L'utente inserisce città, mq e tipo di ristrutturazione (leggera/moderata/totale)
 - [ ] **EST-02**: Il sistema calcola una stima Free con i 4 totali di categoria (Edile, Finiture, Serramenti/Porte, Prodotti) come range min–max
-- [ ] **EST-03**: La stima applica l'IVA differenziata per categoria (Edile 10%, Finiture 22%, Serramenti, Prodotti 10%)
-- [ ] **EST-04**: La stima include i costi extra (CSE/CSP, pratiche amministrative) nel totale
+- [x] **EST-03**: La stima applica l'IVA differenziata per categoria (Edile 10%, Finiture 22%, Serramenti, Prodotti 10%)
+- [x] **EST-04**: La stima include i costi extra (CSE/CSP, pratiche amministrative) nel totale
 - [ ] **EST-05**: L'utente vede solo il prezzo cliente; il prezzo/coefficiente impresa non è mai esposto
-- [ ] **EST-06**: Se la città non ha un listino proprio, il sistema usa il listino più vicino e mostra un disclaimer
+- [x] **EST-06**: Se la città non ha un listino proprio, il sistema usa il listino più vicino e mostra un disclaimer
 
 ### Motore parametrico (ENG)
-- [ ] **ENG-01**: Motore Ibrido C: coefficienti €/m² per categoria (Free) e quantità-per-m² sulle voci-chiave (Pro), per ciascun tipo di ristrutturazione
+- [x] **ENG-01**: Motore Ibrido C: coefficienti €/m² per categoria (Free) e quantità-per-m² sulle voci-chiave (Pro), per ciascun tipo di ristrutturazione
 - [x] **ENG-02**: I coefficienti e i prezzi sono letti da database, non cablati nel codice
-- [ ] **ENG-03**: Bozza iniziale dei coefficienti estratta dal file computo (listino Reggio Emilia)
+- [x] **ENG-03**: Bozza iniziale dei coefficienti estratta dal file computo (listino Reggio Emilia)
 
 ### Pro & Monetizzazione (PRO)
 - [ ] **PRO-01**: L'utente Pro vede l'apertura per sottocategorie (a.1/a.2…) con voci e quantità stimate
