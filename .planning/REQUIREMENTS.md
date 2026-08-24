@@ -9,11 +9,11 @@
 - [ ] **AUTH-04**: Esiste un ruolo admin distinto dall'utente finale
 
 ### Input & Stima (EST)
-- [ ] **EST-01**: L'utente inserisce città, mq e tipo di ristrutturazione (leggera/moderata/totale)
-- [ ] **EST-02**: Il sistema calcola una stima Free con i 4 totali di categoria (Edile, Finiture, Serramenti/Porte, Prodotti) come range min–max
+- [x] **EST-01**: L'utente inserisce città, mq e tipo di ristrutturazione (leggera/moderata/totale)
+- [x] **EST-02**: Il sistema calcola una stima Free con i 4 totali di categoria (Edile, Finiture, Serramenti/Porte, Prodotti) come range min–max
 - [x] **EST-03**: La stima applica l'IVA differenziata per categoria (Edile 10%, Finiture 22%, Serramenti, Prodotti 10%)
 - [x] **EST-04**: La stima include i costi extra (CSE/CSP, pratiche amministrative) nel totale
-- [ ] **EST-05**: L'utente vede solo il prezzo cliente; il prezzo/coefficiente impresa non è mai esposto
+- [x] **EST-05**: L'utente vede solo il prezzo cliente; il prezzo/coefficiente impresa non è mai esposto
 - [x] **EST-06**: Se la città non ha un listino proprio, il sistema usa il listino più vicino e mostra un disclaimer
 
 ### Motore parametrico (ENG)

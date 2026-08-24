@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-08-24T11:48:54.307Z"
+last_updated: "2026-08-24T11:59:54.934Z"
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 4
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -17,17 +17,18 @@ progress:
 ## Current Position
 
 Phase: 01 (stima-free-end-to-end) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 
 - **Milestone:** v1 (MVP)
-- **Phase:** 1 — Stima Free end-to-end (**in esecuzione**, Plan 02/04 completato)
+- **Phase:** 1 — Stima Free end-to-end (**in esecuzione**, Plan 03/04 completato)
 - **Status:** Ready to execute
 - **Regola range (locked):** ±% solo sui lavori (4 categorie); extra fissi (€2.806 lordo); totale = Σ card + extra. Oracolo primario: 85 mq · totale = €47.985–€70.575.
 - **Stack (da RESEARCH):** FastAPI + SQLAlchemy 2.0 + Pydantic v2 + Postgres/Alembic · React 19 + Vite + TS 5.9 + react-query + Tailwind/shadcn · autocomplete comuni ISTAT bundlato offline.
 
 ## Last Session
 
-- **2026-08-24** — Eseguito Plan 01-02 (Seed + EstimationService): seed idempotente di `docs/seed-coefficienti-base.json` (1 listino RE default, 4 categorie, 3 tipi, 12 moltiplicatori, 2 extra, 2 alias comune_listino); `EstimationService.compute()` in Decimal puro, IVA per categoria, range ±% solo sui 4 subtotali di categoria, extra fissi mai scalati; `resolve_listino()` con fallback su RE. Oracolo primario 85mq·totale pinnato esatto (47985–70575); riconciliazione card+extra=totale verificata esatta; nessun leak di coefficiente_impresa nel risultato. TDD RED→GREEN, 12/12 test passanti. Vedi `01-02-SUMMARY.md`. Prima:
+- **2026-08-24** — Eseguito Plan 01-03 (Endpoint POST /api/v1/stima): `app/schemas/stima.py` (StimaRequest limitato + StimaResponse/CategoriaOut/ExtraOut/TotaleOut a campi chiusi, anti-leak); `app/routers/stima.py` risolve città + calcola via EstimationService + costruisce la risposta esplicitamente (mai model_validate su entità ORM); split imponibile/IVA per categoria recuperato algebricamente in modo esatto; `app/limiter.py` (nuovo modulo condiviso) applica rate limit 20/minute. Oracolo 85mq/totale confermato end-to-end su HTTP (47985–70575, fallback=False); Modena → fallback=True con disclaimer; 422 su mq/tipo/città fuori range. `test_no_leak.py` prova ricorsivamente (chiavi a ogni profondità + substring) che coefficiente_impresa/base_eur_mq/moltiplicatore/prezzo_impresa non appaiono mai nella risposta seriale, su RE + Modena × 3 tipi. TDD RED→GREEN, 26/26 test passanti. Vedi `01-03-SUMMARY.md`. Prima:
+  - Eseguito Plan 01-02 (Seed + EstimationService): seed idempotente di `docs/seed-coefficienti-base.json` (1 listino RE default, 4 categorie, 3 tipi, 12 moltiplicatori, 2 extra, 2 alias comune_listino); `EstimationService.compute()` in Decimal puro, IVA per categoria, range ±% solo sui 4 subtotali di categoria, extra fissi mai scalati; `resolve_listino()` con fallback su RE. Oracolo primario 85mq·totale pinnato esatto (47985–70575); riconciliazione card+extra=totale verificata esatta; nessun leak di coefficiente_impresa nel risultato. TDD RED→GREEN, 12/12 test passanti. Vedi `01-02-SUMMARY.md`. Prima:
   - Eseguito Plan 01-01 (Walking Skeleton): backend FastAPI/SQLAlchemy 2.0/Alembic + frontend React/Vite/TS scaffoldati; schema Fase 1 completo (8 tabelle) migrato; loop end-to-end `GET /api/v1/health/db` provato (Browser → API → DB → Browser). Vedi `01-01-SUMMARY.md`.
   - Init progetto (analisi computo Excel, decisioni fondanti, PROJECT/config/REQUIREMENTS/ROADMAP).
   - **Ambiente GSD riparato**: agenti installati (profilo full, `agents_installed: true`); shim `gsd-sdk` ripuntato al SDK reale `~/.claude/gsd-source/bin/gsd-sdk.js` (backup `.bak`); ledger migrazioni riparato azzerando i checksum (backup in `~/.claude/gsd-install-state.json.bak-*`). Nota: SDK sul PATH è 1.50-canary, workflow 1.42.3 — `query` compatibile.
@@ -35,7 +36,7 @@ Plan: 3 of 4
 
 ## Next Step
 
-- Eseguire Plan 01-03 della Fase 1 (endpoint POST /api/v1/stima + contratto API/frontend).
+- Eseguire Plan 01-04 della Fase 1 (frontend: form input città/mq/tipo + schermata risultato 4 card + totale, consumo di POST /api/v1/stima).
 
 ## Open Questions / To Decide
 
@@ -55,6 +56,7 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 |-------|------|----------|-------|
 | Phase 01-stima-free-end-to-end P01 | 25min | 3 tasks | 48 files |
 | Phase 01-stima-free-end-to-end P02 | 20min | 1 tasks | 7 files |
+| Phase 01-stima-free-end-to-end P03 | 20min | 2 tasks | 6 files |
 
 ## Decisions
 
@@ -63,3 +65,5 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 - [Phase 01-stima-free-end-to-end]: httpx2 aggiunto come dev dep backend (richiesto da starlette 1.6 TestClient, non previsto in RESEARCH)
 - [Phase 01-stima-free-end-to-end]: [Phase 01-stima-free-end-to-end P02]: comune_listino seeded con 2 righe alias RE (Reggio Emilia, Reggio nell'Emilia) anziche 1, per risolvere entrambi gli alias senza fallback
 - [Phase 01-stima-free-end-to-end]: [Phase 01-stima-free-end-to-end P02]: sys.path bootstrap in scripts/seed.py per supportare l'esecuzione diretta 'python scripts/seed.py' richiesta dal piano
+- [Phase 01-stima-free-end-to-end]: app/limiter.py estratto come modulo condiviso per evitare import circolare tra main.py e routers/stima.py nel decorare l'endpoint con il rate limit
+- [Phase 01-stima-free-end-to-end]: imponibile_min/max e iva_min/max per categoria recuperati algebricamente (totale/(1+iva_pct)) nel router, senza modificare EstimationService gia' bloccato dal Piano 02
