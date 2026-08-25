@@ -6,7 +6,7 @@
 - [x] **AUTH-01**: L'utente può registrarsi con email e password
 - [x] **AUTH-02**: L'utente può accedere con Google (OAuth)
 - [x] **AUTH-03**: L'utente resta autenticato tra le sessioni e può fare logout
-- [ ] **AUTH-04**: Esiste un ruolo admin distinto dall'utente finale
+- [x] **AUTH-04**: Esiste un ruolo admin distinto dall'utente finale
 
 ### Input & Stima (EST)
 - [x] **EST-01**: L'utente inserisce città, mq e tipo di ristrutturazione (leggera/moderata/totale)

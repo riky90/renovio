@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-08-25T11:52:49.310Z"
+last_updated: "2026-08-25T12:04:18.166Z"
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 13
-  completed_plans: 5
+  completed_plans: 6
   percent: 25
 ---
 
@@ -17,7 +17,7 @@ progress:
 ## Current Position
 
 Phase: 02 (account-pdf) — EXECUTING
-Plan: 2 of 9
+Plan: 3 of 9
 
 - **Milestone:** v1 (MVP)
 - **Phase:** 2
@@ -27,6 +27,7 @@ Plan: 2 of 9
 
 ## Last Session
 
+- **2026-08-25** — **Eseguito Plan 02-02 (Fondazione backend autenticazione)**: modelli ORM `User`/`UserSession`/`PasswordResetToken` + migrazione Alembic 0002 (verificata upgrade/downgrade/upgrade); `AuthService` con hashing Argon2id (`argon2-cffi`), sessione applicativa opaca DB-backed (`user_session.id` = `secrets.token_urlsafe(32)` come PK, mai JWT, revoca server-side pulita via DELETE), convergenza per-email (D-05), promozione admin via `ADMIN_EMAIL` (D-03); dependency `get_current_user`/`require_admin` (401/403); schemi anti-leak `RegistrazioneRequest`/`LoginRequest`/`UserOut` (mai `password_hash`). TDD RED→GREEN: `test_auth_service.py` 12/12 verdi, 38/38 suite totale verde. Aggiunta `email-validator` (richiesta da `pydantic.EmailStr`, anticipata dal piano). Vedi `02-02-SUMMARY.md`. Prima:
 - **2026-08-25** — **Eseguito Plan 02-01 (Setup dipendenze e config Account & PDF)**: gate legittimita' pacchetti pre-approvato dall'utente ("approvato" per tutti e 7 — argon2-cffi, Authlib, itsdangerous, weasyprint, jinja2, aiosmtplib, react-router); installati via `uv add --native-tls` (backend) e `npm install` (frontend); `Settings` esteso con SECRET_KEY, OAUTH_SESSION_SECRET, COOKIE_SECURE, GOOGLE_CLIENT_ID/SECRET, SMTP_*, FRONTEND_URL, ADMIN_EMAIL; `.env.example` documentato senza segreti reali. Vedi `02-01-SUMMARY.md`. Prima:
 - **2026-08-25** — **Discussione Fase 2 (Account & PDF) completata** → `02-CONTEXT.md` + `02-DISCUSSION-LOG.md` (commit `596453d`). 8 aree decise: (1) auth **self-hosted FastAPI**, `user` nel Postgres, password bcrypt/argon2 + Google via Authlib, **cookie httpOnly**, `role` user/admin col primo admin da seed/env (route protette già in Fase 2, UI admin → Fase 4); (2) verifica email **no** in v1, **reset via link** → serve email transazionale ora (riusata dai lead in Fase 4); (3) **un solo account per email** (Google confluisce); (4) registrazione **email+password+nome**; (5) **salva-al-signup** della stima corrente, poi auto-save da loggato; (6) **storico "Le mie stime"** + **snapshot** (input+risultato congelati, immutabili); (7) **PDF Free** solo-loggato, **server-side** dallo snapshot, 1 pagina completa, anti-leak; (8) branding PDF su palette Slate/blue-600 da UI-SPEC. Net-new: tabelle `user` + `stima`, nuova migrazione Alembic, dependency auth + guard admin, utility PDF + email. Prossimo: `/gsd-plan-phase 2`. Prima:
 - **2026-08-24** — Eseguito Plan 01-04 (Frontend Free end-to-end): shadcn (base radix, preset vega) inizializzato su Tailwind v4 con token Slate/blue-600 riscritti a mano da UI-SPEC (il CLI shadcn installato, v4.19.0, non ha più il preset "New York"); comuni.json ISTAT (7904 comuni) bundlato per l'autocomplete città 100% client-side; `EstimateForm` (città+mq+tipo, validazione italiana, CTA gated) + `CityAutocomplete` (selezionabile mouse/tastiera) + `EstimatePage` (form → `useMutation(postStima)` → riepilogo input + disclaimer condizionale + 4 card categoria + extra fissi + `TotalCard` accent + `SoftWallCta`), stati skeleton/error. `api/stima.ts` normalizza i campi Decimal-come-stringa di Pydantic v2 a number al confine API. Verificato dal vivo contro il backend reale: 85mq/totale/Reggio Emilia → 47.985–70.575 € (riconciliazione esatta), Modena → fallback con disclaimer; grep conferma nessun leak di coefficiente/impresa nel frontend. Checkpoint human-verify: approvato dall'utente dopo 2 fix richiesti in sessione (autocomplete non selezionabile — bug classico onBlur-vs-click di cmdk risolto; poi highlight riga attiva rinforzato a blue-600 pieno su richiesta). Vedi `01-04-SUMMARY.md`. **Fase 1 completa.** Prima:
@@ -62,6 +63,7 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 | Phase 01-stima-free-end-to-end P03 | 20min | 2 tasks | 6 files |
 | Phase 01-stima-free-end-to-end P04 | 58min | 2 tasks | 35 files |
 | Phase 02-account-pdf P01 | 12min | 2 tasks | 6 files |
+| Phase 02-account-pdf P02 | 4min | 2 tasks | 9 files |
 
 ## Decisions
 
@@ -78,3 +80,5 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 - [Phase 01-stima-free-end-to-end]: Highlight riga attiva autocomplete rafforzato a bg-primary/text-primary-foreground (blue-600 pieno) su richiesta utente al checkpoint
 - [Phase 02-account-pdf]: Gate pacchetti [ASSUMED] pre-approvato dall'utente ('approvato') per tutti e 7 (argon2-cffi, Authlib, itsdangerous, weasyprint, jinja2, aiosmtplib, react-router)
 - [Phase 02-account-pdf]: uv add --native-tls necessario anche in Fase 2 per bypassare il proxy aziendale con cert self-signed
+- [Phase 02-account-pdf]: email-validator aggiunto via uv add --native-tls (richiesto da pydantic EmailStr, anticipato dal piano)
+- [Phase 02-account-pdf]: sessione applicativa opaca DB-backed (user_session.id = secrets.token_urlsafe(32) come PK), mai JWT, per revoca server-side pulita (D-02)
