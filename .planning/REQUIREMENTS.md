@@ -3,9 +3,9 @@
 ## v1 Requirements
 
 ### Autenticazione (AUTH)
-- [ ] **AUTH-01**: L'utente può registrarsi con email e password
-- [ ] **AUTH-02**: L'utente può accedere con Google (OAuth)
-- [ ] **AUTH-03**: L'utente resta autenticato tra le sessioni e può fare logout
+- [x] **AUTH-01**: L'utente può registrarsi con email e password
+- [x] **AUTH-02**: L'utente può accedere con Google (OAuth)
+- [x] **AUTH-03**: L'utente resta autenticato tra le sessioni e può fare logout
 - [ ] **AUTH-04**: Esiste un ruolo admin distinto dall'utente finale
 
 ### Input & Stima (EST)
@@ -27,7 +27,7 @@
 - [ ] **PRO-03**: Gestione dell'abbonamento (attivazione/stato Pro sull'account)
 
 ### PDF (PDF)
-- [ ] **PDF-01**: L'utente Free può scaricare un PDF sintetico brandizzato della stima
+- [x] **PDF-01**: L'utente Free può scaricare un PDF sintetico brandizzato della stima
 - [ ] **PDF-02**: L'utente Pro può scaricare un PDF dettagliato brandizzato con le sottocategorie
 
 ### Lead & Contatto (LEAD)
