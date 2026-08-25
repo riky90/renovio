@@ -1,12 +1,13 @@
-"""/api/v1/me/stime — save/list/detail of the current user's estimates.
+"""/api/v1/me/stime — save/list/detail/pdf of the current user's estimates.
 
-Every endpoint sits behind `Depends(get_current_user)` (T-07-04, 401
+Every endpoint sits behind `Depends(get_current_user)` (T-07-04/T-08-04, 401
 without a session). POST freezes the client-supplied `StimaResponse`-shaped
 payload as-is into `risultato_json` (+ `schema_version`) — it NEVER calls
-`EstimationService` (D-09/Pitfall 5, no recompute). GET list/detail are
-filtered by `user_id == current_user.id`; detail returns 404 (not 403) when
-the row belongs to another user or doesn't exist, so ownership is never
-leaked (T-07-01, anti-IDOR, ASVS V4).
+`EstimationService` (D-09/Pitfall 5, no recompute). GET list/detail/pdf are
+filtered by `user_id == current_user.id`; detail/pdf return 404 (not 403)
+when the row belongs to another user or doesn't exist, so ownership is
+never leaked (T-07-01/T-08-02, anti-IDOR, ASVS V4). The pdf endpoint reads
+ONLY the frozen snapshot via `PdfService` (T-08-03, D-11).
 """
 
 from __future__ import annotations
@@ -14,6 +15,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -28,6 +30,7 @@ from app.schemas.stima_salvata import (
     StimaSalvataListItem,
     StimaSalvataOut,
 )
+from app.services.pdf_service import PdfService, build_filename
 
 router = APIRouter(prefix="/me", tags=["stime"])
 
@@ -115,4 +118,31 @@ def dettaglio_stima(
             categorie=[CategoriaOut(**c) for c in snapshot["categorie"]],
             extra=[ExtraOut(**e) for e in snapshot["extra"]],
             totale=TotaleOut(**snapshot["totale"]),
+        )
+
+
+@router.get("/stime/{stima_id}/pdf")
+def scarica_pdf_stima(
+    stima_id: int,
+    current_user: User = Depends(get_current_user),
+) -> StreamingResponse:
+    """Free branded PDF download (PDF-01, D-11/D-12). Reads ONLY the frozen
+    `risultato_json` snapshot via `PdfService` — never recomputes
+    (D-09/Pitfall 5, T-08-03)."""
+    with SessionLocal() as session:
+        stmt = select(StimaSalvata).where(
+            StimaSalvata.id == stima_id,
+            StimaSalvata.user_id == current_user.id,
+        )
+        row = session.execute(stmt).scalar_one_or_none()
+        if row is None:
+            raise HTTPException(404, "Stima non trovata")
+
+        pdf_bytes = PdfService.render(row, current_user)
+        filename = build_filename(row)
+
+        return StreamingResponse(
+            iter([pdf_bytes]),
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
         )
