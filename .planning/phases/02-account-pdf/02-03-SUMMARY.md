@@ -123,3 +123,6 @@ Nessuna azione utente richiesta per questo plan. `ADMIN_EMAIL` era gia' document
 ---
 *Phase: 02-account-pdf*
 *Completed: 2026-08-25*
+
+## Self-Check: PASSED
+All claimed files and commits verified present on disk / in git log.

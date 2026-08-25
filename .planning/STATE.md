@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-08-25T12:04:18.166Z"
+last_updated: "2026-08-25T12:14:55.409Z"
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 13
-  completed_plans: 6
+  completed_plans: 7
   percent: 25
 ---
 
@@ -17,7 +17,7 @@ progress:
 ## Current Position
 
 Phase: 02 (account-pdf) — EXECUTING
-Plan: 3 of 9
+Plan: 4 of 9
 
 - **Milestone:** v1 (MVP)
 - **Phase:** 2
@@ -27,6 +27,7 @@ Plan: 3 of 9
 
 ## Last Session
 
+- **2026-08-25** — **Eseguito Plan 02-03 (Endpoint HTTP auth + guard admin)**: `app/routers/auth.py` (POST `/registrati` con 409 su email duplicata, hash Argon2id, promozione admin, `create_session`, 201+`UserOut`; POST `/login` con `@limiter.limit("5/minute")` e messaggio 401 generico identico su email inesistente/password errata — anti-enumeration; POST `/logout` con revoca server-side; GET `/me` via `get_current_user`); `app/routers/admin.py` (GET `/ping` dietro `require_admin`, prova end-to-end di AUTH-04, nessuna UI); wiring in `main.py` (CORS invariato). TDD RED→GREEN: `test_auth_endpoints.py` 9/9 verdi su TestClient a cookie-jar reale (cookie httpOnly, logout→401, login corretto/errato, admin 200/403), 47/47 suite totale verde. Deviazione: `limiter.reset()` aggiunto in fixture per isolare i test dal rate-limit condiviso tra funzioni. Vedi `02-03-SUMMARY.md`. Prima:
 - **2026-08-25** — **Eseguito Plan 02-02 (Fondazione backend autenticazione)**: modelli ORM `User`/`UserSession`/`PasswordResetToken` + migrazione Alembic 0002 (verificata upgrade/downgrade/upgrade); `AuthService` con hashing Argon2id (`argon2-cffi`), sessione applicativa opaca DB-backed (`user_session.id` = `secrets.token_urlsafe(32)` come PK, mai JWT, revoca server-side pulita via DELETE), convergenza per-email (D-05), promozione admin via `ADMIN_EMAIL` (D-03); dependency `get_current_user`/`require_admin` (401/403); schemi anti-leak `RegistrazioneRequest`/`LoginRequest`/`UserOut` (mai `password_hash`). TDD RED→GREEN: `test_auth_service.py` 12/12 verdi, 38/38 suite totale verde. Aggiunta `email-validator` (richiesta da `pydantic.EmailStr`, anticipata dal piano). Vedi `02-02-SUMMARY.md`. Prima:
 - **2026-08-25** — **Eseguito Plan 02-01 (Setup dipendenze e config Account & PDF)**: gate legittimita' pacchetti pre-approvato dall'utente ("approvato" per tutti e 7 — argon2-cffi, Authlib, itsdangerous, weasyprint, jinja2, aiosmtplib, react-router); installati via `uv add --native-tls` (backend) e `npm install` (frontend); `Settings` esteso con SECRET_KEY, OAUTH_SESSION_SECRET, COOKIE_SECURE, GOOGLE_CLIENT_ID/SECRET, SMTP_*, FRONTEND_URL, ADMIN_EMAIL; `.env.example` documentato senza segreti reali. Vedi `02-01-SUMMARY.md`. Prima:
 - **2026-08-25** — **Discussione Fase 2 (Account & PDF) completata** → `02-CONTEXT.md` + `02-DISCUSSION-LOG.md` (commit `596453d`). 8 aree decise: (1) auth **self-hosted FastAPI**, `user` nel Postgres, password bcrypt/argon2 + Google via Authlib, **cookie httpOnly**, `role` user/admin col primo admin da seed/env (route protette già in Fase 2, UI admin → Fase 4); (2) verifica email **no** in v1, **reset via link** → serve email transazionale ora (riusata dai lead in Fase 4); (3) **un solo account per email** (Google confluisce); (4) registrazione **email+password+nome**; (5) **salva-al-signup** della stima corrente, poi auto-save da loggato; (6) **storico "Le mie stime"** + **snapshot** (input+risultato congelati, immutabili); (7) **PDF Free** solo-loggato, **server-side** dallo snapshot, 1 pagina completa, anti-leak; (8) branding PDF su palette Slate/blue-600 da UI-SPEC. Net-new: tabelle `user` + `stima`, nuova migrazione Alembic, dependency auth + guard admin, utility PDF + email. Prossimo: `/gsd-plan-phase 2`. Prima:
@@ -64,6 +65,7 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 | Phase 01-stima-free-end-to-end P04 | 58min | 2 tasks | 35 files |
 | Phase 02-account-pdf P01 | 12min | 2 tasks | 6 files |
 | Phase 02-account-pdf P02 | 4min | 2 tasks | 9 files |
+| Phase 02-account-pdf P03 | 15min | 2 tasks | 4 files |
 
 ## Decisions
 
@@ -82,3 +84,4 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 - [Phase 02-account-pdf]: uv add --native-tls necessario anche in Fase 2 per bypassare il proxy aziendale con cert self-signed
 - [Phase 02-account-pdf]: email-validator aggiunto via uv add --native-tls (richiesto da pydantic EmailStr, anticipato dal piano)
 - [Phase 02-account-pdf]: sessione applicativa opaca DB-backed (user_session.id = secrets.token_urlsafe(32) come PK), mai JWT, per revoca server-side pulita (D-02)
+- [Phase 02-account-pdf]: slowapi Limiter e' un singleton di processo: i test e2e su endpoint rate-limited devono chiamare limiter.reset() nella fixture per isolamento
