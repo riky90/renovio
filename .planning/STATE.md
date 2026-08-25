@@ -2,15 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: ready_to_plan
-last_updated: 2026-08-24T13:14:58.774Z
+status: planning
+last_updated: "2026-08-25T06:53:49.864Z"
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 4
   completed_plans: 4
   percent: 25
-stopped_at: Phase 01 complete (4/4) — ready to discuss Phase 2
 ---
 
 # Project State — ristruttura-stima
