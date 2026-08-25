@@ -23,10 +23,35 @@ export async function apiGet<T>(path: string): Promise<T> {
     throw new Error("VITE_API_BASE non configurato (vedi frontend/.env.example)");
   }
 
-  const response = await fetch(`${API_BASE}${path}`);
+  const response = await fetch(`${API_BASE}${path}`, {
+    credentials: "include",
+  });
 
   if (!response.ok) {
     throw new ApiError(response.status, `GET ${path} fallita con status ${response.status}`);
+  }
+
+  return (await response.json()) as T;
+}
+
+export async function apiPost<T>(path: string, body: unknown): Promise<T> {
+  if (!API_BASE) {
+    throw new Error("VITE_API_BASE non configurato (vedi frontend/.env.example)");
+  }
+
+  const response = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    throw new ApiError(response.status, `POST ${path} fallita con status ${response.status}`);
+  }
+
+  if (response.status === 204) {
+    return undefined as T;
   }
 
   return (await response.json()) as T;
