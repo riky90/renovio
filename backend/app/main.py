@@ -7,7 +7,7 @@ from slowapi.errors import RateLimitExceeded
 
 from app.config import settings
 from app.limiter import limiter
-from app.routers import health, stima
+from app.routers import admin, auth, health, stima
 
 app = FastAPI(title="ristruttura-stima API")
 
@@ -24,3 +24,5 @@ app.add_middleware(
 
 app.include_router(health.router, prefix="/api/v1")
 app.include_router(stima.router, prefix="/api/v1")
+app.include_router(auth.router, prefix="/api/v1")
+app.include_router(admin.router, prefix="/api/v1")

@@ -20,6 +20,7 @@ from sqlalchemy.orm import sessionmaker
 import app.db as db_module
 from app.config import settings
 from app.db import Base
+from app.limiter import limiter
 from app.main import app
 
 REGISTRAZIONE_URL = "/api/v1/auth/registrati"
@@ -31,6 +32,13 @@ ADMIN_PING_URL = "/api/v1/admin/ping"
 
 @pytest.fixture()
 def client(monkeypatch, tmp_path):
+    # `Limiter` state is a module-level singleton shared across the whole
+    # test process (see `app/limiter.py`): without a reset, the 5/minute
+    # cap on /registrati and /login (T-03-01) leaks between test functions
+    # and spuriously 429s later tests (Rule 3 - blocking issue, not in plan
+    # text but required for test isolation).
+    limiter.reset()
+
     db_path = tmp_path / "test_auth_endpoints.db"
     engine = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
