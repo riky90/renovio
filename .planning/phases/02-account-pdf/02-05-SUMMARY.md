@@ -151,3 +151,17 @@ Nessuna ulteriore azione richiesta oltre a quanto gia' fatto dall'utente (creden
 
 ## Self-Check: PASSED
 All claimed files and commits verified present on disk / in git log.
+
+## Verifica live (2026-08-25): bloccata dal proxy aziendale — decisione: rimandare a produzione
+
+Alla verifica live sulla macchina di sviluppo, `GET /api/v1/auth/google/login` restituisce **500** con:
+```
+httpx.ConnectError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain
+```
+**Causa**: il proxy aziendale intercetta il TLS (MITM) e inietta una CA self-signed nella catena; quando Authlib scarica i metadata OpenID di Google (`accounts.google.com/.well-known/openid-configuration`), `httpx` non si fida di quella CA. È la stessa radice che in Fase 1 ha richiesto `uv --native-tls` per gli install — ma `--native-tls` vale solo per il package manager, non per `httpx` a runtime. I test di questo plan mockano la rete, quindi non intercettano l'errore.
+
+**Non è un difetto del codice OAuth**: il flusso è corretto e funzionerà in produzione (Railway/Debian, nessun proxy MITM), esattamente come WeasyPrint (02-08) fallisce solo per il GTK mancante su Windows ma è corretto in prod.
+
+**Decisione dell'utente (2026-08-25)**: *rimandare a produzione*. Il codice resta invariato; nessun pacchetto aggiunto. La verifica live di Google va eseguita in ambiente prod o su una rete senza TLS-interception.
+
+**Fix opzionale futuro** (se serve testare Google in dev dietro il proxy): aggiungere `truststore` e chiamare `truststore.inject_into_ssl()` all'avvio dell'app, così `httpx` usa il trust store del SO (che contiene già la CA aziendale). È production-safe. Non applicato per scelta dell'utente.
