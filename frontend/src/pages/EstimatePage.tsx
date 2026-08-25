@@ -1,15 +1,18 @@
 import { useMutation } from "@tanstack/react-query";
+import { Link } from "react-router";
 import { CategoryCard } from "@/components/CategoryCard";
 import { EstimateForm, type EstimateFormValues } from "@/components/EstimateForm";
 import { FallbackDisclaimer } from "@/components/FallbackDisclaimer";
 import { SoftWallCta } from "@/components/SoftWallCta";
 import { TotalCard } from "@/components/TotalCard";
+import { AccountMenu } from "@/components/AccountMenu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { formatEur } from "@/lib/currency";
 import { postStima, type StimaResponse } from "@/api/stima";
+import { useAuth } from "@/hooks/useAuth";
 
 const TIPO_LABELS: Record<EstimateFormValues["tipo"], string> = {
   leggera: "Leggera",
@@ -24,6 +27,7 @@ export function EstimatePage() {
   const mutation = useMutation<StimaResponse, Error, EstimateFormValues>({
     mutationFn: postStima,
   });
+  const { user, isLoading: isAuthLoading } = useAuth();
 
   const result = mutation.data;
   const input = mutation.variables;
@@ -42,10 +46,21 @@ export function EstimatePage() {
 
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-[480px] flex-col gap-8 px-4 py-8 sm:max-w-[640px] sm:px-6 sm:py-12 lg:py-16">
-      <div className="flex flex-col gap-2 text-center">
-        <h1 className="text-lg font-semibold text-foreground">ristruttura-stima</h1>
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-lg font-semibold text-foreground">ristruttura-stima</h1>
+          {isAuthLoading ? (
+            <Skeleton className="size-8 rounded-full" />
+          ) : user ? (
+            <AccountMenu user={user} />
+          ) : (
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/accedi">Accedi</Link>
+            </Button>
+          )}
+        </div>
         {!showResult && !showLoading && !showError && (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-center text-sm text-muted-foreground">
             Inserisci i dati per ottenere la tua stima gratuita. Bastano tre informazioni:
             città, superficie in m² e tipo di ristrutturazione. La stima è gratuita e non
             richiede registrazione.
