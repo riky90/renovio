@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-last_updated: "2026-08-25T13:20:47.295Z"
+status: 02-08 completo, PDF Free scaricabile server-side dallo snapshot
+last_updated: "2026-08-25T13:30:53.951Z"
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 13
-  completed_plans: 10
+  completed_plans: 11
   percent: 25
 ---
 
@@ -17,16 +17,17 @@ progress:
 ## Current Position
 
 Phase: 02 (account-pdf) — EXECUTING
-Plan: 6 of 9 (02-04 — Task 1-2 completi, Task 3 checkpoint human-verify in attesa dell'utente)
+Plan: 02-08 completo (PDF-01 backend). Rimangono: 02-04 Task 3 (checkpoint human-verify ancora aperto, indipendente), 02-06 (non ancora eseguito), 02-09 (non ancora eseguito).
 
 - **Milestone:** v1 (MVP)
 - **Phase:** 2
-- **Status:** 02-04 codice completo, gate umano aperto (blocca la chiusura del plan, non i piani indipendenti successivi)
+- **Status:** 02-08 completo, PDF Free scaricabile server-side dallo snapshot
 - **Regola range (locked):** ±% solo sui lavori (4 categorie); extra fissi (€2.806 lordo); totale = Σ card + extra. Oracolo primario: 85 mq · totale = €47.985–€70.575.
 - **Stack (da RESEARCH):** FastAPI + SQLAlchemy 2.0 + Pydantic v2 + Postgres/Alembic · React 19 + Vite + TS 5.9 + react-query + Tailwind/shadcn · autocomplete comuni ISTAT bundlato offline.
 
 ## Last Session
 
+- **2026-08-25** — **Eseguito Plan 02-08 (PDF Free branded download backend)**: `app/templates/pdf_stima.html` (Jinja2, 1 pagina A4, CSS inline Slate/blue-600: wordmark+nome+data, riepilogo input, disclaimer amber condizionale, 4 card categoria a range tabular, blocco totale blue-600 IVA inclusa, footer legale); `app/services/pdf_service.py` (`PdfService.render(stima, user) -> bytes`, `build_filename()` slug città, WeasyPrint importato **lazy dentro `render()`** — non a livello modulo — proprio perché `import weasyprint` da solo lancia `OSError` su Windows senza GTK3, e un import top-level avrebbe rotto l'intero import di `app.main` e quindi l'intera test suite; nessun `EstimationService` nel modulo, D-09/Pitfall 5); `routers/stime_salvate.py` con `GET /me/stime/{id}/pdf` (stesso pattern ownership `id`+`user_id` -> 404, `StreamingResponse` `application/pdf` + `Content-Disposition attachment`). TDD RED→GREEN: `test_pdf.py` 5 test (2 byte-generating SKIPPED — GTK3/Pango/Cairo assente su questa macchina Windows, probe runtime via `OSError`; 3 sempre attivi — ownership 404, 401, guard statico anti-`EstimationService` — tutti verdi), 58/58 suite totale verde + 2 skip documentati. Azione utente per verifica locale completa: installare GTK3 runtime Windows o usare Docker/WSL2 (dettagli in `02-08-SUMMARY.md`); non blocca la produzione (Railway/Debian nativo). Vedi `02-08-SUMMARY.md`. Prima:
 - **2026-08-25** — **Eseguito Plan 02-04 (Frontend autenticazione: router, pagine, sessione) — Task 1-2 completati, Task 3 in attesa**: `frontend/src/api/client.ts` (`apiGet`/`apiPost` con `credentials:"include"`, gestione esplicita del 204 No Content per il logout); `frontend/src/api/auth.ts` (`postRegistrazione`/`postLogin`/`postLogout`/`getMe`, 401 su `/me` trattato come utente anonimo); `frontend/src/hooks/useAuth.ts` (`useQuery(['me'])` + mutazioni con invalidazione); shadcn `avatar`/`dropdown-menu` installati; `App.tsx` con `createBrowserRouter` (`/`, `/registrati`, `/accedi`); `RegistratiPage`/`AccediPage` (card 400px, validazione on-blur, CTA accent, bottone Google outline verso `/auth/google/login`); `AccountMenu` (avatar iniziali, "Le mie stime", "Esci"); `EstimatePage` con header a stato di sessione (AccountMenu/bottone Accedi/skeleton). `npx tsc --noEmit` verde su entrambi i task. **Task 3 (checkpoint `human-verify`, `gate="blocking"`) NON eseguito dall'agente**: l'utente ha scelto esplicitamente di eseguire la verifica manuale in browser (registrazione → cookie HttpOnly → logout → re-login → credenziali errate) — resta un gate aperto, nessuna approvazione ricevuta in questa sessione. Vedi `02-04-SUMMARY.md`. Prima:
 - **2026-08-25** — **Eseguito Plan 02-05 (Login Google OAuth + convergenza account)**: `app/oauth.py` (istanza `OAuth` Authlib registrata per Google, OIDC discovery, scope `openid email profile`); `app/main.py` con `SessionMiddleware` Starlette isolato (`OAUTH_SESSION_SECRET`, distinto dal cookie applicativo `session_id`, Pitfall 1); `routers/auth.py` con `GET /auth/google/login`/`GET /auth/google/callback` (convergenza D-05 via `get_or_create_user_by_email`, redirect errore generico T-05-04). Pre-flight: rilevate credenziali Google OAuth reali scritte per errore in `backend/.env.example` (tracciato) invece che in `backend/.env` (gitignorato) — corretto prima di qualunque commit, nessun segreto entrato in git. Checkpoint `blocking-human` per `httpx` (dipendenza runtime non dichiarata di `authlib.integrations.starlette_client`), confermato dall'utente e installato. TDD: `test_google_convergence.py` 2/2 verdi (nessun duplicato per stessa email, nome non sovrascritto su convergenza), 55/55 suite totale verde. Vedi `02-05-SUMMARY.md`. Prima:
 - **2026-08-25** — **Eseguito Plan 02-07 (Salvataggio stima e storico backend)**: `app/models/stima_salvata.py` (`StimaSalvata` ibrido: colonne scalari `citta`/`mq`/`tipo`/`totale_min`/`totale_max`/`fallback` + `risultato_json` su `sqlalchemy.JSON` generico, non JSONB, per portabilità SQLite dev/Postgres prod) + migrazione Alembic 0003 (catena 0001→0002→0003); `app/schemas/stima_salvata.py` (`StimaSalvataCreate`/`StimaSalvataListItem`/`StimaSalvataOut`, stesso pattern a campi chiusi anti-leak di `schemas/stima.py`); `app/routers/stime_salvate.py` con `POST /api/v1/me/stime` (congela lo snapshot `StimaResponse`-shaped già calcolato dal client con `schema_version:1`, MAI `EstimationService.compute()` — D-09/Pitfall 5), `GET /api/v1/me/stime` (storico dalle colonne scalari), `GET /api/v1/me/stime/{id}` (dettaglio filtrato su `id` E `user_id` → 404 anti-IDOR, non 403). TDD RED→GREEN: `test_stime_salvate.py` 6/6 verdi (salva/lista/dettaglio, anti-IDOR 404, anti-leak ricorsivo, 401 senza sessione), 53/53 suite totale verde. Vedi `02-07-SUMMARY.md`. Prima:
@@ -44,6 +45,8 @@ Plan: 6 of 9 (02-04 — Task 1-2 completi, Task 3 checkpoint human-verify in att
 
 ## Next Step
 
+- **02-08 completo**: PDF-01 backend fatto (endpoint, servizio, template). Utente puo' opzionalmente installare GTK3 runtime Windows (o usare Docker/WSL2) per verificare localmente i 2 test attualmente skippati in `test_pdf.py` — non bloccante.
+- **02-06 non ancora eseguito** (reset password via link email, D-04) e **02-09 non ancora eseguito** — plan del piano di Fase 2 rimasti da eseguire.
 - **02-04 Task 3 in attesa**: eseguire manualmente la verifica browser del checkpoint (`.planning/phases/02-account-pdf/02-04-PLAN.md`, Task 3 — registrazione, cookie HttpOnly, logout, re-login, credenziali errate) con backend (`:8000`) e frontend (`:5173`) attivi, poi confermare per chiudere il Plan 02-04.
 - **Fase 2 discussa** → `.planning/phases/02-account-pdf/02-CONTEXT.md` (auth self-hosted FastAPI, cookie httpOnly, ruolo admin da seed/env, salva-al-signup + storico snapshot, PDF Free server-side solo-loggato). Prossimo: `/gsd-plan-phase 2`.
 
@@ -73,6 +76,7 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 | Phase 02-account-pdf P07 | 12min | 2 tasks | 7 files |
 | Phase 02-account-pdf P05 | 25min | 3 tasks | 7 files |
 | Phase 02-account-pdf P04 | 20min | 2 tasks | 10 files |
+| Phase 02-account-pdf P08 | 18min | 2 tasks | 4 files |
 
 ## Decisions
 
@@ -97,6 +101,8 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 - [Phase 02-account-pdf]: httpx aggiunto come dipendenza runtime (richiesta da authlib.integrations.starlette_client, non prevista da RESEARCH) solo dopo checkpoint blocking-human e conferma esplicita dell'utente
 - [Phase 02-account-pdf]: SessionMiddleware Starlette (OAUTH_SESSION_SECRET) isolato dal cookie applicativo session_id per il flusso Google OAuth (Pitfall 1)
 - [Phase 02-account-pdf]: apiPost gestisce esplicitamente il 204 No Content (logout) restituendo undefined, per non far crashare response.json() su corpo vuoto
+- [Phase 02-account-pdf]: WeasyPrint importato lazy dentro PdfService.render() (non a livello modulo) perche' `import weasyprint` da solo lancia OSError su Windows senza GTK3 runtime — un import top-level avrebbe rotto l'import di app.main e quindi l'intera test suite backend, non solo i test PDF
+- [Phase 02-account-pdf]: test_pdf.py usa un probe runtime (tentativo import weasyprint, catch OSError) invece di un check hardcoded su sys.platform, cosi' i test byte-generating si riattivano automaticamente non appena GTK3 e' disponibile (Docker/WSL2/CI/Railway) senza modifiche al codice
 
 ### Blockers
 
