@@ -12,6 +12,7 @@ from app.models.catalogo import (
     TipoRistrutturazione,
 )
 from app.models.listino import Listino, ListinoCategoria
+from app.models.stima_salvata import StimaSalvata
 from app.models.user import PasswordResetToken, User, UserSession
 
 __all__ = [
@@ -23,6 +24,7 @@ __all__ = [
     "Moltiplicatore",
     "PasswordResetToken",
     "Referente",
+    "StimaSalvata",
     "TipoRistrutturazione",
     "User",
     "UserSession",
