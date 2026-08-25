@@ -134,5 +134,5 @@ Nessuna azione di configurazione esterna richiesta per Task 1/2. **Task 3 richie
 *Phase: 02-account-pdf*
 *Completed: 2026-08-25 (Task 1-2; Task 3 in attesa di verifica manuale dell'utente)*
 
-## Self-Check: PENDING VERIFICATION
-Vedi sezione "Self-Check" sotto per l'esito dei controlli automatici sui file/commit.
+## Self-Check: PASSED
+Tutti i file dichiarati (10) e i commit dichiarati (`59abe8d`, `b315a67`, `a8d9a15`) verificati presenti su disco / in git log. Task 3 resta come checkpoint umano aperto (non un fallimento del self-check: è per design il gate che l'utente ha scelto di eseguire manualmente).

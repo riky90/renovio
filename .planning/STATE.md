@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-08-25T13:09:02.357Z"
+last_updated: "2026-08-25T13:20:47.295Z"
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 13
-  completed_plans: 9
+  completed_plans: 10
   percent: 25
 ---
 
@@ -17,16 +17,17 @@ progress:
 ## Current Position
 
 Phase: 02 (account-pdf) — EXECUTING
-Plan: 6 of 9
+Plan: 6 of 9 (02-04 — Task 1-2 completi, Task 3 checkpoint human-verify in attesa dell'utente)
 
 - **Milestone:** v1 (MVP)
 - **Phase:** 2
-- **Status:** Ready to execute
+- **Status:** 02-04 codice completo, gate umano aperto (blocca la chiusura del plan, non i piani indipendenti successivi)
 - **Regola range (locked):** ±% solo sui lavori (4 categorie); extra fissi (€2.806 lordo); totale = Σ card + extra. Oracolo primario: 85 mq · totale = €47.985–€70.575.
 - **Stack (da RESEARCH):** FastAPI + SQLAlchemy 2.0 + Pydantic v2 + Postgres/Alembic · React 19 + Vite + TS 5.9 + react-query + Tailwind/shadcn · autocomplete comuni ISTAT bundlato offline.
 
 ## Last Session
 
+- **2026-08-25** — **Eseguito Plan 02-04 (Frontend autenticazione: router, pagine, sessione) — Task 1-2 completati, Task 3 in attesa**: `frontend/src/api/client.ts` (`apiGet`/`apiPost` con `credentials:"include"`, gestione esplicita del 204 No Content per il logout); `frontend/src/api/auth.ts` (`postRegistrazione`/`postLogin`/`postLogout`/`getMe`, 401 su `/me` trattato come utente anonimo); `frontend/src/hooks/useAuth.ts` (`useQuery(['me'])` + mutazioni con invalidazione); shadcn `avatar`/`dropdown-menu` installati; `App.tsx` con `createBrowserRouter` (`/`, `/registrati`, `/accedi`); `RegistratiPage`/`AccediPage` (card 400px, validazione on-blur, CTA accent, bottone Google outline verso `/auth/google/login`); `AccountMenu` (avatar iniziali, "Le mie stime", "Esci"); `EstimatePage` con header a stato di sessione (AccountMenu/bottone Accedi/skeleton). `npx tsc --noEmit` verde su entrambi i task. **Task 3 (checkpoint `human-verify`, `gate="blocking"`) NON eseguito dall'agente**: l'utente ha scelto esplicitamente di eseguire la verifica manuale in browser (registrazione → cookie HttpOnly → logout → re-login → credenziali errate) — resta un gate aperto, nessuna approvazione ricevuta in questa sessione. Vedi `02-04-SUMMARY.md`. Prima:
 - **2026-08-25** — **Eseguito Plan 02-05 (Login Google OAuth + convergenza account)**: `app/oauth.py` (istanza `OAuth` Authlib registrata per Google, OIDC discovery, scope `openid email profile`); `app/main.py` con `SessionMiddleware` Starlette isolato (`OAUTH_SESSION_SECRET`, distinto dal cookie applicativo `session_id`, Pitfall 1); `routers/auth.py` con `GET /auth/google/login`/`GET /auth/google/callback` (convergenza D-05 via `get_or_create_user_by_email`, redirect errore generico T-05-04). Pre-flight: rilevate credenziali Google OAuth reali scritte per errore in `backend/.env.example` (tracciato) invece che in `backend/.env` (gitignorato) — corretto prima di qualunque commit, nessun segreto entrato in git. Checkpoint `blocking-human` per `httpx` (dipendenza runtime non dichiarata di `authlib.integrations.starlette_client`), confermato dall'utente e installato. TDD: `test_google_convergence.py` 2/2 verdi (nessun duplicato per stessa email, nome non sovrascritto su convergenza), 55/55 suite totale verde. Vedi `02-05-SUMMARY.md`. Prima:
 - **2026-08-25** — **Eseguito Plan 02-07 (Salvataggio stima e storico backend)**: `app/models/stima_salvata.py` (`StimaSalvata` ibrido: colonne scalari `citta`/`mq`/`tipo`/`totale_min`/`totale_max`/`fallback` + `risultato_json` su `sqlalchemy.JSON` generico, non JSONB, per portabilità SQLite dev/Postgres prod) + migrazione Alembic 0003 (catena 0001→0002→0003); `app/schemas/stima_salvata.py` (`StimaSalvataCreate`/`StimaSalvataListItem`/`StimaSalvataOut`, stesso pattern a campi chiusi anti-leak di `schemas/stima.py`); `app/routers/stime_salvate.py` con `POST /api/v1/me/stime` (congela lo snapshot `StimaResponse`-shaped già calcolato dal client con `schema_version:1`, MAI `EstimationService.compute()` — D-09/Pitfall 5), `GET /api/v1/me/stime` (storico dalle colonne scalari), `GET /api/v1/me/stime/{id}` (dettaglio filtrato su `id` E `user_id` → 404 anti-IDOR, non 403). TDD RED→GREEN: `test_stime_salvate.py` 6/6 verdi (salva/lista/dettaglio, anti-IDOR 404, anti-leak ricorsivo, 401 senza sessione), 53/53 suite totale verde. Vedi `02-07-SUMMARY.md`. Prima:
 - **2026-08-25** — **Eseguito Plan 02-03 (Endpoint HTTP auth + guard admin)**: `app/routers/auth.py` (POST `/registrati` con 409 su email duplicata, hash Argon2id, promozione admin, `create_session`, 201+`UserOut`; POST `/login` con `@limiter.limit("5/minute")` e messaggio 401 generico identico su email inesistente/password errata — anti-enumeration; POST `/logout` con revoca server-side; GET `/me` via `get_current_user`); `app/routers/admin.py` (GET `/ping` dietro `require_admin`, prova end-to-end di AUTH-04, nessuna UI); wiring in `main.py` (CORS invariato). TDD RED→GREEN: `test_auth_endpoints.py` 9/9 verdi su TestClient a cookie-jar reale (cookie httpOnly, logout→401, login corretto/errato, admin 200/403), 47/47 suite totale verde. Deviazione: `limiter.reset()` aggiunto in fixture per isolare i test dal rate-limit condiviso tra funzioni. Vedi `02-03-SUMMARY.md`. Prima:
@@ -43,6 +44,7 @@ Plan: 6 of 9
 
 ## Next Step
 
+- **02-04 Task 3 in attesa**: eseguire manualmente la verifica browser del checkpoint (`.planning/phases/02-account-pdf/02-04-PLAN.md`, Task 3 — registrazione, cookie HttpOnly, logout, re-login, credenziali errate) con backend (`:8000`) e frontend (`:5173`) attivi, poi confermare per chiudere il Plan 02-04.
 - **Fase 2 discussa** → `.planning/phases/02-account-pdf/02-CONTEXT.md` (auth self-hosted FastAPI, cookie httpOnly, ruolo admin da seed/env, salva-al-signup + storico snapshot, PDF Free server-side solo-loggato). Prossimo: `/gsd-plan-phase 2`.
 
 ## Open Questions / To Decide
@@ -70,6 +72,7 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 | Phase 02-account-pdf P03 | 15min | 2 tasks | 4 files |
 | Phase 02-account-pdf P07 | 12min | 2 tasks | 7 files |
 | Phase 02-account-pdf P05 | 25min | 3 tasks | 7 files |
+| Phase 02-account-pdf P04 | 20min | 2 tasks | 10 files |
 
 ## Decisions
 
@@ -93,3 +96,8 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 - [Phase 02-account-pdf]: credenziali Google OAuth reali scritte per errore in backend/.env.example (tracciato) sono state spostate in backend/.env (gitignorato) prima di qualunque commit — nessun segreto entrato in git
 - [Phase 02-account-pdf]: httpx aggiunto come dipendenza runtime (richiesta da authlib.integrations.starlette_client, non prevista da RESEARCH) solo dopo checkpoint blocking-human e conferma esplicita dell'utente
 - [Phase 02-account-pdf]: SessionMiddleware Starlette (OAUTH_SESSION_SECRET) isolato dal cookie applicativo session_id per il flusso Google OAuth (Pitfall 1)
+- [Phase 02-account-pdf]: apiPost gestisce esplicitamente il 204 No Content (logout) restituendo undefined, per non far crashare response.json() su corpo vuoto
+
+### Blockers
+
+- 02-04 Task 3 (checkpoint human-verify, gate=blocking): verifica manuale browser di registrazione/login/logout/cookie HttpOnly in attesa dell'utente. Codice Task 1-2 (client credentials, router, pagine auth, AccountMenu) implementato e committato (59abe8d, b315a67).
