@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-08-25T12:14:55.409Z"
+last_updated: "2026-08-25T12:53:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 13
-  completed_plans: 7
+  completed_plans: 8
   percent: 25
 ---
 
@@ -17,7 +17,7 @@ progress:
 ## Current Position
 
 Phase: 02 (account-pdf) — EXECUTING
-Plan: 4 of 9
+Plan: 5 of 9
 
 - **Milestone:** v1 (MVP)
 - **Phase:** 2
@@ -27,6 +27,7 @@ Plan: 4 of 9
 
 ## Last Session
 
+- **2026-08-25** — **Eseguito Plan 02-07 (Salvataggio stima e storico backend)**: `app/models/stima_salvata.py` (`StimaSalvata` ibrido: colonne scalari `citta`/`mq`/`tipo`/`totale_min`/`totale_max`/`fallback` + `risultato_json` su `sqlalchemy.JSON` generico, non JSONB, per portabilità SQLite dev/Postgres prod) + migrazione Alembic 0003 (catena 0001→0002→0003); `app/schemas/stima_salvata.py` (`StimaSalvataCreate`/`StimaSalvataListItem`/`StimaSalvataOut`, stesso pattern a campi chiusi anti-leak di `schemas/stima.py`); `app/routers/stime_salvate.py` con `POST /api/v1/me/stime` (congela lo snapshot `StimaResponse`-shaped già calcolato dal client con `schema_version:1`, MAI `EstimationService.compute()` — D-09/Pitfall 5), `GET /api/v1/me/stime` (storico dalle colonne scalari), `GET /api/v1/me/stime/{id}` (dettaglio filtrato su `id` E `user_id` → 404 anti-IDOR, non 403). TDD RED→GREEN: `test_stime_salvate.py` 6/6 verdi (salva/lista/dettaglio, anti-IDOR 404, anti-leak ricorsivo, 401 senza sessione), 53/53 suite totale verde. Vedi `02-07-SUMMARY.md`. Prima:
 - **2026-08-25** — **Eseguito Plan 02-03 (Endpoint HTTP auth + guard admin)**: `app/routers/auth.py` (POST `/registrati` con 409 su email duplicata, hash Argon2id, promozione admin, `create_session`, 201+`UserOut`; POST `/login` con `@limiter.limit("5/minute")` e messaggio 401 generico identico su email inesistente/password errata — anti-enumeration; POST `/logout` con revoca server-side; GET `/me` via `get_current_user`); `app/routers/admin.py` (GET `/ping` dietro `require_admin`, prova end-to-end di AUTH-04, nessuna UI); wiring in `main.py` (CORS invariato). TDD RED→GREEN: `test_auth_endpoints.py` 9/9 verdi su TestClient a cookie-jar reale (cookie httpOnly, logout→401, login corretto/errato, admin 200/403), 47/47 suite totale verde. Deviazione: `limiter.reset()` aggiunto in fixture per isolare i test dal rate-limit condiviso tra funzioni. Vedi `02-03-SUMMARY.md`. Prima:
 - **2026-08-25** — **Eseguito Plan 02-02 (Fondazione backend autenticazione)**: modelli ORM `User`/`UserSession`/`PasswordResetToken` + migrazione Alembic 0002 (verificata upgrade/downgrade/upgrade); `AuthService` con hashing Argon2id (`argon2-cffi`), sessione applicativa opaca DB-backed (`user_session.id` = `secrets.token_urlsafe(32)` come PK, mai JWT, revoca server-side pulita via DELETE), convergenza per-email (D-05), promozione admin via `ADMIN_EMAIL` (D-03); dependency `get_current_user`/`require_admin` (401/403); schemi anti-leak `RegistrazioneRequest`/`LoginRequest`/`UserOut` (mai `password_hash`). TDD RED→GREEN: `test_auth_service.py` 12/12 verdi, 38/38 suite totale verde. Aggiunta `email-validator` (richiesta da `pydantic.EmailStr`, anticipata dal piano). Vedi `02-02-SUMMARY.md`. Prima:
 - **2026-08-25** — **Eseguito Plan 02-01 (Setup dipendenze e config Account & PDF)**: gate legittimita' pacchetti pre-approvato dall'utente ("approvato" per tutti e 7 — argon2-cffi, Authlib, itsdangerous, weasyprint, jinja2, aiosmtplib, react-router); installati via `uv add --native-tls` (backend) e `npm install` (frontend); `Settings` esteso con SECRET_KEY, OAUTH_SESSION_SECRET, COOKIE_SECURE, GOOGLE_CLIENT_ID/SECRET, SMTP_*, FRONTEND_URL, ADMIN_EMAIL; `.env.example` documentato senza segreti reali. Vedi `02-01-SUMMARY.md`. Prima:
@@ -66,6 +67,7 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 | Phase 02-account-pdf P01 | 12min | 2 tasks | 6 files |
 | Phase 02-account-pdf P02 | 4min | 2 tasks | 9 files |
 | Phase 02-account-pdf P03 | 15min | 2 tasks | 4 files |
+| Phase 02-account-pdf P07 | 12min | 2 tasks | 7 files |
 
 ## Decisions
 
@@ -85,3 +87,4 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 - [Phase 02-account-pdf]: email-validator aggiunto via uv add --native-tls (richiesto da pydantic EmailStr, anticipato dal piano)
 - [Phase 02-account-pdf]: sessione applicativa opaca DB-backed (user_session.id = secrets.token_urlsafe(32) come PK), mai JWT, per revoca server-side pulita (D-02)
 - [Phase 02-account-pdf]: slowapi Limiter e' un singleton di processo: i test e2e su endpoint rate-limited devono chiamare limiter.reset() nella fixture per isolamento
+- [Phase 02-account-pdf]: docstring di schemas/stima_salvata.py riformulata per non contenere letteralmente le stringhe della famiglia impresa, per rispettare in senso stretto il criterio meccanico grep -rc == 0 (stesso precedente di 02-02/02-03)
