@@ -14,10 +14,13 @@ enumeration (T-03-02).
 from __future__ import annotations
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
+from fastapi.responses import RedirectResponse
 
+from app.config import settings
 from app.db import SessionLocal
 from app.dependencies.auth import get_current_user
 from app.limiter import limiter
+from app.oauth import oauth
 from app.schemas.auth import LoginRequest, RegistrazioneRequest, UserOut
 from app.services.auth_service import SESSION_COOKIE_NAME, AuthService
 
@@ -88,3 +91,38 @@ def logout(
 @router.get("/me", response_model=UserOut)
 def me(user=Depends(get_current_user)) -> UserOut:
     return _to_user_out(user)
+
+
+@router.get("/google/login")
+async def google_login(request: Request):
+    """Reindirizza a Google. Lo `state` anti-CSRF e' generato e verificato
+    da Authlib (T-05-01), tenuto nel cookie `SessionMiddleware` isolato
+    (Pitfall 1) — mai nel cookie applicativo `session_id`."""
+    redirect_uri = request.url_for("google_callback")
+    return await oauth.google.authorize_redirect(request, redirect_uri)
+
+
+@router.get("/google/callback", name="google_callback")
+async def google_callback(request: Request):
+    """Verifica il token (Authlib), converge sull'unico account per email
+    (D-05, email GIA' verificata da Google) e crea la stessa sessione
+    applicativa del flusso email/password (Plan 02). Su errore di scambio,
+    redirect al frontend con un flag generico — nessun dettaglio tecnico
+    esposto (T-05-04)."""
+    try:
+        token = await oauth.google.authorize_access_token(request)
+    except Exception:
+        return RedirectResponse(url=f"{settings.FRONTEND_URL}?google_auth=errore")
+
+    userinfo = token.get("userinfo") or {}
+    email = userinfo.get("email")
+    if not email:
+        return RedirectResponse(url=f"{settings.FRONTEND_URL}?google_auth=errore")
+
+    with SessionLocal() as session:
+        user = AuthService.get_or_create_user_by_email(
+            session, email=email, nome=userinfo.get("given_name", "")
+        )
+        response = RedirectResponse(url=settings.FRONTEND_URL)
+        AuthService.create_session(session, user, response)
+        return response

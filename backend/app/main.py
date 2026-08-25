@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import settings
 from app.limiter import limiter
@@ -21,6 +22,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# SessionMiddleware di Starlette: usato SOLO da Authlib per lo scambio
+# state/PKCE del flusso Google OAuth (AUTH-02). Segreto DEDICATO
+# (OAUTH_SESSION_SECRET), cookie DISTINTO dal cookie applicativo
+# `session_id` gestito a mano da AuthService — mai lo stesso secret/nome,
+# altrimenti cookie-clobbering silenzioso tra i due meccanismi
+# (02-RESEARCH.md Pitfall 1, T-05-02).
+app.add_middleware(SessionMiddleware, secret_key=settings.OAUTH_SESSION_SECRET)
 
 app.include_router(health.router, prefix="/api/v1")
 app.include_router(stima.router, prefix="/api/v1")
