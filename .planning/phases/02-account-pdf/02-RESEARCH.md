@@ -488,7 +488,10 @@ def render_pdf(stima: StimaSalvata, user: User) -> bytes:
 
 **Se questa tabella fosse vuota:** non è il caso — 6 claim marcate `[ASSUMED]`, nessuna riguarda requisiti di dominio non negoziabili (CLAUDE.md), solo scelte tecniche di libreria entro lo spazio di discrezione di CONTEXT.md.
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+<!-- Q1 (CORS allow_credentials): verified già true in backend/app/main.py — nessuna azione. Q2 (schema_version): implementato in 02-07 dentro risultato_json. Q3 (credenziali Google Cloud): gestito da 02-05 Task 1, checkpoint:human-verify bloccante. -->
+
 
 1. **`allow_credentials=True` è già attivo in `main.py`?**
    - What we know: `config.py` espone già `cors_origins_list`, ma non abbiamo letto `main.py` per confermare se `CORSMiddleware` è già configurato con `allow_credentials=True`.
