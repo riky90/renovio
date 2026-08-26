@@ -37,6 +37,18 @@ Plans:
 4. L'utente scarica un PDF sintetico brandizzato della propria stima
 5. Esiste un ruolo admin separato dall'utente finale
 
+**Plans:** 8/9 plans complete
+Plans:
+- [x] 02-01-PLAN.md — Setup dipendenze e configurazione Account & PDF
+- [x] 02-02-PLAN.md — Fondazione backend autenticazione (AUTH-01, AUTH-03, AUTH-04)
+- [x] 02-03-PLAN.md — Endpoint HTTP auth + guard admin (AUTH-01, AUTH-03, AUTH-04)
+- [x] 02-04-PLAN.md — Frontend autenticazione (router, pagine, sessione) (AUTH-01, AUTH-03)
+- [x] 02-05-PLAN.md — Login Google (OAuth Authlib) + convergenza account (AUTH-02)
+- [x] 02-06-PLAN.md — Recupero password via email (D-04) (AUTH-01)
+- [x] 02-07-PLAN.md — Salvataggio stima e storico backend
+- [x] 02-08-PLAN.md — PDF Free branded download (PDF-01)
+- [ ] 02-09-PLAN.md — Save-at-signup, storico, download PDF frontend end-to-end (PDF-01, AUTH-03)
+
 ### Phase 3: Pro & dettaglio sottocategorie
 **Goal:** L'utente Pro sblocca l'apertura per sottocategorie (a.1/a.2) con voci e quantità stimate dal motore parametrico, dietro paywall, con PDF dettagliato.
 **Mode:** mvp

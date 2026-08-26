@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: 02-08 completo, PDF Free scaricabile server-side dallo snapshot
-last_updated: "2026-08-25T13:30:53.951Z"
+status: 02-06 completo, recupero password via email (D-04) end-to-end
+last_updated: "2026-08-26T13:15:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 13
-  completed_plans: 11
+  completed_plans: 13
   percent: 25
 ---
 
@@ -17,16 +17,17 @@ progress:
 ## Current Position
 
 Phase: 02 (account-pdf) — EXECUTING
-Plan: 02-08 completo (PDF-01 backend). Rimangono: 02-04 Task 3 (checkpoint human-verify ancora aperto, indipendente), 02-06 (non ancora eseguito), 02-09 (non ancora eseguito).
+Plan: 02-06 completo (recupero password via email, D-04). Rimangono: 02-04 Task 3 (checkpoint human-verify ancora aperto, indipendente), 02-09 (non ancora eseguito).
 
 - **Milestone:** v1 (MVP)
 - **Phase:** 2
-- **Status:** 02-08 completo, PDF Free scaricabile server-side dallo snapshot
+- **Status:** 02-06 completo, recupero password via email (D-04) end-to-end
 - **Regola range (locked):** ±% solo sui lavori (4 categorie); extra fissi (€2.806 lordo); totale = Σ card + extra. Oracolo primario: 85 mq · totale = €47.985–€70.575.
 - **Stack (da RESEARCH):** FastAPI + SQLAlchemy 2.0 + Pydantic v2 + Postgres/Alembic · React 19 + Vite + TS 5.9 + react-query + Tailwind/shadcn · autocomplete comuni ISTAT bundlato offline.
 
 ## Last Session
 
+- **2026-08-26** — **Eseguito Plan 02-06 (Recupero password via email, D-04)**: `app/services/reset_token.py` (`make_reset_token`/`read_reset_token` su `itsdangerous.URLSafeTimedSerializer(settings.SECRET_KEY, salt="password-reset")`, scadenza 1h, `SECRET_KEY` e non `OAUTH_SESSION_SECRET`); `app/services/email_service.py` (`send_email` async via `aiosmtplib`, fallback log-only quando `SMTP_HOST` e' vuoto in dev, mai un'eccezione a import/startup, riusabile tal quale in Fase 4 per i lead); `routers/auth.py` con `POST /auth/password-dimenticata` (sempre lo stesso 200, anti-enumeration T-06-01) e `POST /auth/reimposta-password` (uso singolo via `PasswordResetToken.used`, hash sha256 del token in DB, 400 generico su invalido/scaduto/gia' usato); `schemas/auth.py` con `PasswordDimenticataRequest`/`ReimpostaPasswordRequest`. Frontend: `PasswordDimenticataPage`/`ReimpostaPasswordPage` (input-group show/hide password), rotte registrate in `App.tsx`, `AccediPage` con conferma inline post-reset (deviazione Rule 2, richiesta esplicitamente dal testo del piano). TDD RED→GREEN: `test_password_reset.py` 8/8 verdi (token valido/scaduto/manomesso, anti-enumeration, flusso completo, replay 400, token invalido 400, password corta 422), 66/66 suite totale verde + 2 skip invariati (WeasyPrint/GTK3). `npx tsc --noEmit` pulito. Nota di ripresa: la sessione precedente si era interrotta per limite settimanale con un file di test RED iniziale (stesso contenuto) gia' scritto ma bloccante per la collection pytest — rimosso dal coordinatore e ricreato identico come primo passo di questa sessione, poi seguito normalmente dal ciclo RED→GREEN. Vedi `02-06-SUMMARY.md`. Prima:
 - **2026-08-25** — **Eseguito Plan 02-08 (PDF Free branded download backend)**: `app/templates/pdf_stima.html` (Jinja2, 1 pagina A4, CSS inline Slate/blue-600: wordmark+nome+data, riepilogo input, disclaimer amber condizionale, 4 card categoria a range tabular, blocco totale blue-600 IVA inclusa, footer legale); `app/services/pdf_service.py` (`PdfService.render(stima, user) -> bytes`, `build_filename()` slug città, WeasyPrint importato **lazy dentro `render()`** — non a livello modulo — proprio perché `import weasyprint` da solo lancia `OSError` su Windows senza GTK3, e un import top-level avrebbe rotto l'intero import di `app.main` e quindi l'intera test suite; nessun `EstimationService` nel modulo, D-09/Pitfall 5); `routers/stime_salvate.py` con `GET /me/stime/{id}/pdf` (stesso pattern ownership `id`+`user_id` -> 404, `StreamingResponse` `application/pdf` + `Content-Disposition attachment`). TDD RED→GREEN: `test_pdf.py` 5 test (2 byte-generating SKIPPED — GTK3/Pango/Cairo assente su questa macchina Windows, probe runtime via `OSError`; 3 sempre attivi — ownership 404, 401, guard statico anti-`EstimationService` — tutti verdi), 58/58 suite totale verde + 2 skip documentati. Azione utente per verifica locale completa: installare GTK3 runtime Windows o usare Docker/WSL2 (dettagli in `02-08-SUMMARY.md`); non blocca la produzione (Railway/Debian nativo). Vedi `02-08-SUMMARY.md`. Prima:
 - **2026-08-25** — **Eseguito Plan 02-04 (Frontend autenticazione: router, pagine, sessione) — Task 1-2 completati, Task 3 in attesa**: `frontend/src/api/client.ts` (`apiGet`/`apiPost` con `credentials:"include"`, gestione esplicita del 204 No Content per il logout); `frontend/src/api/auth.ts` (`postRegistrazione`/`postLogin`/`postLogout`/`getMe`, 401 su `/me` trattato come utente anonimo); `frontend/src/hooks/useAuth.ts` (`useQuery(['me'])` + mutazioni con invalidazione); shadcn `avatar`/`dropdown-menu` installati; `App.tsx` con `createBrowserRouter` (`/`, `/registrati`, `/accedi`); `RegistratiPage`/`AccediPage` (card 400px, validazione on-blur, CTA accent, bottone Google outline verso `/auth/google/login`); `AccountMenu` (avatar iniziali, "Le mie stime", "Esci"); `EstimatePage` con header a stato di sessione (AccountMenu/bottone Accedi/skeleton). `npx tsc --noEmit` verde su entrambi i task. **Task 3 (checkpoint `human-verify`, `gate="blocking"`) NON eseguito dall'agente**: l'utente ha scelto esplicitamente di eseguire la verifica manuale in browser (registrazione → cookie HttpOnly → logout → re-login → credenziali errate) — resta un gate aperto, nessuna approvazione ricevuta in questa sessione. Vedi `02-04-SUMMARY.md`. Prima:
 - **2026-08-25** — **Eseguito Plan 02-05 (Login Google OAuth + convergenza account)**: `app/oauth.py` (istanza `OAuth` Authlib registrata per Google, OIDC discovery, scope `openid email profile`); `app/main.py` con `SessionMiddleware` Starlette isolato (`OAUTH_SESSION_SECRET`, distinto dal cookie applicativo `session_id`, Pitfall 1); `routers/auth.py` con `GET /auth/google/login`/`GET /auth/google/callback` (convergenza D-05 via `get_or_create_user_by_email`, redirect errore generico T-05-04). Pre-flight: rilevate credenziali Google OAuth reali scritte per errore in `backend/.env.example` (tracciato) invece che in `backend/.env` (gitignorato) — corretto prima di qualunque commit, nessun segreto entrato in git. Checkpoint `blocking-human` per `httpx` (dipendenza runtime non dichiarata di `authlib.integrations.starlette_client`), confermato dall'utente e installato. TDD: `test_google_convergence.py` 2/2 verdi (nessun duplicato per stessa email, nome non sovrascritto su convergenza), 55/55 suite totale verde. Vedi `02-05-SUMMARY.md`. Prima:
@@ -45,8 +46,9 @@ Plan: 02-08 completo (PDF-01 backend). Rimangono: 02-04 Task 3 (checkpoint human
 
 ## Next Step
 
+- **02-06 completo**: recupero password via email (D-04) end-to-end, backend+frontend.
+- **02-09 non ancora eseguito** — ultimo plan dichiarato di Fase 2 rimasto da eseguire.
 - **02-08 completo**: PDF-01 backend fatto (endpoint, servizio, template). Utente puo' opzionalmente installare GTK3 runtime Windows (o usare Docker/WSL2) per verificare localmente i 2 test attualmente skippati in `test_pdf.py` — non bloccante.
-- **02-06 non ancora eseguito** (reset password via link email, D-04) e **02-09 non ancora eseguito** — plan del piano di Fase 2 rimasti da eseguire.
 - **02-04 Task 3 in attesa**: eseguire manualmente la verifica browser del checkpoint (`.planning/phases/02-account-pdf/02-04-PLAN.md`, Task 3 — registrazione, cookie HttpOnly, logout, re-login, credenziali errate) con backend (`:8000`) e frontend (`:5173`) attivi, poi confermare per chiudere il Plan 02-04.
 - **Fase 2 discussa** → `.planning/phases/02-account-pdf/02-CONTEXT.md` (auth self-hosted FastAPI, cookie httpOnly, ruolo admin da seed/env, salva-al-signup + storico snapshot, PDF Free server-side solo-loggato). Prossimo: `/gsd-plan-phase 2`.
 
@@ -77,6 +79,7 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 | Phase 02-account-pdf P05 | 25min | 3 tasks | 7 files |
 | Phase 02-account-pdf P04 | 20min | 2 tasks | 10 files |
 | Phase 02-account-pdf P08 | 18min | 2 tasks | 4 files |
+| Phase 02-account-pdf P06 | 25min | 2 tasks | 10 files |
 
 ## Decisions
 
@@ -103,6 +106,7 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 - [Phase 02-account-pdf]: apiPost gestisce esplicitamente il 204 No Content (logout) restituendo undefined, per non far crashare response.json() su corpo vuoto
 - [Phase 02-account-pdf]: WeasyPrint importato lazy dentro PdfService.render() (non a livello modulo) perche' `import weasyprint` da solo lancia OSError su Windows senza GTK3 runtime — un import top-level avrebbe rotto l'import di app.main e quindi l'intera test suite backend, non solo i test PDF
 - [Phase 02-account-pdf]: test_pdf.py usa un probe runtime (tentativo import weasyprint, catch OSError) invece di un check hardcoded su sys.platform, cosi' i test byte-generating si riattivano automaticamente non appena GTK3 e' disponibile (Docker/WSL2/CI/Railway) senza modifiche al codice
+- [Phase 02-account-pdf]: Reset password via itsdangerous+email_service (D-04): token firmato con SECRET_KEY, uso singolo via PasswordResetToken.used, email_service.send_email log-only quando SMTP_HOST e' vuoto in dev
 
 ### Blockers
 
