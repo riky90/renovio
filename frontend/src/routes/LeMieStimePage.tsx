@@ -46,6 +46,13 @@ export function LeMieStimePage() {
 
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-[480px] flex-col gap-8 px-4 py-8 sm:max-w-[640px] sm:px-6 sm:py-12 lg:py-16">
+      <Link
+        to="/"
+        className="self-start text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+      >
+        ← Torna alla home
+      </Link>
+
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-lg font-semibold text-foreground">Le mie stime</h1>
         {user && !isAuthLoading ? (
