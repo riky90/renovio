@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Fase 2 (account-pdf) COMPLETA e verificata (9/9 plan, 6/6 criteri) — pronti per Fase 3
-last_updated: "2026-08-26T15:10:00.000Z"
+status: 02-06 completo, recupero password via email (D-04) end-to-end
+last_updated: "2026-08-26T13:59:44.969Z"
 progress:
   total_phases: 4
   completed_phases: 2
