@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: 02-06 completo, recupero password via email (D-04) end-to-end
-last_updated: "2026-08-26T13:15:00.000Z"
+status: 02-09 Task 1-2 completi (codice), Task 3 checkpoint human-verify aperto
+last_updated: "2026-08-26T14:30:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 1
@@ -17,7 +17,7 @@ progress:
 ## Current Position
 
 Phase: 02 (account-pdf) — EXECUTING
-Plan: 02-06 completo (recupero password via email, D-04). Rimangono: 02-04 Task 3 (checkpoint human-verify ancora aperto, indipendente), 02-09 (non ancora eseguito).
+Plan: 02-09 Task 1-2 eseguiti e committati (codice completo, typecheck verde). **Task 3 (checkpoint human-verify, gate="blocking") non eseguito dall'agente**: verifica manuale in browser del flusso end-to-end anonimo->registrazione->salva->storico->PDF resta in carico all'utente. Fino ad allora il Plan 02-09 e quindi la Fase 2 restano aperti. Rimane inoltre 02-04 Task 3 (checkpoint indipendente, gia' segnalato come approvato in 02-04-SUMMARY.md).
 
 - **Milestone:** v1 (MVP)
 - **Phase:** 2
@@ -27,6 +27,7 @@ Plan: 02-06 completo (recupero password via email, D-04). Rimangono: 02-04 Task 
 
 ## Last Session
 
+- **2026-08-26** — **Eseguito Plan 02-09 (Save-at-signup, storico, download PDF frontend end-to-end) — Task 1-2 completati, Task 3 checkpoint aperto**: `api/stima.ts` esteso con `postSalvaStima`/`getStoricoStime`/`getStimaDettaglio` (credentials include, normalizzazione Decimal riusata) e `scaricaPdf` (fetch diretto del blob PDF, filename da `Content-Disposition`, download nativo via `<a download>`); `PdfDownloadButton` (stati idle/loading-spinner/errore inline, UI-SPEC F.4); `SavedEstimateDetail` (riusa CategoryCard/TotalCard/FallbackDisclaimer per lo snapshot immutabile, nessuna duplicazione layout); `LeMieStimePage` (`/le-mie-stime`, lista+empty state+dettaglio via stato locale, redirect `/accedi` se anonimo). `SoftWallCta` aggiornato: "Scarica PDF"/"Salva / crea account" navigano da anonimo a `/registrati` con `intent` + stima corrente via router `state` (mai in query param, T-09-04); "Passa a Pro"/"Contatta un professionista" restano soft-wall invariati; da loggato "Salva / crea account" e' nascosto e "Scarica PDF" diventa `PdfDownloadButton` diretto. `EstimatePage`: auto-save (D-07) via `postSalvaStima` quando loggato, un solo salvataggio per risultato. `RegistratiPage`/`AccediPage`: dopo signup/login con intent pendente, salvano il payload gia' mostrato (nessun ricalcolo, D-09) e avviano il download se richiesto, con conferma inline "Stima salvata nel tuo account.". Deviazione (Rule 2): gancio save-at-signup applicato anche ad `AccediPage.tsx` (non nei `files_modified` del piano) per completare simmetricamente il flusso richiesto dai `must_haves` del piano, stesso precedente di 02-06. `npx tsc --noEmit` verde su entrambi i task. **Task 3 (checkpoint `human-verify`, `gate="blocking"`) NON eseguito dall'agente**: verifica manuale in browser del flusso completo (anonimo->registrazione->salva->storico->PDF) resta all'utente; nota — il download PDF vero e proprio non e' verificabile end-to-end su questa macchina Windows per il limite GTK3 gia' noto (02-08). Vedi `02-09-SUMMARY.md`. Prima:
 - **2026-08-26** — **Eseguito Plan 02-06 (Recupero password via email, D-04)**: `app/services/reset_token.py` (`make_reset_token`/`read_reset_token` su `itsdangerous.URLSafeTimedSerializer(settings.SECRET_KEY, salt="password-reset")`, scadenza 1h, `SECRET_KEY` e non `OAUTH_SESSION_SECRET`); `app/services/email_service.py` (`send_email` async via `aiosmtplib`, fallback log-only quando `SMTP_HOST` e' vuoto in dev, mai un'eccezione a import/startup, riusabile tal quale in Fase 4 per i lead); `routers/auth.py` con `POST /auth/password-dimenticata` (sempre lo stesso 200, anti-enumeration T-06-01) e `POST /auth/reimposta-password` (uso singolo via `PasswordResetToken.used`, hash sha256 del token in DB, 400 generico su invalido/scaduto/gia' usato); `schemas/auth.py` con `PasswordDimenticataRequest`/`ReimpostaPasswordRequest`. Frontend: `PasswordDimenticataPage`/`ReimpostaPasswordPage` (input-group show/hide password), rotte registrate in `App.tsx`, `AccediPage` con conferma inline post-reset (deviazione Rule 2, richiesta esplicitamente dal testo del piano). TDD RED→GREEN: `test_password_reset.py` 8/8 verdi (token valido/scaduto/manomesso, anti-enumeration, flusso completo, replay 400, token invalido 400, password corta 422), 66/66 suite totale verde + 2 skip invariati (WeasyPrint/GTK3). `npx tsc --noEmit` pulito. Nota di ripresa: la sessione precedente si era interrotta per limite settimanale con un file di test RED iniziale (stesso contenuto) gia' scritto ma bloccante per la collection pytest — rimosso dal coordinatore e ricreato identico come primo passo di questa sessione, poi seguito normalmente dal ciclo RED→GREEN. Vedi `02-06-SUMMARY.md`. Prima:
 - **2026-08-25** — **Eseguito Plan 02-08 (PDF Free branded download backend)**: `app/templates/pdf_stima.html` (Jinja2, 1 pagina A4, CSS inline Slate/blue-600: wordmark+nome+data, riepilogo input, disclaimer amber condizionale, 4 card categoria a range tabular, blocco totale blue-600 IVA inclusa, footer legale); `app/services/pdf_service.py` (`PdfService.render(stima, user) -> bytes`, `build_filename()` slug città, WeasyPrint importato **lazy dentro `render()`** — non a livello modulo — proprio perché `import weasyprint` da solo lancia `OSError` su Windows senza GTK3, e un import top-level avrebbe rotto l'intero import di `app.main` e quindi l'intera test suite; nessun `EstimationService` nel modulo, D-09/Pitfall 5); `routers/stime_salvate.py` con `GET /me/stime/{id}/pdf` (stesso pattern ownership `id`+`user_id` -> 404, `StreamingResponse` `application/pdf` + `Content-Disposition attachment`). TDD RED→GREEN: `test_pdf.py` 5 test (2 byte-generating SKIPPED — GTK3/Pango/Cairo assente su questa macchina Windows, probe runtime via `OSError`; 3 sempre attivi — ownership 404, 401, guard statico anti-`EstimationService` — tutti verdi), 58/58 suite totale verde + 2 skip documentati. Azione utente per verifica locale completa: installare GTK3 runtime Windows o usare Docker/WSL2 (dettagli in `02-08-SUMMARY.md`); non blocca la produzione (Railway/Debian nativo). Vedi `02-08-SUMMARY.md`. Prima:
 - **2026-08-25** — **Eseguito Plan 02-04 (Frontend autenticazione: router, pagine, sessione) — Task 1-2 completati, Task 3 in attesa**: `frontend/src/api/client.ts` (`apiGet`/`apiPost` con `credentials:"include"`, gestione esplicita del 204 No Content per il logout); `frontend/src/api/auth.ts` (`postRegistrazione`/`postLogin`/`postLogout`/`getMe`, 401 su `/me` trattato come utente anonimo); `frontend/src/hooks/useAuth.ts` (`useQuery(['me'])` + mutazioni con invalidazione); shadcn `avatar`/`dropdown-menu` installati; `App.tsx` con `createBrowserRouter` (`/`, `/registrati`, `/accedi`); `RegistratiPage`/`AccediPage` (card 400px, validazione on-blur, CTA accent, bottone Google outline verso `/auth/google/login`); `AccountMenu` (avatar iniziali, "Le mie stime", "Esci"); `EstimatePage` con header a stato di sessione (AccountMenu/bottone Accedi/skeleton). `npx tsc --noEmit` verde su entrambi i task. **Task 3 (checkpoint `human-verify`, `gate="blocking"`) NON eseguito dall'agente**: l'utente ha scelto esplicitamente di eseguire la verifica manuale in browser (registrazione → cookie HttpOnly → logout → re-login → credenziali errate) — resta un gate aperto, nessuna approvazione ricevuta in questa sessione. Vedi `02-04-SUMMARY.md`. Prima:
@@ -46,10 +47,9 @@ Plan: 02-06 completo (recupero password via email, D-04). Rimangono: 02-04 Task 
 
 ## Next Step
 
-- **02-06 completo**: recupero password via email (D-04) end-to-end, backend+frontend.
-- **02-09 non ancora eseguito** — ultimo plan dichiarato di Fase 2 rimasto da eseguire.
+- **02-09 Task 1-2 completi (codice), Task 3 in attesa**: eseguire manualmente la verifica browser end-to-end (`.planning/phases/02-account-pdf/02-09-PLAN.md`, Task 3 — anonimo->registrazione con intent->salva->storico "Le mie stime"->dettaglio->download PDF->auto-save da loggato) con backend (`:8000`) e frontend (`:5173`) attivi, poi confermare per chiudere il Plan 02-09 e la Fase 2.
 - **02-08 completo**: PDF-01 backend fatto (endpoint, servizio, template). Utente puo' opzionalmente installare GTK3 runtime Windows (o usare Docker/WSL2) per verificare localmente i 2 test attualmente skippati in `test_pdf.py` — non bloccante.
-- **02-04 Task 3 in attesa**: eseguire manualmente la verifica browser del checkpoint (`.planning/phases/02-account-pdf/02-04-PLAN.md`, Task 3 — registrazione, cookie HttpOnly, logout, re-login, credenziali errate) con backend (`:8000`) e frontend (`:5173`) attivi, poi confermare per chiudere il Plan 02-04.
+- **02-04 Task 3**: gia' segnalato come approvato in `02-04-SUMMARY.md` (verifica browser registrazione/cookie HttpOnly/logout/re-login eseguita durante l'esecuzione della fase).
 - **Fase 2 discussa** → `.planning/phases/02-account-pdf/02-CONTEXT.md` (auth self-hosted FastAPI, cookie httpOnly, ruolo admin da seed/env, salva-al-signup + storico snapshot, PDF Free server-side solo-loggato). Prossimo: `/gsd-plan-phase 2`.
 
 ## Open Questions / To Decide
@@ -80,6 +80,7 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 | Phase 02-account-pdf P04 | 20min | 2 tasks | 10 files |
 | Phase 02-account-pdf P08 | 18min | 2 tasks | 4 files |
 | Phase 02-account-pdf P06 | 25min | 2 tasks | 10 files |
+| Phase 02-account-pdf P09 | 45min | 2 tasks (Task 3 checkpoint aperto) | 9 files |
 
 ## Decisions
 
@@ -107,7 +108,10 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 - [Phase 02-account-pdf]: WeasyPrint importato lazy dentro PdfService.render() (non a livello modulo) perche' `import weasyprint` da solo lancia OSError su Windows senza GTK3 runtime — un import top-level avrebbe rotto l'import di app.main e quindi l'intera test suite backend, non solo i test PDF
 - [Phase 02-account-pdf]: test_pdf.py usa un probe runtime (tentativo import weasyprint, catch OSError) invece di un check hardcoded su sys.platform, cosi' i test byte-generating si riattivano automaticamente non appena GTK3 e' disponibile (Docker/WSL2/CI/Railway) senza modifiche al codice
 - [Phase 02-account-pdf]: Reset password via itsdangerous+email_service (D-04): token firmato con SECRET_KEY, uso singolo via PasswordResetToken.used, email_service.send_email log-only quando SMTP_HOST e' vuoto in dev
+- [Phase 02-account-pdf]: la stima pendente (save-at-signup) viaggia da SoftWallCta a /registrati|/accedi esclusivamente via router state ({ pendingStima }), mai come query param — solo il flag intent e' in URL (T-09-04)
+- [Phase 02-account-pdf]: scaricaPdf usa un fetch diretto (non apiGet, che parserebbe JSON) per leggere il blob PDF e ricavare il filename da Content-Disposition, poi attiva il download nativo via <a download> temporaneo
+- [Phase 02-account-pdf]: gancio save-at-signup applicato sia a RegistratiPage.tsx (richiesto esplicitamente dal piano) sia ad AccediPage.tsx (non nei files_modified, aggiunto per Rule 2 — un utente con intent pendente puo' scegliere di accedere invece di registrarsi)
 
 ### Blockers
 
-- 02-04 Task 3 (checkpoint human-verify, gate=blocking): verifica manuale browser di registrazione/login/logout/cookie HttpOnly in attesa dell'utente. Codice Task 1-2 (client credentials, router, pagine auth, AccountMenu) implementato e committato (59abe8d, b315a67).
+- 02-09 Task 3 (checkpoint human-verify, gate=blocking): verifica manuale browser del flusso end-to-end anonimo->registrazione->salva->storico->PDF in attesa dell'utente. Codice Task 1-2 implementato e committato (2e1ac32, 4d069b0). Nota: il download PDF reale non e' verificabile su questa macchina Windows per il limite GTK3 gia' noto (02-08), non bloccante per il resto del flusso.

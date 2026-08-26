@@ -37,7 +37,7 @@ Plans:
 4. L'utente scarica un PDF sintetico brandizzato della propria stima
 5. Esiste un ruolo admin separato dall'utente finale
 
-**Plans:** 8/9 plans complete
+**Plans:** 8/9 plans complete (02-09 codice completo, checkpoint human-verify Task 3 aperto)
 Plans:
 - [x] 02-01-PLAN.md — Setup dipendenze e configurazione Account & PDF
 - [x] 02-02-PLAN.md — Fondazione backend autenticazione (AUTH-01, AUTH-03, AUTH-04)
@@ -47,7 +47,7 @@ Plans:
 - [x] 02-06-PLAN.md — Recupero password via email (D-04) (AUTH-01)
 - [x] 02-07-PLAN.md — Salvataggio stima e storico backend
 - [x] 02-08-PLAN.md — PDF Free branded download (PDF-01)
-- [ ] 02-09-PLAN.md — Save-at-signup, storico, download PDF frontend end-to-end (PDF-01, AUTH-03)
+- [ ] 02-09-PLAN.md — Save-at-signup, storico, download PDF frontend end-to-end (PDF-01, AUTH-03) — Task 1-2 completi, Task 3 checkpoint human-verify aperto
 
 ### Phase 3: Pro & dettaglio sottocategorie
 **Goal:** L'utente Pro sblocca l'apertura per sottocategorie (a.1/a.2) con voci e quantità stimate dal motore parametrico, dietro paywall, con PDF dettagliato.
