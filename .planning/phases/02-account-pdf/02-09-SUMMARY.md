@@ -142,3 +142,9 @@ Nessuna azione di configurazione esterna richiesta. **Task 3 richiede la verific
 
 ## Self-Check: PASSED
 Tutti i file dichiarati (9) e i commit dichiarati (`2e1ac32`, `4d069b0`) verificati presenti su disco / in git log.
+
+## Task 3 — Verifica manuale: APPROVATA (2026-08-26)
+
+Gate `human-verify` chiuso con l'utente. Durante la verifica l'utente ha richiesto una piccola aggiunta UX: un ritorno alla home dalla pagina "Le mie stime" (prima presente solo nell'empty state). Implementato come link **"← Torna alla home"** (`href="/"`) sempre visibile in cima a `LeMieStimePage.tsx` (vista lista e dettaglio), nello stile dei link di navigazione esistenti. Commit: `29ae7d6`. Verificato in-browser: il link renderizza e naviga alla home (`npx tsc --noEmit` pulito).
+
+Limite dev noto e accettato: il download PDF fallisce in locale per l'assenza del runtime GTK3 di WeasyPrint (`libgobject-2.0-0`) — comportamento corretto in produzione (Railway/Debian). Il resto del flusso (soft-wall → registrati, save-at-signup, auto-save da loggato, storico + dettaglio immutabile, soft-wall Pro/professionista invariati) è coperto dal codice e dalla verifica.
