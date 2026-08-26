@@ -30,3 +30,12 @@ class UserOut(BaseModel):
     nome: str
     role: str
     created_at: datetime
+
+
+class PasswordDimenticataRequest(BaseModel):
+    email: EmailStr
+
+
+class ReimpostaPasswordRequest(BaseModel):
+    token: str
+    password: str = Field(min_length=8)
