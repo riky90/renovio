@@ -1,10 +1,11 @@
 ---
 phase: 3
 slug: pro-dettaglio-sottocategorie
-status: draft
+status: verified
 shadcn_initialized: true
 preset: radix-vega (baseColor slate, cssVariables true, iconLibrary lucide)
 created: 2026-08-26
+reviewed_at: 2026-08-26
 ---
 
 # Phase 3 — UI Design Contract
