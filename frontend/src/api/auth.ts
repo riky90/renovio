@@ -21,6 +21,15 @@ export interface LoginInput {
   password: string;
 }
 
+export interface PasswordDimenticataInput {
+  email: string;
+}
+
+export interface ReimpostaPasswordInput {
+  token: string;
+  password: string;
+}
+
 /**
  * POST /auth/registrati — crea l'account e imposta il cookie httpOnly di
  * sessione sulla risposta (credentials:"include" via apiPost).
@@ -58,4 +67,21 @@ export async function getMe(): Promise<UserOut | null> {
     }
     throw error;
   }
+}
+
+/**
+ * POST /auth/password-dimenticata — richiede il link di reset. Il backend
+ * risponde sempre con lo stesso 200, che l'email esista o meno
+ * (anti-enumeration): la UI mostra sempre la stessa conferma.
+ */
+export async function postPasswordDimenticata(input: PasswordDimenticataInput): Promise<void> {
+  await apiPost<{ detail: string }>("/auth/password-dimenticata", input);
+}
+
+/**
+ * POST /auth/reimposta-password — imposta la nuova password a partire dal
+ * token ricevuto via email. 400 se il token e' invalido/scaduto/gia' usato.
+ */
+export async function postReimpostaPassword(input: ReimpostaPasswordInput): Promise<void> {
+  await apiPost<{ detail: string }>("/auth/reimposta-password", input);
 }

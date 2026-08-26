@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 const EMAIL_ERROR = "Inserisci un indirizzo email valido.";
 const PASSWORD_ERROR = "La password deve avere almeno 8 caratteri.";
 const CREDENZIALI_ERROR = "Email o password non corretti. Riprova.";
+const PASSWORD_REIMPOSTATA_MESSAGE = "Password reimpostata. Accedi con la nuova password.";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -22,6 +23,7 @@ export function AccediPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const intent = searchParams.get("intent");
+  const passwordReimpostata = searchParams.get("password_reimpostata") === "1";
   const { login } = useAuth();
 
   const [email, setEmail] = useState("");
@@ -49,6 +51,14 @@ export function AccediPage() {
     <main className="mx-auto flex min-h-svh w-full max-w-[400px] flex-col justify-center gap-8 px-4 py-8">
       <div className="flex flex-col gap-6 rounded-lg border border-border bg-card p-6 shadow-xs">
         <h1 className="text-xl font-semibold text-foreground">Accedi</h1>
+
+        {passwordReimpostata && !login.isError && (
+          <Alert className="border-amber-300 bg-amber-50 text-amber-800">
+            <AlertDescription className="text-amber-800">
+              {PASSWORD_REIMPOSTATA_MESSAGE}
+            </AlertDescription>
+          </Alert>
+        )}
 
         {login.isError && (
           <Alert variant="destructive">
