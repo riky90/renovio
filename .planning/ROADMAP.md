@@ -56,7 +56,7 @@ Plans:
 **Requirements:** PRO-01, PRO-02, PRO-03, PDF-02
 **Success Criteria:**
 1. L'utente Pro vede le sottocategorie con voci e quantità stimate; l'utente Free no
-2. Il motore parametrico sulle voci-chiave produce i dettagli coerenti con i totali della Fase 1
+2. Il dettaglio Pro è ricostruito bottom-up dalle voci del computo (quantità stimate da mq+tipo): è una stima più precisa e indipendente dal totale Free, non deve riconciliare con esso
 3. Il dettaglio è correttamente protetto da paywall in base allo stato Pro dell'account
 4. L'utente Pro scarica un PDF dettagliato brandizzato con le sottocategorie
 
