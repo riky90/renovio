@@ -2,22 +2,21 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: 02-09 Task 1-2 completi (codice), Task 3 checkpoint human-verify aperto
-last_updated: "2026-08-26T14:30:00.000Z"
+status: Fase 2 (account-pdf) COMPLETA e verificata (9/9 plan, 6/6 criteri) — pronti per Fase 3
+last_updated: "2026-08-26T15:10:00.000Z"
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 13
   completed_plans: 13
-  percent: 25
+  percent: 50
 ---
 
 # Project State — ristruttura-stima
 
 ## Current Position
 
-Phase: 02 (account-pdf) — EXECUTING
-Plan: 02-09 Task 1-2 eseguiti e committati (codice completo, typecheck verde). **Task 3 (checkpoint human-verify, gate="blocking") non eseguito dall'agente**: verifica manuale in browser del flusso end-to-end anonimo->registrazione->salva->storico->PDF resta in carico all'utente. Fino ad allora il Plan 02-09 e quindi la Fase 2 restano aperti. Rimane inoltre 02-04 Task 3 (checkpoint indipendente, gia' segnalato come approvato in 02-04-SUMMARY.md).
+Phase: 02 (account-pdf) — COMPLETA E VERIFICATA (02-VERIFICATION.md: PASSED, 6/6 criteri, 9/9 must-have; 66 test passed / 2 skipped). Tutti i checkpoint human-verify chiusi: 02-04 Task 3 (register/login/logout verificato in browser) e 02-09 Task 3 (flusso end-to-end approvato dall'utente, con aggiunta del link "Torna alla home"). Due limiti d'ambiente accettati e rimandati a produzione: Google OAuth (proxy aziendale TLS, 02-05) e render PDF WeasyPrint (GTK3 mancante su Windows, 02-08). Prossimo: Fase 03.
 
 - **Milestone:** v1 (MVP)
 - **Phase:** 2
@@ -47,10 +46,9 @@ Plan: 02-09 Task 1-2 eseguiti e committati (codice completo, typecheck verde). *
 
 ## Next Step
 
-- **02-09 Task 1-2 completi (codice), Task 3 in attesa**: eseguire manualmente la verifica browser end-to-end (`.planning/phases/02-account-pdf/02-09-PLAN.md`, Task 3 — anonimo->registrazione con intent->salva->storico "Le mie stime"->dettaglio->download PDF->auto-save da loggato) con backend (`:8000`) e frontend (`:5173`) attivi, poi confermare per chiudere il Plan 02-09 e la Fase 2.
-- **02-08 completo**: PDF-01 backend fatto (endpoint, servizio, template). Utente puo' opzionalmente installare GTK3 runtime Windows (o usare Docker/WSL2) per verificare localmente i 2 test attualmente skippati in `test_pdf.py` — non bloccante.
-- **02-04 Task 3**: gia' segnalato come approvato in `02-04-SUMMARY.md` (verifica browser registrazione/cookie HttpOnly/logout/re-login eseguita durante l'esecuzione della fase).
-- **Fase 2 discussa** → `.planning/phases/02-account-pdf/02-CONTEXT.md` (auth self-hosted FastAPI, cookie httpOnly, ruolo admin da seed/env, salva-al-signup + storico snapshot, PDF Free server-side solo-loggato). Prossimo: `/gsd-plan-phase 2`.
+- **Fase 2 COMPLETA e verificata** (`02-VERIFICATION.md`: PASSED). Prossimo passo: avviare la **Fase 3** (`/gsd-discuss-phase 3` poi `/gsd-plan-phase 3`).
+- **Verifica opzionale in produzione** (non bloccante per la Fase 2): confermare dal vivo il login Google (dietro rete senza proxy MITM) e la generazione PDF WeasyPrint (su Debian/Railway con GTK3 nativo). In dev restano attesi rispettivamente il 500 TLS e il 500 GTK.
+- **Nota dev**: il seed di Fase 1 (`backend/scripts/seed.py`, idempotente) va rieseguito se un ciclo di migrazioni azzera `dev.db`, altrimenti il motore di calcolo risponde con NoResultFound sul listino di default.
 
 ## Open Questions / To Decide
 
@@ -114,4 +112,4 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 
 ### Blockers
 
-- 02-09 Task 3 (checkpoint human-verify, gate=blocking): verifica manuale browser del flusso end-to-end anonimo->registrazione->salva->storico->PDF in attesa dell'utente. Codice Task 1-2 implementato e committato (2e1ac32, 4d069b0). Nota: il download PDF reale non e' verificabile su questa macchina Windows per il limite GTK3 gia' noto (02-08), non bloccante per il resto del flusso.
+- Nessuno. Fase 2 completa e verificata; tutti i checkpoint chiusi. I due limiti d'ambiente (Google OAuth proxy TLS, PDF GTK3 su Windows) sono accettati e rimandati alla verifica in produzione — non bloccanti.
