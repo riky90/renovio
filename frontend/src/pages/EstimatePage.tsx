@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { CategoryCard } from "@/components/CategoryCard";
@@ -11,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { formatEur } from "@/lib/currency";
-import { postStima, type StimaResponse } from "@/api/stima";
+import { postSalvaStima, postStima, type StimaResponse } from "@/api/stima";
 import { useAuth } from "@/hooks/useAuth";
 
 const TIPO_LABELS: Record<EstimateFormValues["tipo"], string> = {
@@ -29,8 +30,26 @@ export function EstimatePage() {
   });
   const { user, isLoading: isAuthLoading } = useAuth();
 
+  // Auto-save da loggato (D-07): nessun ricalcolo, si congela esattamente il
+  // payload gia' mostrato dal risultato corrente.
+  const saveMutation = useMutation({ mutationFn: postSalvaStima });
+
   const result = mutation.data;
   const input = mutation.variables;
+
+  useEffect(() => {
+    if (
+      mutation.isSuccess &&
+      result &&
+      user &&
+      saveMutation.data === undefined &&
+      !saveMutation.isPending &&
+      !saveMutation.isError
+    ) {
+      saveMutation.mutate(result);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mutation.isSuccess, result, user]);
 
   function handleSubmit(values: EstimateFormValues) {
     mutation.mutate(values);
@@ -38,6 +57,7 @@ export function EstimatePage() {
 
   function handleModifica() {
     mutation.reset();
+    saveMutation.reset();
   }
 
   const showResult = mutation.isSuccess && result;
@@ -124,7 +144,12 @@ export function EstimatePage() {
 
           <TotalCard totale={result.totale} />
 
-          <SoftWallCta />
+          <SoftWallCta
+            result={result}
+            isAuthenticated={!!user}
+            savedId={saveMutation.data?.id ?? null}
+            isSaving={saveMutation.isPending}
+          />
         </div>
       )}
     </main>
