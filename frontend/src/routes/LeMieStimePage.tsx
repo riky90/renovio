@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, Navigate } from "react-router";
 import { AccountMenu } from "@/components/AccountMenu";
+import { DettaglioProView } from "@/components/DettaglioProView";
 import { SavedEstimateDetail } from "@/components/SavedEstimateDetail";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -34,10 +35,14 @@ export function LeMieStimePage() {
     enabled: !!user,
   });
 
+  const isPro = !!user?.pro;
+
+  // Per un utente Pro la stima salvata è quella di dettaglio (P4): non serve
+  // lo snapshot base congelato, il dettaglio è ricalcolato da DettaglioProView.
   const dettaglioQuery = useQuery({
     queryKey: ["stima-dettaglio", selectedId],
     queryFn: () => getStimaDettaglio(selectedId as number),
-    enabled: selectedId !== null,
+    enabled: selectedId !== null && !isPro,
   });
 
   if (!isAuthLoading && !user) {
@@ -72,20 +77,26 @@ export function LeMieStimePage() {
             ← Le mie stime
           </button>
 
-          {dettaglioQuery.isLoading && (
-            <div className="flex flex-col gap-4">
-              <Skeleton className="h-14 w-full" />
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <Skeleton key={i} className="h-28 w-full" />
-                ))}
-              </div>
-              <Skeleton className="h-32 w-full" />
-            </div>
-          )}
+          {isPro ? (
+            <DettaglioProView stimaId={selectedId} />
+          ) : (
+            <>
+              {dettaglioQuery.isLoading && (
+                <div className="flex flex-col gap-4">
+                  <Skeleton className="h-14 w-full" />
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <Skeleton key={i} className="h-28 w-full" />
+                    ))}
+                  </div>
+                  <Skeleton className="h-32 w-full" />
+                </div>
+              )}
 
-          {dettaglioQuery.isSuccess && dettaglioQuery.data && (
-            <SavedEstimateDetail stima={dettaglioQuery.data} />
+              {dettaglioQuery.isSuccess && dettaglioQuery.data && (
+                <SavedEstimateDetail stima={dettaglioQuery.data} isPro={isPro} />
+              )}
+            </>
           )}
         </div>
       ) : (

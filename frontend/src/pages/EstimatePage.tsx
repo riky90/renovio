@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { CategoryCard } from "@/components/CategoryCard";
+import { DettaglioProView } from "@/components/DettaglioProView";
 import { EstimateForm, type EstimateFormValues } from "@/components/EstimateForm";
 import { FallbackDisclaimer } from "@/components/FallbackDisclaimer";
 import { SoftWallCta } from "@/components/SoftWallCta";
@@ -23,6 +24,8 @@ const TIPO_LABELS: Record<EstimateFormValues["tipo"], string> = {
 
 const ERROR_COPY =
   "Non siamo riusciti a calcolare la stima. Controlla i dati inseriti e riprova. Se il problema persiste, riprova tra qualche istante.";
+const SAVE_ERROR_COPY =
+  "Non siamo riusciti a salvare la stima per aprire il dettaglio. Riprova tra qualche istante.";
 
 export function EstimatePage() {
   const mutation = useMutation<StimaResponse, Error, EstimateFormValues>({
@@ -120,37 +123,64 @@ export function EstimatePage() {
         <div className="flex flex-col gap-8">
           <SummaryPanel input={input} onModifica={handleModifica} />
 
-          {result.fallback && result.disclaimer && (
-            <FallbackDisclaimer disclaimer={result.disclaimer} />
-          )}
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {result.categorie.map((categoria) => (
-              <CategoryCard key={categoria.code} categoria={categoria} isPro={!!user?.pro} />
-            ))}
-          </div>
-
-          <div className="flex flex-col gap-2">
-            {result.extra.map((extra) => (
-              <div
-                key={extra.code}
-                className="flex items-center justify-between text-sm text-muted-foreground"
-              >
-                <span>{extra.nome}</span>
-                <span className="tabular-nums">{formatEur(extra.importo)}</span>
+          {user?.pro ? (
+            // Pro (P2): dettaglio inline al posto del riepilogo a card, sulla
+            // stima appena auto-salvata. Finché il save è in corso mostra lo
+            // skeleton (enabled=false); se il save fallisce, offre un retry.
+            saveMutation.isError ? (
+              <div className="flex flex-col gap-4">
+                <Alert variant="destructive">
+                  <AlertDescription>{SAVE_ERROR_COPY}</AlertDescription>
+                </Alert>
+                <Button
+                  type="button"
+                  onClick={() => saveMutation.mutate(result)}
+                  className="w-full"
+                >
+                  Riprova
+                </Button>
               </div>
-            ))}
-          </div>
+            ) : (
+              <DettaglioProView
+                stimaId={saveMutation.data?.id ?? NaN}
+                enabled={saveMutation.data?.id != null}
+              />
+            )
+          ) : (
+            <>
+              {result.fallback && result.disclaimer && (
+                <FallbackDisclaimer disclaimer={result.disclaimer} />
+              )}
 
-          <TotalCard totale={result.totale} />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {result.categorie.map((categoria) => (
+                  <CategoryCard key={categoria.code} categoria={categoria} isPro={!!user?.pro} />
+                ))}
+              </div>
 
-          <SoftWallCta
-            result={result}
-            isAuthenticated={!!user}
-            savedId={saveMutation.data?.id ?? null}
-            isSaving={saveMutation.isPending}
-            isPro={!!user?.pro}
-          />
+              <div className="flex flex-col gap-2">
+                {result.extra.map((extra) => (
+                  <div
+                    key={extra.code}
+                    className="flex items-center justify-between text-sm text-muted-foreground"
+                  >
+                    <span>{extra.nome}</span>
+                    <span className="tabular-nums">{formatEur(extra.importo)}</span>
+                  </div>
+                ))}
+              </div>
+
+              <TotalCard totale={result.totale} />
+
+              <SoftWallCta
+                result={result}
+                isAuthenticated={!!user}
+                savedId={saveMutation.data?.id ?? null}
+                isSaving={saveMutation.isPending}
+                isPro={!!user?.pro}
+              />
+            </>
+          )}
         </div>
       )}
     </main>

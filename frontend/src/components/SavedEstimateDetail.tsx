@@ -14,6 +14,8 @@ const TIPO_LABELS: Record<string, string> = {
 
 interface SavedEstimateDetailProps {
   stima: StimaSalvataOut;
+  /** Utente Pro: nessun teaser di upgrade sulle card categoria (fix bug teaser). */
+  isPro?: boolean;
 }
 
 /**
@@ -23,7 +25,7 @@ interface SavedEstimateDetailProps {
  * ricalcolato. Nessun bottone soft-wall: l'utente e' gia' autenticato,
  * l'unica azione e' "Scarica PDF".
  */
-export function SavedEstimateDetail({ stima }: SavedEstimateDetailProps) {
+export function SavedEstimateDetail({ stima, isPro = false }: SavedEstimateDetailProps) {
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-secondary px-4 py-3">
@@ -38,7 +40,7 @@ export function SavedEstimateDetail({ stima }: SavedEstimateDetailProps) {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {stima.categorie.map((categoria) => (
-          <CategoryCard key={categoria.code} categoria={categoria} />
+          <CategoryCard key={categoria.code} categoria={categoria} isPro={isPro} />
         ))}
       </div>
 

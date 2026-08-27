@@ -14,12 +14,16 @@ export interface SottocategoriaOut {
   nome: string;
   famiglia: "gerarchica" | "catalogo";
   voci: VoceOut[];
+  totale_min: number;
+  totale_max: number;
 }
 
 export interface CategoriaDettagliataOut {
   code: string;
   nome: string;
   sottocategorie: SottocategoriaOut[];
+  totale_min: number;
+  totale_max: number;
 }
 
 export interface RisposteDomande {
@@ -30,6 +34,8 @@ export interface RisposteDomande {
 
 export interface DettaglioProOut {
   categorie: CategoriaDettagliataOut[];
+  totale_min: number;
+  totale_max: number;
   risposte: RisposteDomande;
 }
 
@@ -53,16 +59,22 @@ interface RawSottocategoriaOut {
   nome: string;
   famiglia: "gerarchica" | "catalogo";
   voci: RawVoceOut[];
+  totale_min: unknown;
+  totale_max: unknown;
 }
 
 interface RawCategoriaDettagliataOut {
   code: string;
   nome: string;
   sottocategorie: RawSottocategoriaOut[];
+  totale_min: unknown;
+  totale_max: unknown;
 }
 
 interface RawDettaglioProOut {
   categorie: RawCategoriaDettagliataOut[];
+  totale_min: unknown;
+  totale_max: unknown;
   risposte: RisposteDomande;
 }
 
@@ -87,8 +99,14 @@ function normalizeDettaglioPro(raw: RawDettaglioProOut): DettaglioProOut {
           prezzo_min: toNumber(voce.prezzo_min),
           prezzo_max: toNumber(voce.prezzo_max),
         })),
+        totale_min: toNumber(sotto.totale_min),
+        totale_max: toNumber(sotto.totale_max),
       })),
+      totale_min: toNumber(cat.totale_min),
+      totale_max: toNumber(cat.totale_max),
     })),
+    totale_min: toNumber(raw.totale_min),
+    totale_max: toNumber(raw.totale_max),
     risposte: raw.risposte,
   };
 }

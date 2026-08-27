@@ -38,12 +38,24 @@ export function SottocategoriaAccordion({ categoria }: SottocategoriaAccordionPr
                   {sottocategoria.voci.map((voce, voceIndex) => (
                     <VoceRow key={voce.codice ?? voceIndex} voce={voce} />
                   ))}
+                  <div className="flex items-baseline justify-between gap-3 pt-2 text-sm font-medium text-foreground">
+                    <span className="text-muted-foreground">Subtotale</span>
+                    <span className="tabular-nums">
+                      {formatEurRange(sottocategoria.totale_min, sottocategoria.totale_max)}
+                    </span>
+                  </div>
                 </div>
               )}
             </AccordionContent>
           </AccordionItem>
         ))}
       </Accordion>
+      <div className="flex items-baseline justify-between gap-3 px-4 text-sm font-semibold text-foreground">
+        <span>Totale {categoria.nome}</span>
+        <span className="tabular-nums">
+          {formatEurRange(categoria.totale_min, categoria.totale_max)}
+        </span>
+      </div>
     </div>
   );
 }
