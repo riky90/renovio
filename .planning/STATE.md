@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-08-27T07:12:44.618Z"
+last_updated: "2026-08-27T07:20:53.055Z"
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 19
-  completed_plans: 17
+  completed_plans: 18
   percent: 50
 ---
 
@@ -17,7 +17,7 @@ progress:
 ## Current Position
 
 Phase: 03 (pro-dettaglio-sottocategorie) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 
 - **Milestone:** v1 (MVP)
 - **Phase:** 3
@@ -27,6 +27,7 @@ Plan: 5 of 6
 
 ## Last Session
 
+- **2026-08-27** — **Eseguito Plan 03-04 (PDF Pro dettagliato)**: `app/services/pdf_service.py` esteso con `render_pro()` (import WeasyPrint lazy invariato, docstring di modulo che documenta l'asimmetria deliberata recompute-live/Pro vs snapshot-frozen/Free, Pitfall 2) e `build_filename_pro()`; `app/templates/pdf_stima_pro.html` (multi-pagina Jinja2/WeasyPrint, branding Slate/blue-600 con badge PRO, disclaimer di non-riconciliazione D-01, iterazione categoria→sottocategoria→voci a range `€ min – € max`, paginazione `@page`/`break-inside: avoid`, mai dati impresa); `app/routers/dettaglio_pro.py` con `_compute_dettaglio()` estratto come unico punto di calcolo condiviso da GET dettaglio-pro, POST risposte e il nuovo `GET /me/stime/{id}/pdf-pro` (dietro `require_pro`, ownership 404 anti-IDOR, `StreamingResponse` application/pdf) — parità schermata/PDF garantita by-construction, non da un test a posteriori. `test_pdf_pro.py`: matrice 401/403/404 sempre attiva (non richiede GTK3), test di parità numerica esplicito (`_compute_dettaglio()` vs risposta HTTP del GET JSON), byte-generating skip-graceful anti-leak, guard statico anti-`EstimationService`. Deviazione (Rule 1): commento HTML del template riformulato per non contenere letteralmente le stringhe impresa vietate, stesso precedente 02/03-03 per il criterio grep meccanico. Suite backend completa 106/106 passed + 4 skip invariati (GTK3). Vedi `03-04-SUMMARY.md`. Prima:
 - **2026-08-27** — **Eseguito Plan 03-03 (Motore Pro bottom-up + endpoint dettaglio dietro paywall)**: `app/services/dettaglio_pro.py` (`DettaglioProService.compute()`, Decimal puro, sibling di `EstimationService`: itera Categoria→Sottocategoria→Voce, quantita da coefficiente-per-mq o da domanda-mirata/default-conteggio, range per-voce riusando `TipoRistrutturazione.range_pct`, nessun campo impresa, nessun import del motore Free/D-01) + oracolo pinnato su `A.1.1.1`/`A.0.3` dal seed reale; `app/schemas/dettaglio_pro.py` (DTO chiusi anti-leak + `RisposteDomandeRequest` bounded ASVS V5); `app/routers/dettaglio_pro.py` con `GET /me/stime/{id}/dettaglio-pro` + `POST .../dettaglio-pro/risposte` dietro `require_pro`, ownership 404 anti-IDOR, risposte persistite in `risposte_pro_json` cosi' schermata e futuro PDF non divergono (Pitfall 3); wiring in `main.py`. TDD: `test_dettaglio_pro.py` + `test_dettaglio_pro_paywall.py` (oracolo, domanda mirata, matrice 401/403/200, anti-IDOR, anti-leak ricorsivo, integrazione POST-risposte→GET), suite backend completa 101/101 passed + 2 skip invariati (GTK3). Deviazione (Rule 1/2): strategia di calcolo quantita estesa oltre il testo letterale del piano per coprire le righe seedate con `default_conteggio` senza `domanda_mirata_key` (150/300 righe, voci a conteggio non mirate). Vedi `03-03-SUMMARY.md`. Prima:
 - **2026-08-27** — **Eseguito Plan 03-02 (Fondazione dati motore Pro: schema + seed sottocategorie/voci)**: `app/models/dettaglio_pro.py` (`Sottocategoria`/`Voce`/`CoefficienteQuantitaVoce`, `codice` nullable su entrambe le prime due, discriminatore `famiglia` gerarchica|catalogo, nessuna colonna margine/prezzo impresa su `Voce`, D-10) + migrazione Alembic 0005 (catena 0001→0005, upgrade/downgrade/upgrade verificato) + `StimaSalvata.risposte_pro_json` nullable (Pitfall 3). Checkpoint `blocking-human` per `openpyxl` (dev-only, script di estrazione one-off) approvato dall'utente ("approvato"), installato via `uv add --dev openpyxl --native-tls`. `backend/scripts/extract_dettaglio_pro.py` (confinato a `scripts/`, mai importato sotto `app/`) legge `docs/computo-base-reggio-emilia.xlsx` e distingue righe-intestazione da righe-voce (Pitfall 1); deviazione Rule 1 in sessione: il primo algoritmo perdeva silenziosamente le varianti lettera (piatto doccia/vasca/WC/bidet/radiatori/condizionatore) del blocco "Allestimento cantiere" del foglio A-EDILE, che riusa i codici A.1..A.8 prima delle vere sottocategorie — riscritta la state machine con la riga "TOTALE ALLESTIMENTO DI CANTIERE" come confine esplicito, isolando il blocco in una Sottocategoria sintetica `A.0`. Prodotto `docs/seed-dettaglio-pro.json` (21 sottocategorie, 191 voci uniche in DB, coefficienti quantita-per-m2/domanda-mirata bozza per i 3 tipi secondo le regole UM di D-05). `scripts/seed.py` esteso con `seed_dettaglio_pro()` nella STESSA funzione `seed()` idempotente (D-12/Pitfall 5), upsert per chiave naturale su sottocategoria/voce/coefficiente_qta_voce. TDD: `test_seed_dettaglio.py` 4/4 verdi (copertura 4 categorie, idempotenza, coefficiente per ogni tipo su ogni voce, nessuna colonna impresa), suite backend completa 86/86 passed + 2 skip invariati (GTK3). Vedi `03-02-SUMMARY.md`. Prima:
 - **2026-08-27** — **Eseguito Plan 03-01 (Stato Pro/tessera abbonamento + paywall server-side)**: `app/models/subscription.py` (`Subscription`: stato/scaduta_il/piano_code, nessuna colonna prezzo/coefficiente impresa, D-10) + migrazione Alembic 0004 (catena 0001→0004, upgrade/downgrade/upgrade verificato, seed rieseguito post-migrazione D-12); `app/dependencies/auth.py` con `subscription_is_active`/`require_pro` (401 anonimo via `get_current_user`, 403 "Funzione riservata agli utenti Pro" se non attivo, stesso guard naive/aware datetime di `get_current_user`); `schemas/subscription.py` (`SubscriptionOut`/`AttivaProResponse` a campi chiusi); `UserOut.pro: bool`; `routers/subscription.py` con `POST /me/pro/attiva` (stub production-shaped D-07, rate-limited 10/minute, upsert idempotente) e `POST /admin/pro/attiva` (dietro `require_admin`, attivazione manuale); `routers/auth.py::_to_user_out` esteso per popolare `pro`. TDD: `test_subscription.py` 16/16 verdi (modello, subscription_is_active attivo/scaduto/assente, require_pro 403, attivazione end-to-end su `/auth/me`, idempotenza riga singola, 401/403, anti-leak), suite backend completa 82/82 passed + 2 skip invariati (GTK3). Deviazione (Rule 1): `test_auth_service.py::test_user_out_never_contains_password_hash` aggiornato con il nuovo campo obbligatorio `pro=False`. Vedi `03-01-SUMMARY.md`. Prima:
@@ -87,6 +88,7 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 | Phase 03-pro-dettaglio-sottocategorie PP02 | 27min | 3 tasks | 10 files |
 | Phase 03-pro-dettaglio-sottocategorie P05 | 15min | 2 tasks | 8 files |
 | Phase 03-pro-dettaglio-sottocategorie P03 | 35min | 2 tasks | 6 files |
+| Phase 03-pro-dettaglio-sottocategorie P04 | 20min | 2 tasks | 4 files |
 
 ## Decisions
 
@@ -127,6 +129,8 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 - [Phase 03-pro-dettaglio-sottocategorie]: EstimatePage.tsx modificato oltre ai files_modified dichiarati nel piano 03-05, richiesto esplicitamente dal testo dell'azione del Task 2 per il wiring isPro
 - [Phase 03-pro-dettaglio-sottocategorie]: DettaglioProService estende la strategia di calcolo quantita oltre il testo letterale del piano per coprire le righe seedate con default_conteggio ma senza domanda_mirata_key (voci a conteggio non mirate tipo forfait), altrimenti 150/300 righe di coefficiente restavano a quantita zero
 - [Phase 03-pro-dettaglio-sottocategorie]: docstring schemas/dettaglio_pro.py riformulata per non contenere letteralmente base_eur_mq, stesso precedente 02/03 per rispettare il criterio grep meccanico
+- [Phase 03-pro-dettaglio-sottocategorie]: _compute_dettaglio() helper unico condiviso da GET/POST/pdf-pro per parita' schermata/PDF by-construction
+- [Phase 03-pro-dettaglio-sottocategorie]: build_filename_pro() dedicato invece di parametrizzare build_filename() esistente, per non toccare il contratto gia' testato della Free
 
 ### Blockers
 

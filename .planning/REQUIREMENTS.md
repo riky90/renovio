@@ -28,7 +28,7 @@
 
 ### PDF (PDF)
 - [x] **PDF-01**: L'utente Free può scaricare un PDF sintetico brandizzato della stima
-- [ ] **PDF-02**: L'utente Pro può scaricare un PDF dettagliato brandizzato con le sottocategorie
+- [x] **PDF-02**: L'utente Pro può scaricare un PDF dettagliato brandizzato con le sottocategorie
 
 ### Lead & Contatto (LEAD)
 - [ ] **LEAD-01**: Da ogni livello (Free e Pro) l'utente può richiedere il contatto di un professionista
