@@ -121,3 +121,11 @@ Nessuna superficie non prevista dal `<threat_model>` del piano: T-03-13 (redirec
 ## Self-Check: PASSED
 
 Tutti i file dichiarati (5) e i commit dichiarati (`a898d33`, `d32adf1`) verificati presenti su disco / in git log.
+
+## Human-verify gate: APPROVED (2026-08-27)
+
+Task 3 (checkpoint `human-verify`, `gate="blocking"`) chiuso dall'utente dopo verifica manuale in browser del flusso Pro end-to-end (attivazione → dettaglio a range → domande mirate → PDF → paywall 403 da Free): "ho provato il flusso e funziona, come MVP funziona".
+
+- **Override PDF (ambiente):** concesso dall'utente lo stesso override della Fase 2 (02-08) — la generazione byte WeasyPrint non gira su questa macchina Windows senza GTK3; logica coperta dai test, byte verificabili su Debian/Railway con GTK3 nativo. Non blocca.
+- **Rifiniture post-piano** (feedback in verifica, commit `146cdcb` + `31c1371`): totali a range dal backend (sottocat/categoria/generale, anche nel PDF); dettaglio Pro inline in home; "Le mie stime" mostra il dettaglio per i Pro; menu Free→"Passa a Pro"/Pro→"Contatta un consulente"; fix teaser mostrato ai Pro; componente condiviso `DettaglioProView`. Verificate in `03-VERIFICATION.md`.
+- **Known issue (deferred su decisione utente):** da anonimo, dopo una prima stima, "Accedi" porta a pagina bianca invece di riportare l'utente alla stima appena calcolata → backlog, patch successiva. Non blocca l'MVP.

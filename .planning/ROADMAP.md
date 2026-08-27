@@ -50,6 +50,7 @@ Plans:
 - [x] 02-09-PLAN.md — Save-at-signup, storico, download PDF frontend end-to-end (PDF-01, AUTH-03) — Task 1-2 completi, Task 3 checkpoint human-verify aperto
 
 ### Phase 3: Pro & dettaglio sottocategorie
+**Status:** ✅ Complete & verified (2026-08-27) — 6/6 plans; 03-VERIFICATION.md 9/9 code-level; human-verify approvato; override PDF (GTK3) concesso come Fase 2
 **Goal:** L'utente Pro sblocca l'apertura per sottocategorie (a.1/a.2) con voci e quantità stimate dal motore parametrico, dietro paywall, con PDF dettagliato.
 **Mode:** mvp
 **UI hint:** yes
