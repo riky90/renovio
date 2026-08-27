@@ -29,6 +29,7 @@ class UserOut(BaseModel):
     email: EmailStr
     nome: str
     role: str
+    pro: bool
     created_at: datetime
 
 

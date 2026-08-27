@@ -22,6 +22,7 @@ import app.db as db_module
 from app.db import Base
 from app.limiter import limiter
 from app.main import app
+from app.dependencies.auth import require_pro, subscription_is_active
 from app.models.subscription import Subscription
 from app.models.user import User
 from scripts.seed import load_seed_data, seed
@@ -128,3 +129,78 @@ class TestSubscriptionModelDefaults:
 
         assert sub.stato == "attivo"
         assert sub.scaduta_il == scaduta
+
+
+class TestSubscriptionIsActive:
+    """Task 2: subscription_is_active(session, user) — attivo/scaduto/assente."""
+
+    def test_attivo_senza_scadenza_e_true(self, session):
+        user = User(email="active.a@example.com", nome="Active A", role="user")
+        session.add(user)
+        session.flush()
+        session.add(Subscription(user_id=user.id, stato="attivo", scaduta_il=None))
+        session.commit()
+
+        assert subscription_is_active(session, user) is True
+
+    def test_scaduto_e_false(self, session):
+        user = User(email="active.b@example.com", nome="Active B", role="user")
+        session.add(user)
+        session.flush()
+        scaduta = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=1)
+        session.add(Subscription(user_id=user.id, stato="attivo", scaduta_il=scaduta))
+        session.commit()
+
+        assert subscription_is_active(session, user) is False
+
+    def test_attivo_con_scadenza_futura_e_true(self, session):
+        user = User(email="active.c@example.com", nome="Active C", role="user")
+        session.add(user)
+        session.flush()
+        scaduta = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(days=30)
+        session.add(Subscription(user_id=user.id, stato="attivo", scaduta_il=scaduta))
+        session.commit()
+
+        assert subscription_is_active(session, user) is True
+
+    def test_assente_e_false(self, session):
+        user = User(email="active.d@example.com", nome="Active D", role="user")
+        session.add(user)
+        session.commit()
+
+        assert subscription_is_active(session, user) is False
+
+    def test_stato_inattivo_e_false_anche_senza_scadenza(self, session):
+        user = User(email="active.e@example.com", nome="Active E", role="user")
+        session.add(user)
+        session.flush()
+        session.add(Subscription(user_id=user.id, stato="inattivo", scaduta_il=None))
+        session.commit()
+
+        assert subscription_is_active(session, user) is False
+
+
+class TestRequirePro:
+    """Task 2: require_pro solleva 403 con messaggio esatto se non attivo."""
+
+    def test_require_pro_403_se_non_attivo(self, session):
+        user = User(email="pro.a@example.com", nome="Pro A", role="user")
+        session.add(user)
+        session.commit()
+
+        with pytest.raises(Exception) as exc_info:
+            require_pro(user=user, db=session)
+
+        assert getattr(exc_info.value, "status_code", None) == 403
+        assert getattr(exc_info.value, "detail", None) == "Funzione riservata agli utenti Pro"
+
+    def test_require_pro_ok_se_attivo(self, session):
+        user = User(email="pro.b@example.com", nome="Pro B", role="user")
+        session.add(user)
+        session.flush()
+        session.add(Subscription(user_id=user.id, stato="attivo", scaduta_il=None))
+        session.commit()
+
+        result = require_pro(user=user, db=session)
+
+        assert result is user
