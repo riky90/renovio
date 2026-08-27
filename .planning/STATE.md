@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-08-27T06:48:25.169Z"
+last_updated: "2026-08-27T06:58:00.673Z"
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 19
-  completed_plans: 15
+  completed_plans: 16
   percent: 50
 ---
 
@@ -17,11 +17,11 @@ progress:
 ## Current Position
 
 Phase: 03 (pro-dettaglio-sottocategorie) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 
 - **Milestone:** v1 (MVP)
 - **Phase:** 3
-- **Status:** Executing Phase 03 (Plan 02 completo, 6 piani totali)
+- **Status:** Ready to execute
 - **Regola range (locked):** ±% solo sui lavori (4 categorie); extra fissi (€2.806 lordo); totale = Σ card + extra. Oracolo primario: 85 mq · totale = €47.985–€70.575.
 - **Stack (da RESEARCH):** FastAPI + SQLAlchemy 2.0 + Pydantic v2 + Postgres/Alembic · React 19 + Vite + TS 5.9 + react-query + Tailwind/shadcn · autocomplete comuni ISTAT bundlato offline.
 
@@ -84,6 +84,7 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 | Phase 02-account-pdf P09 | 45min | 2 tasks (Task 3 checkpoint aperto) | 9 files |
 | Phase 03-pro-dettaglio-sottocategorie P01 | 13min | 3 tasks | 11 files |
 | Phase 03-pro-dettaglio-sottocategorie PP02 | 27min | 3 tasks | 10 files |
+| Phase 03-pro-dettaglio-sottocategorie P05 | 15min | 2 tasks | 8 files |
 
 ## Decisions
 
@@ -120,6 +121,8 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 - [Phase 03-pro-dettaglio-sottocategorie]: A-EDILE riusa i codici A.1..A.8 due volte (blocco Allestimento cantiere poi vere sottocategorie); isolato in Sottocategoria sintetica A.0 con codici voce A.0.n per evitare collisioni di chiave naturale nel seed
 - [Phase 03-pro-dettaglio-sottocategorie]: coefficienti quantita-per-m2/domanda-mirata bozza secondo regole UM D-05, seedati per i 3 tipi su ogni voce, esplicitamente tarabili da admin in Fase 4
 - [Phase 03-pro-dettaglio-sottocategorie]: openpyxl aggiunto come dev dependency dopo checkpoint blocking-human approvato dall'utente
+- [Phase 03-pro-dettaglio-sottocategorie]: isPro propagato via prop da EstimatePage (useAuth().user?.pro), mai una fetch dedicata per il flag Pro in SoftWallCta/CategoryCard
+- [Phase 03-pro-dettaglio-sottocategorie]: EstimatePage.tsx modificato oltre ai files_modified dichiarati nel piano 03-05, richiesto esplicitamente dal testo dell'azione del Task 2 per il wiring isPro
 
 ### Blockers
 
