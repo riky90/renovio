@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-08-27T06:09:25.455Z"
+last_updated: "2026-08-27T06:27:28.438Z"
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 19
-  completed_plans: 13
+  completed_plans: 14
   percent: 50
 ---
 
@@ -16,16 +16,18 @@ progress:
 
 ## Current Position
 
-Phase: 02 (account-pdf) — COMPLETA E VERIFICATA (02-VERIFICATION.md: PASSED, 6/6 criteri, 9/9 must-have; 66 test passed / 2 skipped). Tutti i checkpoint human-verify chiusi: 02-04 Task 3 (register/login/logout verificato in browser) e 02-09 Task 3 (flusso end-to-end approvato dall'utente, con aggiunta del link "Torna alla home"). Due limiti d'ambiente accettati e rimandati a produzione: Google OAuth (proxy aziendale TLS, 02-05) e render PDF WeasyPrint (GTK3 mancante su Windows, 02-08). Prossimo: Fase 03.
+Phase: 03 (pro-dettaglio-sottocategorie) — EXECUTING
+Plan: 2 of 6
 
 - **Milestone:** v1 (MVP)
-- **Phase:** 2
-- **Status:** Ready to execute
+- **Phase:** 3
+- **Status:** Executing Phase 03 (Plan 01 completo, 6 piani totali)
 - **Regola range (locked):** ±% solo sui lavori (4 categorie); extra fissi (€2.806 lordo); totale = Σ card + extra. Oracolo primario: 85 mq · totale = €47.985–€70.575.
 - **Stack (da RESEARCH):** FastAPI + SQLAlchemy 2.0 + Pydantic v2 + Postgres/Alembic · React 19 + Vite + TS 5.9 + react-query + Tailwind/shadcn · autocomplete comuni ISTAT bundlato offline.
 
 ## Last Session
 
+- **2026-08-27** — **Eseguito Plan 03-01 (Stato Pro/tessera abbonamento + paywall server-side)**: `app/models/subscription.py` (`Subscription`: stato/scaduta_il/piano_code, nessuna colonna prezzo/coefficiente impresa, D-10) + migrazione Alembic 0004 (catena 0001→0004, upgrade/downgrade/upgrade verificato, seed rieseguito post-migrazione D-12); `app/dependencies/auth.py` con `subscription_is_active`/`require_pro` (401 anonimo via `get_current_user`, 403 "Funzione riservata agli utenti Pro" se non attivo, stesso guard naive/aware datetime di `get_current_user`); `schemas/subscription.py` (`SubscriptionOut`/`AttivaProResponse` a campi chiusi); `UserOut.pro: bool`; `routers/subscription.py` con `POST /me/pro/attiva` (stub production-shaped D-07, rate-limited 10/minute, upsert idempotente) e `POST /admin/pro/attiva` (dietro `require_admin`, attivazione manuale); `routers/auth.py::_to_user_out` esteso per popolare `pro`. TDD: `test_subscription.py` 16/16 verdi (modello, subscription_is_active attivo/scaduto/assente, require_pro 403, attivazione end-to-end su `/auth/me`, idempotenza riga singola, 401/403, anti-leak), suite backend completa 82/82 passed + 2 skip invariati (GTK3). Deviazione (Rule 1): `test_auth_service.py::test_user_out_never_contains_password_hash` aggiornato con il nuovo campo obbligatorio `pro=False`. Vedi `03-01-SUMMARY.md`. Prima:
 - **2026-08-26** — **Eseguito Plan 02-09 (Save-at-signup, storico, download PDF frontend end-to-end) — Task 1-2 completati, Task 3 checkpoint aperto**: `api/stima.ts` esteso con `postSalvaStima`/`getStoricoStime`/`getStimaDettaglio` (credentials include, normalizzazione Decimal riusata) e `scaricaPdf` (fetch diretto del blob PDF, filename da `Content-Disposition`, download nativo via `<a download>`); `PdfDownloadButton` (stati idle/loading-spinner/errore inline, UI-SPEC F.4); `SavedEstimateDetail` (riusa CategoryCard/TotalCard/FallbackDisclaimer per lo snapshot immutabile, nessuna duplicazione layout); `LeMieStimePage` (`/le-mie-stime`, lista+empty state+dettaglio via stato locale, redirect `/accedi` se anonimo). `SoftWallCta` aggiornato: "Scarica PDF"/"Salva / crea account" navigano da anonimo a `/registrati` con `intent` + stima corrente via router `state` (mai in query param, T-09-04); "Passa a Pro"/"Contatta un professionista" restano soft-wall invariati; da loggato "Salva / crea account" e' nascosto e "Scarica PDF" diventa `PdfDownloadButton` diretto. `EstimatePage`: auto-save (D-07) via `postSalvaStima` quando loggato, un solo salvataggio per risultato. `RegistratiPage`/`AccediPage`: dopo signup/login con intent pendente, salvano il payload gia' mostrato (nessun ricalcolo, D-09) e avviano il download se richiesto, con conferma inline "Stima salvata nel tuo account.". Deviazione (Rule 2): gancio save-at-signup applicato anche ad `AccediPage.tsx` (non nei `files_modified` del piano) per completare simmetricamente il flusso richiesto dai `must_haves` del piano, stesso precedente di 02-06. `npx tsc --noEmit` verde su entrambi i task. **Task 3 (checkpoint `human-verify`, `gate="blocking"`) NON eseguito dall'agente**: verifica manuale in browser del flusso completo (anonimo->registrazione->salva->storico->PDF) resta all'utente; nota — il download PDF vero e proprio non e' verificabile end-to-end su questa macchina Windows per il limite GTK3 gia' noto (02-08). Vedi `02-09-SUMMARY.md`. Prima:
 - **2026-08-26** — **Eseguito Plan 02-06 (Recupero password via email, D-04)**: `app/services/reset_token.py` (`make_reset_token`/`read_reset_token` su `itsdangerous.URLSafeTimedSerializer(settings.SECRET_KEY, salt="password-reset")`, scadenza 1h, `SECRET_KEY` e non `OAUTH_SESSION_SECRET`); `app/services/email_service.py` (`send_email` async via `aiosmtplib`, fallback log-only quando `SMTP_HOST` e' vuoto in dev, mai un'eccezione a import/startup, riusabile tal quale in Fase 4 per i lead); `routers/auth.py` con `POST /auth/password-dimenticata` (sempre lo stesso 200, anti-enumeration T-06-01) e `POST /auth/reimposta-password` (uso singolo via `PasswordResetToken.used`, hash sha256 del token in DB, 400 generico su invalido/scaduto/gia' usato); `schemas/auth.py` con `PasswordDimenticataRequest`/`ReimpostaPasswordRequest`. Frontend: `PasswordDimenticataPage`/`ReimpostaPasswordPage` (input-group show/hide password), rotte registrate in `App.tsx`, `AccediPage` con conferma inline post-reset (deviazione Rule 2, richiesta esplicitamente dal testo del piano). TDD RED→GREEN: `test_password_reset.py` 8/8 verdi (token valido/scaduto/manomesso, anti-enumeration, flusso completo, replay 400, token invalido 400, password corta 422), 66/66 suite totale verde + 2 skip invariati (WeasyPrint/GTK3). `npx tsc --noEmit` pulito. Nota di ripresa: la sessione precedente si era interrotta per limite settimanale con un file di test RED iniziale (stesso contenuto) gia' scritto ma bloccante per la collection pytest — rimosso dal coordinatore e ricreato identico come primo passo di questa sessione, poi seguito normalmente dal ciclo RED→GREEN. Vedi `02-06-SUMMARY.md`. Prima:
 - **2026-08-25** — **Eseguito Plan 02-08 (PDF Free branded download backend)**: `app/templates/pdf_stima.html` (Jinja2, 1 pagina A4, CSS inline Slate/blue-600: wordmark+nome+data, riepilogo input, disclaimer amber condizionale, 4 card categoria a range tabular, blocco totale blue-600 IVA inclusa, footer legale); `app/services/pdf_service.py` (`PdfService.render(stima, user) -> bytes`, `build_filename()` slug città, WeasyPrint importato **lazy dentro `render()`** — non a livello modulo — proprio perché `import weasyprint` da solo lancia `OSError` su Windows senza GTK3, e un import top-level avrebbe rotto l'intero import di `app.main` e quindi l'intera test suite; nessun `EstimationService` nel modulo, D-09/Pitfall 5); `routers/stime_salvate.py` con `GET /me/stime/{id}/pdf` (stesso pattern ownership `id`+`user_id` -> 404, `StreamingResponse` `application/pdf` + `Content-Disposition attachment`). TDD RED→GREEN: `test_pdf.py` 5 test (2 byte-generating SKIPPED — GTK3/Pango/Cairo assente su questa macchina Windows, probe runtime via `OSError`; 3 sempre attivi — ownership 404, 401, guard statico anti-`EstimationService` — tutti verdi), 58/58 suite totale verde + 2 skip documentati. Azione utente per verifica locale completa: installare GTK3 runtime Windows o usare Docker/WSL2 (dettagli in `02-08-SUMMARY.md`); non blocca la produzione (Railway/Debian nativo). Vedi `02-08-SUMMARY.md`. Prima:
@@ -79,6 +81,7 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 | Phase 02-account-pdf P08 | 18min | 2 tasks | 4 files |
 | Phase 02-account-pdf P06 | 25min | 2 tasks | 10 files |
 | Phase 02-account-pdf P09 | 45min | 2 tasks (Task 3 checkpoint aperto) | 9 files |
+| Phase 03-pro-dettaglio-sottocategorie P01 | 13min | 3 tasks | 11 files |
 
 ## Decisions
 
@@ -109,6 +112,9 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 - [Phase 02-account-pdf]: la stima pendente (save-at-signup) viaggia da SoftWallCta a /registrati|/accedi esclusivamente via router state ({ pendingStima }), mai come query param — solo il flag intent e' in URL (T-09-04)
 - [Phase 02-account-pdf]: scaricaPdf usa un fetch diretto (non apiGet, che parserebbe JSON) per leggere il blob PDF e ricavare il filename da Content-Disposition, poi attiva il download nativo via <a download> temporaneo
 - [Phase 02-account-pdf]: gancio save-at-signup applicato sia a RegistratiPage.tsx (richiesto esplicitamente dal piano) sia ad AccediPage.tsx (non nei files_modified, aggiunto per Rule 2 — un utente con intent pendente puo' scegliere di accedere invece di registrarsi)
+- [Phase 03-pro-dettaglio-sottocategorie]: Subscription senza colonne prezzo/coefficiente impresa (D-10): tessera Pro = solo stato abbonamento
+- [Phase 03-pro-dettaglio-sottocategorie]: piano_code nullable aggiunto ora su Subscription, costo quasi zero, coerente con D-07 production-shaped
+- [Phase 03-pro-dettaglio-sottocategorie]: docstring schemas/subscription.py riformulata per non contenere letteralmente 'coefficiente' (stesso precedente 02-account-pdf, criterio grep meccanico)
 
 ### Blockers
 
