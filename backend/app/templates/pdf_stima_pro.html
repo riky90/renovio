@@ -1,0 +1,263 @@
+<!doctype html>
+<!--
+  Branded PDF Pro (PDF-02, D-09/D-10/D-11, 03-UI-SPEC.md §E).
+
+  Renders a `DettaglioProResult` that the caller (router) already computed
+  LIVE via the exact same `DettaglioProService.compute()` call used by the
+  on-screen GET dettaglio-pro JSON endpoint — never a frozen snapshot,
+  deliberately the opposite of `pdf_stima.html` (Free). See
+  `pdf_service.py` module docstring for the documented asymmetry.
+
+  Never emits any impresa-side margin coefficient or impresa-facing price
+  figure — only the same range fields already present in the anti-leak
+  JSON response (D-10). Always a range, never a bare number (D-11).
+
+  Palette: same Slate/blue-600 tokens as pdf_stima.html / the web app.
+-->
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <title>Stima ristrutturazione — dettaglio Pro</title>
+    <style>
+      @page {
+        size: A4;
+        margin: 18mm 16mm;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        color: #0f172a; /* slate-900 */
+        margin: 0;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        border-bottom: 3px solid #2563eb; /* blue-600 accent rule */
+        padding-bottom: 10mm;
+        margin-bottom: 8mm;
+      }
+
+      .wordmark {
+        font-size: 16pt;
+        font-weight: 700;
+        color: #0f172a;
+      }
+
+      .wordmark .pro-badge {
+        display: inline-block;
+        margin-left: 6px;
+        font-size: 8pt;
+        font-weight: 700;
+        color: #2563eb;
+        border: 1px solid #2563eb;
+        border-radius: 3px;
+        padding: 1px 5px;
+        vertical-align: middle;
+      }
+
+      .header-right {
+        text-align: right;
+        color: #475569; /* slate-500 */
+        font-size: 9pt;
+      }
+
+      .header-right .nome {
+        color: #0f172a;
+        font-size: 10pt;
+        font-weight: 600;
+      }
+
+      .riepilogo {
+        display: flex;
+        gap: 10mm;
+        background: #f8fafc; /* slate-50 */
+        border: 1px solid #e2e8f0; /* slate-200 */
+        border-radius: 4px;
+        padding: 5mm 6mm;
+        margin-bottom: 6mm;
+      }
+
+      .riepilogo-item .label {
+        font-size: 8pt;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #64748b; /* slate-500 */
+      }
+
+      .riepilogo-item .value {
+        font-size: 11pt;
+        font-weight: 600;
+        color: #0f172a;
+      }
+
+      .disclaimer-box {
+        background: #fffbeb; /* amber-50 */
+        border: 1px solid #fcd34d; /* amber-300 */
+        color: #92400e; /* amber-800 */
+        border-radius: 4px;
+        padding: 4mm 6mm;
+        font-size: 9pt;
+        margin-bottom: 8mm;
+      }
+
+      .categoria-section {
+        break-inside: avoid;
+        margin-bottom: 8mm;
+      }
+
+      .categoria-titolo {
+        font-size: 13pt;
+        font-weight: 700;
+        color: #0f172a;
+        border-bottom: 2px solid #2563eb;
+        padding-bottom: 2mm;
+        margin-bottom: 4mm;
+      }
+
+      .sottocategoria {
+        break-inside: avoid;
+        margin-bottom: 5mm;
+      }
+
+      .sottocategoria-titolo {
+        font-size: 10.5pt;
+        font-weight: 600;
+        color: #1e293b; /* slate-800 */
+        margin-bottom: 2mm;
+      }
+
+      .voci {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 2mm;
+      }
+
+      .voci th {
+        text-align: left;
+        font-size: 7.5pt;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #64748b;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 1.5mm 2.5mm;
+      }
+
+      .voci td {
+        padding: 2mm 2.5mm;
+        border-bottom: 1px solid #f1f5f9; /* slate-100 */
+        font-size: 9pt;
+      }
+
+      .voci td.um,
+      .voci td.qta {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+
+      .voci td.range {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+        font-weight: 600;
+      }
+
+      .nessuna-voce {
+        font-size: 9pt;
+        color: #64748b;
+        font-style: italic;
+        padding: 2mm 2.5mm;
+      }
+
+      .footer {
+        border-top: 1px solid #e2e8f0;
+        padding-top: 4mm;
+        font-size: 8pt;
+        color: #64748b;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="wordmark">ristruttura-stima <span class="pro-badge">PRO</span></div>
+      <div class="header-right">
+        <div class="nome">{{ nome }}</div>
+        <div>{{ data_generazione }}</div>
+      </div>
+    </div>
+
+    <div class="riepilogo">
+      <div class="riepilogo-item">
+        <div class="label">Citta</div>
+        <div class="value">{{ citta }}</div>
+      </div>
+      <div class="riepilogo-item">
+        <div class="label">Mq</div>
+        <div class="value">{{ mq }} m&sup2;</div>
+      </div>
+      <div class="riepilogo-item">
+        <div class="label">Tipo</div>
+        <div class="value">{{ tipo }}</div>
+      </div>
+    </div>
+
+    <div class="disclaimer-box">
+      Questa stima dettagliata e' ricostruita voce per voce a partire da coefficienti
+      parametrici (mq/tipo) ed e' indipendente dalla stima sintetica per categoria: e'
+      normale che i due numeri non coincidano esattamente, poiche' misurano il costo
+      con metodi diversi. Resta una stima pre-sopralluogo, sempre espressa a range.
+    </div>
+
+    {% for categoria in dettaglio.categorie %}
+    <div class="categoria-section">
+      <div class="categoria-titolo">{{ categoria.nome }}</div>
+
+      {% for sc in categoria.sottocategorie %}
+      <div class="sottocategoria">
+        <div class="sottocategoria-titolo">
+          {% if sc.codice %}{{ sc.codice }} — {% endif %}{{ sc.nome }}
+        </div>
+
+        {% if sc.voci %}
+        <table class="voci">
+          <thead>
+            <tr>
+              <th>Descrizione</th>
+              <th style="text-align: right">UM</th>
+              <th style="text-align: right">Quantita stimata</th>
+              <th style="text-align: right">Range (&euro;)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for voce in sc.voci %}
+            <tr>
+              <td>{{ voce.descrizione }}</td>
+              <td class="um">{{ voce.um }}</td>
+              <td class="qta">{{ "%.2f"|format(voce.quantita_stimata|float) }}</td>
+              <td class="range">
+                &euro; {{ "%.2f"|format(voce.prezzo_min|float) }} &ndash; &euro; {{ "%.2f"|format(voce.prezzo_max|float) }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="nessuna-voce">Nessuna voce stimata per questa sottocategoria.</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+
+    <div class="footer">
+      Stima indicativa dettagliata, non sostituisce un sopralluogo professionale.<br />
+      {{ filename }}
+    </div>
+  </body>
+</html>
