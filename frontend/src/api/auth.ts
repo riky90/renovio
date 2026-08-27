@@ -7,6 +7,8 @@ export interface UserOut {
   email: string;
   nome: string;
   role: UserRole;
+  /** Stato Pro derivato server-side dalla tessera abbonamento; mai scrivibile dal client. */
+  pro: boolean;
   created_at: string;
 }
 

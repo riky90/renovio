@@ -5,6 +5,7 @@ import { AccediPage } from "@/routes/AccediPage";
 import { PasswordDimenticataPage } from "@/routes/PasswordDimenticataPage";
 import { ReimpostaPasswordPage } from "@/routes/ReimpostaPasswordPage";
 import { LeMieStimePage } from "@/routes/LeMieStimePage";
+import { PassaAProPage } from "@/routes/PassaAProPage";
 
 const router = createBrowserRouter([
   { path: "/", element: <EstimatePage /> },
@@ -13,6 +14,7 @@ const router = createBrowserRouter([
   { path: "/password-dimenticata", element: <PasswordDimenticataPage /> },
   { path: "/reimposta-password", element: <ReimpostaPasswordPage /> },
   { path: "/le-mie-stime", element: <LeMieStimePage /> },
+  { path: "/passa-a-pro", element: <PassaAProPage /> },
 ]);
 
 function App() {
