@@ -133,3 +133,7 @@ None - nessuna configurazione di servizio esterno richiesta (nessuna nuova dipen
 ---
 *Phase: 03-pro-dettaglio-sottocategorie*
 *Completed: 2026-08-27*
+
+## Self-Check: PASSED
+
+All created files and commit hashes verified present on disk / in git log.
