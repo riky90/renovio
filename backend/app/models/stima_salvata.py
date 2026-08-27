@@ -40,4 +40,10 @@ class StimaSalvata(Base):
     # JSON generico (non JSONB): portabile SQLite dev / Postgres prod.
     risultato_json: Mapped[dict] = mapped_column(JSON, nullable=False)
 
+    # Risposte alle domande mirate del dettaglio Pro (bagni/porte/condizionatori,
+    # max 3 interi) — nullable, colonna JSON generica per portabilita (03-RESEARCH.md
+    # Pitfall 3 / Open Question 2): persistita cosi' il dettaglio Pro e il PDF Pro
+    # non divergono se l'utente risponde una volta e poi rivede lo stesso risultato.
+    risposte_pro_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.now())

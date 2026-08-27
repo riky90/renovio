@@ -11,6 +11,7 @@ from app.models.catalogo import (
     Referente,
     TipoRistrutturazione,
 )
+from app.models.dettaglio_pro import CoefficienteQuantitaVoce, Sottocategoria, Voce
 from app.models.listino import Listino, ListinoCategoria
 from app.models.stima_salvata import StimaSalvata
 from app.models.subscription import Subscription
@@ -18,6 +19,7 @@ from app.models.user import PasswordResetToken, User, UserSession
 
 __all__ = [
     "Categoria",
+    "CoefficienteQuantitaVoce",
     "ComuneListino",
     "Extra",
     "Listino",
@@ -25,9 +27,11 @@ __all__ = [
     "Moltiplicatore",
     "PasswordResetToken",
     "Referente",
+    "Sottocategoria",
     "StimaSalvata",
     "Subscription",
     "TipoRistrutturazione",
     "User",
     "UserSession",
+    "Voce",
 ]
