@@ -14,10 +14,14 @@ from __future__ import annotations
 from decimal import Decimal
 
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+import app.db as db_module
 from app.db import Base
+from app.limiter import limiter
+from app.main import app
 from app.services.city_resolver import resolve_listino
 from app.services.dettaglio_pro import DettaglioProService
 from scripts.seed import load_seed_data, seed
@@ -110,3 +114,87 @@ def test_nessun_campo_impresa_nel_risultato(session):
     assert "coefficiente_impresa" not in result_repr
     assert "prezzo_impresa" not in result_repr
     assert "base_eur_mq" not in result_repr
+
+
+STIME_URL = "/api/v1/me/stime"
+ATTIVA_PRO_URL = "/api/v1/me/pro/attiva"
+REGISTRAZIONE_URL = "/api/v1/auth/registrati"
+
+
+def _stima_payload() -> dict:
+    return {
+        "input": {"citta": "Reggio Emilia", "mq": 85, "tipo": "totale"},
+        "fallback": False,
+        "disclaimer": None,
+        "valuta": "EUR",
+        "categorie": [],
+        "extra": [],
+        "totale": {
+            "imponibile_min": "10000.00",
+            "imponibile_max": "15000.00",
+            "iva_min": "1000.00",
+            "iva_max": "1500.00",
+            "totale_min": "11000.00",
+            "totale_max": "16500.00",
+        },
+    }
+
+
+@pytest.fixture()
+def http_client(monkeypatch, tmp_path):
+    """Client HTTP end-to-end per l'integrazione POST-risposte -> GET
+    (Task 2): stesso pattern engine-swap di test_dettaglio_pro_paywall.py."""
+    limiter.reset()
+
+    db_path = tmp_path / "test_dettaglio_pro_integration.db"
+    engine = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
+    Base.metadata.create_all(bind=engine)
+    testing_session_local = sessionmaker(bind=engine)
+
+    with testing_session_local() as s:
+        seed(s, load_seed_data())
+        s.commit()
+
+    monkeypatch.setattr(db_module, "SessionLocal", testing_session_local)
+
+    import app.dependencies.auth as deps_auth_module
+    import app.routers.auth as auth_router_module
+    import app.routers.dettaglio_pro as dettaglio_pro_router_module
+    import app.routers.stime_salvate as stime_salvate_router_module
+    import app.routers.subscription as subscription_router_module
+
+    monkeypatch.setattr(deps_auth_module, "SessionLocal", testing_session_local)
+    monkeypatch.setattr(auth_router_module, "SessionLocal", testing_session_local)
+    monkeypatch.setattr(dettaglio_pro_router_module, "SessionLocal", testing_session_local)
+    monkeypatch.setattr(stime_salvate_router_module, "SessionLocal", testing_session_local)
+    monkeypatch.setattr(subscription_router_module, "SessionLocal", testing_session_local)
+
+    return TestClient(app)
+
+
+def test_post_risposte_persiste_e_get_successivo_le_riflette(http_client):
+    http_client.post(REGISTRAZIONE_URL, json={"email": "pro.int@example.com", "password": "Password123", "nome": "Pro"})
+    http_client.post(ATTIVA_PRO_URL)
+    created = http_client.post(STIME_URL, json=_stima_payload())
+    stima_id = created.json()["id"]
+
+    post_response = http_client.post(
+        f"{STIME_URL}/{stima_id}/dettaglio-pro/risposte",
+        json={"bagni": 3, "porte": 5, "condizionatori": 2},
+    )
+    assert post_response.status_code == 200
+    assert post_response.json()["risposte"] == {"bagni": 3, "porte": 5, "condizionatori": 2}
+
+    get_response = http_client.get(f"{STIME_URL}/{stima_id}/dettaglio-pro")
+    assert get_response.status_code == 200
+    body = get_response.json()
+    assert body["risposte"] == {"bagni": 3, "porte": 5, "condizionatori": 2}
+
+    edile = next(c for c in body["categorie"] if c["code"] == "A-EDILE")
+    voce_bagni = next(
+        v
+        for sotto in edile["sottocategorie"]
+        for v in sotto["voci"]
+        if v["codice"] == "A.0.3"
+    )
+    assert Decimal(voce_bagni["quantita_stimata"]) == Decimal("3.00")
