@@ -1,0 +1,3872 @@
+{
+  "listino": "reggio-emilia",
+  "sottocategorie": [
+    {
+      "categoria_code": "A-EDILE",
+      "codice": "A.0",
+      "nome": "Allestimento di cantiere",
+      "famiglia": "gerarchica",
+      "ordine": 0,
+      "voci": [
+        {
+          "codice": "A.0.1",
+          "descrizione": "Allestimento area di cantiere con protezione zone di passaggio a mezzo teli nylon e/o cartoni al fine di eseguire i lavori in oggetto a perfetta regola d'arte, a norma ed in sicurezza. Fornitura ed installazione cartello di cantiere, DPI lavoratori e POS.",
+          "um": "ac",
+          "prezzo_unitario_cliente": 600.0,
+          "ordine": 1,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.0.2",
+          "descrizione": "Installazione di quadro elettrico di cantiere effettuato da operatore abilitato, e rilascio della certificazioni di installazione e conformità valido per tutta la durata del cantiere.",
+          "um": "ac",
+          "prezzo_unitario_cliente": 170.0,
+          "ordine": 2,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.0.3",
+          "descrizione": "Rimozione di apparecchi idro-termo-sanitari, incluso lo smontaggio delle apparecchiature, rubinetterie e degli accessori e chiusura delle adduzioni con tappi. Compreso il carico da piano strada e trasporto ad impianti di stoccaggio, di recupero o a discarica - a piatto doccia",
+          "um": "cad",
+          "prezzo_unitario_cliente": 40.0,
+          "ordine": 3,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.0.4",
+          "descrizione": "Rimozione di apparecchi idro-termo-sanitari, incluso lo smontaggio delle apparecchiature, rubinetterie e degli accessori e chiusura delle adduzioni con tappi. Compreso il carico da piano strada e trasporto ad impianti di stoccaggio, di recupero o a discarica - b vasca da bagno",
+          "um": "cad",
+          "prezzo_unitario_cliente": 40.0,
+          "ordine": 4,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.0.5",
+          "descrizione": "Rimozione di apparecchi idro-termo-sanitari, incluso lo smontaggio delle apparecchiature, rubinetterie e degli accessori e chiusura delle adduzioni con tappi. Compreso il carico da piano strada e trasporto ad impianti di stoccaggio, di recupero o a discarica - c vaso igienico (WC)",
+          "um": "cad",
+          "prezzo_unitario_cliente": 40.0,
+          "ordine": 5,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.0.6",
+          "descrizione": "Rimozione di apparecchi idro-termo-sanitari, incluso lo smontaggio delle apparecchiature, rubinetterie e degli accessori e chiusura delle adduzioni con tappi. Compreso il carico da piano strada e trasporto ad impianti di stoccaggio, di recupero o a discarica - d bidet",
+          "um": "cad",
+          "prezzo_unitario_cliente": 40.0,
+          "ordine": 6,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.0.7",
+          "descrizione": "Rimozione di apparecchi idro-termo-sanitari, incluso lo smontaggio delle apparecchiature, rubinetterie e degli accessori e chiusura delle adduzioni con tappi. Compreso il carico da piano strada e trasporto ad impianti di stoccaggio, di recupero o a discarica - e lavabo singolo su mensola",
+          "um": "cad",
+          "prezzo_unitario_cliente": 40.0,
+          "ordine": 7,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.0.8",
+          "descrizione": "Rimozione di apparecchi idro-termo-sanitari, incluso lo smontaggio delle apparecchiature, rubinetterie e degli accessori e chiusura delle adduzioni con tappi. Compreso il carico da piano strada e trasporto ad impianti di stoccaggio, di recupero o a discarica - f lavello da cucina in porcellana",
+          "um": "cad",
+          "prezzo_unitario_cliente": 40.0,
+          "ordine": 8,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.0.9",
+          "descrizione": "Rimozione di apparecchi idro-termo-sanitari, incluso lo smontaggio delle apparecchiature, rubinetterie e degli accessori e chiusura delle adduzioni con tappi. Compreso il carico da piano strada e trasporto ad impianti di stoccaggio, di recupero o a discarica - g scaldabagno elettrico",
+          "um": "cad",
+          "prezzo_unitario_cliente": 40.0,
+          "ordine": 9,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.0.10",
+          "descrizione": "Rimozione di apparecchi idro-termo-sanitari, incluso lo smontaggio delle apparecchiature, rubinetterie e degli accessori e chiusura delle adduzioni con tappi. Compreso il carico da piano strada e trasporto ad impianti di stoccaggio, di recupero o a discarica - h cassetta alta di scarico",
+          "um": "cad",
+          "prezzo_unitario_cliente": 40.0,
+          "ordine": 10,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.0.11",
+          "descrizione": "Rimozione delle linee di alimentazione degli apparecchi igienicosanitari (linea acqua calda e linea acqua fredda) fino alle valvole di intercettazione e delle relative tubazioni di scarico fino alla colonna principale. Compresi i tagli, le intercettazioni, le opere provvisionali di sostegno e protez",
+          "um": "ac",
+          "prezzo_unitario_cliente": 200.0,
+          "ordine": 11,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.0.12",
+          "descrizione": "Rimozione di tutte le porte interne comprese di anta, telaio e falso telaio con trasposto dal piano strada alle pubbliche discariche. Compreso il carico da piano strada e trasporto ad impianti di stoccaggio, di recupero o a discarica.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 50.0,
+          "ordine": 12,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            },
+            "moderata": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            },
+            "totale": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            }
+          }
+        },
+        {
+          "codice": "A.0.13",
+          "descrizione": "Rimozione dei corpi riscaldanti in alluminio e/o ghisa presenti all'interno dell'immobile.Compreso il carico da piano strada e trasporto ad impianti di stoccaggio, di recupero o a discarica. - a fino a 6 elementi, per radiatore",
+          "um": "cad",
+          "prezzo_unitario_cliente": 51.0,
+          "ordine": 13,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": "A.0.14",
+          "descrizione": "Rimozione dei corpi riscaldanti in alluminio e/o ghisa presenti all'interno dell'immobile.Compreso il carico da piano strada e trasporto ad impianti di stoccaggio, di recupero o a discarica. - b da 7 a 12 elementi, per radiatore",
+          "um": "cad",
+          "prezzo_unitario_cliente": 51.0,
+          "ordine": 14,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": "A.0.15",
+          "descrizione": "Rimozione dei corpi riscaldanti in alluminio e/o ghisa presenti all'interno dell'immobile.Compreso il carico da piano strada e trasporto ad impianti di stoccaggio, di recupero o a discarica. - c da 13 a 20 elementi, per radiatore",
+          "um": "cad",
+          "prezzo_unitario_cliente": 51.0,
+          "ordine": 15,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": "A.0.16",
+          "descrizione": "Rimozione di condizionatore autonomo monosplit costituito da motocondensante esterna e macchina interna, compreso l'onere del recupero gas e l'avvicinamento al luogo di deposito provvisorio in attesa di trasporto a discarica, esclusa la rimozione delle tubazioni di collegamento ed i cavi di alimenta",
+          "um": "cad",
+          "prezzo_unitario_cliente": 80.0,
+          "ordine": 16,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.0.17",
+          "descrizione": "Rimozione di condizionatore autonomo monosplit costituito da motocondensante esterna e macchina interna, compreso l'onere del recupero gas e l'avvicinamento al luogo di deposito provvisorio in attesa di trasporto a discarica, esclusa la rimozione delle tubazioni di collegamento ed i cavi di alimenta",
+          "um": "cad",
+          "prezzo_unitario_cliente": 80.0,
+          "ordine": 17,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.0.18",
+          "descrizione": "Movimentazione nell'area di cantiere di materiali di risulta e assistenza con personale per il carico di tutte le forniture  (quali ad esempio pavimenti, rivestimenti, sanitari, ecc.) esclusi gli infissi. Compresa l'immediata verifica degli stessi in riferimento alla corrispondenza di quantità e qua",
+          "um": "piano",
+          "prezzo_unitario_cliente": 0.0,
+          "ordine": 18,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "categoria_code": "A-EDILE",
+      "codice": "A.1",
+      "nome": "DEMOLIZIONI - RIMOZIONI - TRASPORTO",
+      "famiglia": "gerarchica",
+      "ordine": 1,
+      "voci": [
+        {
+          "codice": "A.1.1.1",
+          "descrizione": "Demolizione di muratura di tamponamento e di tramezzi spessore da 8 a 12 cm, compresi intonaci, eseguita anche con l'ausilio di idonei mezzi. Compreso l’accatastamento nei siti che verranno indicati dalla Direzione dei lavori nell'ambito del cantiere. Compreso il carico da piano strada e trasporto a",
+          "um": "mq",
+          "prezzo_unitario_cliente": 45.0,
+          "ordine": 19,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.1.1.2",
+          "descrizione": "Demolizione di muratura di tamponamento e di tramezzi spessore da 8 a 12 cm, compresi intonaci, eseguita anche con l'ausilio di idonei mezzi. Compreso l’accatastamento nei siti che verranno indicati dalla Direzione dei lavori nell'ambito del cantiere. Compreso il carico da piano strada e trasporto a",
+          "um": "mq",
+          "prezzo_unitario_cliente": 28.0,
+          "ordine": 20,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.1.2",
+          "descrizione": "Demolizione di muratura di tamponamento di tramezzi in cartongesso spessore fino a 12,5 cm, eseguita anche con l'ausilio di idonei mezzi. Compreso l’accatastamento nei siti idonei. Compreso il carico da piano strada e trasporto ad impianti di stoccaggio, di recupero o a discarica come rifiuto specia",
+          "um": "mq",
+          "prezzo_unitario_cliente": 40.0,
+          "ordine": 21,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.1.3",
+          "descrizione": "Demolizione di controsoffitti in cartongesso  eseguita anche con l'ausilio di idonei mezzi. Compreso l’accatastamento nei siti che verranno indicati dalla Direzione dei lavori nell'ambito del cantiere. Compreso il carico da piano strada e trasporto ad impianti di stoccaggio, di recupero o a discaric",
+          "um": "mq",
+          "prezzo_unitario_cliente": 40.0,
+          "ordine": 22,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.1.4",
+          "descrizione": "Spicconatura di intonaco a vivo di muro, di spessore fino a 3 cm compresi l’onere di esecuzione anche a piccole zone, la spazzolatura delle superfici, l’accatastamento nell'ambito del cantiere, incluso il trasporto a rifiuto in discarica autorizzata del materiale inutilizzabile.",
+          "um": "mq",
+          "prezzo_unitario_cliente": 19.0,
+          "ordine": 23,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.1.5",
+          "descrizione": "Demolizione di pavimento e battiscopa, compreso il sottofondo dello spessore fino a 8 cm, posto in opera a mezzo di malta o colla. Compreso l’accatastamento nei siti che verranno indicati dalla Direzione dei lavori nell'ambito del cantiere. Compreso il carico da piano strada e trasporto ad impianti ",
+          "um": "mq",
+          "prezzo_unitario_cliente": 30.0,
+          "ordine": 24,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.1.6",
+          "descrizione": "Demolizione di pavimento e battiscopa (in gres o similari), escluso il sottofondo, posto in opera a mezzo di malta o colla, calo in basso e l’avvicinamento al luogo di deposito provvisorio nell’ambito del cantiere Compreso l’accatastamento nei siti che verranno indicati dalla Direzione dei lavori ne",
+          "um": "mq",
+          "prezzo_unitario_cliente": 18.0,
+          "ordine": 25,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.1.7",
+          "descrizione": "Demolizione di pavimento in parquet, escluso il sottofondo, posto in opera a mezzo di colla. Compreso l’accatastamento nei siti che verranno indicati dalla Direzione dei lavori nell'ambito del cantiere. Compreso il carico da piano strada e trasporto ad impianti di stoccaggio, di recupero o a discari",
+          "um": "mq",
+          "prezzo_unitario_cliente": 20.0,
+          "ordine": 26,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.1.8",
+          "descrizione": "Demolizione di battiscopa in legno. Compreso l’accatastamento nei siti che verranno indicati dalla Direzione dei lavori nell'ambito del cantiere. Compreso il carico da piano strada e trasporto ad impianti di stoccaggio, di recupero o a discarica.",
+          "um": "ml",
+          "prezzo_unitario_cliente": 6.0,
+          "ordine": 27,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.06
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.105
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.15
+            }
+          }
+        },
+        {
+          "codice": "A.1.9",
+          "descrizione": "Demolizione di battiscopa in ceramica, con successivo ripristino delle parti di muratura interessate, pronto per pitturazione. Compreso l’accatastamento nei siti che verranno indicati dalla Direzione dei lavori nell'ambito del cantiere. Compreso il carico da piano strada e trasporto ad impianti di s",
+          "um": "ml",
+          "prezzo_unitario_cliente": 15.0,
+          "ordine": 28,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.06
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.105
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.15
+            }
+          }
+        },
+        {
+          "codice": "A.1.10",
+          "descrizione": "Demolizione di rivestimenti a parete, compresa la demolizione della sottostante malta di allettamento. Compreso l’accatastamento nei siti che verranno indicati dalla Direzione dei lavori nell'ambito del cantiere. Compreso il carico da piano strada e trasporto ad impianti di stoccaggio, di recupero o",
+          "um": "mq",
+          "prezzo_unitario_cliente": 20.0,
+          "ordine": 29,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.1.11.1",
+          "descrizione": "Rimozione di carta da parati fino a due strati di carta.Compreso l’accatastamento nei siti che verranno indicati dalla Direzione dei lavori nell'ambito del cantiere. Compreso il carico da piano strada e trasporto ad impianti di stoccaggio, di recupero o a discarica. - a per uno strato.",
+          "um": "mq",
+          "prezzo_unitario_cliente": 12.0,
+          "ordine": 30,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.1.11.2",
+          "descrizione": "Rimozione di carta da parati fino a due strati di carta.Compreso l’accatastamento nei siti che verranno indicati dalla Direzione dei lavori nell'ambito del cantiere. Compreso il carico da piano strada e trasporto ad impianti di stoccaggio, di recupero o a discarica. - b per ogni strato sottostante i",
+          "um": "mq",
+          "prezzo_unitario_cliente": 6.0,
+          "ordine": 31,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.1.12",
+          "descrizione": "Demolizione di guaina bituminosa (strato impermeabilizzante) Compreso l’accatastamento nei siti che verranno indicati dalla Direzione dei lavori nell'ambito del cantiere. Compreso il carico da piano strada e trasporto ad impianti di stoccaggio, di recupero o a discarica.",
+          "um": "mq",
+          "prezzo_unitario_cliente": 20.0,
+          "ordine": 32,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.1.13",
+          "descrizione": "Rimozione gradini ad altezza fino a 15cm.Compreso l’accatastamento nei siti che verranno indicati dalla Direzione dei lavori nell'ambito del cantiere. Compreso il carico da piano strada e trasporto ad impianti di stoccaggio, di recupero o a discarica.",
+          "um": "ac",
+          "prezzo_unitario_cliente": 650.0,
+          "ordine": 33,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.1.14",
+          "descrizione": "Apertura di Varco su muratura strutturale fino a 30 cm di profondità, compresi intonaci, rivestimenti, eseguita anche con l'ausilio di idonei mezzi, compreso il tiro in discesa dei materiali, il trasporto, la cernita e l’accatastamento nei siti che verranno indicati dalla Direzione dei lavori nell'a",
+          "um": "ac",
+          "prezzo_unitario_cliente": 700.0,
+          "ordine": 34,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.1.15",
+          "descrizione": "Apertura di Varco su solaio in laterocemente per alloggiamento scala interna, compresa la demolizione di pavimentazioni e massetti, eseguita anche con l'ausilio di idonei mezzi, compreso il tiro in discesa dei materiali, il trasporto, la cernita e l’accatastamento nei siti che verranno indicati dall",
+          "um": "ac",
+          "prezzo_unitario_cliente": 700.0,
+          "ordine": 35,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.1.16",
+          "descrizione": "Demolizione di scala interna, comprese eventuali soglie e corrimano, eseguita anche con l'ausilio di idonei mezzi, compreso il tiro in discesa dei materiali, il trasporto, la cernita e l’accatastamento nei siti che verranno indicati dalla Direzione dei lavori nell'ambito del cantiere dei materiali r",
+          "um": "ac",
+          "prezzo_unitario_cliente": 810.0,
+          "ordine": 36,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "categoria_code": "A-EDILE",
+      "codice": "A.2",
+      "nome": "MASSETTI",
+      "famiglia": "gerarchica",
+      "ordine": 2,
+      "voci": [
+        {
+          "codice": "A.2.1",
+          "descrizione": "Relizzazione Massetto di sabbia e cemento nelle proporzioni di kg 350 di cemento 32.5 per mc di sabbia dato in opera ben costipato e livellato per uno spessore finito pari a circa 8 cm.",
+          "um": "mq",
+          "prezzo_unitario_cliente": 40.0,
+          "ordine": 37,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.2.2",
+          "descrizione": "Realizzazione Massetto premiscelato pronto all’impiego, tipo \"Topcem®\"  costituito da malta premiscelata per la realizzazione di sottofondi esterni ed interni ad asciugamento rapido e ritiro fortemente compensato, idonei alla posa di pavimentazioni in materiale ceramico, cotto e pietre naturali dopo",
+          "um": "mq",
+          "prezzo_unitario_cliente": 55.0,
+          "ordine": 38,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.2.3",
+          "descrizione": "Realizzazione Massetto termoacustico, tipo \"LecaCem®\"  costituito da malta premiscelata per la realizzazione di sottofondi monostrato alleggeriti , a norma di legge termica e acustica (U≤0.8  W/m²K e L’n,w ≤ 63dB)..  Per ogni ulteriori 2cm verrà calcolato un sovrapprezzo di 18€/mq",
+          "um": "mq",
+          "prezzo_unitario_cliente": 65.0,
+          "ordine": 39,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.2.4",
+          "descrizione": "Realizzazione di vespaio aerato per una altezza totale fino a 30 cm mediante fornitura e posa in opera di casseforme in plastica riciclata tipo \"Iglù®\" per la rapida formazione, a secco, di una piattaforma pedonabile autoportante sopra cui eseguire la gettata di calcestruzzo per il riempimento del c",
+          "um": "mq",
+          "prezzo_unitario_cliente": 89.0,
+          "ordine": 40,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.2.5",
+          "descrizione": "Fornitura e posa in opera di autolivellante (spessore fino a 3mm) al fine di rendere le superfici pronte alla posa della pavimentaizone.",
+          "um": "mq",
+          "prezzo_unitario_cliente": 38.0,
+          "ordine": 41,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        }
+      ]
+    },
+    {
+      "categoria_code": "A-EDILE",
+      "codice": "A.3",
+      "nome": "OPERE MURARIE",
+      "famiglia": "gerarchica",
+      "ordine": 3,
+      "voci": [
+        {
+          "codice": "A.3.1",
+          "descrizione": "Realizzazione di muratura di mattoni forati, da 8/10 cm posti in foglio con malta, mediante fornitura trasposto e posa, compresi oneri e magisteri per l’esecuzione di ammorsature e quanto altro si renda necessario a realizzare l’opera a perfetta regola d’arte.",
+          "um": "mq",
+          "prezzo_unitario_cliente": 35.0,
+          "ordine": 42,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.3.2",
+          "descrizione": "Realizzazione di muratura costituita da blocchi monolitici in conglomerato cellulare autoclavato (TIPO SIPOREX), legati mediante idoneo collante compreso lo sfrido e la stuccatura dei giunti ed ogni altro onere e magistero per fornire l’opera eseguita a qualsiasi altezza ed a perfetta regola d’arte:",
+          "um": "mq",
+          "prezzo_unitario_cliente": 69.0,
+          "ordine": 43,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.3.3",
+          "descrizione": "Realizzazione di tramezzature in doppia lastre di cartongesso dello spessore di 12,5 mm fissati mediante viti autoperforanti fosfatate ad una struttura costituita da profilati in lamiera di acciaio zincato da 0,6 mm con montanti ad interasse di 600 mm e guide al pavimento e soffitto fissate alle str",
+          "um": "mq",
+          "prezzo_unitario_cliente": 70.0,
+          "ordine": 44,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.3.4",
+          "descrizione": "Fornitura e posa in opera di isolamento interno acustico e/o termico per pareti in cartongesso con lana di vetro/lana di roccia con spessore da valutare.",
+          "um": "mq",
+          "prezzo_unitario_cliente": 15.0,
+          "ordine": 45,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.3.5",
+          "descrizione": "Fornitura e posa in opera di controtelaio in legno per porte interne standard (60-90cm), compresa la quadratura del vano e successiva intonacatura;escluso l'eventuale architrave sottile prefabbricato in calcestruzzo areato autoclavato armato per la realizzazione di aperture su murature interne in bl",
+          "um": "cad",
+          "prezzo_unitario_cliente": 150.0,
+          "ordine": 46,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            },
+            "moderata": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            },
+            "totale": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            }
+          }
+        },
+        {
+          "codice": "A.3.6",
+          "descrizione": "Fornitura e posa in opera di architrave sottile prefabbricato in calcestruzzo aerato autoclavato armato per la realizzazione di aperture su murature interne in blocchi di spessore 8 e 10 cm per porte standard (60-90 cm)",
+          "um": "cad",
+          "prezzo_unitario_cliente": 100.0,
+          "ordine": 47,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            },
+            "moderata": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            },
+            "totale": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            }
+          }
+        },
+        {
+          "codice": "A.3.7",
+          "descrizione": "Fornitura e posa in opera di controtelaio metallico per porte scorrevoli interne al muro, misure standard (60-90cm/spess.10 cm),compresa la quadratura del vano e successiva intonacatura; escluso l'eventuale architrave sottile prefabbricato in calcestruzzo areato autoclavato armato con spessori da 8 ",
+          "um": "cad",
+          "prezzo_unitario_cliente": 420.0,
+          "ordine": 48,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            },
+            "moderata": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            },
+            "totale": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            }
+          }
+        },
+        {
+          "codice": "A.3.8",
+          "descrizione": "Realizzazione di quadratura di vano su tramezzi interni per la realizzazione di varchi o l'installazione, compresa la fornitura e posa di angolari metallici e successiva intonacatura.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 200.0,
+          "ordine": 49,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        }
+      ]
+    },
+    {
+      "categoria_code": "A-EDILE",
+      "codice": "A.4",
+      "nome": "INTONACI",
+      "famiglia": "gerarchica",
+      "ordine": 4,
+      "voci": [
+        {
+          "codice": "A.4.1",
+          "descrizione": "Intonaco civile realizzato mediante messa a piombo e a squadro di pareti con l'ausilio di fasce guida",
+          "um": "mq",
+          "prezzo_unitario_cliente": 24.0,
+          "ordine": 50,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.4.2",
+          "descrizione": "Ripresa dell'intonaco sulle pareti dove è stato rimosso il rivestimento in ceramica e sulle tracce dei tramezzi demoliti",
+          "um": "mq",
+          "prezzo_unitario_cliente": 30.0,
+          "ordine": 51,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        }
+      ]
+    },
+    {
+      "categoria_code": "A-EDILE",
+      "codice": "A.5",
+      "nome": "CONTROSOFFITTI e SOPPALCHI",
+      "famiglia": "gerarchica",
+      "ordine": 5,
+      "voci": [
+        {
+          "codice": "A.5.1",
+          "descrizione": "Controsoffitto realizzato con lastre di cartongesso da 12,5 mm, fissate mediante viti autoperforanti ad una struttura costituita da profilati in lamiera di acciaio zincato, comprese la stessa struttura e la stuccatura dei giunti, le opere provvisionali, i ponteggi e quanto altro occorre per dare l’o",
+          "um": "mq",
+          "prezzo_unitario_cliente": 70.0,
+          "ordine": 52,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.5.2",
+          "descrizione": "Isolamento in lana di vetro per controsoffitti, spessore fino a 2cm e di densità pari a 85 kg/mc",
+          "um": "mq",
+          "prezzo_unitario_cliente": 20.0,
+          "ordine": 53,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.5.3",
+          "descrizione": "Relizzazione di velette in cartongesso da 12,5 mm per controsoffitti, per uno spessore massimo di 10 cm e larghezza massima 30cm per innesto di luce indiretta.",
+          "um": "ml",
+          "prezzo_unitario_cliente": 60.0,
+          "ordine": 54,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.06
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.105
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.15
+            }
+          }
+        },
+        {
+          "codice": "A.5.4",
+          "descrizione": "Realizzazione di soppalco non abitabile, con struttura metallica e pannelli in cartongesso. Incluse aperture con controtelai in legno ed eslusi pannelli di chiusura.",
+          "um": "mq",
+          "prezzo_unitario_cliente": 400.0,
+          "ordine": 55,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        }
+      ]
+    },
+    {
+      "categoria_code": "A-EDILE",
+      "codice": "A.6",
+      "nome": "PAVIMENTI E RIVESTIMENTI",
+      "famiglia": "gerarchica",
+      "ordine": 6,
+      "voci": [
+        {
+          "codice": "A.6.1",
+          "descrizione": "Posa in opera della pavimentazione con disegno a correre, compresa la stuccatura finale (restano escluse colle e stucchi, in quanto andranno scelte e stabilite in funzione del tipo di pavimentazione da posare).  Sono inclusi i formati che vanno da 20 a 60 cm come misura minima o massima. Sono compre",
+          "um": "mq",
+          "prezzo_unitario_cliente": 30.0,
+          "ordine": 56,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.6.2",
+          "descrizione": "Posa in opera di parquet prefinito a correre incollato o flottante, esclusa fornitura di parquet, colle e materassino.",
+          "um": "mq",
+          "prezzo_unitario_cliente": 35.0,
+          "ordine": 57,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.6.3",
+          "descrizione": "Posa in opera dei rivestimenti  e stuccatura finale (restano escluse colle e stucchi, in quanto andranno scelte e stabilite in funzione del tipo di pavimentazione da posare). Sono compresi i formati che vanno da 20 a 60 cm coe misure minime e massime ed eventuali cornici di finitura",
+          "um": "mq",
+          "prezzo_unitario_cliente": 30.0,
+          "ordine": 58,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.6.4",
+          "descrizione": "Posa in opera dei rivestimenti  e stuccatura finale (restano escluse colle e stucchi, in quanto andranno scelte e stabilite in funzione del tipo di pavimentazione da posare). Sono compresi i formati che vanno da 65 a 120 cm con misure minime e massime ed eventuali cornici di finitura",
+          "um": "mq",
+          "prezzo_unitario_cliente": 40.0,
+          "ordine": 59,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.6.5",
+          "descrizione": "Posa in opera dei rivestimenti MAXI LASTRA e stuccatura finale (restano escluse colle e stucchi, in quanto andranno scelte e stabilite in funzione del tipo di pavimentazione da posare). Sono compresi i formati che vanno da 120 a 240 cm con misure minime e massime ed eventuali cornici di finitura. Ri",
+          "um": "mq",
+          "prezzo_unitario_cliente": 110.0,
+          "ordine": 60,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.6.6",
+          "descrizione": "Posa in opera di mosaico di qualsiasi genere, comprese colle e stucchi.",
+          "um": "mq",
+          "prezzo_unitario_cliente": 60.0,
+          "ordine": 61,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.6.7",
+          "descrizione": "Posa in opera di battiscopa in legno mediante l'ausilio di chiodini senza testa e/o silicone con taglio a 45° per gli angoli, esclusa fornitura, di qualsiasi genere, escluse colle e stucchi.",
+          "um": "ml",
+          "prezzo_unitario_cliente": 10.0,
+          "ordine": 62,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.06
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.105
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.15
+            }
+          }
+        },
+        {
+          "codice": "A.6.8",
+          "descrizione": "Posa in opera di battiscopa in ceramica mediante l'ausilio di colla, esclusa fornitura, di qualsiasi genere, escluse colle e stucchi.",
+          "um": "ml",
+          "prezzo_unitario_cliente": 10.0,
+          "ordine": 63,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.06
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.105
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.15
+            }
+          }
+        },
+        {
+          "codice": "A.6.9",
+          "descrizione": "Arrotatura, levigatura e lucidatura di pavimenti in marmo, con mezzo meccanico, compreso ogni onere e magistero per dare il lavoro eseguito a regola d'arte.",
+          "um": "mq",
+          "prezzo_unitario_cliente": 25.0,
+          "ordine": 64,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.6.10",
+          "descrizione": "Levigatura e Lucidatura di pavimenti in parquet, con mezzo meccanico, compreso ogni onere e magistero per dare il lavoro eseguito a regola d'arte.",
+          "um": "mq",
+          "prezzo_unitario_cliente": 25.0,
+          "ordine": 65,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.6.11",
+          "descrizione": "Taglio porta blindata per renderla adatta alla posa nel nuovo pavimento",
+          "um": "ac",
+          "prezzo_unitario_cliente": 250.0,
+          "ordine": 66,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "categoria_code": "A-EDILE",
+      "codice": "A.7",
+      "nome": "IMPERMEABILIZZAZIONI",
+      "famiglia": "gerarchica",
+      "ordine": 7,
+      "voci": [
+        {
+          "codice": "A.7.1",
+          "descrizione": "Fornitura e posa in opera di strato impermeabile con malta cementizia bicomponente elastica (tipo Mapelastic). Per l’impermeabilizzazione di superfici interne ed esterne a contatto continuo con acqua.",
+          "um": "mq",
+          "prezzo_unitario_cliente": 41.0,
+          "ordine": 67,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.7.2",
+          "descrizione": "Fornitura e posa in opera di membrana prefabbricata bituminosa, con flessibilità a freddo di –25°C e armatura costituita da tessuto-non tessuto di poliestere rinforzato con fibre di vetro.",
+          "um": "mq",
+          "prezzo_unitario_cliente": 41.0,
+          "ordine": 68,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        }
+      ]
+    },
+    {
+      "categoria_code": "A-EDILE",
+      "codice": "A.8",
+      "nome": "IMPIANTI",
+      "famiglia": "gerarchica",
+      "ordine": 8,
+      "voci": [
+        {
+          "codice": "A.8.1",
+          "descrizione": "Realizzazione di nuova rete idrosanitaria mediante nuovi punti acqua idrosanitari  per gli impianti di bagno e cucina, comprendente la messa in opera delle tubazioni per l'alimentazione e lo scarico dei vari apparecchi, opportunamente dimensionate e coibentate.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 350.0,
+          "ordine": 69,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.8.2",
+          "descrizione": "Modifica di braga di scarico per eventuali nuove diramazioni.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 350.0,
+          "ordine": 70,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": "A.8.3",
+          "descrizione": "Realizzazione di centralina per impianto idrico di adduzione, compreso ogni onere e magistero per dare il lavoro eseguito a regola d'arte. Una centralina comprende massimo 5 chiusure.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 300.0,
+          "ordine": 71,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": "A.8.4",
+          "descrizione": "Posa in opera di pompa di scarico (tipo Sanitrit), esclusa la fornitura, per un massimo di 4 elementi",
+          "um": "cad",
+          "prezzo_unitario_cliente": 200.0,
+          "ordine": 72,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": "A.8.5",
+          "descrizione": "Montaggio e collaudo finale di ogni apparecchio sanitario comprensivo di rubinetterie e chiavi di arresto compresa la minuteria per i montaggi (wc, bidet, lavabo, piatto doccia, vasca) per i bagni. Restano esclusi i mobili bagno, box doccia in cristallo e vasca e/o doccia con idromassaggio.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 150.0,
+          "ordine": 73,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.8.7",
+          "descrizione": "Realizzazione di impianto gas per la cucina a partire dal contatore al piano o dal rubinetto di immissione nell'immobile. Realizzato con tubazioni a norma di legge e scatola con rubinetto di arresto. Calcolato per una lunghezza massima di 10ml.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 400.0,
+          "ordine": 74,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": "A.8.8",
+          "descrizione": "Realizzazione di impianto gas per la caldaia/scaldabagno a partire dal contatore al piano o dal rubinetto di immissione nell'immobile. Realizzato con tubazioni a norma di legge e rubinetto di arresto. Calcolato per una lunghezza massima di 10ml.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 400.0,
+          "ordine": 75,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.8.10",
+          "descrizione": "Realizzazione di impianto termoidraulico (riscaldamento) autonomo realizzato mediante creazione di centralina/collettore per collegamento delle linee di andata e ritorno alla nuova caldaia e ad ogni radiatore. Compreso montaggio radiatori escluse forniture di radiatori, valvole e detentori.La centra",
+          "um": "cad",
+          "prezzo_unitario_cliente": 350.0,
+          "ordine": 76,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": "A.8.11",
+          "descrizione": "Relizzazione di modifica di impianto termoidraulico, mediante spostamento delle tubazioni di andata e ritorno per permettere lo spostamento del corpo scaldante. Compreso montaggio di radiatore esclusa fornitura dello stesso.  (escluso il carico e lo scarico della colonna condominiale)",
+          "um": "cad",
+          "prezzo_unitario_cliente": 350.0,
+          "ordine": 77,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": "A.8.12",
+          "descrizione": "Blocco parziale dell'impianto condominiale per modifica impianto termico mediante congelamento tubi.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 250.0,
+          "ordine": 78,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": "A.8.13.1",
+          "descrizione": "Posa di impianto di riscaldamento a pavimento autonomo. Inclusa la posa della serpentina, il tappetino e la benza perimetrale (esclusa la loro fornitura), installato in ambienti con media difficoltà di esecuzione per la presenza di elementi comportanti la discontinuità del piano orizzontale di posa ",
+          "um": "mq",
+          "prezzo_unitario_cliente": 60.0,
+          "ordine": 79,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.8.13.2",
+          "descrizione": "Fornitura di impianto di riscaldamento a pavimento (esclusa la fornitura della caldaia) completo di pannelli porta tubo, tubazione in polietilene reticolato, bordatura isolante, giunti di dilatazione, centralina climatica di regolazione, valvola motorizzata a tre vie da 1/2\", valvola di taratura e d",
+          "um": "mq",
+          "prezzo_unitario_cliente": 70.0,
+          "ordine": 80,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.8.13.3",
+          "descrizione": "Creazione di collettore di distribuzione e punto caldaia. Il collettore di distribuzione e il punto di allaccio idrico della caldaia dovranno essere computati come punti termoidraulici.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 300.0,
+          "ordine": 81,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": "A.8.15",
+          "descrizione": "Modifica di impianto elettrico esistente comprese placche e frutti linea Bticino Living light Bianca. Compresa certificazione delle modifiche effettuate realizzate a norma di legge, in caso di modifica dell'attuale impianto elettrico la certificazione non potrà esser fornita se non a seguito della v",
+          "um": "cad",
+          "prezzo_unitario_cliente": 65.0,
+          "ordine": 82,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": "A.8.16",
+          "descrizione": "Realizzazione di impianto elettrico ex novo comprese placche e frutti linea Bticino Living light Bianca. Compresa certificazione conforme alla Norma CEI 64-8 Livello 1 con potenze fino a 6Kw. Calcolata a punti luce come descritto: 1 punto luce comprende: - ogni 503 (completo di due frutti) - ogni us",
+          "um": "cad",
+          "prezzo_unitario_cliente": 65.0,
+          "ordine": 83,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": "A.8.17",
+          "descrizione": "Fornitura e posa in opera di quadro elettrico fino a 6Kw con sezioni come a norma di legge. CARATTERISTICHE QUADRO:  n° 1 Apparecchio sezionatore modulare da un minimo di 20A, per forniture da 3Kw;  n°1 Differenziale Magnetotermico da 0,03 10A per Forza Luci;  n°1 Differenziale Magnetotermico da 0,0",
+          "um": "cad",
+          "prezzo_unitario_cliente": 600.0,
+          "ordine": 84,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": "A.8.18",
+          "descrizione": "INTEGRAZIONE DIFFERENZIALE PER SEZIONAMENTO: Modifica e/o integrazione con Fornitura e posa di differenziale per sezionamento linee ad uso civile domestico su Q.e. Base (Zona Giorno, zona Notte, Bagno, elettrodomestici…ecc) Tipo INTERRUTTORE AUTOMATICO MAGNETOTERMICO DIFFERENZIALE 1P+N 16A o 1P+N 10",
+          "um": "cad",
+          "prezzo_unitario_cliente": 200.0,
+          "ordine": 85,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.8.19",
+          "descrizione": "Realizzazione di impianto elettrico per alimentazione impianto canalizzato consistente nel collegamento elettrico tra macchina interna e macchina esterna, termostato di regolazione e alimentazione della macchina interna e collegamento dedicato al quadro elettrico Dal computo resta esclusa la fornitu",
+          "um": "cad",
+          "prezzo_unitario_cliente": 200.0,
+          "ordine": 86,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": "A.8.20",
+          "descrizione": "Realizzazione di impianto elettrico per alimentazione elettrica air zone consistente nel collegamento elettrico tra bocchetta motorizzata e termostato di zona. La voce è da integrare sempre con la voce A.19 del presente computo Dal computo resta esclusa la fornitura e sostituzione del quadro elettri",
+          "um": "n.air zone",
+          "prezzo_unitario_cliente": 180.0,
+          "ordine": 87,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.8.21",
+          "descrizione": "Realizzazione di predisposizione impianto di condizionamento (tipo split), sono compresi scatola tubazione di adeguata sezione e scarico di condensa realizzati sotto traccia, compreso linee tubazioni in scatole a incasso sifonate e cavo di comunicazione unità interna/esterna  Sono esclusi la fornitu",
+          "um": "cad",
+          "prezzo_unitario_cliente": 350.0,
+          "ordine": 88,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.8.22",
+          "descrizione": "Realizzione predisposizione impianto di condizionamento canalizzato, sono compresi tubazione di alimentazione gas macchina interna e macchina esterna compreso lo scarico della condensa realizzati sotto traccia. Sono escluse la fornitura e i montaggi delle macchine interne ed esterne, canalizzazioni,",
+          "um": "cad",
+          "prezzo_unitario_cliente": 800.0,
+          "ordine": 89,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "categoria_code": "A-EDILE",
+      "codice": "A.9",
+      "nome": "ASSISTENZA MURARIA",
+      "famiglia": "gerarchica",
+      "ordine": 9,
+      "voci": [
+        {
+          "codice": "A.9.1",
+          "descrizione": "Assistenza muraria dell'intero immobile relativa all'impianto idro sanitario, impianto di riscaldamento, impianto gas e impianto di condizionamento relativo all'apertura e chiusura di tutte le tracce a parete e a pavimento.",
+          "um": "%",
+          "prezzo_unitario_cliente": 0.0,
+          "ordine": 90,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.9.2",
+          "descrizione": "Assistenza muraria per realizzazione e/o modifica impianto elettrico relativa all'apertura e alla chiusura di tutte le tracce a parete e a pavimento. Comprende la chiusura in muratura delle scatoline elettriche, delle scatole di derivazione e della posa di tutti i corrugati necessari.",
+          "um": "%",
+          "prezzo_unitario_cliente": 0.0,
+          "ordine": 91,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.9.3",
+          "descrizione": "Assistenza muraria singolo ambiente (con o senza rifacimento massetto) relativa all'apertura e alla chiusura di tutte le tracce a parete e a pavimento per tutti gli impianti tecnologici preventivati.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 750.0,
+          "ordine": 92,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": "A.9.4",
+          "descrizione": "Assistenza muraria per la predisposposizione dell'impianto canalizzato (con o senza rifacimento massetto) relativa all'apertura dei buchi per il posizionamento delle bocchette di areazione e il loro fissaggio, esclusa la fornitura",
+          "um": "n.bocchette",
+          "prezzo_unitario_cliente": 250.0,
+          "ordine": 93,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.9.5",
+          "descrizione": "Assistenza muraria per la predisposposizione dell'impianto canalizzato (con o senza rifacimento massetto) relativa all'apertura e chiusura di tracce per il posizionamento e il collegamento dei dispositivi air zone, esclusa la fornitura dei componenti. Questa voce deve sempre essere associata alla vo",
+          "um": "n.air zone",
+          "prezzo_unitario_cliente": 250.0,
+          "ordine": 94,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.9.5",
+          "descrizione": "Smaltimento di macerie e rifiuti inerenti alle demolizioni sopra descritte e all'ambito di cantiere ad impianti di stoccaggio, di recupero o a discarica. (ivi compresi gli imballi di cartone relativi a tutte forniture effettuate dalla committenza per il completamento dell'opera appaltata; sono esclu",
+          "um": "%",
+          "prezzo_unitario_cliente": 0.0,
+          "ordine": 95,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "categoria_code": "A-EDILE",
+      "codice": "A.10",
+      "nome": "MONTAGGI E ALLACCI",
+      "famiglia": "gerarchica",
+      "ordine": 10,
+      "voci": [
+        {
+          "codice": "A.10.1",
+          "descrizione": "Montaggio di condizionatore (tipo slip o unico), esclusa fornitura. Compresa macchina esterna ed interna.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 350.0,
+          "ordine": 96,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.10.2",
+          "descrizione": "Smontaggio e rimontaggio di radiatori senza apportare nessuna modifica impiantistica. Esclusa fornitura dei radiatori. (escluso il carico e lo scarico della colonna condominiale)",
+          "um": "cad",
+          "prezzo_unitario_cliente": 50.0,
+          "ordine": 97,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": "A.10.3",
+          "descrizione": "Posa in opera e collaudo di caldaia o scaldacqua a gas esclusa fornitura di caldaia e tubazioni (flessibili, tubo telescopico) necessarie al montaggio.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 300.0,
+          "ordine": 98,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": "A.10.4",
+          "descrizione": "Posa in opera e collaudo di boiler elettrico (solo ACS) fornito dal committente compreso di collegamento alla schermatura idraulica, esclusa la raccorderia variabile a secondo di modello di impianto.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 150.0,
+          "ordine": 99,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": "A.10.5",
+          "descrizione": "Posa in opera e collaudo di Box Doccia in Cristallo",
+          "um": "cad",
+          "prezzo_unitario_cliente": 250.0,
+          "ordine": 100,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.10.6",
+          "descrizione": "Motorizzazione serrande mediante fornitura e montaggio di motorino elettrico, esclusa la sostituzione di rullo.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 300.0,
+          "ordine": 101,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": "A.10.7",
+          "descrizione": "Allaccio Impianto Acqua in cucina esclusa la raccorderia variabile a secondo di modello di impianto.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 150.0,
+          "ordine": 102,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": "A.10.8",
+          "descrizione": "Allaccio Impianto Gas per il piano cottura cucina esclusa la raccorderia variabile a secondo di modello di impianto.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 150.0,
+          "ordine": 103,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": "A.10.9",
+          "descrizione": "Carotaggio e Montaggio faretti, esclusa fornitura",
+          "um": "cad",
+          "prezzo_unitario_cliente": 15.0,
+          "ordine": 104,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": "A.10.10",
+          "descrizione": "Montaggio e fornitura di lampada d'emergenza",
+          "um": "cad",
+          "prezzo_unitario_cliente": 100.0,
+          "ordine": 105,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": "A.10.11",
+          "descrizione": "Montaggio lampadari, esclusa fornitura",
+          "um": "cad",
+          "prezzo_unitario_cliente": 20.0,
+          "ordine": 106,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": "A.10.12",
+          "descrizione": "Realizzazione di foro areazione per cucina/cappa/ uscita areazione forzatabagno delle opportune dimensioni con carotatrice aspirante",
+          "um": "cad",
+          "prezzo_unitario_cliente": 300.0,
+          "ordine": 107,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": "A.10.13",
+          "descrizione": "Fornitura e posa di areazione forzata bagno, mediante installazione del motore tipo \"Vortice®\" e del tubo di uscita,opportunamente dimensionati",
+          "um": "cad",
+          "prezzo_unitario_cliente": 225.0,
+          "ordine": 108,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "categoria_code": "A-EDILE",
+      "codice": "A.11",
+      "nome": "OPERE DA PITTORE",
+      "famiglia": "gerarchica",
+      "ordine": 11,
+      "voci": [
+        {
+          "codice": "A.11.1",
+          "descrizione": "Raschiatura di vecchie tinteggiature a calce, a tempera o lavabile da pareti e soffitti.",
+          "um": "mq",
+          "prezzo_unitario_cliente": 10.0,
+          "ordine": 109,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.11.2",
+          "descrizione": "Rasatura a gesso di intonaci civili, compresa la successiva scartavetratura ed ogni mezzo d'opera, con inserimento di rete e paraspigoli (ove necessario) per dare le superfici perfettamente pronte alla pitturazione..",
+          "um": "mq",
+          "prezzo_unitario_cliente": 20.0,
+          "ordine": 110,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.11.3",
+          "descrizione": "Tinteggiatura di soffitti con pittura traspirante Bianca a due mani a coprire, esclusa la preparazione delle superfici con rasatura e stuccatura.",
+          "um": "mq",
+          "prezzo_unitario_cliente": 8.0,
+          "ordine": 111,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.11.4",
+          "descrizione": "Tinteggiatura di pareti con pittura lavabile Bianca a due mani a coprire, esclusa la preparazione delle superfici con rasatura e stuccatura.",
+          "um": "mq",
+          "prezzo_unitario_cliente": 10.0,
+          "ordine": 112,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.11.5",
+          "descrizione": "Tinteggiatura di pareti con smalto Bianco a due mani a coprire, esclusa la preparazione delle superfici con rasatura e stuccatura.",
+          "um": "mq",
+          "prezzo_unitario_cliente": 15.0,
+          "ordine": 113,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": "A.11.6",
+          "descrizione": "Fornitura e posa di fondo di collegamento per rendere uniformi le pareti prima della pittura finale.",
+          "um": "mq",
+          "prezzo_unitario_cliente": 5.0,
+          "ordine": 114,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        }
+      ]
+    },
+    {
+      "categoria_code": "A-EDILE",
+      "codice": "A.12",
+      "nome": "SICUREZZA CANTIERE",
+      "famiglia": "gerarchica",
+      "ordine": 12,
+      "voci": [
+        {
+          "codice": "A.12.1.",
+          "descrizione": "Oneri alla sicurezza come da Dgls 81/08",
+          "um": "ac",
+          "prezzo_unitario_cliente": 1000.0,
+          "ordine": 115,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "categoria_code": "B-FINITURE",
+      "codice": null,
+      "nome": "PAVIMENTI E RIVESTIMENTI GRES",
+      "famiglia": "catalogo",
+      "ordine": 2,
+      "voci": [
+        {
+          "codice": null,
+          "descrizione": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: effetto cemento, con superficie antiscivolo (R10 A):30 × 60 cm, naturale o bocciardato, spessore 10",
+          "um": "mq",
+          "prezzo_unitario_cliente": 28.32,
+          "ordine": 1,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: effetto cemento, con superficie antiscivolo (R10 A): 60 × 60 cm, spessore 15 mm",
+          "um": "mq",
+          "prezzo_unitario_cliente": 28.32,
+          "ordine": 2,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: effetto cemento, con superficie antiscivolo (R10 A): 60 × 120 cm, naturale, spessore 10 mm",
+          "um": "mq",
+          "prezzo_unitario_cliente": 32.32,
+          "ordine": 3,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 30 × 30 cm, disegno mosaico",
+          "um": "mq",
+          "prezzo_unitario_cliente": 125.0,
+          "ordine": 4,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto marmo, antiscivolo (R9), spessore 9 mm:30 × 60 cm",
+          "um": "mq",
+          "prezzo_unitario_cliente": 36.63,
+          "ordine": 5,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Fornitura di pavimentazione/rivestimento in gres porcelanato TIPO: Padana marmosmart pietrasanta smart honed 60 x 60 1° sc. (mq. 1,44x)",
+          "um": "mq",
+          "prezzo_unitario_cliente": 23.37,
+          "ordine": 6,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:effetto cemento, con superficie antiscivolo (R10 A):dimensioni 60 × 60 cm, spessore 15 mm",
+          "um": "mq",
+          "prezzo_unitario_cliente": 28.32,
+          "ordine": 7,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto marmo, antiscivolo (R9), spessore 9 mm:60 × 120 cm",
+          "um": "mq",
+          "prezzo_unitario_cliente": 38.78,
+          "ordine": 8,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:effetto cemento, con superficie antiscivolo (R10 A):60 × 120 cm, naturale, spessore 10 mm",
+          "um": "mq",
+          "prezzo_unitario_cliente": 43.4,
+          "ordine": 9,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 30 × 60 cm, spessore 10 mm",
+          "um": "mq",
+          "prezzo_unitario_cliente": 28.32,
+          "ordine": 10,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 30 × 60 cm, spessore 10 mm",
+          "um": "mq",
+          "prezzo_unitario_cliente": 28.32,
+          "ordine": 11,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 60 × 120 cm, spessore 10,5 mm",
+          "um": "mq",
+          "prezzo_unitario_cliente": 46.9,
+          "ordine": 12,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: granigliato: 30 × 30 cm, effetto marmetta grana media antiscivolo (R11), spessore 8,5 mm",
+          "um": "mq",
+          "prezzo_unitario_cliente": 28.32,
+          "ordine": 13,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: granigliato: 30 × 30 cm, superficie bocciardata antiscivolo (R12 B), spessore 8,5 mm",
+          "um": "mq",
+          "prezzo_unitario_cliente": 28.02,
+          "ordine": 14,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto pietra naturale, rettificato, antiscivolo (R9):60 × 120 cm, spessore 10,5 mm",
+          "um": "mq",
+          "prezzo_unitario_cliente": 56.7,
+          "ordine": 15,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto pietra naturale, rettificato, antiscivolo (R9): 60 × 60 cm, spessore 10 mm",
+          "um": "mq",
+          "prezzo_unitario_cliente": 61.0,
+          "ordine": 16,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto cemento:120 × 120 cm, rettificato, spessore 10,5 mm",
+          "um": "mq",
+          "prezzo_unitario_cliente": 80.16,
+          "ordine": 17,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Gres porcellanato colorato in massa, ottenuto per pressatura, in lastre di bassissimo spessore rinforzate sul lato inferiore con rete in fibra di vetro, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe reazione al fuoco A2 - s1, classe assorbimento acqua Bia-UGL, ",
+          "um": "mq",
+          "prezzo_unitario_cliente": 81.9,
+          "ordine": 18,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto marmo, antiscivolo (R9), spessore 9 mm: 90 × 90 cm",
+          "um": "mq",
+          "prezzo_unitario_cliente": 61.56,
+          "ordine": 19,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:120 × 278 cm, spessore 6 mm:effetto marmo, superficie lucida",
+          "um": "mq",
+          "prezzo_unitario_cliente": 108.5,
+          "ordine": 20,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:160 × 320 cm, spessore 6 mm:effetto marmo, superficie lucida",
+          "um": "mq",
+          "prezzo_unitario_cliente": 108.5,
+          "ordine": 21,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Ceramica monocottura di pasta bianca in lastre ottenute per pressatura, rettificate, per rivestimenti ad uso residenziale, grado di assorbimento acqua gruppo BIII L a norma UNI EN 14411, delle dimensioni di 60 × 180 cm:effetto cemento, strutturato, spessore 9 mm",
+          "um": "mq",
+          "prezzo_unitario_cliente": 76.3,
+          "ordine": 22,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        }
+      ]
+    },
+    {
+      "categoria_code": "B-FINITURE",
+      "codice": null,
+      "nome": "PAVIMENTI",
+      "famiglia": "catalogo",
+      "ordine": 3,
+      "voci": [
+        {
+          "codice": null,
+          "descrizione": "Gres porcellanato colorato in massa, ottenuto per pressatura, in lastre di bassissimo spessore rinforzate sul lato inferiore con rete in fibra di vetro, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe reazione al fuoco A2 - s1, classe assorbimento acqua Bia-UGL, ",
+          "um": "mq",
+          "prezzo_unitario_cliente": 79.1,
+          "ordine": 23,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Vinilico multistrato LVT in listoni delle dimensioni di 17 ÷ 20 × 100 ÷ 124 cm o piastre delle dimensioni di 36 × 69 cm con profili laterali ad incastro per posa senza collante, con uno strato d'usura in pvc puro trasparente che protegge uno strato a motivi stampatitrattato con fotoreticolazione UV ",
+          "um": "mq",
+          "prezzo_unitario_cliente": 35.7,
+          "ordine": 24,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Pavimento in laminato antistatico (< 2 kV - UNI EN 1815 ed UNI EN 14041), con supporto di base in fibra di legno ad elevata densità (HDF) con superficie ad effetto legno, resistenza all'abrasione superficiale in classe AC4 (UNI EN 13329), rigonfiamento del bordo ≤ 18% (valore medio 11% UNI EN 13329)",
+          "um": "mq",
+          "prezzo_unitario_cliente": 31.88,
+          "ordine": 25,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Unilin sottofondo in schiuma senza barriera vapore",
+          "um": "mq",
+          "prezzo_unitario_cliente": 1.76,
+          "ordine": 26,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Tesserine di vetro per pavimenti a tinta unita delle dimensioni 2 × 2 cm, spessore 4 cm, premontate su fogli di carta dimensioni 30 × 30 cm:colori medi",
+          "um": "mq",
+          "prezzo_unitario_cliente": 63.2,
+          "ordine": 27,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Moquette in quadrotte autoposanti idonee alla posa senza collante, ad alta flessibilità, antistatiche, ignifughe di classe 1, dimensioni 50 × 50 cm: con supporto in composto termoplastico rinforzato con due strati di fibre di vetro e pretrattato con antibatterico:100% nylon, superficie velluto diseg",
+          "um": "mq",
+          "prezzo_unitario_cliente": 98.8,
+          "ordine": 28,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        }
+      ]
+    },
+    {
+      "categoria_code": "B-FINITURE",
+      "codice": null,
+      "nome": "PAVIMENTI PARQUET",
+      "famiglia": "catalogo",
+      "ordine": 4,
+      "voci": [
+        {
+          "codice": null,
+          "descrizione": "Parquet prefinito in listoni composti da uno strato superiore in legno nobile di spessore 5 mm e supporto in multistrato di betulla con profili maschiati:con superficie prelevigata, da finire in opera, spessore totale 14 mm, lunghezza 1.200 ÷ 2.000 mm, larghezza 140 mm:rovere",
+          "um": "mq",
+          "prezzo_unitario_cliente": 106.25,
+          "ordine": 29,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Parquet prefinito in listoni composti da uno strato superiore in legno nobile di spessore 5 mm e supporto in multistrato di betulla con profili maschiati:con superficie prelevigata, da finire in opera, spessore totale 10mm, lunghezza 1.200 ÷ 2.000 mm, larghezza 140 mm:rovere",
+          "um": "mq",
+          "prezzo_unitario_cliente": 106.25,
+          "ordine": 30,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Parquet prefinito in listoni composti da uno strato superiore in legno nobile di spessore 5 mm e supporto in multistrato di betulla con profili maschiati:con superficie prelevigata, da finire in opera, spessore totale 14 mm, lunghezza 1.200 ÷ 2.000 mm, larghezza 140 mm: teak",
+          "um": "mq",
+          "prezzo_unitario_cliente": 165.78,
+          "ordine": 31,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Parquet prefinito in listoni composti da uno strato superiore in legno nobile di spessore 5 mm e supporto in multistrato di betulla con profili maschiati:con superficie prelevigata, da finire in opera, spessore totale 14 mm, lunghezza 1.200 ÷ 2.000 mm, larghezza 140 mm: iroko",
+          "um": "mq",
+          "prezzo_unitario_cliente": 108.5,
+          "ordine": 32,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Parquet prefinito in listoni composti da uno strato superiore in legno nobile di spessore 5 mm e supporto in multistrato di betulla con profili maschiati:con superficie prelevigata, da finire in opera, spessore totale 14 mm, lunghezza 1.200 ÷ 2.000 mm, larghezza 140 mm: rovere",
+          "um": "mq",
+          "prezzo_unitario_cliente": 106.25,
+          "ordine": 33,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Parquet prefinito in listoni composti da uno strato superiore in legno nobile di spessore 5 mm e supporto in multistrato di betulla con profili maschiati:con superficie prelevigata, da finire in opera, spessore totale 14 mm, lunghezza 1.200 ÷ 2.000 mm, larghezza 140 mm: wengè",
+          "um": "mq",
+          "prezzo_unitario_cliente": 166.59,
+          "ordine": 34,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Parquet prefinito in listoni composti da uno strato superiore in legno nobile di spessore 5 mm e supporto in multistrato di betulla con profili maschiati:con superficie prelevigata, da finire in opera, spessore totale 14 mm, lunghezza 1.200 ÷ 2.000 mm, larghezza 140 mm: wengè",
+          "um": "mq",
+          "prezzo_unitario_cliente": 113.04,
+          "ordine": 35,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        }
+      ]
+    },
+    {
+      "categoria_code": "B-FINITURE",
+      "codice": null,
+      "nome": "BATTISCOPA",
+      "famiglia": "catalogo",
+      "ordine": 5,
+      "voci": [
+        {
+          "codice": null,
+          "descrizione": "Zoccolino di gres porcellanato colorato in massa, superficie naturale o bocciardata:effetto cemento, 10 × 30 cm, spessore 8,5 mm con sguscia",
+          "um": "ml",
+          "prezzo_unitario_cliente": 12.95,
+          "ordine": 36,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.06
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.105
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.15
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Zoccolino in legno 75 × 10 mm: essenza",
+          "um": "ml",
+          "prezzo_unitario_cliente": 22.5,
+          "ordine": 37,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.06
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.105
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.15
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Zoccolino in legno 75 × 10 mm: multistrato bianco",
+          "um": "ml",
+          "prezzo_unitario_cliente": 9.52,
+          "ordine": 38,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.06
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.105
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.15
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Zoccolino in legno 40 × 10 mm: multistrato bianco",
+          "um": "ml",
+          "prezzo_unitario_cliente": 9.52,
+          "ordine": 39,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.06
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.105
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.15
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Zoccolino in legno 40 × 10 mm: essenza",
+          "um": "ml",
+          "prezzo_unitario_cliente": 9.52,
+          "ordine": 40,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.06
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.105
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.15
+            }
+          }
+        }
+      ]
+    },
+    {
+      "categoria_code": "B-FINITURE",
+      "codice": null,
+      "nome": "MATERIALI DI POSA",
+      "famiglia": "catalogo",
+      "ordine": 6,
+      "voci": [
+        {
+          "codice": null,
+          "descrizione": "Colle, stucchi distanziatori e cunei per la posa",
+          "um": "mq",
+          "prezzo_unitario_cliente": 3.1,
+          "ordine": 41,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        }
+      ]
+    },
+    {
+      "categoria_code": "B-FINITURE",
+      "codice": null,
+      "nome": "RUBINETTERIE",
+      "famiglia": "catalogo",
+      "ordine": 7,
+      "voci": [
+        {
+          "codice": null,
+          "descrizione": "Miscelatore monocomando cromato per lavabo con scarico automatico: normale",
+          "um": "cad",
+          "prezzo_unitario_cliente": 113.14,
+          "ordine": 42,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Miscelatore monocomando cromato per bidet, erogazione a doccetta orientabile, completo di scarico, senza nipples e rosoni",
+          "um": "cad",
+          "prezzo_unitario_cliente": 110.4,
+          "ordine": 43,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Miscelatore cromato monocomando da incasso per doccia/vasca: con corpo incassato, maniglia, cappuccio, rosone, doccia a sistema anticalcare, flessibile da 1500 mm e appendidoccia orientabile.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 172.0,
+          "ordine": 44,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Piatto doccia in acrilico colore bianco, scarico centrale, per installazione sopra pavimento, inclusa piletta sifonata con foro ∅ 90 mm: rettangolare: 120 × 80 × 4 cm o 100 × 80 × 4 cm",
+          "um": "cad",
+          "prezzo_unitario_cliente": 390.0,
+          "ordine": 45,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Vasca in acrilico colore bianco, scarico centrale, per installazione ad incasso, inclusa piletta sifonata con foro ∅ 90 mm: rettangolare: 170 × 70",
+          "um": "cad",
+          "prezzo_unitario_cliente": 315.0,
+          "ordine": 46,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Cabina per piatto doccia composta da porta con profili in alluminio verniciato a caldo con resine epossidiche, altezza 1850 mm, lastre trasparenti con guarnizioni in gomma trattate con antimuffa, chiusura anta apribile mediante magnete:una porta a soffietto con apertura verso l'interno, con vetro st",
+          "um": "cad",
+          "prezzo_unitario_cliente": 544.0,
+          "ordine": 47,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Bidet in porcellana dura (vetrochina): monoforo con erogazione dalla rubinetteria, 36 × 54 × 39 cm",
+          "um": "cad",
+          "prezzo_unitario_cliente": 253.0,
+          "ordine": 48,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Vaso igienico in porcellana vetrificata (vetrochina), esclusi accessori di fissaggio: scarico a pavimento",
+          "um": "cad",
+          "prezzo_unitario_cliente": 310.0,
+          "ordine": 49,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Cassetta d'incasso da 9 litri, per posa in muratura, con regolazione del flusso e doppio tipo di risciacquo, allacciamento alla rete idrica sul lato superiore da 1/2\", con rubinetto d'arresto, fissaggi per la cassetta e rete di rivestimento per l'intonaco, con tubo di risciacquamento in polietilene ",
+          "um": "cad",
+          "prezzo_unitario_cliente": 230.18,
+          "ordine": 50,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Vaso igienico in porcellana vetrificata (vetrochina), esclusi accessori di fissaggio: sospeso con scarico a parete",
+          "um": "cad",
+          "prezzo_unitario_cliente": 290.26,
+          "ordine": 51,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Bidet in porcellana dura (vetrochina): sospeso, monoforo con erogazione dalla rubinetteria. 35 × 57 × 32 cm",
+          "um": "cad",
+          "prezzo_unitario_cliente": 326.0,
+          "ordine": 52,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Cassetta d'incasso da 9 litri, per posa in muratura, con regolazione del flusso e doppio tipo di risciacquo, allacciamento alla rete idrica sul lato superiore da 1/2\", con rubinetto d'arresto, fissaggi per la cassetta e rete di rivestimento per l'intonaco, con tubo di risciacquamento in polietilene ",
+          "um": "cad",
+          "prezzo_unitario_cliente": 451.47,
+          "ordine": 53,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Placca di copertura per cassette d'incasso: con tasto di comando e interruzione del risciacquo, in materiale plastico opaca",
+          "um": "cad",
+          "prezzo_unitario_cliente": 53.77,
+          "ordine": 54,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Radiatore a rastrelliera realizzato con tubolari orizzontali in acciaio preverniciato con polveri epossidiche a finire di colore bianco, attacchi ∅ 1/2\", pressione d'esercizio 8 bar, temperatura massima d'esercizio 95 °C, resa termica con Δ Ti di 50 °C secondo UNI EN 442, in opera compresi valvola t",
+          "um": "cad",
+          "prezzo_unitario_cliente": 129.5646,
+          "ordine": 55,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Radiatori in alluminio ad elementi componibili profondità 95 ÷ 100 mm, preverniciati al forno con polveri epossidiche preassemblati mediante nipples in acciaio, emiss. termica con Δ T50 °C secondo norme UNI EN 442, dati in opera completi di valvola d'intercettazione e detentore, valvola sfogo aria, ",
+          "um": "cad",
+          "prezzo_unitario_cliente": 165.06,
+          "ordine": 56,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        }
+      ]
+    },
+    {
+      "categoria_code": "C-SERRAMENTI",
+      "codice": null,
+      "nome": "PORTE",
+      "famiglia": "catalogo",
+      "ordine": 1,
+      "voci": [
+        {
+          "codice": null,
+          "descrizione": "Porta interna in legno con anta mobile tamburata e con bordi impiallacciati, completa di telaio maestro in listellare impiallacciato dello spessore di 8/11 mm, coprifili ad incastro in multistrato e tutta la ferramenta necessaria per il fissaggio, movimento e chiusura, delle dimensioni standard di 2",
+          "um": "cad",
+          "prezzo_unitario_cliente": 192.3,
+          "ordine": 1,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            },
+            "moderata": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            },
+            "totale": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Porta interna in legno con anta mobile tamburata e con bordi impiallacciati, completa di telaio maestro in listellare impiallacciato dello spessore di 8/11 mm, coprifili ad incastro in multistrato e tutta la ferramenta necessaria per il fissaggio, movimento e chiusura, delle dimensioni standard di 2",
+          "um": "cad",
+          "prezzo_unitario_cliente": 271.2,
+          "ordine": 2,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            },
+            "moderata": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            },
+            "totale": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Montaggio di porte interne a battente misure standard",
+          "um": "cad",
+          "prezzo_unitario_cliente": 90.0,
+          "ordine": 3,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            },
+            "moderata": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            },
+            "totale": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Porta in legno scorrevole interno muro con anta tamburata e bordi impiallacciati, spessore 8/11 mm, coprifili ad incastro in multistrato, serratura a gancio con nottolino e maniglia ad incasso, dimensioni 210 × 60 ÷ 90 cm:cieca liscia, anta singola:noce tanganika",
+          "um": "cad",
+          "prezzo_unitario_cliente": 380.4,
+          "ordine": 4,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            },
+            "moderata": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            },
+            "totale": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Porta in legno scorrevole interno muro con anta tamburata e bordi impiallacciati, spessore 8/11 mm, coprifili ad incastro in multistrato, serratura a gancio con nottolino e maniglia ad incasso, dimensioni 210 × 60 ÷ 90 cm:cieca liscia, anta singola:laccata bianca",
+          "um": "cad",
+          "prezzo_unitario_cliente": 412.2,
+          "ordine": 5,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            },
+            "moderata": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            },
+            "totale": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Montaggio di porte interne a scomparsa misure standard",
+          "um": "cad",
+          "prezzo_unitario_cliente": 95.0,
+          "ordine": 6,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            },
+            "moderata": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            },
+            "totale": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Porta blindata costituita da telaio in lamiera d'acciaio dello spessore di 20/10 verniciato e predisposto per l'ancoraggio dei bulloni, controtelaio in lamiera dello spessore di 25/10 verniciato con vernice antiruggine, anta in doppia lamiera d'acciaio dello spessore di 12/10 con profili perimetrali",
+          "um": "cad",
+          "prezzo_unitario_cliente": 801.6,
+          "ordine": 7,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            },
+            "moderata": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            },
+            "totale": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Rimozione vecchio controtelaio e ripristino delle parti ammalorate mediante stuccatura e verciatura delle parti interessate",
+          "um": "cad",
+          "prezzo_unitario_cliente": 300.0,
+          "ordine": 8,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Montaggio di porta blindata mediante montaggio di nuovo controtelaio e assistenza muraria",
+          "um": "cad",
+          "prezzo_unitario_cliente": 450.0,
+          "ordine": 9,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            },
+            "moderata": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            },
+            "totale": {
+              "domanda_mirata_key": "porte",
+              "default_conteggio": 5
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Finestre a 1/2/3 ante con profilo in PVC , telaio SL LA, colore bianco massa, (5 camere con doppia guarnizione), doppio rinforzo, comprensivo di vetro di sicurezza 2.2.1-18GA-22.1BE. Completo di anta a ribalta, microventilazione, ferramenta e maniglia satinata. La voce comprende fornitura, trasporto",
+          "um": "mq",
+          "prezzo_unitario_cliente": 760.0,
+          "ordine": 10,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Porta finestra a 1/2/3 ante con profilo in PVC , telaio SL LA, colore bianco massa, (5 camere con doppia guarnizione), doppio rinforzo, comprensivo di vetro di sicurezza 2.2.1-18GA-22.1BE. Completo di anta a ribalta, microventilazione, ferramenta e maniglia satinata. La voce comprende fornitura, tra",
+          "um": "mq",
+          "prezzo_unitario_cliente": 850.0,
+          "ordine": 11,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Tapparelle in PVC effetto legno. La voce comprende fornitura, trasporto e montaggio  con smontaggio delle vecchie tapparelle e scarico su fronte strada.  Compreso il carico da piano strada e trasporto ad impianti di stoccaggio, di recupero o a discarica. NB:il prezzo è da considerarsi puramente indi",
+          "um": "mq",
+          "prezzo_unitario_cliente": 280.0,
+          "ordine": 12,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Tapparelle in alluminio effetto legno. La voce comprende fornitura, trasporto e montaggio  con smontaggio delle vecchie tapparelle e scarico su fronte strada.  Compreso il carico da piano strada e trasporto ad impianti di stoccaggio, di recupero o a discarica. NB:il prezzo è da considerarsi purament",
+          "um": "mq",
+          "prezzo_unitario_cliente": 330.0,
+          "ordine": 13,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Cassonetti coibentati in PVC colore a scelta. La voce comprende fornitura, trasporto e montaggio  con smontaggio dei vecchi cassonetti e scarico su fronte strada.  Compreso il carico da piano strada e trasporto ad impianti di stoccaggio, di recupero o a discarica. NB:il prezzo è da considerarsi pura",
+          "um": "ml",
+          "prezzo_unitario_cliente": 400.0,
+          "ordine": 14,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.06
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.105
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.15
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Zanzariere a molla orizzontale e/o a catena e/o scorrevole e/o zanzariera a battente. La voce comprende fornitura, trasporto e montaggio NB:il prezzo è da considerarsi puramente indicativo in quanto andrà confermato previo sopralluogo del serramentista e dopo la scelta della tipologia adatta alle pr",
+          "um": "mq",
+          "prezzo_unitario_cliente": 200.0,
+          "ordine": 15,
+          "coefficienti": {
+            "leggera": {
+              "coefficiente_qta_per_mq": 0.24
+            },
+            "moderata": {
+              "coefficiente_qta_per_mq": 0.42
+            },
+            "totale": {
+              "coefficiente_qta_per_mq": 0.6
+            }
+          }
+        }
+      ]
+    },
+    {
+      "categoria_code": "D-PRODOTTI",
+      "codice": null,
+      "nome": "PRODOTTI",
+      "famiglia": "catalogo",
+      "ordine": 1,
+      "voci": [
+        {
+          "codice": null,
+          "descrizione": "Fornitura di condizionatore SAMSUNG CEBU monoplit",
+          "um": "cad",
+          "prezzo_unitario_cliente": 610.0,
+          "ordine": 1,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Fornitura di condizionatore SAMSUNG CEBU dualsplit",
+          "um": "cad",
+          "prezzo_unitario_cliente": 1358.0,
+          "ordine": 2,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Fornitura di condizionatore SAMSUNG CEBU trialsplit",
+          "um": "cad",
+          "prezzo_unitario_cliente": 2025.0,
+          "ordine": 3,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Fornitura di condizionatore DAIKIN PREFERA monoplit",
+          "um": "cad",
+          "prezzo_unitario_cliente": 1276.0,
+          "ordine": 4,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Fornitura di condizionatore DAIKIN PREFERA dualsplit",
+          "um": "cad",
+          "prezzo_unitario_cliente": 2514.0,
+          "ordine": 5,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Fornitura di condizionatore DAIKIN PREFERA trialsplit",
+          "um": "cad",
+          "prezzo_unitario_cliente": 3852.0,
+          "ordine": 6,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "condizionatori",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Fornitura Caldaia MYNUTE RAIN GREEN E 25",
+          "um": "cad",
+          "prezzo_unitario_cliente": 1500.0,
+          "ordine": 7,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Fornitura scaldabagno TURBO 12L",
+          "um": "cad",
+          "prezzo_unitario_cliente": 580.0,
+          "ordine": 8,
+          "coefficienti": {
+            "leggera": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "moderata": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            },
+            "totale": {
+              "domanda_mirata_key": "bagni",
+              "default_conteggio": 1
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Fornitura di termosifoni tubolari NOVO 1520/500",
+          "um": "cad",
+          "prezzo_unitario_cliente": 350.0,
+          "ordine": 9,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        },
+        {
+          "codice": null,
+          "descrizione": "Fornitura scaldasalviette NOVO",
+          "um": "cad",
+          "prezzo_unitario_cliente": 198.0,
+          "ordine": 10,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 1
+            },
+            "totale": {
+              "default_conteggio": 2
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,10 +1,18 @@
-"""Idempotent seed: loads `docs/seed-coefficienti-base.json` into the DB.
+"""Idempotent seed: loads `docs/seed-coefficienti-base.json` (+ 03-02:
+`docs/seed-dettaglio-pro.json`) into the DB.
 
 Upserts by natural key so re-running never duplicates rows:
   listino by nome, categoria by code, listino_categoria by
   (listino_id, categoria_code), tipo_ristrutturazione by code,
   moltiplicatore by (tipo_code, categoria_code), extra by code,
-  comune_listino by comune_slug.
+  comune_listino by comune_slug, sottocategoria by
+  (listino_id, categoria_code, codice-o-nome), voce by
+  (sottocategoria_id, codice-o-descrizione), coefficiente_qta_voce by
+  (voce_id, tipo_code).
+
+Dettaglio Pro esteso nella STESSA funzione `seed()` (D-03/D-12/Pitfall 5):
+mai un secondo script di seed, per non lasciare il DB a meta' seminato dopo
+un reset locale.
 
 Run: `uv run python scripts/seed.py` (from backend/).
 """
@@ -28,10 +36,13 @@ if str(_BACKEND_DIR) not in sys.path:
 import app.models  # noqa: E402, F401 - registers all ORM entities on Base.metadata
 from app.db import Base, SessionLocal, engine  # noqa: E402
 from app.models.catalogo import Categoria, ComuneListino, Extra, Moltiplicatore, TipoRistrutturazione  # noqa: E402
+from app.models.dettaglio_pro import CoefficienteQuantitaVoce, Sottocategoria, Voce  # noqa: E402
 from app.models.listino import Listino, ListinoCategoria  # noqa: E402
 
 # docs/ lives at the project root, two levels above this file (backend/scripts/).
 SEED_JSON_PATH = Path(__file__).resolve().parent.parent.parent / "docs" / "seed-coefficienti-base.json"
+# Dati dettaglio Pro (03-02, D-03): stesso listino RE, estensione dello stesso seed idempotente.
+SEED_DETTAGLIO_PRO_JSON_PATH = Path(__file__).resolve().parent.parent.parent / "docs" / "seed-dettaglio-pro.json"
 
 CATEGORIA_NOMI = {
     "A-EDILE": "Edile",
@@ -71,6 +82,101 @@ def _dec(value: int | float | str) -> Decimal:
 def load_seed_data(path: Path = SEED_JSON_PATH) -> dict:
     with path.open("r", encoding="utf-8") as f:
         return json.load(f)
+
+
+def load_dettaglio_pro_data(path: Path = SEED_DETTAGLIO_PRO_JSON_PATH) -> dict:
+    with path.open("r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _upsert_sottocategoria(session: Session, listino: Listino, sotto_data: dict) -> Sottocategoria:
+    """Upsert idempotente per chiave naturale (listino_id, categoria_code,
+    codice-o-nome — D-03/Pitfall 1: codice nullable per B/C/D)."""
+    categoria_code = sotto_data["categoria_code"]
+    codice = sotto_data.get("codice")
+    nome = sotto_data["nome"]
+    query = session.query(Sottocategoria).filter_by(listino_id=listino.id, categoria_code=categoria_code)
+    query = query.filter_by(codice=codice) if codice is not None else query.filter_by(codice=None, nome=nome)
+    sotto = query.one_or_none()
+    if sotto is None:
+        sotto = Sottocategoria(
+            listino_id=listino.id,
+            categoria_code=categoria_code,
+            codice=codice,
+            nome=nome,
+            famiglia=sotto_data["famiglia"],
+            ordine=sotto_data.get("ordine", 0),
+        )
+        session.add(sotto)
+        session.flush()
+    else:
+        sotto.nome = nome
+        sotto.famiglia = sotto_data["famiglia"]
+        sotto.ordine = sotto_data.get("ordine", 0)
+    return sotto
+
+
+def _upsert_voce(session: Session, sotto: Sottocategoria, voce_data: dict) -> Voce:
+    """Upsert per chiave naturale (sottocategoria_id, codice-o-descrizione)."""
+    codice = voce_data.get("codice")
+    descrizione = voce_data["descrizione"]
+    query = session.query(Voce).filter_by(sottocategoria_id=sotto.id)
+    query = query.filter_by(codice=codice) if codice is not None else query.filter_by(codice=None, descrizione=descrizione)
+    voce = query.one_or_none()
+    if voce is None:
+        voce = Voce(
+            sottocategoria_id=sotto.id,
+            codice=codice,
+            descrizione=descrizione,
+            um=voce_data["um"],
+            prezzo_unitario_cliente=_dec(voce_data["prezzo_unitario_cliente"]),
+            ordine=voce_data.get("ordine", 0),
+        )
+        session.add(voce)
+        session.flush()
+    else:
+        voce.descrizione = descrizione
+        voce.um = voce_data["um"]
+        voce.prezzo_unitario_cliente = _dec(voce_data["prezzo_unitario_cliente"])
+        voce.ordine = voce_data.get("ordine", 0)
+    return voce
+
+
+def _upsert_coefficiente_qta(session: Session, voce: Voce, tipo_code: str, coeff_data: dict) -> None:
+    """Upsert per chiave naturale (voce_id, tipo_code)."""
+    coeff = session.query(CoefficienteQuantitaVoce).filter_by(voce_id=voce.id, tipo_code=tipo_code).one_or_none()
+    coefficiente_qta_per_mq = coeff_data.get("coefficiente_qta_per_mq")
+    domanda_mirata_key = coeff_data.get("domanda_mirata_key")
+    default_conteggio = coeff_data.get("default_conteggio")
+    if coeff is None:
+        coeff = CoefficienteQuantitaVoce(
+            voce_id=voce.id,
+            tipo_code=tipo_code,
+            coefficiente_qta_per_mq=_dec(coefficiente_qta_per_mq) if coefficiente_qta_per_mq is not None else None,
+            domanda_mirata_key=domanda_mirata_key,
+            default_conteggio=default_conteggio,
+        )
+        session.add(coeff)
+    else:
+        coeff.coefficiente_qta_per_mq = _dec(coefficiente_qta_per_mq) if coefficiente_qta_per_mq is not None else None
+        coeff.domanda_mirata_key = domanda_mirata_key
+        coeff.default_conteggio = default_conteggio
+
+
+def seed_dettaglio_pro(session: Session, listino: Listino, data: dict | None = None) -> None:
+    """Idempotent upsert dei dati dettaglio Pro (sottocategoria/voce/
+    coefficiente_qta_voce), stesso listino del seed Free (D-12: Free e Pro
+    leggono lo STESSO listino per citta). Chiamata da `seed()` — NON un
+    secondo script (D-12/Pitfall 5)."""
+    data = data or load_dettaglio_pro_data()
+    for sotto_data in data["sottocategorie"]:
+        sotto = _upsert_sottocategoria(session, listino, sotto_data)
+        session.flush()
+        for voce_data in sotto_data["voci"]:
+            voce = _upsert_voce(session, sotto, voce_data)
+            session.flush()
+            for tipo_code, coeff_data in voce_data.get("coefficienti", {}).items():
+                _upsert_coefficiente_qta(session, voce, tipo_code, coeff_data)
 
 
 def seed(session: Session, data: dict | None = None) -> Listino:
@@ -166,6 +272,12 @@ def seed(session: Session, data: dict | None = None) -> Listino:
         else:
             comune.comune_nome = alias
             comune.listino_id = listino.id
+
+    session.flush()
+
+    # 8. dettaglio Pro (sottocategoria/voce/coefficiente_qta_voce) — stesso
+    # listino RE, stessa funzione seed() idempotente (D-03/D-12/Pitfall 5).
+    seed_dettaglio_pro(session, listino)
 
     session.commit()
     return listino
