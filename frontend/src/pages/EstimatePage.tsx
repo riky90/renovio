@@ -126,7 +126,7 @@ export function EstimatePage() {
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {result.categorie.map((categoria) => (
-              <CategoryCard key={categoria.code} categoria={categoria} />
+              <CategoryCard key={categoria.code} categoria={categoria} isPro={!!user?.pro} />
             ))}
           </div>
 
@@ -149,6 +149,7 @@ export function EstimatePage() {
             isAuthenticated={!!user}
             savedId={saveMutation.data?.id ?? null}
             isSaving={saveMutation.isPending}
+            isPro={!!user?.pro}
           />
         </div>
       )}

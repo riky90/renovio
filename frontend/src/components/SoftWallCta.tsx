@@ -15,6 +15,8 @@ interface SoftWallCtaProps {
   /** id della stima gia' salvata (auto-save da loggato) — null finche' il salvataggio e' in corso. */
   savedId?: number | null;
   isSaving?: boolean;
+  /** Stato Pro derivato da useAuth().user?.pro in EstimatePage — nessuna fetch aggiuntiva. */
+  isPro?: boolean;
 }
 
 /**
@@ -23,7 +25,13 @@ interface SoftWallCtaProps {
  * account". "Passa a Pro" e "Contatta un professionista" restano soft-wall
  * invariati (Fase 3/4).
  */
-export function SoftWallCta({ result, isAuthenticated, savedId, isSaving }: SoftWallCtaProps) {
+export function SoftWallCta({
+  result,
+  isAuthenticated,
+  savedId,
+  isSaving,
+  isPro = false,
+}: SoftWallCtaProps) {
   const navigate = useNavigate();
   const [feedback, setFeedback] = useState<string | null>(null);
 
@@ -39,15 +47,34 @@ export function SoftWallCta({ result, isAuthenticated, savedId, isSaving }: Soft
     navigate("/registrati?intent=save+download", { state: { pendingStima: result } });
   }
 
+  function handlePassaAProClick() {
+    navigate("/passa-a-pro");
+  }
+
+  function handleVediDettaglioProClick() {
+    navigate(`/dettaglio-pro?stima=${savedId}`);
+  }
+
   return (
     <div className="flex flex-col gap-3">
-      <Button
-        type="button"
-        onClick={handleSoftWallClick}
-        className="h-11 w-full bg-primary text-base font-semibold text-primary-foreground hover:bg-primary/90"
-      >
-        Passa a Pro
-      </Button>
+      {isPro ? (
+        <Button
+          type="button"
+          onClick={handleVediDettaglioProClick}
+          disabled={savedId == null}
+          className="h-11 w-full bg-primary text-base font-semibold text-primary-foreground hover:bg-primary/90"
+        >
+          {savedId == null ? "Salvataggio in corso…" : "Vedi dettaglio Pro"}
+        </Button>
+      ) : (
+        <Button
+          type="button"
+          onClick={handlePassaAProClick}
+          className="h-11 w-full bg-primary text-base font-semibold text-primary-foreground hover:bg-primary/90"
+        >
+          Passa a Pro
+        </Button>
+      )}
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
         <Button
           type="button"

@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,7 +42,12 @@ export function AccountMenu({ user }: AccountMenuProps) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel className="flex flex-col gap-0.5 font-normal">
-          <span className="text-sm font-medium text-foreground">{user.nome}</span>
+          <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+            {user.nome}
+            {user.pro && (
+              <Badge className="bg-primary text-primary-foreground">Pro</Badge>
+            )}
+          </span>
           <span className="text-xs text-muted-foreground">{user.email}</span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
