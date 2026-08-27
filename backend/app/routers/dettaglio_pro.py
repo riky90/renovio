@@ -73,12 +73,18 @@ def _to_out(result: DettaglioProResult, risposte: dict) -> DettaglioProOut:
                             )
                             for voce in sotto.voci
                         ],
+                        totale_min=sotto.totale_min,
+                        totale_max=sotto.totale_max,
                     )
                     for sotto in cat.sottocategorie
                 ],
+                totale_min=cat.totale_min,
+                totale_max=cat.totale_max,
             )
             for cat in result.categorie
         ],
+        totale_min=result.totale_min,
+        totale_max=result.totale_max,
         risposte=RisposteDomandeOut(**risposte),
     )
 

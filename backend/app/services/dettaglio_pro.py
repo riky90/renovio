@@ -54,6 +54,11 @@ class SottocategoriaEstimata:
     nome: str
     famiglia: str
     voci: list[VoceEstimata] = field(default_factory=list)
+    # Subtotale a range = somma dei prezzi min/max delle voci (D-11: sempre a
+    # range, mai un punto). Calcolato dal servizio, unica fonte per schermata
+    # e PDF (03-RESEARCH.md Pitfall 2).
+    totale_min: Decimal = Decimal("0")
+    totale_max: Decimal = Decimal("0")
 
 
 @dataclass(frozen=True)
@@ -61,11 +66,16 @@ class CategoriaDettagliata:
     code: str
     nome: str
     sottocategorie: list[SottocategoriaEstimata] = field(default_factory=list)
+    totale_min: Decimal = Decimal("0")
+    totale_max: Decimal = Decimal("0")
 
 
 @dataclass(frozen=True)
 class DettaglioProResult:
     categorie: list[CategoriaDettagliata] = field(default_factory=list)
+    # Totale generale a range = somma dei totali di categoria.
+    totale_min: Decimal = Decimal("0")
+    totale_max: Decimal = Decimal("0")
 
 
 class DettaglioProService:
@@ -120,20 +130,36 @@ class DettaglioProService:
                         )
                     )
 
+                sotto_min = sum((v.prezzo_min for v in voci), Decimal("0"))
+                sotto_max = sum((v.prezzo_max for v in voci), Decimal("0"))
                 sottocategorie.append(
                     SottocategoriaEstimata(
                         codice=sotto.codice,
                         nome=sotto.nome,
                         famiglia=sotto.famiglia,
                         voci=voci,
+                        totale_min=sotto_min,
+                        totale_max=sotto_max,
                     )
                 )
 
+            cat_min = sum((s.totale_min for s in sottocategorie), Decimal("0"))
+            cat_max = sum((s.totale_max for s in sottocategorie), Decimal("0"))
             categorie.append(
-                CategoriaDettagliata(code=cat.code, nome=cat.nome, sottocategorie=sottocategorie)
+                CategoriaDettagliata(
+                    code=cat.code,
+                    nome=cat.nome,
+                    sottocategorie=sottocategorie,
+                    totale_min=cat_min,
+                    totale_max=cat_max,
+                )
             )
 
-        return DettaglioProResult(categorie=categorie)
+        totale_min = sum((c.totale_min for c in categorie), Decimal("0"))
+        totale_max = sum((c.totale_max for c in categorie), Decimal("0"))
+        return DettaglioProResult(
+            categorie=categorie, totale_min=totale_min, totale_max=totale_max
+        )
 
     @staticmethod
     def _quantita(

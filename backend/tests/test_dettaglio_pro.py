@@ -94,6 +94,37 @@ def test_sottocategoria_senza_voci_stimate_compare_comunque(session):
         assert isinstance(sotto.voci, list)
 
 
+def test_totali_a_range_sommano_bottom_up(session):
+    """I totali (D-11, sempre a range) sono somme coerenti bottom-up:
+    subtotale sottocategoria = somma voci; totale categoria = somma
+    sottocategorie; totale generale = somma categorie. Fonte unica per
+    schermata e PDF (03-RESEARCH.md Pitfall 2)."""
+    listino, _ = resolve_listino(session, "Reggio Emilia")
+
+    result = DettaglioProService.compute(session, listino, mq=85, tipo="totale", risposte={})
+
+    grand_min = Decimal("0")
+    grand_max = Decimal("0")
+    for cat in result.categorie:
+        cat_min = Decimal("0")
+        cat_max = Decimal("0")
+        for sotto in cat.sottocategorie:
+            assert sotto.totale_min == sum((v.prezzo_min for v in sotto.voci), Decimal("0"))
+            assert sotto.totale_max == sum((v.prezzo_max for v in sotto.voci), Decimal("0"))
+            cat_min += sotto.totale_min
+            cat_max += sotto.totale_max
+        assert cat.totale_min == cat_min
+        assert cat.totale_max == cat_max
+        grand_min += cat_min
+        grand_max += cat_max
+
+    assert result.totale_min == grand_min
+    assert result.totale_max == grand_max
+    # Un range reale: il minimo non supera il massimo, ed esiste un costo > 0.
+    assert result.totale_min <= result.totale_max
+    assert result.totale_max > Decimal("0")
+
+
 def test_service_non_importa_il_motore_free():
     """D-01: guard statico — il sorgente non deve nominare la classe del
     motore di stima Free."""

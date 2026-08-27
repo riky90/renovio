@@ -32,12 +32,16 @@ class SottocategoriaOut(BaseModel):
     nome: str
     famiglia: str
     voci: list[VoceOut]
+    totale_min: Decimal
+    totale_max: Decimal
 
 
 class CategoriaDettagliataOut(BaseModel):
     code: str
     nome: str
     sottocategorie: list[SottocategoriaOut]
+    totale_min: Decimal
+    totale_max: Decimal
 
 
 class RisposteDomandeOut(BaseModel):
@@ -48,6 +52,8 @@ class RisposteDomandeOut(BaseModel):
 
 class DettaglioProOut(BaseModel):
     categorie: list[CategoriaDettagliataOut]
+    totale_min: Decimal
+    totale_max: Decimal
     risposte: RisposteDomandeOut
 
 

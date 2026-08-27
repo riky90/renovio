@@ -175,6 +175,57 @@
         padding: 2mm 2.5mm;
       }
 
+      .sottocategoria-subtotale {
+        text-align: right;
+        font-size: 9pt;
+        color: #475569; /* slate-600 */
+        font-variant-numeric: tabular-nums;
+        padding: 0 2.5mm 1mm;
+      }
+
+      .categoria-totale {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        border-top: 1px solid #e2e8f0;
+        margin-top: 2mm;
+        padding-top: 2mm;
+        font-size: 10pt;
+        font-weight: 600;
+        color: #1e293b;
+      }
+
+      .categoria-totale .range {
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+
+      .totale-generale {
+        break-inside: avoid;
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        background: #eff6ff; /* blue-50 */
+        border: 1px solid #2563eb;
+        border-radius: 4px;
+        padding: 5mm 6mm;
+        margin: 4mm 0 8mm;
+      }
+
+      .totale-generale .label {
+        font-size: 11pt;
+        font-weight: 700;
+        color: #0f172a;
+      }
+
+      .totale-generale .range {
+        font-size: 13pt;
+        font-weight: 700;
+        color: #2563eb;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+
       .footer {
         border-top: 1px solid #e2e8f0;
         padding-top: 4mm;
@@ -247,13 +298,26 @@
             {% endfor %}
           </tbody>
         </table>
+        <div class="sottocategoria-subtotale">
+          Subtotale: &euro; {{ "%.2f"|format(sc.totale_min|float) }} &ndash; &euro; {{ "%.2f"|format(sc.totale_max|float) }}
+        </div>
         {% else %}
         <div class="nessuna-voce">Nessuna voce stimata per questa sottocategoria.</div>
         {% endif %}
       </div>
       {% endfor %}
+
+      <div class="categoria-totale">
+        <span>Totale {{ categoria.nome }}</span>
+        <span class="range">&euro; {{ "%.2f"|format(categoria.totale_min|float) }} &ndash; &euro; {{ "%.2f"|format(categoria.totale_max|float) }}</span>
+      </div>
     </div>
     {% endfor %}
+
+    <div class="totale-generale">
+      <span class="label">Totale generale stimato</span>
+      <span class="range">&euro; {{ "%.2f"|format(dettaglio.totale_min|float) }} &ndash; &euro; {{ "%.2f"|format(dettaglio.totale_max|float) }}</span>
+    </div>
 
     <div class="footer">
       Stima indicativa dettagliata, non sostituisce un sopralluogo professionale.<br />
