@@ -132,3 +132,7 @@ Nessuna superficie non prevista dal `<threat_model>` del piano: le due rotte nuo
 ---
 *Phase: 03-pro-dettaglio-sottocategorie*
 *Completed: 2026-08-27*
+
+## Self-Check: PASSED
+
+Tutti i file creati verificati presenti su disco; tutti e tre i commit di questo piano (`b6c4943`, `a97d4ae`, `007eead`) verificati presenti in `git log`.
