@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-08-27T07:20:53.055Z"
+last_updated: "2026-08-27T07:30:11.513Z"
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 19
-  completed_plans: 18
-  percent: 50
+  completed_plans: 19
+  percent: 75
 ---
 
 # Project State — ristruttura-stima
@@ -131,6 +131,8 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 - [Phase 03-pro-dettaglio-sottocategorie]: docstring schemas/dettaglio_pro.py riformulata per non contenere letteralmente base_eur_mq, stesso precedente 02/03 per rispettare il criterio grep meccanico
 - [Phase 03-pro-dettaglio-sottocategorie]: _compute_dettaglio() helper unico condiviso da GET/POST/pdf-pro per parita' schermata/PDF by-construction
 - [Phase 03-pro-dettaglio-sottocategorie]: build_filename_pro() dedicato invece di parametrizzare build_filename() esistente, per non toccare il contratto gia' testato della Free
+- [Phase 03-pro-dettaglio-sottocategorie]: toNumber/normalizzazione Decimal duplicati in dettaglio-pro.ts invece di estratti in un helper condiviso con stima.ts (scelta esplicitamente lasciata all'esecutore dal piano)
+- [Phase 03-pro-dettaglio-sottocategorie]: riepilogo domande mirate collassato derivato lato client dalle risposte del primo GET (non tutte zero => collassato), nessun flag server-side dedicato
 
 ### Blockers
 
