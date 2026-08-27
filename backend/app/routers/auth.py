@@ -21,7 +21,7 @@ from fastapi.responses import RedirectResponse
 
 from app.config import settings
 from app.db import SessionLocal
-from app.dependencies.auth import get_current_user
+from app.dependencies.auth import get_current_user, subscription_is_active
 from app.limiter import limiter
 from app.oauth import oauth
 from app.schemas.auth import (
@@ -46,8 +46,15 @@ def _hash_reset_token(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
-def _to_user_out(user) -> UserOut:
-    return UserOut(id=user.id, email=user.email, nome=user.nome, role=user.role, created_at=user.created_at)
+def _to_user_out(session, user) -> UserOut:
+    return UserOut(
+        id=user.id,
+        email=user.email,
+        nome=user.nome,
+        role=user.role,
+        pro=subscription_is_active(session, user),
+        created_at=user.created_at,
+    )
 
 
 @router.post("/registrati", response_model=UserOut, status_code=status.HTTP_201_CREATED)
@@ -73,7 +80,7 @@ def registrati(payload: RegistrazioneRequest, request: Request, response: Respon
 
         AuthService.create_session(session, user, response)
 
-        return _to_user_out(user)
+        return _to_user_out(session, user)
 
 
 @router.post("/login", response_model=UserOut)
@@ -90,7 +97,7 @@ def login(payload: LoginRequest, request: Request, response: Response) -> UserOu
 
         AuthService.create_session(session, user, response)
 
-        return _to_user_out(user)
+        return _to_user_out(session, user)
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
@@ -107,7 +114,8 @@ def logout(
 
 @router.get("/me", response_model=UserOut)
 def me(user=Depends(get_current_user)) -> UserOut:
-    return _to_user_out(user)
+    with SessionLocal() as session:
+        return _to_user_out(session, user)
 
 
 @router.post("/password-dimenticata")

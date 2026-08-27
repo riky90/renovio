@@ -204,3 +204,59 @@ class TestRequirePro:
         result = require_pro(user=user, db=session)
 
         assert result is user
+
+
+class TestAttivazioneProEndToEnd:
+    """Task 3: /me/pro/attiva (stub) + /admin/pro/attiva + UserOut.pro
+    riflesso su /auth/me."""
+
+    def test_me_ritorna_pro_false_senza_tessera(self, client):
+        _registra(client)
+
+        response = client.get(ME_URL)
+
+        assert response.status_code == 200
+        assert response.json()["pro"] is False
+
+    def test_attiva_pro_ritorna_200_e_me_diventa_pro_true(self, client):
+        _registra(client)
+
+        attiva = client.post(ATTIVA_PRO_URL)
+        assert attiva.status_code == 200
+        assert attiva.json()["pro"] is True
+
+        me = client.get(ME_URL)
+        assert me.status_code == 200
+        assert me.json()["pro"] is True
+
+    def test_attiva_pro_e_idempotente_una_sola_riga(self, client):
+        _registra(client)
+
+        client.post(ATTIVA_PRO_URL)
+        second = client.post(ATTIVA_PRO_URL)
+        assert second.status_code == 200
+
+        with db_module.SessionLocal() as s:
+            count = s.query(Subscription).count()
+        assert count == 1
+
+    def test_attiva_pro_senza_sessione_ritorna_401(self, client):
+        response = client.post(ATTIVA_PRO_URL)
+
+        assert response.status_code == 401
+
+    def test_admin_attiva_pro_dietro_require_admin_403_per_non_admin(self, client):
+        _registra(client)
+
+        response = client.post(ADMIN_ATTIVA_PRO_URL, json={"user_id": 1})
+
+        assert response.status_code == 403
+
+    def test_dettaglio_salvato_non_contiene_dati_impresa_su_attiva_pro(self, client):
+        _registra(client)
+
+        response = client.post(ATTIVA_PRO_URL)
+        raw_text = response.text
+
+        for forbidden in FORBIDDEN_SUBSTRINGS:
+            assert forbidden not in raw_text, f"forbidden substring '{forbidden}' leaked in attiva-pro response"

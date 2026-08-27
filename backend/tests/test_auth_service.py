@@ -192,6 +192,8 @@ class TestUserOutAntiLeak:
         user = _make_user(session, email="secreto@example.com")
         assert user.password_hash is not None
 
-        out = UserOut(id=user.id, email=user.email, nome=user.nome, role=user.role, created_at=user.created_at)
+        out = UserOut(
+            id=user.id, email=user.email, nome=user.nome, role=user.role, pro=False, created_at=user.created_at
+        )
         serialized = out.model_dump(mode="json")
         _assert_no_password_hash_key(serialized)
