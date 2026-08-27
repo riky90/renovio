@@ -401,7 +401,12 @@ Not applicable in the traditional sense (no external ecosystem shift to track) �
 
 **If this table is empty:** N/A — see entries above; all are genuine domain-modeling judgment calls flagged for planner/user confirmation per CONTEXT.md's own "Claude's Discretion" grant, not verifiable against an external authority.
 
-## Open Questions
+## Open Questions (RESOLVED during planning)
+
+> **Resolution note (added post-planning):** All three questions were resolved and carried into the plans.
+> Q1 (catalog-family representation) → **RESOLVED** per Recommendation (gruppo-level aggregation, Assumption A2) in 03-02 and 03-03 assumptions blocks.
+> Q2 (targeted-answer persistence) → **RESOLVED** as nullable `risposte_pro_json` column on `StimaSalvata` (03-02 Task 2; consumed by 03-03/03-04).
+> Q3 (`Subscription.piano_code`) → **RESOLVED** — nullable `piano_code` added now (03-01 Task 1).
 
 1. **How should the flat-catalog families (B-FINITURE/C-SERRAMENTI/D-PRODOTTI) be represented in the Pro detail, given dozens of product-level lines per group?**
    - What we know: The Excel sheets (verified directly in this session) have no sub-codes for these three categories — just header rows ("MATERIALI DI FINITURA" → "PAVIMENTI E RIVESTIMENTI GRES" → individual product descriptions, each with its own UM/price). CONTEXT.md's own framing ("il dettaglio qui è scelta prodotto + quantità") implies per-product choice, but no UI mechanism for arbitrary product selection is in scope for Phase 3 (targeted questions are limited to bagni/porte/condizionatori per D-04's examples, and CONTEXT.md explicitly defers "quali voci esatte sono le voci-chiave" and product-catalog tuning to Fase 4 admin).

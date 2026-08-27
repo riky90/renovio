@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: 02-06 completo, recupero password via email (D-04) end-to-end
-last_updated: "2026-08-26T13:59:44.969Z"
+status: executing
+last_updated: "2026-08-27T06:09:25.455Z"
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 13
+  total_plans: 19
   completed_plans: 13
   percent: 50
 ---
@@ -20,7 +20,7 @@ Phase: 02 (account-pdf) — COMPLETA E VERIFICATA (02-VERIFICATION.md: PASSED, 6
 
 - **Milestone:** v1 (MVP)
 - **Phase:** 2
-- **Status:** 02-06 completo, recupero password via email (D-04) end-to-end
+- **Status:** Ready to execute
 - **Regola range (locked):** ±% solo sui lavori (4 categorie); extra fissi (€2.806 lordo); totale = Σ card + extra. Oracolo primario: 85 mq · totale = €47.985–€70.575.
 - **Stack (da RESEARCH):** FastAPI + SQLAlchemy 2.0 + Pydantic v2 + Postgres/Alembic · React 19 + Vite + TS 5.9 + react-query + Tailwind/shadcn · autocomplete comuni ISTAT bundlato offline.
 
