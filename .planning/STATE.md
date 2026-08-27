@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-08-27T06:27:28.438Z"
+last_updated: "2026-08-27T06:48:25.169Z"
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 19
-  completed_plans: 14
+  completed_plans: 15
   percent: 50
 ---
 
@@ -17,16 +17,17 @@ progress:
 ## Current Position
 
 Phase: 03 (pro-dettaglio-sottocategorie) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 
 - **Milestone:** v1 (MVP)
 - **Phase:** 3
-- **Status:** Executing Phase 03 (Plan 01 completo, 6 piani totali)
+- **Status:** Executing Phase 03 (Plan 02 completo, 6 piani totali)
 - **Regola range (locked):** ±% solo sui lavori (4 categorie); extra fissi (€2.806 lordo); totale = Σ card + extra. Oracolo primario: 85 mq · totale = €47.985–€70.575.
 - **Stack (da RESEARCH):** FastAPI + SQLAlchemy 2.0 + Pydantic v2 + Postgres/Alembic · React 19 + Vite + TS 5.9 + react-query + Tailwind/shadcn · autocomplete comuni ISTAT bundlato offline.
 
 ## Last Session
 
+- **2026-08-27** — **Eseguito Plan 03-02 (Fondazione dati motore Pro: schema + seed sottocategorie/voci)**: `app/models/dettaglio_pro.py` (`Sottocategoria`/`Voce`/`CoefficienteQuantitaVoce`, `codice` nullable su entrambe le prime due, discriminatore `famiglia` gerarchica|catalogo, nessuna colonna margine/prezzo impresa su `Voce`, D-10) + migrazione Alembic 0005 (catena 0001→0005, upgrade/downgrade/upgrade verificato) + `StimaSalvata.risposte_pro_json` nullable (Pitfall 3). Checkpoint `blocking-human` per `openpyxl` (dev-only, script di estrazione one-off) approvato dall'utente ("approvato"), installato via `uv add --dev openpyxl --native-tls`. `backend/scripts/extract_dettaglio_pro.py` (confinato a `scripts/`, mai importato sotto `app/`) legge `docs/computo-base-reggio-emilia.xlsx` e distingue righe-intestazione da righe-voce (Pitfall 1); deviazione Rule 1 in sessione: il primo algoritmo perdeva silenziosamente le varianti lettera (piatto doccia/vasca/WC/bidet/radiatori/condizionatore) del blocco "Allestimento cantiere" del foglio A-EDILE, che riusa i codici A.1..A.8 prima delle vere sottocategorie — riscritta la state machine con la riga "TOTALE ALLESTIMENTO DI CANTIERE" come confine esplicito, isolando il blocco in una Sottocategoria sintetica `A.0`. Prodotto `docs/seed-dettaglio-pro.json` (21 sottocategorie, 191 voci uniche in DB, coefficienti quantita-per-m2/domanda-mirata bozza per i 3 tipi secondo le regole UM di D-05). `scripts/seed.py` esteso con `seed_dettaglio_pro()` nella STESSA funzione `seed()` idempotente (D-12/Pitfall 5), upsert per chiave naturale su sottocategoria/voce/coefficiente_qta_voce. TDD: `test_seed_dettaglio.py` 4/4 verdi (copertura 4 categorie, idempotenza, coefficiente per ogni tipo su ogni voce, nessuna colonna impresa), suite backend completa 86/86 passed + 2 skip invariati (GTK3). Vedi `03-02-SUMMARY.md`. Prima:
 - **2026-08-27** — **Eseguito Plan 03-01 (Stato Pro/tessera abbonamento + paywall server-side)**: `app/models/subscription.py` (`Subscription`: stato/scaduta_il/piano_code, nessuna colonna prezzo/coefficiente impresa, D-10) + migrazione Alembic 0004 (catena 0001→0004, upgrade/downgrade/upgrade verificato, seed rieseguito post-migrazione D-12); `app/dependencies/auth.py` con `subscription_is_active`/`require_pro` (401 anonimo via `get_current_user`, 403 "Funzione riservata agli utenti Pro" se non attivo, stesso guard naive/aware datetime di `get_current_user`); `schemas/subscription.py` (`SubscriptionOut`/`AttivaProResponse` a campi chiusi); `UserOut.pro: bool`; `routers/subscription.py` con `POST /me/pro/attiva` (stub production-shaped D-07, rate-limited 10/minute, upsert idempotente) e `POST /admin/pro/attiva` (dietro `require_admin`, attivazione manuale); `routers/auth.py::_to_user_out` esteso per popolare `pro`. TDD: `test_subscription.py` 16/16 verdi (modello, subscription_is_active attivo/scaduto/assente, require_pro 403, attivazione end-to-end su `/auth/me`, idempotenza riga singola, 401/403, anti-leak), suite backend completa 82/82 passed + 2 skip invariati (GTK3). Deviazione (Rule 1): `test_auth_service.py::test_user_out_never_contains_password_hash` aggiornato con il nuovo campo obbligatorio `pro=False`. Vedi `03-01-SUMMARY.md`. Prima:
 - **2026-08-26** — **Eseguito Plan 02-09 (Save-at-signup, storico, download PDF frontend end-to-end) — Task 1-2 completati, Task 3 checkpoint aperto**: `api/stima.ts` esteso con `postSalvaStima`/`getStoricoStime`/`getStimaDettaglio` (credentials include, normalizzazione Decimal riusata) e `scaricaPdf` (fetch diretto del blob PDF, filename da `Content-Disposition`, download nativo via `<a download>`); `PdfDownloadButton` (stati idle/loading-spinner/errore inline, UI-SPEC F.4); `SavedEstimateDetail` (riusa CategoryCard/TotalCard/FallbackDisclaimer per lo snapshot immutabile, nessuna duplicazione layout); `LeMieStimePage` (`/le-mie-stime`, lista+empty state+dettaglio via stato locale, redirect `/accedi` se anonimo). `SoftWallCta` aggiornato: "Scarica PDF"/"Salva / crea account" navigano da anonimo a `/registrati` con `intent` + stima corrente via router `state` (mai in query param, T-09-04); "Passa a Pro"/"Contatta un professionista" restano soft-wall invariati; da loggato "Salva / crea account" e' nascosto e "Scarica PDF" diventa `PdfDownloadButton` diretto. `EstimatePage`: auto-save (D-07) via `postSalvaStima` quando loggato, un solo salvataggio per risultato. `RegistratiPage`/`AccediPage`: dopo signup/login con intent pendente, salvano il payload gia' mostrato (nessun ricalcolo, D-09) e avviano il download se richiesto, con conferma inline "Stima salvata nel tuo account.". Deviazione (Rule 2): gancio save-at-signup applicato anche ad `AccediPage.tsx` (non nei `files_modified` del piano) per completare simmetricamente il flusso richiesto dai `must_haves` del piano, stesso precedente di 02-06. `npx tsc --noEmit` verde su entrambi i task. **Task 3 (checkpoint `human-verify`, `gate="blocking"`) NON eseguito dall'agente**: verifica manuale in browser del flusso completo (anonimo->registrazione->salva->storico->PDF) resta all'utente; nota — il download PDF vero e proprio non e' verificabile end-to-end su questa macchina Windows per il limite GTK3 gia' noto (02-08). Vedi `02-09-SUMMARY.md`. Prima:
 - **2026-08-26** — **Eseguito Plan 02-06 (Recupero password via email, D-04)**: `app/services/reset_token.py` (`make_reset_token`/`read_reset_token` su `itsdangerous.URLSafeTimedSerializer(settings.SECRET_KEY, salt="password-reset")`, scadenza 1h, `SECRET_KEY` e non `OAUTH_SESSION_SECRET`); `app/services/email_service.py` (`send_email` async via `aiosmtplib`, fallback log-only quando `SMTP_HOST` e' vuoto in dev, mai un'eccezione a import/startup, riusabile tal quale in Fase 4 per i lead); `routers/auth.py` con `POST /auth/password-dimenticata` (sempre lo stesso 200, anti-enumeration T-06-01) e `POST /auth/reimposta-password` (uso singolo via `PasswordResetToken.used`, hash sha256 del token in DB, 400 generico su invalido/scaduto/gia' usato); `schemas/auth.py` con `PasswordDimenticataRequest`/`ReimpostaPasswordRequest`. Frontend: `PasswordDimenticataPage`/`ReimpostaPasswordPage` (input-group show/hide password), rotte registrate in `App.tsx`, `AccediPage` con conferma inline post-reset (deviazione Rule 2, richiesta esplicitamente dal testo del piano). TDD RED→GREEN: `test_password_reset.py` 8/8 verdi (token valido/scaduto/manomesso, anti-enumeration, flusso completo, replay 400, token invalido 400, password corta 422), 66/66 suite totale verde + 2 skip invariati (WeasyPrint/GTK3). `npx tsc --noEmit` pulito. Nota di ripresa: la sessione precedente si era interrotta per limite settimanale con un file di test RED iniziale (stesso contenuto) gia' scritto ma bloccante per la collection pytest — rimosso dal coordinatore e ricreato identico come primo passo di questa sessione, poi seguito normalmente dal ciclo RED→GREEN. Vedi `02-06-SUMMARY.md`. Prima:
@@ -82,6 +83,7 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 | Phase 02-account-pdf P06 | 25min | 2 tasks | 10 files |
 | Phase 02-account-pdf P09 | 45min | 2 tasks (Task 3 checkpoint aperto) | 9 files |
 | Phase 03-pro-dettaglio-sottocategorie P01 | 13min | 3 tasks | 11 files |
+| Phase 03-pro-dettaglio-sottocategorie PP02 | 27min | 3 tasks | 10 files |
 
 ## Decisions
 
@@ -115,6 +117,9 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 - [Phase 03-pro-dettaglio-sottocategorie]: Subscription senza colonne prezzo/coefficiente impresa (D-10): tessera Pro = solo stato abbonamento
 - [Phase 03-pro-dettaglio-sottocategorie]: piano_code nullable aggiunto ora su Subscription, costo quasi zero, coerente con D-07 production-shaped
 - [Phase 03-pro-dettaglio-sottocategorie]: docstring schemas/subscription.py riformulata per non contenere letteralmente 'coefficiente' (stesso precedente 02-account-pdf, criterio grep meccanico)
+- [Phase 03-pro-dettaglio-sottocategorie]: A-EDILE riusa i codici A.1..A.8 due volte (blocco Allestimento cantiere poi vere sottocategorie); isolato in Sottocategoria sintetica A.0 con codici voce A.0.n per evitare collisioni di chiave naturale nel seed
+- [Phase 03-pro-dettaglio-sottocategorie]: coefficienti quantita-per-m2/domanda-mirata bozza secondo regole UM D-05, seedati per i 3 tipi su ogni voce, esplicitamente tarabili da admin in Fase 4
+- [Phase 03-pro-dettaglio-sottocategorie]: openpyxl aggiunto come dev dependency dopo checkpoint blocking-human approvato dall'utente
 
 ### Blockers
 

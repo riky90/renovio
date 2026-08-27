@@ -22,7 +22,7 @@
 - [x] **ENG-03**: Bozza iniziale dei coefficienti estratta dal file computo (listino Reggio Emilia)
 
 ### Pro & Monetizzazione (PRO)
-- [ ] **PRO-01**: L'utente Pro vede l'apertura per sottocategorie (a.1/a.2…) con voci e quantità stimate
+- [x] **PRO-01**: L'utente Pro vede l'apertura per sottocategorie (a.1/a.2…) con voci e quantità stimate
 - [x] **PRO-02**: Il dettaglio sottocategorie è dietro paywall (abbonamento Pro)
 - [x] **PRO-03**: Gestione dell'abbonamento (attivazione/stato Pro sull'account)
 
