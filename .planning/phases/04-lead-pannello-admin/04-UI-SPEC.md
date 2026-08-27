@@ -91,7 +91,7 @@ Unchanged from Phase 1/2/3 — single accent, 60/30/10 split, base **Slate**, ac
 
 **Accent (`#2563EB`) reserved exclusively for, in Phase 4 — additions to the Phase 1/2/3 list:**
 1. Primary CTA "Invia richiesta" on the lead contact form.
-2. Primary CTA per admin CRUD form: "Salva" / "Carica listino" / "Conferma import" / "Aggiungi referente" — exactly one primary accent action per admin screen/dialog, matching the existing single-primary-CTA discipline.
+2. Primary CTA per admin CRUD form: "Salva {entità}" (e.g. "Salva referente") / "Carica listino" / "Conferma import" / "Aggiungi referente" — exactly one primary accent action per admin screen/dialog, matching the existing single-primary-CTA discipline.
 3. The active sidebar/tab nav item in `/admin` (accent left border + accent text on the active section, e.g. "Lead" highlighted while on `/admin/lead`).
 4. The **"nuovo"** lead-status badge (accent-tinted `bg-primary/10 text-primary`, not solid fill — reserves solid accent fill for buttons only) — draws attention to unhandled leads in the dashboard list.
 5. The **"Nuove righe"** diff-preview count/badge on the upload confirmation screen (accent-tinted, same treatment as #4) — signals net-new data, not a warning.
@@ -114,6 +114,8 @@ Accent is **never** applied to: table row backgrounds/zebra-striping, the sideba
 ## Copywriting Contract
 
 All copy in Italian, same tone rules as Phase 1/2/3: second person singular ("tu") on user-facing screens, warm but factual, never hints at impresa price/coefficient anywhere outside `/admin`. Admin-area copy switches to a plain, neutral operator tone (still "tu", but task-focused, no marketing language) since the audience is internal.
+
+**No bare/generic `Salva`/`Annulla` labels anywhere in this phase.** Every save action names what it saves, every cancel action either names what it cancels or is unambiguously 1:1-paired with a noun-qualified destructive/primary action inside the same dialog. See the rows below and §C/§D/§E for the resolved, entity-specific wording.
 
 | Element | Copy |
 |---------|------|
@@ -148,14 +150,14 @@ All copy in Italian, same tone rules as Phase 1/2/3: second person singular ("tu
 | Lead detail — sezione stima | Stima allegata |
 | Lead detail — nota label | Nota interna |
 | Lead detail — nota placeholder | Aggiungi una nota (es. esito della chiamata)… |
-| Lead detail — CTA salva nota/stato | **Salva** |
+| Lead detail — CTA salva nota e stato | **Salva nota e stato** *(single CTA — this dialog only ever edits the lead's nota + stato, so the label names both)* |
 | Lead detail — save success (toast) | Lead aggiornato |
 | — Listini/Prezzi, Coefficienti, Città/Testi, Referenti (shared CRUD pattern) — | |
 | CRUD — add row primary CTA | **Aggiungi {entità}** (es. "Aggiungi referente", "Aggiungi voce") |
-| CRUD — edit row action (icon button, tooltip) | Modifica |
-| CRUD — delete row action (icon button, tooltip) | Elimina |
-| CRUD — save (dialog/inline) | **Salva** |
-| CRUD — cancel | Annulla |
+| CRUD — edit row action (icon button) | Icon-only button; visible tooltip **and** `aria-label="Modifica"` (the tooltip text doubles as the accessible name — no icon button ships without one) |
+| CRUD — delete row action (icon button) | Icon-only button; visible tooltip **and** `aria-label="Elimina"` (same accessible-name rule as above) |
+| CRUD — save (dialog) | **Salva {entità}** — entity is always known at dialog scope (e.g. "Salva referente", "Salva voce", "Salva listino", "Salva coefficiente", "Salva testo") |
+| CRUD — cancel (dialog, paired with "Salva {entità}") | **Annulla modifica** |
 | CRUD — save success (toast) | Modifica salvata |
 | CRUD — save error | Non siamo riusciti a salvare la modifica. Riprova. |
 | CRUD — empty list heading | Nessun elemento presente |
@@ -163,8 +165,8 @@ All copy in Italian, same tone rules as Phase 1/2/3: second person singular ("tu
 | Destructive confirmation — delete referente | Eliminare {nome}? Non riceverà più i lead di questa città. |
 | Destructive confirmation — delete voce/prezzo | Eliminare questa voce dal listino? L'operazione non è reversibile. |
 | Destructive confirmation — delete listino/città mapping | Eliminare questa mappatura città→listino? Le stime già salvate non saranno modificate. |
-| Destructive confirm button | **Elimina** *(destructive-styled)* |
-| Destructive cancel button | Annulla |
+| Destructive confirm button | **Elimina {entità}** (e.g. "Elimina referente", "Elimina voce", "Elimina mappatura") *(destructive-styled)* |
+| Destructive cancel button (paired 1:1 with "Elimina {entità}" in the same `alert-dialog`) | **Annulla** *(bare "Annulla" is acceptable here only because it sits next to the noun-qualified destructive button in the same dialog — the entity is unambiguous from context)* |
 | — Excel upload (D-18/D-19/D-20) — | |
 | Upload heading | Carica listino da Excel |
 | Upload dropzone | Trascina qui il file .xlsx oppure sfoglia i file |
@@ -177,19 +179,21 @@ All copy in Italian, same tone rules as Phase 1/2/3: second person singular ("tu
 | Upload — scarti panel heading | Righe scartate |
 | Upload — scarti panel empty | Nessuna riga scartata. |
 | Upload — confirm CTA | **Conferma import** |
-| Upload — cancel/discard CTA | Annulla import |
+| Upload — cancel/discard CTA | **Annulla import** |
 | Upload — discard confirmation (alert-dialog) | Annullare l'import? Nessuna modifica verrà applicata. |
+| Upload — discard confirm button (paired 1:1 with the above) | **Annulla import** *(destructive-styled — reuses the same qualified label as the trigger, no separate bare "Annulla")* |
+| Upload — discard "go back" button | **Torna alla preview** |
 | Upload — import success (toast) | Import completato: {N} righe importate |
 | Upload — import error | Import non riuscito. Riprova o contatta l'assistenza tecnica. |
 | Field validation — generic numeric (prezzo/coefficiente) | Inserisci un valore numerico valido. |
 
 **Destructive actions in Phase 4 (net-new, first phase with real destructive actions):**
-1. **Delete referente** — `alert-dialog` confirm, copy per table above, destructive button "Elimina".
-2. **Delete voce/prezzo/coefficiente row** — same `alert-dialog` pattern.
-3. **Delete città→listino mapping** — same pattern, copy clarifies saved estimates are unaffected (reassurance, per D-11 immutable snapshots).
-4. **Discard pending Excel import** (after diff preview, before confirm) — `alert-dialog`, lower-stakes copy (nothing has been applied yet) but still confirmed since a file re-upload is costly.
+1. **Delete referente** — `alert-dialog` confirm, copy per table above, destructive button "Elimina referente".
+2. **Delete voce/prezzo/coefficiente row** — same `alert-dialog` pattern, destructive button "Elimina voce" (or "Elimina coefficiente"/"Elimina prezzo" per row type).
+3. **Delete città→listino mapping** — same pattern, destructive button "Elimina mappatura", copy clarifies saved estimates are unaffected (reassurance, per D-11 immutable snapshots).
+4. **Discard pending Excel import** (after diff preview, before confirm) — `alert-dialog`, lower-stakes copy (nothing has been applied yet) but still confirmed since a file re-upload is costly; destructive button "Annulla import", neutral escape hatch "Torna alla preview".
 
-All four reuse the same `alert-dialog` shell: Heading-size title + Body confirmation copy + two buttons (neutral "Annulla" left/default, destructive-styled "Elimina"/"Annulla import" right) — no new dialog pattern per action.
+All four reuse the same `alert-dialog` shell: Heading-size title + Body confirmation copy + two buttons (neutral cancel left/default, destructive-styled noun-qualified confirm right — "Elimina {entità}" for rows 1–3, "Annulla import" for row 4) — no new dialog pattern per action. The neutral cancel button reads bare **"Annulla"** only when it is 1:1-paired in the same dialog with a noun-qualified destructive action, per the table above; it is never used as a standalone, context-free label elsewhere in this phase.
 
 **Currency/date formatting:** unchanged (`Intl.NumberFormat('it-IT', {style:'currency', currency:'EUR', maximumFractionDigits:0})` for currency; `gg/mm/aaaa` Italian locale for dates in the Lead list).
 
@@ -224,16 +228,16 @@ Desktop-first (internal tool), responsive down to tablet; on mobile the sidebar 
   - **Filters row** above the table: two `select` dropdowns ("Filtra per città", "Filtra per stato"), inline, `sm` gap, reset-filters text link when any filter active.
   - **Empty state** (no leads at all, ignoring filters): centered block per the empty-state copy table, no illustration needed (text-only, consistent with Phase 2's "Le mie stime" empty state).
   - **Empty state (filtered, zero matches):** a lighter inline message inside the table container ("Nessun lead corrisponde ai filtri selezionati.") + a "Rimuovi filtri" text link — distinct from the true-empty state so the operator knows filters are the cause, not an empty system.
-- **Detail view:** opens as a `dialog` (`max-width: 560px`) or a right-side panel — planner's choice, visual contract identical either way (see Open Questions). Contents top to bottom: Heading (nome del lead) + data + città (Body muted) → **"Dati di contatto"** section (Label heading + key-value rows: email, telefono, preferenza, fascia oraria, messaggio) → **"Stima allegata"** section, reusing the exact Phase 1 §B card layout at reduced scale (input summary pills + 4 category-range rows or the frozen total, whichever the snapshot stored — full parity with the user-facing range, D-23) → **"Nota interna"** section (`textarea` + a `select` or `switch`-pair for stato nuovo/gestito, "Salva" accent CTA, `sonner` success toast). No accent anywhere in the detail body except the Salva button and the (already-established) "nuovo" badge if still unhandled.
+- **Detail view:** opens as a `dialog` (`max-width: 560px`) or a right-side panel — planner's choice, visual contract identical either way (see Open Questions). Contents top to bottom: Heading (nome del lead) + data + città (Body muted) → **"Dati di contatto"** section (Label heading + key-value rows: email, telefono, preferenza, fascia oraria, messaggio) → **"Stima allegata"** section, reusing the exact Phase 1 §B card layout at reduced scale (input summary pills + 4 category-range rows or the frozen total, whichever the snapshot stored — full parity with the user-facing range, D-23) → **"Nota interna"** section (`textarea` + a `select` or `switch`-pair for stato nuovo/gestito, **"Salva nota e stato"** accent CTA, `sonner` success toast). No accent anywhere in the detail body except the "Salva nota e stato" button and the (already-established) "nuovo" badge if still unhandled.
 
 ### D. Admin CRUD sections — shared pattern (Listini e prezzi, Coefficienti, Città e testi, Referenti — ADM-01/02/03/04)
 
 One consistent pattern reused across all four sections, so the operator learns it once:
 
 1. **Section header:** Heading (section title) + primary accent CTA top-right ("Aggiungi {entità}") + (Listini e prezzi only) a secondary neutral/outline CTA "Carica listino da Excel" opening the upload flow (§E).
-2. **Table:** same `table` component/row-height/typography discipline as §C. Columns vary per entity (e.g. Listini/voci: codice · descrizione · UM · prezzo cliente · **coefficiente impresa** · categoria; Coefficienti: tipo × categoria grid or list; Città e testi: comune · listino mappato · [separately] chiave testo · valore; Referenti: nome · email · telefono · città/listino · attivo (`switch`) · priorità). Each row ends with two icon-button actions (Modifica, Elimina) at 32–36px hit targets, `sm` gap between them.
-3. **Row edit:** opens a `dialog` (not a full navigation, not inline-editable cells — keeps validation and the admin-only sensitive fields like `coefficiente_impresa`/`base_eur_mq` clearly scoped to an explicit edit action rather than always-visible inline inputs) with the entity's fields as a standard form (same `input`/`label`/`select`/`switch`/`textarea` primitives as the rest of the app), primary CTA "Salva" (accent), secondary "Annulla" (neutral). On save: `sonner` toast "Modifica salvata", dialog closes, table refreshes.
-4. **Row delete:** `alert-dialog` per the Destructive Actions table above.
+2. **Table:** same `table` component/row-height/typography discipline as §C. Columns vary per entity (e.g. Listini/voci: codice · descrizione · UM · prezzo cliente · **coefficiente impresa** · categoria; Coefficienti: tipo × categoria grid or list; Città e testi: comune · listino mappato · [separately] chiave testo · valore; Referenti: nome · email · telefono · città/listino · attivo (`switch`) · priorità). Each row ends with two icon-button actions (Modifica, Elimina) at 32–36px hit targets, `sm` gap between them. **Accessibility (binding, addresses the checker's Visuals recommendation):** because these two row actions are icon-only (no visible text label), each button MUST carry an explicit `aria-label` matching its tooltip text — `aria-label="Modifica"` and `aria-label="Elimina"` — so the tooltip string is not merely a hover affordance but also the button's accessible name. No icon-only button in the admin tables ships without this attribute.
+3. **Row edit:** opens a `dialog` (not a full navigation, not inline-editable cells — keeps validation and the admin-only sensitive fields like `coefficiente_impresa`/`base_eur_mq` clearly scoped to an explicit edit action rather than always-visible inline inputs) with the entity's fields as a standard form (same `input`/`label`/`select`/`switch`/`textarea` primitives as the rest of the app), primary CTA **"Salva {entità}"** (accent, e.g. "Salva referente"), secondary **"Annulla modifica"** (neutral). On save: `sonner` toast "Modifica salvata", dialog closes, table refreshes.
+4. **Row delete:** `alert-dialog` per the Destructive Actions table above — destructive button "Elimina {entità}", cancel "Annulla" (bare, 1:1-paired in the same dialog).
 5. **Empty state:** per the CRUD empty-state copy, same visual block as §C's true-empty state, with the "Aggiungi {entità}" CTA repeated inline if the header CTA was scrolled out of view.
 6. **Admin-only sensitive fields (D-10):** `coefficiente_impresa` and `base_eur_mq` render as normal fields **only inside `/admin`** dialogs/tables — never styled with any special "danger" visual treatment (they are ordinary business data to the admin, not a warning), but they must be physically absent from any non-admin-facing component, page, or API-shaped payload reused elsewhere in the app (binding domain guard, same as §A).
 
@@ -242,7 +246,7 @@ One consistent pattern reused across all four sections, so the operator learns i
 A dedicated `dialog` flow (large, `max-width: 720px`, scrollable body) launched from the "Carica listino da Excel" CTA in §D (Listini e prezzi section):
 
 1. **Step 1 — Upload:** dropzone (`card`, dashed slate-300 border, centered icon + the dropzone copy + "oppure sfoglia i file" as a text-link triggering the native file picker), constraint note (Body muted) below it. On file select: client-side type/size check → if invalid, destructive inline message per copy table, dropzone stays; if valid, shows the filename + a `skeleton`/spinner "Verifica del file in corso…" while the backend parses and computes the diff.
-2. **Step 2 — Diff preview:** replaces the dropzone with: a summary row of 3 count badges (nuove/modificate/scartate, per the Diff-preview 3-way state color contract) → a `table` listing the changed rows (colonna/voce, valore precedente → valore nuovo where applicable, badge per riga: Nuova/Modificata) → a separate **"Righe scartate"** panel (destructive-toned `alert` or a collapsed `accordion` item if the list is long) listing each discarded row with its specific reason (Body, destructive text) — never a bare count with no detail, per D-19's "elencate all'admin per correzione". Footer: "Annulla import" (neutral, triggers the discard `alert-dialog`) + "Conferma import" (accent, primary, disabled while zero valid rows exist).
+2. **Step 2 — Diff preview:** replaces the dropzone with: a summary row of 3 count badges (nuove/modificate/scartate, per the Diff-preview 3-way state color contract) → a `table` listing the changed rows (colonna/voce, valore precedente → valore nuovo where applicable, badge per riga: Nuova/Modificata) → a separate **"Righe scartate"** panel (destructive-toned `alert` or a collapsed `accordion` item if the list is long) listing each discarded row with its specific reason (Body, destructive text) — never a bare count with no detail, per D-19's "elencate all'admin per correzione". Footer: **"Annulla import"** (neutral, triggers the discard `alert-dialog`) + **"Conferma import"** (accent, primary, disabled while zero valid rows exist).
 3. **Step 3 — Result:** on confirm, `sonner` success toast with the import count, dialog closes, table in §D refreshes to reflect the new/updated rows; on backend failure, destructive inline message inside the dialog (import error copy), dialog stays open so the admin doesn't lose the preview.
 
 This same two-step shell is reusable verbatim for any future bulk-upload entity — only the diff-table columns change.
