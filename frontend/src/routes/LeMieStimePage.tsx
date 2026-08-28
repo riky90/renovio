@@ -4,6 +4,7 @@ import { Link, Navigate } from "react-router";
 import { AccountMenu } from "@/components/AccountMenu";
 import { DettaglioProView } from "@/components/DettaglioProView";
 import { SavedEstimateDetail } from "@/components/SavedEstimateDetail";
+import { LeadContactDialog } from "@/components/LeadContactDialog";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatEurRange } from "@/lib/currency";
@@ -28,6 +29,7 @@ function formatData(iso: string): string {
 export function LeMieStimePage() {
   const { user, isLoading: isAuthLoading } = useAuth();
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [contactOpen, setContactOpen] = useState(false);
 
   const storicoQuery = useQuery<StimaSalvataListItem[]>({
     queryKey: ["storico-stime"],
@@ -37,12 +39,14 @@ export function LeMieStimePage() {
 
   const isPro = !!user?.pro;
 
-  // Per un utente Pro la stima salvata è quella di dettaglio (P4): non serve
-  // lo snapshot base congelato, il dettaglio è ricalcolato da DettaglioProView.
+  // Snapshot base immutabile della stima selezionata. Per il Pro il dettaglio
+  // è ricalcolato da DettaglioProView, ma lo snapshot base serve comunque come
+  // payload (a range, client-safe) del contatto lead — quindi lo carichiamo per
+  // tutti gli utenti, non solo per i Free.
   const dettaglioQuery = useQuery({
     queryKey: ["stima-dettaglio", selectedId],
     queryFn: () => getStimaDettaglio(selectedId as number),
-    enabled: selectedId !== null && !isPro,
+    enabled: selectedId !== null,
   });
 
   if (!isAuthLoading && !user) {
@@ -71,7 +75,10 @@ export function LeMieStimePage() {
         <div className="flex flex-col gap-6">
           <button
             type="button"
-            onClick={() => setSelectedId(null)}
+            onClick={() => {
+              setContactOpen(false);
+              setSelectedId(null);
+            }}
             className="self-start text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           >
             ← Le mie stime
@@ -97,6 +104,24 @@ export function LeMieStimePage() {
                 <SavedEstimateDetail stima={dettaglioQuery.data} isPro={isPro} />
               )}
             </>
+          )}
+
+          {dettaglioQuery.isSuccess && dettaglioQuery.data && (
+            <div className="flex flex-col gap-3 border-t border-border pt-6">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 w-full"
+                onClick={() => setContactOpen(true)}
+              >
+                Contatta un professionista
+              </Button>
+              <LeadContactDialog
+                open={contactOpen}
+                onOpenChange={setContactOpen}
+                result={dettaglioQuery.data}
+              />
+            </div>
           )}
         </div>
       ) : (

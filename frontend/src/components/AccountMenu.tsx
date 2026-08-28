@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -24,19 +23,13 @@ interface AccountMenuProps {
   user: UserOut;
 }
 
-const CONSULENTE_FEEDBACK =
-  "Contatta un consulente: disponibile a breve. Questa funzione arriverà nelle prossime versioni.";
-
 export function AccountMenu({ user }: AccountMenuProps) {
   const navigate = useNavigate();
   const { logout } = useAuth();
-  const [feedback, setFeedback] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!feedback) return;
-    const timer = window.setTimeout(() => setFeedback(null), 4000);
-    return () => window.clearTimeout(timer);
-  }, [feedback]);
+  const isStaff = user.role === "admin" || user.role === "consulente";
+  const areaLabel = user.role === "admin" ? "Pannello amministratore" : "Area consulente";
+  const roleBadge = user.role === "admin" ? "Admin" : user.role === "consulente" ? "Consulente" : null;
 
   function handleLogout() {
     logout.mutate(undefined, {
@@ -45,50 +38,34 @@ export function AccountMenu({ user }: AccountMenuProps) {
   }
 
   return (
-    <>
-      <DropdownMenu>
-        <DropdownMenuTrigger className="rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50 data-[state=open]:ring-2 data-[state=open]:ring-primary">
-          <Avatar>
-            <AvatarFallback>{iniziali(user.nome)}</AvatarFallback>
-          </Avatar>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel className="flex flex-col gap-0.5 font-normal">
-            <span className="flex items-center gap-2 text-sm font-medium text-foreground">
-              {user.nome}
-              {user.pro && (
-                <Badge className="bg-primary text-primary-foreground">Pro</Badge>
-              )}
-            </span>
-            <span className="text-xs text-muted-foreground">{user.email}</span>
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={() => navigate("/le-mie-stime")}>
-            Le mie stime
-          </DropdownMenuItem>
-          {user.pro ? (
-            <DropdownMenuItem onSelect={() => setFeedback(CONSULENTE_FEEDBACK)}>
-              Contatta un consulente
-            </DropdownMenuItem>
-          ) : (
-            <DropdownMenuItem onSelect={() => navigate("/passa-a-pro")}>
-              Passa a Pro
-            </DropdownMenuItem>
-          )}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={handleLogout}>Esci</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+    <DropdownMenu>
+      <DropdownMenuTrigger className="rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50 data-[state=open]:ring-2 data-[state=open]:ring-primary">
+        <Avatar>
+          <AvatarFallback>{iniziali(user.nome)}</AvatarFallback>
+        </Avatar>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuLabel className="flex flex-col gap-0.5 font-normal">
+          <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+            {user.nome}
+            {roleBadge && <Badge variant="secondary">{roleBadge}</Badge>}
+            {user.pro && <Badge className="bg-primary text-primary-foreground">Pro</Badge>}
+          </span>
+          <span className="text-xs text-muted-foreground">{user.email}</span>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
 
-      {feedback && (
-        <div
-          role="status"
-          aria-live="polite"
-          className="fixed inset-x-0 bottom-4 z-50 mx-auto w-fit max-w-[90vw] rounded-md border border-border bg-card px-4 py-2 text-center text-sm text-foreground shadow-lg"
-        >
-          {feedback}
-        </div>
-      )}
-    </>
+        {isStaff && (
+          <DropdownMenuItem onSelect={() => navigate("/admin")}>{areaLabel}</DropdownMenuItem>
+        )}
+        <DropdownMenuItem onSelect={() => navigate("/le-mie-stime")}>Le mie stime</DropdownMenuItem>
+        {!user.pro && (
+          <DropdownMenuItem onSelect={() => navigate("/passa-a-pro")}>Passa a Pro</DropdownMenuItem>
+        )}
+
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={handleLogout}>Esci</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
