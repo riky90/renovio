@@ -17,6 +17,7 @@
   test locally. Does not block 04-02 acceptance criteria (all of which are
   scoped to `test_admin_listini.py`/`test_no_leak_admin.py`, both green).
 
+<<<<<<< HEAD
 ## Piano 04-04 (Dashboard lead admin + CRUD referenti)
 
 - **`tests/test_health.py::test_health_db_returns_live_count`** — stesso
@@ -37,3 +38,13 @@
   `listino_upload_service.py`/`upload_listino.py` (file non toccati, out
   of scope). Suite completa: 158 passed, 4 skipped, 1 failed (solo questo
   test pre-esistente).
+
+## Piano 04-10 (CRUD coefficienti)
+
+- **`tests/test_health.py::test_health_db_returns_live_count`** — stesso
+  fallimento pre-esistente segnalato in 04-02 (`backend/dev.db` 0-byte in
+  questo worktree, file estraneo a `files_modified` di 04-10). Verificato
+  in isolamento: fallisce anche senza le modifiche di questo piano — non
+  causato da `admin/coefficienti.py`/`schemas/admin_coefficienti.py`.
+  `tests/test_admin_coefficienti.py` (27/27) verde; resto della suite
+  (168 test) verde.
