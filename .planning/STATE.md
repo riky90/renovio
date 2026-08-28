@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-last_updated: "2026-08-27T12:39:56.500Z"
+status: executing
+last_updated: "2026-08-28T06:05:58.231Z"
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 19
+  total_plans: 30
   completed_plans: 19
-  percent: 75
+  percent: 63
 ---
 
 # Project State — ristruttura-stima
@@ -21,7 +21,7 @@ Plan: 6 of 6
 
 - **Milestone:** v1 (MVP)
 - **Phase:** 3
-- **Status:** Fase 3 completa e verificata (03-VERIFICATION.md: 9/9 code-level; human-verify approvato)
+- **Status:** Ready to execute
 - **Regola range (locked):** ±% solo sui lavori (4 categorie); extra fissi (€2.806 lordo); totale = Σ card + extra. Oracolo primario: 85 mq · totale = €47.985–€70.575.
 - **Stack (da RESEARCH):** FastAPI + SQLAlchemy 2.0 + Pydantic v2 + Postgres/Alembic · React 19 + Vite + TS 5.9 + react-query + Tailwind/shadcn · autocomplete comuni ISTAT bundlato offline.
 
