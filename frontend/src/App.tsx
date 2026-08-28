@@ -12,6 +12,7 @@ import { ReferentiPage } from "@/pages/admin/ReferentiPage";
 import { ListiniPage } from "@/pages/admin/ListiniPage";
 import { CoefficientiPage } from "@/pages/admin/CoefficientiPage";
 import { CittaTestiPage } from "@/pages/admin/CittaTestiPage";
+import { UtentiPage } from "@/pages/admin/UtentiPage";
 
 const router = createBrowserRouter([
   { path: "/", element: <EstimatePage /> },
@@ -28,6 +29,7 @@ const router = createBrowserRouter([
   { path: "/admin/coefficienti", element: <CoefficientiPage /> },
   { path: "/admin/citta-testi", element: <CittaTestiPage /> },
   { path: "/admin/referenti", element: <ReferentiPage /> },
+  { path: "/admin/utenti", element: <UtentiPage /> },
 ]);
 
 function App() {

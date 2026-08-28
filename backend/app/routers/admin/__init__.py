@@ -27,6 +27,7 @@ from app.routers.admin import (
     referenti,
     testi,
     upload_listino,
+    utenti,
 )
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -39,3 +40,4 @@ router.include_router(testi.router)
 router.include_router(referenti.router)
 router.include_router(lead.router)
 router.include_router(upload_listino.router)
+router.include_router(utenti.router)

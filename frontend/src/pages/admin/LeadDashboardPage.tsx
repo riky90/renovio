@@ -65,6 +65,10 @@ function StatoBadge({ stato }: { stato: string }) {
  */
 function LeadDashboardContent() {
   const { user } = useAuth();
+  // Staff = admin O consulente: entrambi vedono/lavorano i lead. Il dropdown
+  // città (listini) resta admin-only: il consulente non accede a /admin/listini
+  // (403), quindi per lui il filtro città non ha opzioni preimpostate.
+  const isStaff = user?.role === "admin" || user?.role === "consulente";
   const isAdmin = user?.role === "admin";
   const queryClient = useQueryClient();
 
@@ -81,7 +85,7 @@ function LeadDashboardContent() {
         citta: cittaFilter || undefined,
         stato: statoFilter || undefined,
       }),
-    enabled: isAdmin,
+    enabled: isStaff,
   });
 
   const listiniQuery = useQuery({
@@ -93,7 +97,7 @@ function LeadDashboardContent() {
   const detailQuery = useQuery({
     queryKey: ["admin-lead-detail", selectedId],
     queryFn: () => getAdminLead(selectedId as number),
-    enabled: isAdmin && selectedId !== null,
+    enabled: isStaff && selectedId !== null,
   });
 
   useEffect(() => {
@@ -319,7 +323,7 @@ function LeadDashboardContent() {
 
 export function LeadDashboardPage() {
   return (
-    <AdminLayout>
+    <AdminLayout allow={["admin", "consulente"]}>
       <LeadDashboardContent />
     </AdminLayout>
   );

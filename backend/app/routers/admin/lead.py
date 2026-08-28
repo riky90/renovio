@@ -1,6 +1,6 @@
 """Dashboard lead (ADM-04, D-17, 04-04-PLAN.md): list con filtri
-citta/stato, detail, PATCH stato/nota. Ogni route dietro `require_admin`
-(T-04-15). Risponde con `LeadOut` (04-01), chiuso a campi: nessun dato
+citta/stato, detail, PATCH stato/nota. Ogni route dietro `require_staff`
+(admin O consulente, T-04-15). Risponde con `LeadOut` (04-01), chiuso a campi: nessun dato
 impresa esposto (D-22, T-04-16) — struttura invariata da `models/lead.py`,
 che non ha nessuna colonna coefficiente/prezzo impresa.
 
@@ -14,7 +14,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 
 from app.db import SessionLocal
-from app.dependencies.auth import require_admin
+from app.dependencies.auth import require_staff
 from app.models.lead import Lead
 from app.models.user import User
 from app.schemas.lead import LeadOut, LeadUpdate
@@ -26,7 +26,7 @@ router = APIRouter(prefix="/lead", tags=["admin-lead"])
 def lista_lead(
     citta: str | None = None,
     stato: str | None = None,
-    _admin: User = Depends(require_admin),
+    _staff: User = Depends(require_staff),
 ) -> list[LeadOut]:
     with SessionLocal() as session:
         stmt = select(Lead)
@@ -41,7 +41,7 @@ def lista_lead(
 
 
 @router.get("/{lead_id}", response_model=LeadOut)
-def dettaglio_lead(lead_id: int, _admin: User = Depends(require_admin)) -> LeadOut:
+def dettaglio_lead(lead_id: int, _staff: User = Depends(require_staff)) -> LeadOut:
     with SessionLocal() as session:
         row = session.get(Lead, lead_id)
         if row is None:
@@ -53,7 +53,7 @@ def dettaglio_lead(lead_id: int, _admin: User = Depends(require_admin)) -> LeadO
 def aggiorna_lead(
     lead_id: int,
     payload: LeadUpdate,
-    _admin: User = Depends(require_admin),
+    _staff: User = Depends(require_staff),
 ) -> LeadOut:
     with SessionLocal() as session:
         row = session.get(Lead, lead_id)

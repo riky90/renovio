@@ -50,8 +50,30 @@ def get_current_user(
     return row.user
 
 
+# Ruoli applicativi (User.role, models/user.py). `user` = utente finale;
+# `consulente` = staff che consulta/lavora i lead ma NON tocca la config
+# di business (listini/coefficienti/citta/testi/referenti/utenti); `admin`
+# = pieno accesso, unico a poter cambiare i ruoli degli altri utenti.
+ROLE_USER = "user"
+ROLE_CONSULENTE = "consulente"
+ROLE_ADMIN = "admin"
+ALL_ROLES = (ROLE_USER, ROLE_CONSULENTE, ROLE_ADMIN)
+# Ruoli che accedono all'area /admin (staff). Il gate reale resta qui,
+# server-side: il ruolo del client non e' mai fidato (ASVS V4, AUTH-04).
+STAFF_ROLES = (ROLE_CONSULENTE, ROLE_ADMIN)
+
+
 def require_admin(user: User = Depends(get_current_user)) -> User:
-    if user.role != "admin":
+    if user.role != ROLE_ADMIN:
+        raise HTTPException(403, "Accesso riservato")
+    return user
+
+
+def require_staff(user: User = Depends(get_current_user)) -> User:
+    """Consente admin E consulente (dashboard lead). Layer server-side sopra
+    `get_current_user`, identico per struttura a `require_admin` ma con un
+    set di ruoli piu' ampio — il ruolo del client non e' mai fidato."""
+    if user.role not in STAFF_ROLES:
         raise HTTPException(403, "Accesso riservato")
     return user
 

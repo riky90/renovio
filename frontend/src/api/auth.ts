@@ -1,6 +1,6 @@
 import { apiGet, apiPost, ApiError } from "@/api/client";
 
-export type UserRole = "user" | "admin";
+export type UserRole = "user" | "consulente" | "admin";
 
 export interface UserOut {
   id: number;
