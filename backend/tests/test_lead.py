@@ -324,3 +324,69 @@ class TestLeadNoImpresaLeak:
             assert forbidden not in raw_text, f"forbidden substring '{forbidden}' leaked in lead response"
 
         _assert_no_forbidden_keys(response.json())
+
+    def test_lead_email_body_no_impresa_leak(self, client, db_setup, monkeypatch):
+        """D-06/D-22: il corpo HTML delle email (referente + conferma utente)
+        non deve mai contenere dati impresa, a nessuna profondità."""
+        _engine, session_factory = db_setup
+        _seed_citta_con_referente(session_factory, "Reggio Emilia")
+        _registra(client)
+
+        calls = []
+
+        async def _fake_send_email(to, subject, html_body):
+            calls.append({"to": to, "subject": subject, "html_body": html_body})
+
+        import app.routers.lead as lead_router_module
+
+        monkeypatch.setattr(lead_router_module, "send_email", _fake_send_email)
+
+        response = client.post(LEAD_URL, json=_lead_payload("Reggio Emilia"))
+
+        assert response.status_code == 201
+        assert len(calls) == 2
+        for call in calls:
+            for forbidden in FORBIDDEN_SUBSTRINGS:
+                assert forbidden not in call["html_body"], (
+                    f"forbidden substring '{forbidden}' leaked in email body to {call['to']}"
+                )
+            # D-23: riepilogo sempre a range, mai un numero secco.
+            assert "€" in call["html_body"]
+
+
+class TestLeadValidazioneInput:
+    def test_post_lead_mq_fuori_range_422(self, client, db_setup):
+        _engine, session_factory = db_setup
+        _seed_citta_con_referente(session_factory, "Reggio Emilia")
+        _registra(client)
+
+        payload = _lead_payload("Reggio Emilia")
+        payload["mq"] = 0
+
+        response = client.post(LEAD_URL, json=payload)
+
+        assert response.status_code == 422
+
+    def test_post_lead_preferenza_contatto_non_enum_422(self, client, db_setup):
+        _engine, session_factory = db_setup
+        _seed_citta_con_referente(session_factory, "Reggio Emilia")
+        _registra(client)
+
+        payload = _lead_payload("Reggio Emilia")
+        payload["preferenza_contatto"] = "whatsapp"
+
+        response = client.post(LEAD_URL, json=payload)
+
+        assert response.status_code == 422
+
+    def test_post_lead_messaggio_troppo_lungo_422(self, client, db_setup):
+        _engine, session_factory = db_setup
+        _seed_citta_con_referente(session_factory, "Reggio Emilia")
+        _registra(client)
+
+        payload = _lead_payload("Reggio Emilia")
+        payload["messaggio"] = "x" * 2001
+
+        response = client.post(LEAD_URL, json=payload)
+
+        assert response.status_code == 422
