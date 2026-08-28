@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-08-28T06:05:58.231Z"
+last_updated: "2026-08-28T06:18:20.340Z"
 progress:
   total_phases: 4
   completed_phases: 3
@@ -16,12 +16,12 @@ progress:
 
 ## Current Position
 
-Phase: 03 (pro-dettaglio-sottocategorie) — COMPLETE ✓ (verificata)
-Plan: 6 of 6
+Phase: 04 (lead-pannello-admin) — EXECUTING
+Plan: 1 of 11
 
 - **Milestone:** v1 (MVP)
 - **Phase:** 3
-- **Status:** Ready to execute
+- **Status:** Executing Phase 04
 - **Regola range (locked):** ±% solo sui lavori (4 categorie); extra fissi (€2.806 lordo); totale = Σ card + extra. Oracolo primario: 85 mq · totale = €47.985–€70.575.
 - **Stack (da RESEARCH):** FastAPI + SQLAlchemy 2.0 + Pydantic v2 + Postgres/Alembic · React 19 + Vite + TS 5.9 + react-query + Tailwind/shadcn · autocomplete comuni ISTAT bundlato offline.
 
