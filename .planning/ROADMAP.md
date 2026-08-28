@@ -83,7 +83,7 @@ Plans:
 4. L'admin configura i referenti per città (modello multi-referente, un referente attivo in v1)
 5. L'admin modifica città, mappature e testi/disclaimer dall'interfaccia
 
-**Plans:** 2/11 plans executed
+**Plans:** 7/11 plans executed
 Plans:
 **Wave 1**
 
@@ -92,11 +92,11 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 04-03-PLAN.md — Admin backend: Testo migr. 0007 + disclaimer read-through + CRUD città/testi (ADM-03)
-- [ ] 04-04-PLAN.md — Admin backend: dashboard lead (filtri/detail/patch) + CRUD referenti (ADM-04)
-- [ ] 04-05-PLAN.md — Admin backend: upload Excel due-passi (destinazione esistente/nuova città) hardened + gate pacchetti (ADM-01)
-- [ ] 04-06-PLAN.md — Lead frontend: LeadContactDialog + SoftWallCta reale (LEAD-01)
-- [ ] 04-10-PLAN.md — Admin backend: CRUD coefficienti (moltiplicatori/iva/extra/Pro) + effetto immediato (ADM-02)
+- [x] 04-03-PLAN.md — Admin backend: Testo migr. 0007 + disclaimer read-through + CRUD città/testi (ADM-03)
+- [x] 04-04-PLAN.md — Admin backend: dashboard lead (filtri/detail/patch) + CRUD referenti (ADM-04)
+- [x] 04-05-PLAN.md — Admin backend: upload Excel due-passi (destinazione esistente/nuova città) hardened + gate pacchetti (ADM-01)
+- [x] 04-06-PLAN.md — Lead frontend: LeadContactDialog + SoftWallCta reale (LEAD-01)
+- [x] 04-10-PLAN.md — Admin backend: CRUD coefficienti (moltiplicatori/iva/extra/Pro) + effetto immediato (ADM-02)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
