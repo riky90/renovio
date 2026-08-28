@@ -83,12 +83,12 @@ Plans:
 4. L'admin configura i referenti per città (modello multi-referente, un referente attivo in v1)
 5. L'admin modifica città, mappature e testi/disclaimer dall'interfaccia
 
-**Plans:** 11 plans
+**Plans:** 2/11 plans executed
 Plans:
 **Wave 1**
 
-- [ ] 04-01-PLAN.md — Lead capture backend: modello Lead + migr. 0006 + resolve_referente + POST /lead (LEAD-01/02/03)
-- [ ] 04-02-PLAN.md — Admin backend: package + CRUD listino (create città) + categoria + voce prezzo/UM (ADM-01)
+- [x] 04-01-PLAN.md — Lead capture backend: modello Lead + migr. 0006 + resolve_referente + POST /lead (LEAD-01/02/03)
+- [x] 04-02-PLAN.md — Admin backend: package + CRUD listino (create città) + categoria + voce prezzo/UM (ADM-01)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
