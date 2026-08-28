@@ -71,6 +71,7 @@ Plans:
 
 ### Phase 4: Lead & pannello admin
 
+**Status:** ✅ Complete a livello codice (2026-08-28) — 11/11 plans; 04-VERIFICATION.md 12/12 verità (LEAD-01..03, ADM-01..04 + 5 criteri); backend 234 passed, frontend build pulito, anti-leak verificato con test. ⏳ Restano 5 checkpoint di verifica *live* E2E (04-06/07/08/09/11) da eseguire in browser con login admin — vedi 04-VERIFICATION.md.
 **Goal:** Da ogni livello l'utente contatta un professionista (lead via email + dashboard); l'admin gestisce listini, coefficienti, città, referenti e testi senza toccare codice.
 **Mode:** mvp
 **UI hint:** yes

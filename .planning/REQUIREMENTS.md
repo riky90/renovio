@@ -31,15 +31,15 @@
 - [x] **PDF-02**: L'utente Pro può scaricare un PDF dettagliato brandizzato con le sottocategorie
 
 ### Lead & Contatto (LEAD)
-- [ ] **LEAD-01**: Da ogni livello (Free e Pro) l'utente può richiedere il contatto di un professionista
-- [ ] **LEAD-02**: Il lead (dati utente + stima) arriva via email e viene salvato nella dashboard admin
-- [ ] **LEAD-03**: Il modello dati supporta più referenti per città (v1 con un unico referente configurato)
+- [x] **LEAD-01**: Da ogni livello (Free e Pro) l'utente può richiedere il contatto di un professionista
+- [x] **LEAD-02**: Il lead (dati utente + stima) arriva via email e viene salvato nella dashboard admin
+- [x] **LEAD-03**: Il modello dati supporta più referenti per città (v1 con un unico referente configurato)
 
 ### Admin (ADM)
-- [ ] **ADM-01**: L'admin gestisce i listini prezzi per città (voci, prezzi unitari, coefficiente impresa)
-- [ ] **ADM-02**: L'admin gestisce i coefficienti parametrici del modello di stima
-- [ ] **ADM-03**: L'admin gestisce città, mappatura città→listino, tipi di ristrutturazione e testi/disclaimer
-- [ ] **ADM-04**: L'admin consulta i lead ricevuti e configura i referenti per città
+- [x] **ADM-01**: L'admin gestisce i listini prezzi per città (voci, prezzi unitari, coefficiente impresa)
+- [x] **ADM-02**: L'admin gestisce i coefficienti parametrici del modello di stima
+- [x] **ADM-03**: L'admin gestisce città, mappatura città→listino, tipi di ristrutturazione e testi/disclaimer
+- [x] **ADM-04**: L'admin consulta i lead ricevuti e configura i referenti per città
 
 ## v2 / Deferred Requirements
 - Moltiplicatori prezzo per zona geografica (fase 2, richiede dati)
