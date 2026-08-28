@@ -83,7 +83,7 @@ Plans:
 4. L'admin configura i referenti per città (modello multi-referente, un referente attivo in v1)
 5. L'admin modifica città, mappature e testi/disclaimer dall'interfaccia
 
-**Plans:** 8/11 plans executed
+**Plans:** 11/11 plans complete
 Plans:
 **Wave 1**
 
@@ -104,9 +104,9 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 04-08-PLAN.md — Admin frontend: CRUD listini/voci + coefficienti + upload Excel UI (esistente/nuova città) (ADM-01/02)
-- [ ] 04-09-PLAN.md — Admin frontend: CRUD città/mappature/tipi + testi (ADM-03)
-- [ ] 04-11-PLAN.md — Admin frontend: dashboard lead + CRUD referenti (ADM-04)
+- [x] 04-08-PLAN.md — Admin frontend: CRUD listini/voci + coefficienti + upload Excel UI (esistente/nuova città) (ADM-01/02)
+- [x] 04-09-PLAN.md — Admin frontend: CRUD città/mappature/tipi + testi (ADM-03)
+- [x] 04-11-PLAN.md — Admin frontend: dashboard lead + CRUD referenti (ADM-04)
 
 ---
 
