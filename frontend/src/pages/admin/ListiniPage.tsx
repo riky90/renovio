@@ -183,7 +183,6 @@ export function ListiniPage() {
     setVoceDialogOpen(true);
   }
 
-  const selectedListino = listiniQuery.data?.find((l) => l.id === selectedListinoId) ?? null;
   const selectedCategoria = categorieQuery.data?.find((c) => c.id === selectedCategoriaId) ?? null;
 
   return (
