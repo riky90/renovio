@@ -33,10 +33,9 @@ from app.schemas.stima import (
 )
 from app.services.city_resolver import resolve_listino
 from app.services.estimation import EstimationService
+from app.services.testo_service import get_testo
 
 router = APIRouter(prefix="/stima", tags=["stima"])
-
-DISCLAIMER_TEMPLATE = "Stima basata sul listino di Reggio Emilia, non ancora tarata su {citta}."
 
 
 def _split_imponibile_iva(totale: Decimal, iva_pct: Decimal) -> tuple[Decimal, Decimal]:
@@ -102,7 +101,7 @@ def crea_stima(payload: StimaRequest, request: Request) -> StimaResponse:
             totale_max=result.totale_max,
         )
 
-        disclaimer = DISCLAIMER_TEMPLATE.format(citta=payload.citta) if fallback else None
+        disclaimer = get_testo(session, "disclaimer_fallback_citta", citta=payload.citta) if fallback else None
 
         return StimaResponse(
             input=StimaInputEcho(citta=payload.citta, mq=payload.mq, tipo=payload.tipo),
