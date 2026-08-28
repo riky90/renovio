@@ -38,6 +38,7 @@ from app.db import Base, SessionLocal, engine  # noqa: E402
 from app.models.catalogo import Categoria, ComuneListino, Extra, Moltiplicatore, TipoRistrutturazione  # noqa: E402
 from app.models.dettaglio_pro import CoefficienteQuantitaVoce, Sottocategoria, Voce  # noqa: E402
 from app.models.listino import Listino, ListinoCategoria  # noqa: E402
+from app.models.testo import Testo  # noqa: E402
 
 # docs/ lives at the project root, two levels above this file (backend/scripts/).
 SEED_JSON_PATH = Path(__file__).resolve().parent.parent.parent / "docs" / "seed-coefficienti-base.json"
@@ -73,6 +74,16 @@ EXTRA_IVA_PCT = Decimal("0.22")
 # Pitfall 6). "Reggio Emilia" also covers case-insensitive variants (slugify
 # lowercases); "Reggio nell'Emilia" is a distinct slug and needs its own row.
 RE_ALIASES = ["Reggio Emilia", "Reggio nell'Emilia"]
+
+# Testi/disclaimer iniziali (D-14): valori identici agli hardcoded attuali,
+# migrati in tabella Testo. Scope v1 SOLO backend-owned (04-RESEARCH.md Open
+# Question 1) — nessuna chiave per il fallback referente D-05 (Pitfall 5).
+TESTI_INIZIALI = {
+    "disclaimer_fallback_citta": (
+        "Stima basata sul listino di Reggio Emilia, non ancora tarata su {citta}."
+    ),
+    "email_conferma_lead_subject": "Conferma richiesta contatto professionista",
+}
 
 
 def _dec(value: int | float | str) -> Decimal:
@@ -179,6 +190,22 @@ def seed_dettaglio_pro(session: Session, listino: Listino, data: dict | None = N
                 _upsert_coefficiente_qta(session, voce, tipo_code, coeff_data)
 
 
+def seed_testi(session: Session) -> None:
+    """Idempotent upsert dei testi/disclaimer iniziali (D-14) nella tabella
+    Testo, upsert per chiave naturale (`chiave` e' gia' la PK). Chiamata da
+    `seed()` — STESSA funzione idempotente, non un secondo script
+    (D-12/Pitfall 5)."""
+    import datetime as _dt
+
+    for chiave, valore in TESTI_INIZIALI.items():
+        row = session.get(Testo, chiave)
+        if row is None:
+            row = Testo(chiave=chiave, valore=valore, updated_at=_dt.datetime.now(_dt.timezone.utc))
+            session.add(row)
+        else:
+            row.valore = valore
+
+
 def seed(session: Session, data: dict | None = None) -> Listino:
     """Idempotent upsert of the full RE dataset. Safe to call repeatedly."""
     data = data or load_seed_data()
@@ -278,6 +305,9 @@ def seed(session: Session, data: dict | None = None) -> Listino:
     # 8. dettaglio Pro (sottocategoria/voce/coefficiente_qta_voce) — stesso
     # listino RE, stessa funzione seed() idempotente (D-03/D-12/Pitfall 5).
     seed_dettaglio_pro(session, listino)
+
+    # 9. testi/disclaimer (D-14) — stessa funzione seed() idempotente.
+    seed_testi(session)
 
     session.commit()
     return listino
