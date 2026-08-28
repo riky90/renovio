@@ -1,10 +1,13 @@
 """E2E tests (RED->GREEN, TDD) per la migrazione dei testi/disclaimer a DB
-(D-14, 04-03-PLAN.md Task 1). I test per /api/v1/admin/testi (Task 2) sono
-aggiunti in coda a questo stesso file dal Task 2.
+(D-14, 04-03-PLAN.md Task 1) e per /api/v1/admin/testi (Task 2).
 
 Task 1 copre: il disclaimer EST-06 restituito da POST /api/v1/stima in
 fallback proviene dalla tabella Testo (modificando la riga cambia il
 disclaimer), e il seed e' idempotente (rieseguirlo non duplica righe).
+
+Task 2 copre: GET/PATCH /api/v1/admin/testi dietro require_admin (403
+non-admin, 401 senza sessione), 404 su chiave inesistente, read-through
+immediato su /api/v1/stima dopo un PATCH admin.
 
 Nessun test qui introduce un messaggio utente per il fallback referente
 (D-05, Pitfall 5) — quello resta fuori scope per costruzione (nessuna
@@ -28,6 +31,7 @@ from scripts.seed import load_seed_data, seed
 
 REGISTRAZIONE_URL = "/api/v1/auth/registrati"
 STIMA_URL = "/api/v1/stima"
+TESTI_URL = "/api/v1/admin/testi"
 
 ADMIN_EMAIL = "admin.testi@example.com"
 
@@ -113,3 +117,50 @@ class TestSeedIdempotente:
             chiavi = [r.chiave for r in righe]
             assert len(chiavi) == len(set(chiavi))
             assert "disclaimer_fallback_citta" in chiavi
+
+
+class TestAdminTestiGuard:
+    """Task 2: require_admin su ogni route /admin/testi."""
+
+    def test_get_testi_401_senza_sessione(self, client):
+        response = client.get(TESTI_URL)
+        assert response.status_code == 401
+
+    def test_get_testi_403_per_non_admin(self, client):
+        _registra_user(client)
+        response = client.get(TESTI_URL)
+        assert response.status_code == 403
+
+    def test_patch_testi_403_per_non_admin(self, client):
+        _registra_user(client)
+        response = client.patch(f"{TESTI_URL}/disclaimer_fallback_citta", json={"valore": "X"})
+        assert response.status_code == 403
+
+
+class TestAdminTestiCrud:
+    """Task 2: GET lista + PATCH aggiorna valore."""
+
+    def test_get_testi_lista(self, client):
+        _registra_admin(client)
+        response = client.get(TESTI_URL)
+        assert response.status_code == 200
+        chiavi = [row["chiave"] for row in response.json()]
+        assert "disclaimer_fallback_citta" in chiavi
+
+    def test_patch_testi_aggiorna_valore(self, client):
+        _registra_admin(client)
+        response = client.patch(
+            f"{TESTI_URL}/disclaimer_fallback_citta",
+            json={"valore": "Nuovo disclaimer per {citta}."},
+        )
+        assert response.status_code == 200
+        assert response.json()["valore"] == "Nuovo disclaimer per {citta}."
+
+        # Read-through: la modifica via admin si riflette subito su /stima.
+        stima_response = client.post(STIMA_URL, json={"citta": CITTA_SENZA_LISTINO, "mq": 85, "tipo": "totale"})
+        assert stima_response.json()["disclaimer"] == f"Nuovo disclaimer per {CITTA_SENZA_LISTINO}."
+
+    def test_patch_testi_chiave_inesistente_404(self, client):
+        _registra_admin(client)
+        response = client.patch(f"{TESTI_URL}/chiave_mai_esistita", json={"valore": "X"})
+        assert response.status_code == 404
