@@ -123,6 +123,17 @@ class TestCreazioneListinoECitta:
         assert body["is_default"] is False
         assert "id" in body
 
+        # EstimationService richiede una riga listino_categoria per OGNI
+        # categoria (base_eur_mq/coefficiente_impresa) — il CRUD categoria
+        # e' un percorso separato dalla creazione del Listino (D-09, upload
+        # bulk vs ritocco puntuale); qui simuliamo il ritocco puntuale.
+        for categoria_code in ("A-EDILE", "B-FINITURE", "C-SERRAMENTI", "D-PRODOTTI"):
+            cat_response = client.post(
+                f"{LISTINI_URL}/{body['id']}/categorie",
+                json={"categoria_code": categoria_code, "base_eur_mq": "100.00", "coefficiente_impresa": "0.6"},
+            )
+            assert cat_response.status_code in (200, 201)
+
         stima_response = client.post(STIMA_URL, json={"citta": "Parma", "mq": 85, "tipo": "totale"})
         assert stima_response.status_code == 200
         assert stima_response.json()["fallback"] is False
