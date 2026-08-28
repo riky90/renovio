@@ -16,3 +16,14 @@
   first) against this worktree's `backend/dev.db` before relying on that
   test locally. Does not block 04-02 acceptance criteria (all of which are
   scoped to `test_admin_listini.py`/`test_no_leak_admin.py`, both green).
+
+## Piano 04-04 (Dashboard lead admin + CRUD referenti)
+
+- **`tests/test_health.py::test_health_db_returns_live_count`** — stesso
+  fallimento pre-esistente documentato sopra (piano 04-02), riconfermato
+  qui: fallisce anche isolato (`uv run pytest tests/test_health.py -x`),
+  causa invariata (`backend/dev.db` 0-byte in questo worktree). File
+  totalmente estraneo a questo piano (non in `files_modified`). Suite
+  completa: 161 passed, 4 skipped, 1 failed (solo questo test). Tutti i
+  test di questo piano (`test_admin_lead.py`, `test_admin_referenti.py`)
+  e la re-esecuzione di `test_lead.py` sono verdi.
