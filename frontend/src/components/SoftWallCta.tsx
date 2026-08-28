@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
+import { LeadContactDialog } from "@/components/LeadContactDialog";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import type { StimaResponse } from "@/api/stima";
 
-const FEEDBACK = "Disponibile a breve. Questa funzione arriverà nelle prossime versioni.";
 const SAVE_CONFIRMATION = "Stima salvata nel tuo account.";
 
 interface SoftWallCtaProps {
@@ -33,10 +32,14 @@ export function SoftWallCta({
   isPro = false,
 }: SoftWallCtaProps) {
   const navigate = useNavigate();
-  const [feedback, setFeedback] = useState<string | null>(null);
+  const [contactDialogOpen, setContactDialogOpen] = useState(false);
 
-  function handleSoftWallClick() {
-    setFeedback(FEEDBACK);
+  function handleContattaClick() {
+    if (!isAuthenticated) {
+      navigate("/registrati?intent=contatta", { state: { pendingStima: result } });
+      return;
+    }
+    setContactDialogOpen(true);
   }
 
   function handleSalvaClick() {
@@ -79,7 +82,7 @@ export function SoftWallCta({
         <Button
           type="button"
           variant="outline"
-          onClick={handleSoftWallClick}
+          onClick={handleContattaClick}
           className="h-11 flex-1"
         >
           Contatta un professionista
@@ -120,16 +123,13 @@ export function SoftWallCta({
         <p className="text-center text-sm text-muted-foreground">{SAVE_CONFIRMATION}</p>
       )}
 
-      <p
-        role="status"
-        aria-live="polite"
-        className={cn(
-          "text-center text-sm text-muted-foreground transition-opacity",
-          feedback ? "opacity-100" : "opacity-0"
-        )}
-      >
-        {feedback ?? " "}
-      </p>
+      {isAuthenticated && (
+        <LeadContactDialog
+          open={contactDialogOpen}
+          onOpenChange={setContactDialogOpen}
+          result={result}
+        />
+      )}
     </div>
   );
 }
