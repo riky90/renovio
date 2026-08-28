@@ -103,7 +103,7 @@ export function LeadContactDialog({ open, onOpenChange, result }: LeadContactDia
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setTouched({ telefono: true, preferenza: true });
-    if (!formValid || preferenza === "") return;
+    if (!formValid) return;
 
     mutation.mutate(
       {
