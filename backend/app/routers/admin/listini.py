@@ -1,7 +1,7 @@
 """CRUD listini/prezzi (ADM-01, D-09/D-10/D-13): creazione Listino per
 citta nuova + mappatura ComuneListino, CRUD categoria (base_eur_mq/
-coefficiente_impresa). Il CRUD voce (prezzo/UM) e' aggiunto dal Task 3 di
-questo stesso piano.
+coefficiente_impresa), CRUD voce a livello line-item (prezzo/UM, chiave
+naturale stabile — D-09 "ritocchi puntuali su voci").
 
 Ogni route ha `Depends(require_admin)` (T-04-07/D-10/D-22): questa e'
 l'unica sede in cui `coefficiente_impresa`/`base_eur_mq` sono esposti.
@@ -11,6 +11,13 @@ payload (D-24): DELETE elimina sempre e solo la riga esplicita indicata.
 
 Le stime gia' salvate NON leggono queste tabelle (snapshot congelato,
 D-11) — un edit qui ha effetto solo sulle stime calcolate DOPO l'edit.
+
+`PATCH /voci/{id}` aggiorna DELIBERATAMENTE solo prezzo_cliente/um — la
+descrizione/il codice non sono editabili via CRUD (stabilita' della chiave
+naturale `(sottocategoria_id, codice-o-descrizione)` per le voci senza
+codice, famiglie B/C/D catalogo: un successivo upload Excel deve poter
+ri-matchare la riga per chiave anziche' duplicarla, Pitfall 2/Blocker #2,
+limite noto v1 risolto lato prodotto — non un oversight).
 """
 
 from __future__ import annotations
@@ -22,6 +29,7 @@ from sqlalchemy.orm import Session
 
 from app.dependencies.auth import get_db, require_admin
 from app.models.catalogo import ComuneListino
+from app.models.dettaglio_pro import Voce
 from app.models.listino import Listino, ListinoCategoria
 from app.schemas.admin_listino import (
     ListinoAdminIn,
@@ -30,6 +38,8 @@ from app.schemas.admin_listino import (
     ListinoCategoriaAdminOut,
     ListinoCategoriaPatchIn,
     ListinoPatchIn,
+    VoceAdminIn,
+    VoceAdminOut,
 )
 
 router = APIRouter(prefix="/listini", tags=["admin-listini"])
@@ -52,6 +62,17 @@ def _to_categoria_out(row: ListinoCategoria) -> ListinoCategoriaAdminOut:
         categoria_code=row.categoria_code,
         base_eur_mq=row.base_eur_mq,
         coefficiente_impresa=row.coefficiente_impresa,
+    )
+
+
+def _to_voce_out(row: Voce) -> VoceAdminOut:
+    return VoceAdminOut(
+        id=row.id,
+        sottocategoria_id=row.sottocategoria_id,
+        codice=row.codice,
+        descrizione=row.descrizione,
+        um=row.um,
+        prezzo_cliente=row.prezzo_unitario_cliente,
     )
 
 
@@ -207,4 +228,63 @@ def elimina_categoria(
         raise HTTPException(404, "Categoria listino non trovata")
 
     db.delete(riga)
+    db.commit()
+
+
+@router.get("/categorie/{listino_categoria_id}/voci", response_model=list[VoceAdminOut])
+def lista_voci_per_sottocategoria(
+    listino_categoria_id: int,
+    user=Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> list[VoceAdminOut]:
+    """Elenca le Voce della sottocategoria indicata dall'id nel path (l'id
+    e' quello di `Sottocategoria`, coerente con `Voce.sottocategoria_id`;
+    il segmento resta `categorie/{id}/voci` per allinearsi al raggruppamento
+    categoria->sottocategoria->voce del computo, senza esporre un router
+    dedicato alle sottocategorie in questo piano)."""
+    rows = (
+        db.execute(
+            select(Voce)
+            .where(Voce.sottocategoria_id == listino_categoria_id)
+            .order_by(Voce.ordine, Voce.id)
+        )
+        .scalars()
+        .all()
+    )
+    return [_to_voce_out(row) for row in rows]
+
+
+@router.patch("/voci/{voce_id}", response_model=VoceAdminOut)
+def modifica_voce(
+    voce_id: int,
+    payload: VoceAdminIn,
+    user=Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> VoceAdminOut:
+    """Aggiorna SOLO prezzo_cliente/um — MAI descrizione/codice, vedi
+    docstring di modulo (Pitfall 2/Blocker #2)."""
+    voce = db.get(Voce, voce_id)
+    if voce is None:
+        raise HTTPException(404, "Voce non trovata")
+
+    voce.prezzo_unitario_cliente = payload.prezzo_cliente
+    voce.um = payload.um
+
+    db.commit()
+    db.refresh(voce)
+    return _to_voce_out(voce)
+
+
+@router.delete("/voci/{voce_id}", status_code=204)
+def elimina_voce(
+    voce_id: int,
+    user=Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> None:
+    """Azione esplicita, mai side-effect di bulk (D-24)."""
+    voce = db.get(Voce, voce_id)
+    if voce is None:
+        raise HTTPException(404, "Voce non trovata")
+
+    db.delete(voce)
     db.commit()

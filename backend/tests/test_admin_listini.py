@@ -281,6 +281,7 @@ class TestCrudVoce:
         assert body["descrizione"] == admin_voce_esistente["descrizione"]
 
     def test_patch_voce_inesistente_404(self, client):
+        _registra_admin(client)
         response = client.patch(f"{LISTINI_URL}/voci/999999", json={"prezzo_cliente": "1.00", "um": "mq"})
         assert response.status_code == 404
 
