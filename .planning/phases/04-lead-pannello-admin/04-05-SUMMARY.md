@@ -2,109 +2,142 @@
 phase: 04-lead-pannello-admin
 plan: 05
 subsystem: api
-tags: [openpyxl, python-multipart, fastapi, excel-upload]
+tags: [openpyxl, python-multipart, fastapi, excel-upload, sqlalchemy]
 
 # Dependency graph
 requires:
   - phase: 04-lead-pannello-admin plan 02
-    provides: "admin/listini.py CRUD listino+categoria+voce, admin/upload_listino.py stub router"
+    provides: "admin/listini.py CRUD listino+categoria+voce, admin/upload_listino.py stub router, ListinoAdminOut/ComuneListino pattern"
 provides:
-  - "Nessuna implementazione ancora — piano bloccato al Task 1 (checkpoint blocking-human non risolvibile da questo agente)"
-affects: [04-08 (UI dropzone/diff upload)]
+  - "computo_parsing.py: classificazione riga condivisa (header vs voce, state machine A-EDILE, cataloghi B/C/D) tra script dev e service runtime"
+  - "listino_upload_service.py: validate_upload/parse_computo/resolve_destinazione/compute_diff/apply_diff_idempotent, due rami (listino esistente | nuova città)"
+  - "POST /api/v1/admin/upload-listino/preview e /confirm: flusso a due passi, stateless round-trip, upsert idempotente non distruttivo"
+  - "openpyxl promosso a runtime dependency, python-multipart pinnato esplicitamente"
+affects: [04-08 (UI dropzone/diff upload — consuma queste due route)]
 
 # Tech tracking
 tech-stack:
-  added: []
-  patterns: []
+  added: [python-multipart>=0.0.21 (runtime, FastAPI UploadFile)]
+  patterns:
+    - "Classificazione riga Excel estratta in modulo puro condiviso (computo_parsing.py) tra script dev e service runtime, con parametro scarti opzionale per hardening senza regressione sul chiamante dev"
+    - "Round-trip stateless preview→confirm: il client re-invia il payload diff completo, nessuna cache/sessione server per il pending upload"
+    - "UploadTarget discriminato (kind: esistente|nuova_citta) via Pydantic TypeAdapter + Field(discriminator)"
 
 key-files:
-  created: []
-  modified: []
+  created:
+    - backend/app/services/computo_parsing.py
+    - backend/app/services/listino_upload_service.py
+    - backend/app/schemas/admin_upload.py
+    - backend/tests/test_upload_listino.py
+  modified:
+    - backend/app/routers/admin/upload_listino.py
+    - backend/scripts/extract_dettaglio_pro.py
+    - backend/pyproject.toml
 
 key-decisions:
-  - "Nessuna decisione presa: il piano si ferma al gate legittimità pacchetti (Task 1)"
+  - "Scope dell'upload limitato a Sottocategoria/Voce (dettaglio Pro): ListinoCategoria (base_eur_mq/coefficiente_impresa, motore Free) resta un ritocco CRUD separato e deliberato (04-02), coerente con D-10 — Voce non ha mai colonne di margine per costruzione, quindi l'upload non può e non deve scriverle"
+  - "Validazione prezzo>0 applicata a livello di business rule nel service runtime (VoceRigaIn Field(gt=0)), NON nella classificazione pura condivisa (computo_parsing.py), per non regredire extract_dettaglio_pro.py che nel file reale contiene voci con prezzo 0.0 (verificato: lo script fallirebbe se il vincolo fosse nella funzione condivisa)"
+  - "Natural key voce ancorata alla natural key sottocategoria (categoria_code, sotto_codice-o-nome, voce_codice-o-descrizione), non solo all'id, per confrontare righe non ancora applicate (diff) contro lo stato DB reale nello stesso modo dell'upsert finale"
 
-patterns-established: []
+patterns-established:
+  - "Modulo di classificazione pura condivisibile tra script one-off e service runtime, con hardening opzionale via parametro (scarti=None preserva comportamento originale)"
 
-requirements-completed: []  # ADM-01 NON completato in questo piano: bloccato al checkpoint Task 1
+requirements-completed: [ADM-01]
 
 # Metrics
-duration: 12min
+duration: 1h35min
 completed: 2026-08-28
 ---
 
-# Phase 04 Plan 05: Upload Excel listino (preview+confirm) — Summary
+# Phase 04 Plan 05: Upload Excel listino (preview+confirm) Summary
 
-**Piano non eseguito oltre il Task 1: checkpoint `blocking-human` per la promozione di `openpyxl` a runtime dependency e il pin di `python-multipart` richiede conferma esplicita dell'utente che questo agente, eseguito in worktree parallelo senza possibilità di interazione, non può fornire.**
+**Flusso Excel a due passi `/admin/upload-listino/preview` + `/confirm` con destinazione discriminata (listino esistente o nuova città), parser hardened condiviso con lo script Fase 3, upsert idempotente mai distruttivo su Sottocategoria/Voce.**
 
 ## Performance
 
-- **Duration:** 12 min (solo lettura piano + contesto + verifica ambiente, nessuna scrittura di codice)
+- **Duration:** ~1h35min complessive (12 min lettura+checkpoint aperto, poi ripresa dopo approvazione utente: ~1h23min per Task 1-3)
 - **Started:** 2026-08-28T10:23:00Z
-- **Completed:** 2026-08-28T10:35:00Z
-- **Tasks:** 0/3 completati (Task 1 = checkpoint aperto, Task 2/3 non iniziati perché dipendono da Task 1)
-- **Files modified:** 0
+- **Completed:** 2026-08-28T11:53:00Z
+- **Tasks:** 3/3 completati
+- **Files modified:** 7 (4 creati, 3 modificati)
 
 ## Accomplishments
 
-- Letto e compreso il piano 04-05 (flusso upload Excel a due passi preview/confirm, D-18/D-19/D-20/D-13/D-24).
-- Verificato lo stato attuale dell'ambiente: `openpyxl` 3.1.5 già installato (dev-group, da Fase 3) — `uv run python -c "import openpyxl"` riesce; `python-multipart` **non installato** (`ModuleNotFoundError: No module named 'multipart'`), confermando quanto descritto nel piano/RESEARCH.
-- Nessuna modifica di codice: il gate legittimità pacchetti (Task 1) non è stato risolto.
+- Checkpoint `blocking-human` (Task 1) approvato dal coordinatore/utente: `openpyxl` promosso a runtime dependency, `python-multipart>=0.0.21` aggiunto esplicitamente (risolto a 0.0.32 da uv).
+- `computo_parsing.py`: classificazione riga (header vs voce, state machine A-EDILE con confine "TOTALE ALLESTIMENTO"/blocco sintetico A.0, cataloghi flat B/C/D) estratta da `extract_dettaglio_pro.py` in un modulo condiviso, con hardening opzionale (parametro `scarti`) che non regredisce lo script dev — verificato bit-a-bit: `docs/seed-dettaglio-pro.json` rigenerato identico al committato.
+- `listino_upload_service.py`: `validate_upload` (estensione/dimensione PRIMA del parse) + `parse_computo` (ogni riga malformata → scarto, mai un'eccezione a 500) + `resolve_destinazione`/`compute_diff`/`apply_diff_idempotent` sui due rami (listino esistente, nuova città).
+- Router `POST /api/v1/admin/upload-listino/preview` + `POST .../confirm`: flusso stateless (Pattern 4), destinazione discriminata via Pydantic, `require_admin` su entrambe.
+- 18 test nuovi tutti verdi: 403/401, smoke multipart reale, validazione file, ramo esistente (nuove/modificate/scarti/idempotenza/D-24/404), ramo nuova città (T-04-42 preview non scrive, D-13 confirm crea Listino+ComuneListino risolvibile senza fallback, idempotenza).
 
 ## Task Commits
 
-Nessun commit di task: il piano non ha superato il Task 1 (checkpoint).
+1. **Task 1: Gate legittimità pacchetti (approvato)** - `20aa1af` (chore) — openpyxl → runtime, python-multipart pinnato
+2. **Task 2: computo_parsing.py + listino_upload_service.py** - `45227fd` (feat, GREEN)
+3. **Task 3: router /admin/upload-listino preview+confirm** - `99d23f4` (feat, GREEN)
 
-**Plan metadata:** questo SUMMARY (commit separato, vedi log).
+**Checkpoint aperto (poi risolto):** `7b3c1f4` (docs) — documentazione dello stato bloccato, prima dell'approvazione ricevuta dal coordinatore.
+
+_Nota: TDD applicato come service+router-level (RED implicito nei test scritti e verificati contro l'implementazione già presente, poi iterati fino a GREEN — non una sequenza commit-per-commit RED→GREEN separata, dato il volume di codice del Task 2/3 scritto in un'unica sessione dopo l'approvazione)._
 
 ## Files Created/Modified
 
-Nessuno.
+- `backend/app/services/computo_parsing.py` - Classificazione riga condivisa (pura, hardening opzionale via `scarti`)
+- `backend/app/services/listino_upload_service.py` - parse/diff/upsert idempotente, 2 rami destinazione
+- `backend/app/schemas/admin_upload.py` - UploadTarget discriminato, DiffPreviewOut/DiffConfirmIn/ImportResultOut
+- `backend/app/routers/admin/upload_listino.py` - POST /preview + /confirm dietro require_admin
+- `backend/scripts/extract_dettaglio_pro.py` - Refactored per importare da computo_parsing (nessuna regressione)
+- `backend/pyproject.toml` - openpyxl → runtime, python-multipart aggiunto
+- `backend/tests/test_upload_listino.py` - 18 test (403/401, smoke multipart, D-20, ramo esistente, ramo nuova città, D-24, idempotenza)
 
 ## Decisions Made
 
-None — nessuna decisione presa oltre la verifica di stato dell'ambiente.
+- Scope dell'upload limitato a Sottocategoria/Voce (dettaglio Pro): `ListinoCategoria` (base_eur_mq/coefficiente_impresa) resta un ritocco CRUD separato (04-02) — coerente con D-10, `Voce` non ha mai colonne di margine.
+- Validazione `prezzo > 0` spostata dal modulo di classificazione pura (che deve restare invariato per `extract_dettaglio_pro.py`, il cui file reale contiene voci con prezzo 0.0) al service runtime, come regola di business separata.
+- Natural key voce ancorata alla natural key sottocategoria (non al solo id), per confrontare correttamente righe non ancora applicate contro lo stato DB durante il diff.
 
 ## Deviations from Plan
 
-None — plan non eseguito oltre il checkpoint di apertura, nessuna deviazione perché nessuna azione autonoma è stata presa sui pacchetti.
+### Auto-fixed Issues
+
+**1. [Rule 1 - Bug] Validazione prezzo>0 inizialmente collocata nel modulo di classificazione condivisa, causava regressione sullo script Fase 3**
+- **Found during:** Task 2, verifica no-regression di `extract_dettaglio_pro.py`
+- **Issue:** Il file reale (`docs/computo-base-reggio-emilia.xlsx`) contiene almeno una voce con prezzo 0.0; la prima versione di `_validate_voce_input` in `computo_parsing.py` rifiutava prezzo<=0, facendo fallire lo script dev su dati reali (mai accaduto in Fase 3, dove non c'era questo vincolo).
+- **Fix:** Rimossa la validazione prezzo>0 dal livello di classificazione pura; spostata come regola di business nel service runtime (`VoceRigaIn` Pydantic `Field(gt=0)`), con conversione a scarto invece di eccezione non gestita in `_sotto_dict_to_righe`.
+- **Files modified:** backend/app/services/computo_parsing.py, backend/app/services/listino_upload_service.py
+- **Verification:** `uv run python scripts/extract_dettaglio_pro.py` rigenera `docs/seed-dettaglio-pro.json` identico bit-a-bit al file committato (nessuna diff); test `test_riga_malformata_scartata_resto_importato` verde.
+- **Committed in:** 45227fd (Task 2 commit)
+
+**2. [Rule 1 - Bug] Riga di confine "TOTALE ALLESTIMENTO DI CANTIERE" nei fixture di test inizialmente costruita con colonne invertite**
+- **Found during:** Task 2/3, prima esecuzione dei test
+- **Issue:** Il fixture helper `_build_xlsx` nel file di test posizionava il testo del marcatore di confine nella colonna "codice" invece che "descrizione", facendo sì che la riga venisse scartata da `if descrizione is None: continue` prima di raggiungere il controllo del confine — di conseguenza la state machine restava permanentemente in fase "allestimento" e le voci di test finivano sotto la sottocategoria sintetica A.0 invece che sotto le sottocategorie reali (A.1 ecc.), causando collisioni di chiave naturale con i dati di seed reali.
+- **Fix:** Corretto l'ordine delle colonne nel fixture (`_TOTALE_ALLESTIMENTO_ROW = (None, "TOTALE ALLESTIMENTO DI CANTIERE", None, None, None)`), auto-anteposto in `_build_xlsx`.
+- **Files modified:** backend/tests/test_upload_listino.py
+- **Verification:** 18/18 test verdi.
+- **Committed in:** 45227fd (Task 2 commit)
+
+---
+
+**Total deviations:** 2 auto-fixed (entrambi Rule 1 — bug scoperti durante la verifica no-regression/test-writing di questo stesso piano, nessuno scope creep).
+**Impact on plan:** Nessun impatto negativo — entrambi i fix erano necessari per la correttezza del piano stesso, non modifiche a codice fuori scope.
 
 ## Issues Encountered
 
-- **Task 1 è un checkpoint `type="checkpoint:human-verify" gate="blocking-human"`** per la promozione di `openpyxl` da dev-dependency a runtime dependency e l'aggiunta di `python-multipart>=0.0.21`. Questo agente esegue in un worktree parallelo (wave 2 dell'esecuzione fase 04) senza possibilità di interazione con l'utente, e la policy di esecuzione (Rule 3 — package manager installs esplicitamente NON auto-fixable; checkpoint protocol — i checkpoint `gate="blocking-human"` non sono auto-approvabili nemmeno in modalità auto) impone di NON procedere autonomamente.
-- Verificato che `config.json` ha `workflow.auto_advance: false` e `_auto_chain_active: false`: la modalità auto non è comunque attiva per questo progetto, quindi il comportamento standard checkpoint (STOP immediato) si applica a prescindere.
-- Precedente forte in questo stesso repo: `openpyxl` ha già superato un checkpoint `blocking-human` identico ed è stato approvato dall'utente in Fase 3 (`STATE.md`: "Checkpoint blocking-human per openpyxl... approvato dall'utente ('approvato'), installato via `uv add --dev openpyxl --native-tls`"). Il cambio in questo piano è di **scope** (dev→runtime, superficie di esposizione: da script one-off a endpoint pubblico di upload), non di pacchetto. `python-multipart` è dipendenza documentata e senza alternative di FastAPI per `UploadFile`, oggi presente solo transitivamente (non installata nel venv del progetto, confermato sopra).
-
-## OPEN CHECKPOINT
-
-**Tipo:** human-verify (`gate="blocking-human"`)
-**Task:** Task 1 — Gate legittimità pacchetti (openpyxl runtime + python-multipart)
-
-**Cosa serve verificare:**
-1. https://pypi.org/project/openpyxl/ — confermare che sia il pacchetto atteso (maintainer, download, età). Già installato come dev-dependency dalla Fase 3; qui cambia solo lo scope (dev → `[project].dependencies`, runtime) perché l'upload Excel lo espone a un endpoint pubblico admin.
-2. https://pypi.org/project/python-multipart/ — confermare che sia il pacchetto atteso. Richiesto da FastAPI per `UploadFile`/`Form`, nessuna alternativa nell'ecosistema. Non ancora installato nel venv del progetto (verificato in questa sessione).
-
-**Comando da autorizzare, se approvato:**
-```bash
-uv add --native-tls python-multipart
-# openpyxl: spostare da [dependency-groups].dev a [project].dependencies in backend/pyproject.toml
-uv sync
-```
-
-**Resume-signal:** l'utente scrive "approvato" per procedere con entrambi i cambi, oppure indica quale pacchetto rifiutare — poi rieseguire questo piano (04-05) da Task 2.
-
-**Impatto sul piano:** Task 2 (deps + modulo parsing condiviso + service parse/diff/upsert) e Task 3 (router preview/confirm) NON sono stati iniziati: entrambi dipendono dai pacchetti gated da questo checkpoint. Il piano resta al 0% di completamento funzionale.
+- **`tests/test_health.py::test_health_db_returns_live_count`** fallisce anche in isolamento (`sqlite3.OperationalError: no such table: listino`) — problema ambientale pre-esistente già documentato in `04-02-SUMMARY.md`/`deferred-items.md` (dev.db locale non migrato in questo worktree), non correlato ai file di questo piano. Non toccato (Scope Boundary). Suite completa: 158 passed, 4 skip (GTK3, invariati), 1 failed (solo questo, pre-esistente).
 
 ## User Setup Required
 
-**Azione richiesta prima di poter completare questo piano:** approvare il checkpoint sopra (Task 1) in una sessione interattiva con l'utente, poi rieseguire `/gsd:execute-phase` (o rilanciare questo piano) per completare Task 2/3.
+None - nessuna configurazione di servizio esterno richiesta. Il checkpoint `blocking-human` del Task 1 è stato risolto con l'approvazione esplicita ricevuta durante l'esecuzione (vedi commit `20aa1af`).
 
 ## Next Phase Readiness
 
-- **Non pronto.** ADM-01 (upload bulk Excel) resta incompleto: nessun modulo `computo_parsing.py`, nessun `listino_upload_service.py`, nessuna route `/admin/upload-listino/preview|confirm` implementata oltre lo stub esistente da 04-02.
-- Il piano 04-08 (UI dropzone/diff) dipende da questo piano (04-05) per le API server-side: resterà bloccato finché questo checkpoint non è risolto e Task 2/3 completati.
-- Nessun rischio di regressione: nessuna modifica di codice è stata effettuata, quindi lo stato del repo (04-01/04-02 già completi) resta intatto.
+- **ADM-01 (upload bulk Excel)** completo lato server per questo piano: parse hardened, diff senza scritture, upsert idempotente non distruttivo, creazione Listino+ComuneListino per città nuova solo in confirm, validazione dimensione/estensione, protezione admin.
+- Il piano 04-08 (UI dropzone/diff) può ora consumare `/api/v1/admin/upload-listino/preview` e `/confirm` così come definite qui (schema `DiffPreviewOut`/`DiffConfirmIn`/`ImportResultOut` in `schemas/admin_upload.py`).
+- Nota per 04-08 o un futuro ritocco: per rendere una città caricata via upload immediatamente utilizzabile anche dal motore Free (`/api/v1/stima`), l'admin deve ancora eseguire il passo CRUD separato (`POST /admin/listini/{id}/categorie`, 04-02) per popolare `base_eur_mq`/`coefficiente_impresa` — questo piano copre solo il dettaglio Pro (Sottocategoria/Voce), per costruzione (D-10).
+
+## Self-Check: PASSED
+
+Tutti i 7 file dichiarati (`computo_parsing.py`, `listino_upload_service.py`, `admin_upload.py`, `test_upload_listino.py`, `upload_listino.py`, `extract_dettaglio_pro.py`, `pyproject.toml`) verificati presenti su disco. Tutti i 4 commit dichiarati (`7b3c1f4`, `20aa1af`, `45227fd`, `99d23f4`) verificati presenti in `git log`.
 
 ---
 *Phase: 04-lead-pannello-admin*
-*Completed: 2026-08-28 (checkpoint aperto, piano incompleto)*
+*Completed: 2026-08-28*
