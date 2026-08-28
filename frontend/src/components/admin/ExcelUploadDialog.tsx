@@ -82,6 +82,7 @@ export function ExcelUploadDialog({
   const [destListinoId, setDestListinoId] = useState<number | null>(defaultListinoId);
   const [destCitta, setDestCitta] = useState("");
   const [destIsDefault, setDestIsDefault] = useState(false);
+  const [destComuniExtra, setDestComuniExtra] = useState("");
   const [fileError, setFileError] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [discardOpen, setDiscardOpen] = useState(false);
@@ -94,10 +95,15 @@ export function ExcelUploadDialog({
   const confirmMutation = useMutation({
     mutationFn: () => {
       const preview = previewMutation.data!;
+      const comuniExtra = destComuniExtra
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
       return confirmUpload(
         buildTarget(),
         preview.nuove.map((r) => r.riga),
         preview.modificate.map((r) => r.riga),
+        comuniExtra,
       );
     },
     onSuccess: (result) => {
@@ -119,6 +125,7 @@ export function ExcelUploadDialog({
     setDestListinoId(defaultListinoId);
     setDestCitta("");
     setDestIsDefault(false);
+    setDestComuniExtra("");
     setFileError(null);
     setFileName(null);
     setDiscardOpen(false);
@@ -229,6 +236,21 @@ export function ExcelUploadDialog({
                       </label>
                     </div>
                   )}
+
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="comuni-extra" className="font-normal">
+                      Mappa anche questi comuni (facoltativo)
+                    </Label>
+                    <Input
+                      id="comuni-extra"
+                      placeholder="Es. Carpi, Sassuolo, Formigine"
+                      value={destComuniExtra}
+                      onChange={(e) => setDestComuniExtra(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Separati da virgola: verranno associati a questo listino in un unico passaggio.
+                    </p>
+                  </div>
                 </div>
 
                 <div

@@ -7,6 +7,7 @@ import {
   MapPin,
   Users,
   ShieldCheck,
+  Layers,
   type LucideIcon,
 } from "lucide-react";
 import { AccountMenu } from "@/components/AccountMenu";
@@ -32,6 +33,7 @@ interface AdminNavItem {
 const NAV_ITEMS: AdminNavItem[] = [
   { path: "/admin/lead", label: "Lead", icon: Inbox, roles: ["admin", "consulente"] },
   { path: "/admin/listini", label: "Listini e prezzi", icon: Tags, roles: ["admin"] },
+  { path: "/admin/dettaglio-pro", label: "Voci dettaglio Pro", icon: Layers, roles: ["admin"] },
   { path: "/admin/coefficienti", label: "Coefficienti", icon: SlidersHorizontal, roles: ["admin"] },
   { path: "/admin/citta-testi", label: "Città e testi", icon: MapPin, roles: ["admin"] },
   { path: "/admin/referenti", label: "Referenti", icon: Users, roles: ["admin"] },

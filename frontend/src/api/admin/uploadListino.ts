@@ -124,6 +124,12 @@ export async function confirmUpload(
   target: UploadTarget,
   nuove: VoceRiga[],
   modificate: VoceRiga[],
+  comuniExtra: string[] = [],
 ): Promise<ImportResult> {
-  return apiPost<ImportResult>("/admin/upload-listino/confirm", { target, nuove, modificate });
+  return apiPost<ImportResult>("/admin/upload-listino/confirm", {
+    target,
+    nuove,
+    modificate,
+    comuni_extra: comuniExtra,
+  });
 }

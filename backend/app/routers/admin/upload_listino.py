@@ -82,7 +82,9 @@ def confirm_upload(
     nuova città: crea Listino + ComuneListino PRIMA dell'upsert voci
     (D-13)."""
     try:
-        listino_id, righe_importate = apply_diff_idempotent(db, payload.target, payload.nuove, payload.modificate)
+        listino_id, righe_importate = apply_diff_idempotent(
+            db, payload.target, payload.nuove, payload.modificate, payload.comuni_extra
+        )
     except UploadValidationError as exc:
         raise HTTPException(404, str(exc)) from exc
 

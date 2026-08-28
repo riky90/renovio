@@ -270,11 +270,24 @@ def _upsert_voce(db: Session, sotto: Sottocategoria, riga: VoceRigaIn) -> Voce:
     return voce
 
 
+def _upsert_comune(db: Session, nome: str, listino_id: int) -> None:
+    """Mappa (idempotente) un comune sul listino: crea la riga ComuneListino
+    se assente, altrimenti ne aggiorna solo il listino_id. Mai distruttivo."""
+    slug = slugify(nome)
+    comune = db.query(ComuneListino).filter_by(comune_slug=slug).one_or_none()
+    if comune is None:
+        db.add(ComuneListino(comune_nome=nome, comune_slug=slug, listino_id=listino_id))
+    else:
+        comune.comune_nome = nome
+        comune.listino_id = listino_id
+
+
 def apply_diff_idempotent(
     db: Session,
     target: UploadTargetEsistente | UploadTargetNuovaCitta,
     nuove: list[VoceRigaIn],
     modificate: list[VoceRigaIn],
+    comuni_extra: list[str] | None = None,
 ) -> tuple[int, int]:
     """Applica l'upsert (mai un DELETE implicito, D-24). Ramo nuova città:
     crea Listino + ComuneListino PRIMA dell'upsert voci (D-13) — stesso
@@ -291,20 +304,19 @@ def apply_diff_idempotent(
             db.add(listino)
             db.flush()
 
-        slug = slugify(target.citta)
-        comune = db.query(ComuneListino).filter_by(comune_slug=slug).one_or_none()
-        if comune is None:
-            comune = ComuneListino(comune_nome=target.citta, comune_slug=slug, listino_id=listino.id)
-            db.add(comune)
-        else:
-            comune.comune_nome = target.citta
-            comune.listino_id = listino.id
+        _upsert_comune(db, target.citta, listino.id)
         listino_id = listino.id
     else:
         listino = db.get(Listino, target.listino_id)
         if listino is None:
             raise UploadValidationError("Listino di destinazione non trovato")
         listino_id = listino.id
+
+    # Comuni aggiuntivi mappati sullo stesso listino, in un solo passaggio.
+    for nome in comuni_extra or []:
+        nome = nome.strip()
+        if nome:
+            _upsert_comune(db, nome, listino_id)
 
     righe_importate = 0
     for riga in [*nuove, *modificate]:

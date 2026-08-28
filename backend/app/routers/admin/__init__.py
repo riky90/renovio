@@ -21,6 +21,7 @@ from fastapi import APIRouter
 from app.routers.admin import (
     citta,
     coefficienti,
+    dettaglio_pro,
     lead,
     listini,
     ping,
@@ -41,3 +42,4 @@ router.include_router(referenti.router)
 router.include_router(lead.router)
 router.include_router(upload_listino.router)
 router.include_router(utenti.router)
+router.include_router(dettaglio_pro.router)

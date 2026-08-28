@@ -13,6 +13,7 @@ import { ListiniPage } from "@/pages/admin/ListiniPage";
 import { CoefficientiPage } from "@/pages/admin/CoefficientiPage";
 import { CittaTestiPage } from "@/pages/admin/CittaTestiPage";
 import { UtentiPage } from "@/pages/admin/UtentiPage";
+import { DettaglioProAdminPage } from "@/pages/admin/DettaglioProPage";
 
 const router = createBrowserRouter([
   { path: "/", element: <EstimatePage /> },
@@ -26,6 +27,7 @@ const router = createBrowserRouter([
   { path: "/admin", element: <Navigate to="/admin/lead" replace /> },
   { path: "/admin/lead", element: <LeadDashboardPage /> },
   { path: "/admin/listini", element: <ListiniPage /> },
+  { path: "/admin/dettaglio-pro", element: <DettaglioProAdminPage /> },
   { path: "/admin/coefficienti", element: <CoefficientiPage /> },
   { path: "/admin/citta-testi", element: <CittaTestiPage /> },
   { path: "/admin/referenti", element: <ReferentiPage /> },

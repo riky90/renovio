@@ -78,6 +78,10 @@ class DiffConfirmIn(BaseModel):
     target: UploadTarget
     nuove: list[VoceRigaIn] = Field(default_factory=list)
     modificate: list[VoceRigaIn] = Field(default_factory=list)
+    # Comuni aggiuntivi da mappare (in un solo passaggio) sullo stesso listino
+    # di destinazione — oltre alla città principale del ramo `nuova_citta`.
+    # Idempotente: rimappare un comune esistente ne aggiorna solo il listino.
+    comuni_extra: list[str] = Field(default_factory=list)
 
 
 class ImportResultOut(BaseModel):
