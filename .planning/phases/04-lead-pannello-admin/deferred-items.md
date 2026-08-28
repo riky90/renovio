@@ -16,3 +16,13 @@
   first) against this worktree's `backend/dev.db` before relying on that
   test locally. Does not block 04-02 acceptance criteria (all of which are
   scoped to `test_admin_listini.py`/`test_no_leak_admin.py`, both green).
+
+## Piano 04-05 (Upload Excel listino preview/confirm)
+
+- **`tests/test_health.py::test_health_db_returns_live_count`** — stesso
+  fallimento pre-esistente segnalato in 04-02, riconfermato in questa
+  sessione (fallisce anche in isolamento, `uv run pytest tests/test_health.py`
+  da solo). Nessuna relazione con `computo_parsing.py`/
+  `listino_upload_service.py`/`upload_listino.py` (file non toccati, out
+  of scope). Suite completa: 158 passed, 4 skipped, 1 failed (solo questo
+  test pre-esistente).
