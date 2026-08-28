@@ -83,7 +83,7 @@ Plans:
 4. L'admin configura i referenti per città (modello multi-referente, un referente attivo in v1)
 5. L'admin modifica città, mappature e testi/disclaimer dall'interfaccia
 
-**Plans:** 7/11 plans executed
+**Plans:** 8/11 plans executed
 Plans:
 **Wave 1**
 
@@ -100,7 +100,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 04-07-PLAN.md — Admin frontend: shell /admin + componenti condivisi + rotte + stub pages (ADM-04 fondazione)
+- [x] 04-07-PLAN.md — Admin frontend: shell /admin + componenti condivisi + rotte + stub pages (ADM-04 fondazione)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
