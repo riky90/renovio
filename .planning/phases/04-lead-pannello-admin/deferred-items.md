@@ -17,7 +17,6 @@
   test locally. Does not block 04-02 acceptance criteria (all of which are
   scoped to `test_admin_listini.py`/`test_no_leak_admin.py`, both green).
 
-<<<<<<< HEAD
 ## Piano 04-04 (Dashboard lead admin + CRUD referenti)
 
 - **`tests/test_health.py::test_health_db_returns_live_count`** — stesso
