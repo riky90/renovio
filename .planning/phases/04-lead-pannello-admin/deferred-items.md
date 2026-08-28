@@ -27,3 +27,13 @@
   completa: 161 passed, 4 skipped, 1 failed (solo questo test). Tutti i
   test di questo piano (`test_admin_lead.py`, `test_admin_referenti.py`)
   e la re-esecuzione di `test_lead.py` sono verdi.
+
+## Piano 04-05 (Upload Excel listino preview/confirm)
+
+- **`tests/test_health.py::test_health_db_returns_live_count`** — stesso
+  fallimento pre-esistente segnalato in 04-02, riconfermato in questa
+  sessione (fallisce anche in isolamento, `uv run pytest tests/test_health.py`
+  da solo). Nessuna relazione con `computo_parsing.py`/
+  `listino_upload_service.py`/`upload_listino.py` (file non toccati, out
+  of scope). Suite completa: 158 passed, 4 skipped, 1 failed (solo questo
+  test pre-esistente).
