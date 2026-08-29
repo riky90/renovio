@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Pencil, Trash2, SlidersHorizontal } from "lucide-react";
+import { Pencil, Trash2, SlidersHorizontal, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { AdminLayout } from "@/pages/admin/AdminLayout";
-import { AdminTable } from "@/components/admin/AdminTable";
 import { AdminCrudDialog } from "@/components/admin/AdminCrudDialog";
 import { AdminDeleteConfirm } from "@/components/admin/AdminDeleteConfirm";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -75,13 +80,17 @@ interface VoceForm {
 
 const EMPTY_VOCE: VoceForm = { codice: "", descrizione: "", um: "", prezzo: "", ordine: "0" };
 
+function sottoLabel(s: SottocategoriaOut): string {
+  return s.codice ? `${s.codice} · ${s.nome}` : s.nome;
+}
+
 function DettaglioProContent() {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
   const queryClient = useQueryClient();
 
   const [listinoId, setListinoId] = useState<number | null>(null);
-  const [sottoId, setSottoId] = useState<number | null>(null);
+  const [openItems, setOpenItems] = useState<string[]>([]);
 
   const listiniQuery = useQuery({
     queryKey: ["admin-listini-select"],
@@ -93,12 +102,6 @@ function DettaglioProContent() {
     queryKey: ["admin-pro-sotto", listinoId],
     queryFn: () => listSottocategorie(listinoId as number),
     enabled: isAdmin && listinoId !== null,
-  });
-
-  const vociQuery = useQuery<VoceOut[]>({
-    queryKey: ["admin-pro-voci", sottoId],
-    queryFn: () => listVoci(sottoId as number),
-    enabled: isAdmin && sottoId !== null,
   });
 
   // --- Sottocategoria dialog/state ---
@@ -157,6 +160,7 @@ function DettaglioProContent() {
   // --- Voce dialog/state ---
   const [voceDialogOpen, setVoceDialogOpen] = useState(false);
   const [editingVoce, setEditingVoce] = useState<VoceOut | null>(null);
+  const [voceTargetSottoId, setVoceTargetSottoId] = useState<number | null>(null);
   const [voceForm, setVoceForm] = useState<VoceForm>(EMPTY_VOCE);
   const [deletingVoce, setDeletingVoce] = useState<VoceOut | null>(null);
   const [applVoce, setApplVoce] = useState<VoceOut | null>(null);
@@ -177,6 +181,10 @@ function DettaglioProContent() {
     }
   }, [voceDialogOpen, editingVoce]);
 
+  function invalidateVoci(sottoId: number | null | undefined) {
+    if (sottoId != null) void queryClient.invalidateQueries({ queryKey: ["admin-pro-voci", sottoId] });
+  }
+
   const saveVoce = useMutation({
     mutationFn: () => {
       const base = {
@@ -188,80 +196,39 @@ function DettaglioProContent() {
       };
       return editingVoce
         ? updateVoce(editingVoce.id, base)
-        : createVoce({ sottocategoria_id: sottoId as number, ...base });
+        : createVoce({ sottocategoria_id: voceTargetSottoId as number, ...base });
     },
     onSuccess: () => {
       toast.success("Voce salvata");
-      void queryClient.invalidateQueries({ queryKey: ["admin-pro-voci", sottoId] });
+      invalidateVoci(editingVoce ? editingVoce.sottocategoria_id : voceTargetSottoId);
       setVoceDialogOpen(false);
       setEditingVoce(null);
     },
   });
 
   const deleteVoceMut = useMutation({
-    mutationFn: (id: number) => deleteVoce(id),
-    onSuccess: () => {
+    mutationFn: (v: VoceOut) => deleteVoce(v.id),
+    onSuccess: (_data, v) => {
       toast.success("Voce eliminata");
-      void queryClient.invalidateQueries({ queryKey: ["admin-pro-voci", sottoId] });
+      invalidateVoci(v.sottocategoria_id);
       setDeletingVoce(null);
     },
   });
 
-  const sottoRows = (sottoQuery.data ?? []).map((s) => [
-    <button
-      key="nome"
-      type="button"
-      className="text-left text-sm font-medium underline-offset-4 hover:underline"
-      onClick={() => setSottoId(s.id)}
-    >
-      {s.codice ? `${s.codice} · ` : ""}
-      {s.nome}
-    </button>,
-    <span key="cat" className="text-sm">
-      {s.categoria_code}
-    </span>,
-    <span key="fam" className="text-sm text-muted-foreground">
-      {s.famiglia}
-    </span>,
-    <div key="az" className="flex items-center gap-1">
-      <Button type="button" variant="ghost" size="icon-sm" aria-label="Modifica" onClick={() => { setEditingSotto(s); setSottoDialogOpen(true); }}>
-        <Pencil className="size-4" />
-      </Button>
-      <Button type="button" variant="ghost" size="icon-sm" aria-label="Elimina" onClick={() => setDeletingSotto(s)}>
-        <Trash2 className="size-4" />
-      </Button>
-    </div>,
-  ]);
-
-  const vociRows = (vociQuery.data ?? []).map((v) => [
-    <span key="desc" className="text-sm font-medium">
-      {v.codice ? `${v.codice} · ` : ""}
-      {v.descrizione}
-    </span>,
-    <span key="um" className="text-sm">{v.um}</span>,
-    <span key="prezzo" className="text-sm tabular-nums">{v.prezzo_unitario_cliente} €</span>,
-    <div key="az" className="flex items-center gap-1">
-      <Button type="button" variant="ghost" size="icon-sm" aria-label="Applicazione per tipo" title="Dove va applicata" onClick={() => setApplVoce(v)}>
-        <SlidersHorizontal className="size-4" />
-      </Button>
-      <Button type="button" variant="ghost" size="icon-sm" aria-label="Modifica" onClick={() => { setEditingVoce(v); setVoceDialogOpen(true); }}>
-        <Pencil className="size-4" />
-      </Button>
-      <Button type="button" variant="ghost" size="icon-sm" aria-label="Elimina" onClick={() => setDeletingVoce(v)}>
-        <Trash2 className="size-4" />
-      </Button>
-    </div>,
-  ]);
-
-  const selectedSotto = (sottoQuery.data ?? []).find((s) => s.id === sottoId) ?? null;
+  function openAddVoce(sottoId: number) {
+    setEditingVoce(null);
+    setVoceTargetSottoId(sottoId);
+    setVoceDialogOpen(true);
+  }
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
         <h1 className="text-lg font-semibold text-foreground">Voci di dettaglio Pro</h1>
         <p className="text-sm text-muted-foreground">
-          Sottocategorie e voci che fanno da base al preventivo di dettaglio Pro. Puoi popolare tutto
-          da un file Excel (Listini → Carica listino) oppure gestirlo a mano qui.
+          Sottocategorie e voci che fanno da base al preventivo di dettaglio Pro. Espandi una
+          sottocategoria per vedere e gestire le sue voci. Puoi popolare tutto da un file Excel
+          (Listini → Carica listino) oppure a mano qui.
         </p>
       </div>
 
@@ -271,7 +238,7 @@ function DettaglioProContent() {
           value={listinoId !== null ? String(listinoId) : ""}
           onValueChange={(v) => {
             setListinoId(Number(v));
-            setSottoId(null);
+            setOpenItems([]);
           }}
         >
           <SelectTrigger id="pro-listino" className="w-full">
@@ -292,38 +259,44 @@ function DettaglioProContent() {
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-base font-semibold text-foreground">Sottocategorie</h2>
             <Button type="button" onClick={() => { setEditingSotto(null); setSottoDialogOpen(true); }}>
-              Aggiungi sottocategoria
+              <Plus className="mr-1 size-4" /> Sottocategoria
             </Button>
           </div>
-          <AdminTable
-            columns={["Nome", "Categoria", "Famiglia", ""]}
-            isLoading={sottoQuery.isLoading}
-            rows={sottoRows}
-            isEmpty={!sottoQuery.isLoading && (sottoQuery.data?.length ?? 0) === 0}
-            emptyHeading="Nessuna sottocategoria"
-            emptyBody="Aggiungine una, oppure carica un listino da Excel."
-          />
-        </div>
-      )}
 
-      {sottoId !== null && selectedSotto && (
-        <div className="flex flex-col gap-3 border-t border-border pt-6">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-base font-semibold text-foreground">
-              Voci · {selectedSotto.nome}
-            </h2>
-            <Button type="button" onClick={() => { setEditingVoce(null); setVoceDialogOpen(true); }}>
-              Aggiungi voce
-            </Button>
-          </div>
-          <AdminTable
-            columns={["Descrizione", "UM", "Prezzo cliente", ""]}
-            isLoading={vociQuery.isLoading}
-            rows={vociRows}
-            isEmpty={!vociQuery.isLoading && (vociQuery.data?.length ?? 0) === 0}
-            emptyHeading="Nessuna voce"
-            emptyBody="Aggiungi la prima voce di questa sottocategoria."
-          />
+          {sottoQuery.isLoading && (
+            <p className="text-sm text-muted-foreground">Caricamento…</p>
+          )}
+          {sottoQuery.isSuccess && (sottoQuery.data?.length ?? 0) === 0 && (
+            <div className="rounded-lg border border-border bg-card px-4 py-8 text-center">
+              <p className="text-sm font-semibold text-foreground">Nessuna sottocategoria</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Aggiungine una, oppure carica un listino da Excel.
+              </p>
+            </div>
+          )}
+
+          {(sottoQuery.data?.length ?? 0) > 0 && (
+            <Accordion
+              type="multiple"
+              value={openItems}
+              onValueChange={setOpenItems}
+              className="rounded-lg border border-border bg-card px-4"
+            >
+              {(sottoQuery.data ?? []).map((s) => (
+                <SottoAccordionItem
+                  key={s.id}
+                  sotto={s}
+                  isOpen={openItems.includes(String(s.id))}
+                  onAddVoce={() => openAddVoce(s.id)}
+                  onEditVoce={(v) => { setEditingVoce(v); setVoceDialogOpen(true); }}
+                  onDeleteVoce={(v) => setDeletingVoce(v)}
+                  onApplVoce={(v) => setApplVoce(v)}
+                  onEditSotto={() => { setEditingSotto(s); setSottoDialogOpen(true); }}
+                  onDeleteSotto={() => setDeletingSotto(s)}
+                />
+              ))}
+            </Accordion>
+          )}
         </div>
       )}
 
@@ -418,12 +391,98 @@ function DettaglioProContent() {
         onOpenChange={(open) => !open && setDeletingVoce(null)}
         entityLabel="voce"
         description={`Eliminare "${deletingVoce?.descrizione ?? ""}"?`}
-        onConfirm={() => deletingVoce && deleteVoceMut.mutate(deletingVoce.id)}
+        onConfirm={() => deletingVoce && deleteVoceMut.mutate(deletingVoce)}
         isDeleting={deleteVoceMut.isPending}
       />
 
       <VoceApplicazioneDialog voce={applVoce} onClose={() => setApplVoce(null)} />
     </div>
+  );
+}
+
+interface SottoAccordionItemProps {
+  sotto: SottocategoriaOut;
+  isOpen: boolean;
+  onAddVoce: () => void;
+  onEditVoce: (v: VoceOut) => void;
+  onDeleteVoce: (v: VoceOut) => void;
+  onApplVoce: (v: VoceOut) => void;
+  onEditSotto: () => void;
+  onDeleteSotto: () => void;
+}
+
+function SottoAccordionItem({
+  sotto,
+  isOpen,
+  onAddVoce,
+  onEditVoce,
+  onDeleteVoce,
+  onApplVoce,
+  onEditSotto,
+  onDeleteSotto,
+}: SottoAccordionItemProps) {
+  const vociQuery = useQuery<VoceOut[]>({
+    queryKey: ["admin-pro-voci", sotto.id],
+    queryFn: () => listVoci(sotto.id),
+    enabled: isOpen,
+  });
+
+  return (
+    <AccordionItem value={String(sotto.id)}>
+      <AccordionTrigger className="text-left">
+        <span className="pr-2 text-sm font-medium">
+          {sottoLabel(sotto)}
+          <span className="ml-2 text-xs font-normal text-muted-foreground">{sotto.categoria_code}</span>
+        </span>
+      </AccordionTrigger>
+      <AccordionContent>
+        <div className="flex flex-wrap items-center gap-2 pb-3">
+          <Button type="button" size="sm" onClick={onAddVoce}>
+            <Plus className="mr-1 size-4" /> Aggiungi voce
+          </Button>
+          <Button type="button" size="sm" variant="outline" onClick={onEditSotto}>
+            Modifica sottocategoria
+          </Button>
+          <Button type="button" size="sm" variant="ghost" onClick={onDeleteSotto}>
+            Elimina
+          </Button>
+        </div>
+
+        {vociQuery.isLoading && <p className="py-2 text-sm text-muted-foreground">Caricamento voci…</p>}
+        {vociQuery.isSuccess && (vociQuery.data?.length ?? 0) === 0 && (
+          <p className="py-2 text-sm text-muted-foreground">
+            Nessuna voce. Aggiungi la prima con il pulsante qui sopra.
+          </p>
+        )}
+
+        <div className="flex flex-col">
+          {(vociQuery.data ?? []).map((v) => (
+            <div key={v.id} className="flex items-start justify-between gap-3 border-t border-border py-2 first:border-t-0">
+              <div className="min-w-0 flex-1">
+                <p className="whitespace-normal break-words text-sm font-medium text-foreground">
+                  {v.codice ? `${v.codice} · ` : ""}
+                  {v.descrizione}
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {v.um} · {v.prezzo_unitario_cliente} € al cliente
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-1">
+                <Button type="button" variant="ghost" size="icon-sm" aria-label="Applicazione per tipo" title="Dove va applicata" onClick={() => onApplVoce(v)}>
+                  <SlidersHorizontal className="size-4" />
+                </Button>
+                <Button type="button" variant="ghost" size="icon-sm" aria-label="Modifica" onClick={() => onEditVoce(v)}>
+                  <Pencil className="size-4" />
+                </Button>
+                <Button type="button" variant="ghost" size="icon-sm" aria-label="Elimina" onClick={() => onDeleteVoce(v)}>
+                  <Trash2 className="size-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </AccordionContent>
+    </AccordionItem>
   );
 }
 

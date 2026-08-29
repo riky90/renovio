@@ -31,21 +31,26 @@ export function SottocategoriaAccordion({ categoria }: SottocategoriaAccordionPr
           >
             <AccordionTrigger>{triggerLabel(sottocategoria)}</AccordionTrigger>
             <AccordionContent>
-              {sottocategoria.voci.length === 0 ? (
-                <p className="py-2 text-center text-sm text-muted-foreground">{EMPTY_COPY}</p>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  {sottocategoria.voci.map((voce, voceIndex) => (
-                    <VoceRow key={voce.codice ?? voceIndex} voce={voce} />
-                  ))}
+              {(() => {
+                // Nascondi le voci non applicate a questo tipo (quantità 0):
+                // contribuiscono €0 e creerebbero solo confusione nell'elenco.
+                const vociVisibili = sottocategoria.voci.filter((v) => v.quantita_stimata > 0);
+                return vociVisibili.length === 0 ? (
+                  <p className="py-2 text-center text-sm text-muted-foreground">{EMPTY_COPY}</p>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    {vociVisibili.map((voce, voceIndex) => (
+                      <VoceRow key={voce.codice ?? voceIndex} voce={voce} />
+                    ))}
                   <div className="flex items-baseline justify-between gap-3 pt-2 text-sm font-medium text-foreground">
                     <span className="text-muted-foreground">Subtotale</span>
                     <span className="tabular-nums">
                       {formatEurRange(sottocategoria.totale_min, sottocategoria.totale_max)}
                     </span>
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </AccordionContent>
           </AccordionItem>
         ))}
