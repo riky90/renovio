@@ -1,16 +1,11 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Pencil, Trash2, SlidersHorizontal, Plus } from "lucide-react";
+import { Pencil, Trash2, SlidersHorizontal, Plus, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { AdminLayout } from "@/pages/admin/AdminLayout";
 import { AdminCrudDialog } from "@/components/admin/AdminCrudDialog";
 import { AdminDeleteConfirm } from "@/components/admin/AdminDeleteConfirm";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -276,17 +271,19 @@ function DettaglioProContent() {
           )}
 
           {(sottoQuery.data?.length ?? 0) > 0 && (
-            <Accordion
-              type="multiple"
-              value={openItems}
-              onValueChange={setOpenItems}
-              className="rounded-lg border border-border bg-card px-4"
-            >
+            <div className="flex flex-col overflow-hidden rounded-lg border border-border bg-card">
               {(sottoQuery.data ?? []).map((s) => (
-                <SottoAccordionItem
+                <SottoCollapsible
                   key={s.id}
                   sotto={s}
                   isOpen={openItems.includes(String(s.id))}
+                  onToggle={() =>
+                    setOpenItems((prev) =>
+                      prev.includes(String(s.id))
+                        ? prev.filter((x) => x !== String(s.id))
+                        : [...prev, String(s.id)],
+                    )
+                  }
                   onAddVoce={() => openAddVoce(s.id)}
                   onEditVoce={(v) => { setEditingVoce(v); setVoceDialogOpen(true); }}
                   onDeleteVoce={(v) => setDeletingVoce(v)}
@@ -295,7 +292,7 @@ function DettaglioProContent() {
                   onDeleteSotto={() => setDeletingSotto(s)}
                 />
               ))}
-            </Accordion>
+            </div>
           )}
         </div>
       )}
@@ -400,9 +397,10 @@ function DettaglioProContent() {
   );
 }
 
-interface SottoAccordionItemProps {
+interface SottoCollapsibleProps {
   sotto: SottocategoriaOut;
   isOpen: boolean;
+  onToggle: () => void;
   onAddVoce: () => void;
   onEditVoce: (v: VoceOut) => void;
   onDeleteVoce: (v: VoceOut) => void;
@@ -411,16 +409,23 @@ interface SottoAccordionItemProps {
   onDeleteSotto: () => void;
 }
 
-function SottoAccordionItem({
+/**
+ * Riga-sottocategoria collassabile in FLUSSO normale (niente altezza animata
+ * di Radix, che tagliava il contenuto caricato in async): aprendo, le righe
+ * sotto scendono davvero. L'elenco voci ha uno scroll interno (max-height)
+ * così una sottocategoria molto lunga non allontana troppo le altre.
+ */
+function SottoCollapsible({
   sotto,
   isOpen,
+  onToggle,
   onAddVoce,
   onEditVoce,
   onDeleteVoce,
   onApplVoce,
   onEditSotto,
   onDeleteSotto,
-}: SottoAccordionItemProps) {
+}: SottoCollapsibleProps) {
   const vociQuery = useQuery<VoceOut[]>({
     queryKey: ["admin-pro-voci", sotto.id],
     queryFn: () => listVoci(sotto.id),
@@ -428,61 +433,70 @@ function SottoAccordionItem({
   });
 
   return (
-    <AccordionItem value={String(sotto.id)}>
-      <AccordionTrigger className="text-left">
-        <span className="pr-2 text-sm font-medium">
-          {sottoLabel(sotto)}
-          <span className="ml-2 text-xs font-normal text-muted-foreground">{sotto.categoria_code}</span>
-        </span>
-      </AccordionTrigger>
-      <AccordionContent>
-        <div className="flex flex-wrap items-center gap-2 pb-3">
-          <Button type="button" size="sm" onClick={onAddVoce}>
-            <Plus className="mr-1 size-4" /> Aggiungi voce
-          </Button>
-          <Button type="button" size="sm" variant="outline" onClick={onEditSotto}>
-            Modifica sottocategoria
-          </Button>
-          <Button type="button" size="sm" variant="ghost" onClick={onDeleteSotto}>
-            Elimina
-          </Button>
-        </div>
+    <div className="border-b border-border last:border-b-0">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={isOpen}
+        className="flex w-full items-center gap-2 px-4 py-3 text-left hover:bg-muted/50"
+      >
+        <ChevronRight className={cn("size-4 shrink-0 text-muted-foreground transition-transform", isOpen && "rotate-90")} />
+        <span className="text-sm font-medium text-foreground">{sottoLabel(sotto)}</span>
+        <span className="ml-1 text-xs font-normal text-muted-foreground">{sotto.categoria_code}</span>
+      </button>
 
-        {vociQuery.isLoading && <p className="py-2 text-sm text-muted-foreground">Caricamento voci…</p>}
-        {vociQuery.isSuccess && (vociQuery.data?.length ?? 0) === 0 && (
-          <p className="py-2 text-sm text-muted-foreground">
-            Nessuna voce. Aggiungi la prima con il pulsante qui sopra.
-          </p>
-        )}
+      {isOpen && (
+        <div className="px-4 pb-4">
+          <div className="flex flex-wrap items-center gap-2 pb-3">
+            <Button type="button" size="sm" onClick={onAddVoce}>
+              <Plus className="mr-1 size-4" /> Aggiungi voce
+            </Button>
+            <Button type="button" size="sm" variant="outline" onClick={onEditSotto}>
+              Modifica sottocategoria
+            </Button>
+            <Button type="button" size="sm" variant="ghost" onClick={onDeleteSotto}>
+              Elimina
+            </Button>
+          </div>
 
-        <div className="flex flex-col">
-          {(vociQuery.data ?? []).map((v) => (
-            <div key={v.id} className="flex items-start justify-between gap-3 border-t border-border py-2 first:border-t-0">
-              <div className="min-w-0 flex-1">
-                <p className="whitespace-normal break-words text-sm font-medium text-foreground">
-                  {v.codice ? `${v.codice} · ` : ""}
-                  {v.descrizione}
-                </p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  {v.um} · {v.prezzo_unitario_cliente} € al cliente
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-1">
-                <Button type="button" variant="ghost" size="icon-sm" aria-label="Applicazione per tipo" title="Dove va applicata" onClick={() => onApplVoce(v)}>
-                  <SlidersHorizontal className="size-4" />
-                </Button>
-                <Button type="button" variant="ghost" size="icon-sm" aria-label="Modifica" onClick={() => onEditVoce(v)}>
-                  <Pencil className="size-4" />
-                </Button>
-                <Button type="button" variant="ghost" size="icon-sm" aria-label="Elimina" onClick={() => onDeleteVoce(v)}>
-                  <Trash2 className="size-4" />
-                </Button>
-              </div>
+          {vociQuery.isLoading && <p className="py-2 text-sm text-muted-foreground">Caricamento voci…</p>}
+          {vociQuery.isSuccess && (vociQuery.data?.length ?? 0) === 0 && (
+            <p className="py-2 text-sm text-muted-foreground">
+              Nessuna voce. Aggiungi la prima con il pulsante qui sopra.
+            </p>
+          )}
+
+          {(vociQuery.data?.length ?? 0) > 0 && (
+            <div className="flex max-h-[26rem] flex-col overflow-y-auto rounded-md border border-border">
+              {(vociQuery.data ?? []).map((v) => (
+                <div key={v.id} className="flex items-start justify-between gap-3 border-b border-border px-3 py-2 last:border-b-0">
+                  <div className="min-w-0 flex-1">
+                    <p className="whitespace-normal break-words text-sm font-medium text-foreground">
+                      {v.codice ? `${v.codice} · ` : ""}
+                      {v.descrizione}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {v.um} · {v.prezzo_unitario_cliente} € al cliente
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <Button type="button" variant="ghost" size="icon-sm" aria-label="Applicazione per tipo" title="Dove va applicata" onClick={() => onApplVoce(v)}>
+                      <SlidersHorizontal className="size-4" />
+                    </Button>
+                    <Button type="button" variant="ghost" size="icon-sm" aria-label="Modifica" onClick={() => onEditVoce(v)}>
+                      <Pencil className="size-4" />
+                    </Button>
+                    <Button type="button" variant="ghost" size="icon-sm" aria-label="Elimina" onClick={() => onDeleteVoce(v)}>
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
-      </AccordionContent>
-    </AccordionItem>
+      )}
+    </div>
   );
 }
 
