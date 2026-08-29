@@ -4,7 +4,7 @@
  * ha per costruzione (D-10).
  */
 
-import { apiGet, apiPost, apiPatch, apiDelete } from "@/api/admin/client";
+import { apiGet, apiPost, apiPatch, apiPut, apiDelete } from "@/api/admin/client";
 
 export type Famiglia = "gerarchica" | "catalogo";
 
@@ -85,4 +85,39 @@ export async function updateVoce(
 
 export async function deleteVoce(id: number): Promise<void> {
   return apiDelete(`${VOCI}/${id}`);
+}
+
+// --- Applicazione per tipo (CoefficienteQuantitaVoce) ---
+
+export interface CoeffVoceOut {
+  id: number;
+  voce_id: number;
+  tipo_code: string;
+  coefficiente_qta_per_mq: number | null;
+  default_conteggio: number | null;
+  domanda_mirata_key: string | null;
+}
+
+export interface CoeffVoceInput {
+  coefficiente_qta_per_mq?: number | null;
+  default_conteggio?: number | null;
+  domanda_mirata_key?: string | null;
+}
+
+export async function listCoeffVoce(voceId: number): Promise<CoeffVoceOut[]> {
+  return apiGet<CoeffVoceOut[]>(`${VOCI}/${voceId}/coefficienti`);
+}
+
+/** Include/aggiorna la voce nel tipo indicato (upsert). */
+export async function upsertCoeffVoce(
+  voceId: number,
+  tipoCode: string,
+  payload: CoeffVoceInput,
+): Promise<CoeffVoceOut> {
+  return apiPut<CoeffVoceOut>(`${VOCI}/${voceId}/coefficienti/${tipoCode}`, payload);
+}
+
+/** Esclude la voce dal tipo indicato. */
+export async function deleteCoeffVoce(voceId: number, tipoCode: string): Promise<void> {
+  return apiDelete(`${VOCI}/${voceId}/coefficienti/${tipoCode}`);
 }

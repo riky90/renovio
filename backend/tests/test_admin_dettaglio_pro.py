@@ -25,6 +25,15 @@ REG_URL = "/api/v1/auth/registrati"
 SOTTO_URL = "/api/v1/admin/dettaglio-pro/sottocategorie"
 VOCI_URL = "/api/v1/admin/dettaglio-pro/voci"
 
+
+def _seed_tipo(sf, code="moderata"):
+    from app.models.catalogo import TipoRistrutturazione
+
+    with sf() as s:
+        if s.get(TipoRistrutturazione, code) is None:
+            s.add(TipoRistrutturazione(code=code, nome=code.capitalize(), ordine=1, range_pct=Decimal("0.15")))
+            s.commit()
+
 ADMIN_EMAIL = "admin.pro@example.com"
 PASSWORD = "Password123"
 
@@ -173,6 +182,66 @@ class TestDettaglioProCrud:
         _admin(c)
         r = c.post(VOCI_URL, json={"sottocategoria_id": 9999, "descrizione": "x", "um": "m2", "prezzo_unitario_cliente": "1.00"})
         assert r.status_code == 404
+
+
+# --- Applicazione per tipo (inclusione + quantità) -------------------------
+
+
+class TestApplicazionePerTipo:
+    def _crea_voce(self, c, sf) -> int:
+        lid = _seed_listino_categoria(sf)
+        rs = c.post(SOTTO_URL, json={"listino_id": lid, "categoria_code": "A-EDILE", "nome": "A.1"})
+        sid = rs.json()["id"]
+        rv = c.post(VOCI_URL, json={"sottocategoria_id": sid, "descrizione": "Piatto doccia", "um": "cad", "prezzo_unitario_cliente": "40.00"})
+        return rv.json()["id"]
+
+    def test_include_aggiorna_esclude(self, client):
+        c, sf = client
+        _admin(c)
+        _seed_tipo(sf, "moderata")
+        _seed_tipo(sf, "totale")
+        vid = self._crea_voce(c, sf)
+        base = f"{VOCI_URL}/{vid}/coefficienti"
+
+        # inizialmente nessuna applicazione
+        assert c.get(base).json() == []
+
+        # includi in moderata con quantità fissa (conteggio)
+        r1 = c.put(f"{base}/moderata", json={"default_conteggio": 2})
+        assert r1.status_code == 200 and r1.json()["default_conteggio"] == 2
+
+        # includi in totale con qta per m²
+        r2 = c.put(f"{base}/totale", json={"coefficiente_qta_per_mq": "0.05"})
+        assert r2.status_code == 200 and r2.json()["coefficiente_qta_per_mq"] == "0.0500"
+
+        assert len(c.get(base).json()) == 2
+
+        # aggiorna moderata (upsert idempotente)
+        r3 = c.put(f"{base}/moderata", json={"default_conteggio": 3})
+        assert r3.status_code == 200 and r3.json()["default_conteggio"] == 3
+        assert len(c.get(base).json()) == 2  # nessun duplicato
+
+        # escludi da moderata
+        assert c.delete(f"{base}/moderata").status_code == 204
+        assert len(c.get(base).json()) == 1
+
+    def test_tipo_inesistente_404(self, client):
+        c, sf = client
+        _admin(c)
+        vid = self._crea_voce(c, sf)
+        r = c.put(f"{VOCI_URL}/{vid}/coefficienti/inventato", json={"default_conteggio": 1})
+        assert r.status_code == 404
+
+    def test_voce_inesistente_404(self, client):
+        c, _ = client
+        _admin(c)
+        r = c.get(f"{VOCI_URL}/9999/coefficienti")
+        assert r.status_code == 404
+
+    def test_guard_403(self, client):
+        c, _ = client
+        _user(c)
+        assert c.put(f"{VOCI_URL}/1/coefficienti/moderata", json={"default_conteggio": 1}).status_code == 403
 
 
 # --- Comuni extra all'upload ----------------------------------------------

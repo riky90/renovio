@@ -18,9 +18,12 @@ from sqlalchemy import select
 
 from app.db import SessionLocal
 from app.dependencies.auth import require_admin
-from app.models.dettaglio_pro import Sottocategoria, Voce
+from app.models.catalogo import TipoRistrutturazione
+from app.models.dettaglio_pro import CoefficienteQuantitaVoce, Sottocategoria, Voce
 from app.models.listino import Listino
 from app.schemas.admin_dettaglio_pro import (
+    CoeffVoceIn,
+    CoeffVoceOut,
     SottocategoriaIn,
     SottocategoriaOut,
     SottocategoriaUpdate,
@@ -154,5 +157,66 @@ def elimina_voce(voce_id: int, _admin=Depends(require_admin)) -> None:
         row = session.get(Voce, voce_id)
         if row is None:
             raise HTTPException(404, "Voce non trovata")
+        session.delete(row)
+        session.commit()
+
+
+# --- Applicazione per tipo (inclusione + quantità) -------------------------
+
+
+@router.get("/voci/{voce_id}/coefficienti", response_model=list[CoeffVoceOut])
+def lista_coeff_voce(voce_id: int, _admin=Depends(require_admin)) -> list[CoeffVoceOut]:
+    """Righe di applicazione per tipo esistenti per la voce (una per tipo in
+    cui la voce è inclusa)."""
+    with SessionLocal() as session:
+        if session.get(Voce, voce_id) is None:
+            raise HTTPException(404, "Voce non trovata")
+        rows = (
+            session.query(CoefficienteQuantitaVoce)
+            .filter_by(voce_id=voce_id)
+            .order_by(CoefficienteQuantitaVoce.tipo_code)
+            .all()
+        )
+        return [CoeffVoceOut.model_validate(r, from_attributes=True) for r in rows]
+
+
+@router.put("/voci/{voce_id}/coefficienti/{tipo_code}", response_model=CoeffVoceOut)
+def upsert_coeff_voce(
+    voce_id: int, tipo_code: str, payload: CoeffVoceIn, _admin=Depends(require_admin)
+) -> CoeffVoceOut:
+    """Include la voce nel tipo (o ne aggiorna la quantità). Idempotente:
+    crea la riga se assente, altrimenti la sovrascrive."""
+    with SessionLocal() as session:
+        if session.get(Voce, voce_id) is None:
+            raise HTTPException(404, "Voce non trovata")
+        if session.get(TipoRistrutturazione, tipo_code) is None:
+            raise HTTPException(404, "Tipo di ristrutturazione non trovato")
+        row = (
+            session.query(CoefficienteQuantitaVoce)
+            .filter_by(voce_id=voce_id, tipo_code=tipo_code)
+            .one_or_none()
+        )
+        if row is None:
+            row = CoefficienteQuantitaVoce(voce_id=voce_id, tipo_code=tipo_code)
+            session.add(row)
+        row.coefficiente_qta_per_mq = payload.coefficiente_qta_per_mq
+        row.default_conteggio = payload.default_conteggio
+        row.domanda_mirata_key = payload.domanda_mirata_key
+        session.commit()
+        session.refresh(row)
+        return CoeffVoceOut.model_validate(row, from_attributes=True)
+
+
+@router.delete("/voci/{voce_id}/coefficienti/{tipo_code}", status_code=204)
+def elimina_coeff_voce(voce_id: int, tipo_code: str, _admin=Depends(require_admin)) -> None:
+    """Esclude la voce dal tipo (rimuove la riga di applicazione)."""
+    with SessionLocal() as session:
+        row = (
+            session.query(CoefficienteQuantitaVoce)
+            .filter_by(voce_id=voce_id, tipo_code=tipo_code)
+            .one_or_none()
+        )
+        if row is None:
+            raise HTTPException(404, "Applicazione non trovata")
         session.delete(row)
         session.commit()

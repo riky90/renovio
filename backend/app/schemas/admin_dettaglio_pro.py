@@ -73,3 +73,26 @@ class VoceOut(BaseModel):
     um: str
     prezzo_unitario_cliente: Decimal
     ordine: int
+
+
+# --- Applicazione per tipo (CoefficienteQuantitaVoce) ----------------------
+# Definisce SE e CON QUALE QUANTITÀ una voce entra in un tipo di
+# ristrutturazione (leggera/moderata/totale). Presenza della riga = inclusa;
+# assenza = esclusa (quantità 0 nel motore Pro). Due modalità di quantità:
+# `coefficiente_qta_per_mq` (proporzionale ai mq) OPPURE `default_conteggio`
+# (quantità fissa), eventualmente guidata da una `domanda_mirata_key`.
+
+
+class CoeffVoceIn(BaseModel):
+    coefficiente_qta_per_mq: Decimal | None = Field(default=None, ge=0)
+    default_conteggio: int | None = Field(default=None, ge=0)
+    domanda_mirata_key: str | None = Field(default=None, max_length=32)
+
+
+class CoeffVoceOut(BaseModel):
+    id: int
+    voce_id: int
+    tipo_code: str
+    coefficiente_qta_per_mq: Decimal | None
+    default_conteggio: int | None
+    domanda_mirata_key: str | None

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, SlidersHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { AdminLayout } from "@/pages/admin/AdminLayout";
 import { AdminTable } from "@/components/admin/AdminTable";
@@ -9,6 +9,7 @@ import { AdminDeleteConfirm } from "@/components/admin/AdminDeleteConfirm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -26,11 +27,20 @@ import {
   createVoce,
   updateVoce,
   deleteVoce,
+  listCoeffVoce,
+  upsertCoeffVoce,
+  deleteCoeffVoce,
   type SottocategoriaOut,
   type VoceOut,
   type Famiglia,
 } from "@/api/admin/dettaglioPro";
 import { useAuth } from "@/hooks/useAuth";
+
+const TIPI = [
+  { code: "leggera", label: "Leggera" },
+  { code: "moderata", label: "Moderata" },
+  { code: "totale", label: "Totale" },
+];
 
 const CATEGORIE = [
   { code: "A-EDILE", label: "A · Edile" },
@@ -149,6 +159,7 @@ function DettaglioProContent() {
   const [editingVoce, setEditingVoce] = useState<VoceOut | null>(null);
   const [voceForm, setVoceForm] = useState<VoceForm>(EMPTY_VOCE);
   const [deletingVoce, setDeletingVoce] = useState<VoceOut | null>(null);
+  const [applVoce, setApplVoce] = useState<VoceOut | null>(null);
 
   useEffect(() => {
     if (voceDialogOpen) {
@@ -230,6 +241,9 @@ function DettaglioProContent() {
     <span key="um" className="text-sm">{v.um}</span>,
     <span key="prezzo" className="text-sm tabular-nums">{v.prezzo_unitario_cliente} €</span>,
     <div key="az" className="flex items-center gap-1">
+      <Button type="button" variant="ghost" size="icon-sm" aria-label="Applicazione per tipo" title="Dove va applicata" onClick={() => setApplVoce(v)}>
+        <SlidersHorizontal className="size-4" />
+      </Button>
       <Button type="button" variant="ghost" size="icon-sm" aria-label="Modifica" onClick={() => { setEditingVoce(v); setVoceDialogOpen(true); }}>
         <Pencil className="size-4" />
       </Button>
@@ -407,7 +421,143 @@ function DettaglioProContent() {
         onConfirm={() => deletingVoce && deleteVoceMut.mutate(deletingVoce.id)}
         isDeleting={deleteVoceMut.isPending}
       />
+
+      <VoceApplicazioneDialog voce={applVoce} onClose={() => setApplVoce(null)} />
     </div>
+  );
+}
+
+interface TipoAppState {
+  incluso: boolean;
+  modalita: "mq" | "conteggio";
+  valore: string;
+}
+
+/**
+ * Dialog "Applicazione per tipo" di una voce: per ciascun tipo
+ * (leggera/moderata/totale) decide SE la voce è inclusa e con quale quantità
+ * — proporzionale ai mq (`coefficiente_qta_per_mq`) o fissa (`default_conteggio`).
+ * La quantità × prezzo cliente della voce determina il contributo al dettaglio Pro.
+ */
+function VoceApplicazioneDialog({ voce, onClose }: { voce: VoceOut | null; onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const open = voce !== null;
+
+  const coeffQuery = useQuery({
+    queryKey: ["admin-pro-coeff", voce?.id],
+    queryFn: () => listCoeffVoce(voce!.id),
+    enabled: open,
+  });
+
+  const [state, setState] = useState<Record<string, TipoAppState>>({});
+
+  useEffect(() => {
+    if (open && coeffQuery.data) {
+      const next: Record<string, TipoAppState> = {};
+      for (const t of TIPI) {
+        const row = coeffQuery.data.find((r) => r.tipo_code === t.code);
+        if (row && row.coefficiente_qta_per_mq != null) {
+          next[t.code] = { incluso: true, modalita: "mq", valore: String(row.coefficiente_qta_per_mq) };
+        } else if (row) {
+          next[t.code] = { incluso: true, modalita: "conteggio", valore: String(row.default_conteggio ?? 0) };
+        } else {
+          next[t.code] = { incluso: false, modalita: "mq", valore: "" };
+        }
+      }
+      setState(next);
+    }
+  }, [open, coeffQuery.data]);
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const existing = coeffQuery.data ?? [];
+      for (const t of TIPI) {
+        const s = state[t.code];
+        const existed = existing.some((r) => r.tipo_code === t.code);
+        if (s?.incluso) {
+          const payload =
+            s.modalita === "mq"
+              ? { coefficiente_qta_per_mq: Number(s.valore) || 0, default_conteggio: null }
+              : { coefficiente_qta_per_mq: null, default_conteggio: Math.round(Number(s.valore) || 0) };
+          await upsertCoeffVoce(voce!.id, t.code, payload);
+        } else if (existed) {
+          await deleteCoeffVoce(voce!.id, t.code);
+        }
+      }
+    },
+    onSuccess: () => {
+      toast.success("Applicazione aggiornata");
+      void queryClient.invalidateQueries({ queryKey: ["admin-pro-coeff", voce?.id] });
+      onClose();
+    },
+    onError: () => toast.error("Non siamo riusciti a salvare. Riprova."),
+  });
+
+  return (
+    <AdminCrudDialog
+      open={open}
+      onOpenChange={(o) => { if (!o) { save.reset(); onClose(); } }}
+      entityLabel="applicazione"
+      title={`Applicazione per tipo${voce ? ` — ${voce.descrizione}` : ""}`}
+      onSubmit={() => save.mutate()}
+      isSaving={save.isPending}
+      errorMessage={save.isError ? "Non siamo riusciti a salvare. Riprova." : null}
+    >
+      <p className="text-sm text-muted-foreground">
+        Attiva la voce nei tipi in cui deve entrare e imposta la quantità: per m² (proporzionale alla
+        superficie) o fissa (numero di pezzi). La quantità × prezzo cliente forma il contributo al totale.
+      </p>
+      {TIPI.map((t) => {
+        const s = state[t.code] ?? { incluso: false, modalita: "mq" as const, valore: "" };
+        return (
+          <div key={t.code} className="flex flex-col gap-2 rounded-md border border-border p-3">
+            <div className="flex items-center justify-between">
+              <Label className="font-medium">{t.label}</Label>
+              <Switch
+                checked={s.incluso}
+                onCheckedChange={(checked) =>
+                  setState((prev) => ({ ...prev, [t.code]: { ...s, incluso: checked } }))
+                }
+                aria-label={`Includi in ${t.label}`}
+              />
+            </div>
+            {s.incluso && (
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                <div className="flex flex-1 flex-col gap-1">
+                  <Label className="text-xs text-muted-foreground">Modalità quantità</Label>
+                  <Select
+                    value={s.modalita}
+                    onValueChange={(v) =>
+                      setState((prev) => ({ ...prev, [t.code]: { ...s, modalita: v as "mq" | "conteggio" } }))
+                    }
+                  >
+                    <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="mq">Per m² (× superficie)</SelectItem>
+                      <SelectItem value="conteggio">Quantità fissa (pezzi)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-1 flex-col gap-1">
+                  <Label className="text-xs text-muted-foreground">
+                    {s.modalita === "mq" ? "Quantità per m²" : "Quantità fissa"}
+                  </Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    step={s.modalita === "mq" ? "0.0001" : "1"}
+                    value={s.valore}
+                    onChange={(e) =>
+                      setState((prev) => ({ ...prev, [t.code]: { ...s, valore: e.target.value } }))
+                    }
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </AdminCrudDialog>
   );
 }
 
