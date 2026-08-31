@@ -38,6 +38,23 @@ TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
 _env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)), autoescape=True)
 
 
+def _fmt_eur(value) -> str:
+    """Formatta un importo come intero in stile italiano: separatore delle
+    migliaia con il punto e nessun decimale. Es. 47985.4 -> '47.985'.
+    Usato SOLO per gli importi monetari nei PDF (non per le quantita', che
+    conservano i decimali). Non altera il valore in DB: e' pura presentazione.
+    """
+    try:
+        n = round(float(value))
+    except (TypeError, ValueError):
+        return str(value)
+    # f-string usa la virgola come separatore migliaia -> la trasformo in punto.
+    return f"{n:,.0f}".replace(",", ".")
+
+
+_env.filters["eur"] = _fmt_eur
+
+
 def _slugify(value: str) -> str:
     """ASCII, lowercase, hyphen-separated slug for the filename (D-12)."""
     normalized = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")

@@ -40,6 +40,16 @@
         margin-bottom: 8mm;
       }
 
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 3mm;
+      }
+
+      .brand .logo {
+        flex: none;
+      }
+
       .wordmark {
         font-size: 18pt;
         font-weight: 700;
@@ -164,8 +174,17 @@
   <body>
     <div class="header">
       <div class="brand">
-        <div class="wordmark">Renovio</div>
-        <div class="payoff">La stima trasparente per la tua casa</div>
+        <svg class="logo" width="30" height="30" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="32" height="32" rx="9" fill="#e8722a" />
+          <path d="M8 15.5 16 9l8 6.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M9.2 20.6h13.6" stroke="#fff" stroke-width="2.4" stroke-linecap="round" />
+          <circle cx="9.2" cy="20.6" r="1.9" fill="#f4b60e" />
+          <circle cx="22.8" cy="20.6" r="1.9" fill="#f4b60e" />
+        </svg>
+        <div class="brand-text">
+          <div class="wordmark">Renovio</div>
+          <div class="payoff">La stima trasparente per la tua casa</div>
+        </div>
       </div>
       <div class="header-right">
         <div class="nome">{{ nome }}</div>
@@ -204,7 +223,7 @@
         <tr>
           <td class="nome">{{ categoria.nome }}</td>
           <td class="range">
-            {{ "%.2f"|format(categoria.totale_min|float) }} &ndash; {{ "%.2f"|format(categoria.totale_max|float) }} {{ stima.valuta }}
+            {{ categoria.totale_min|eur }} &ndash; {{ categoria.totale_max|eur }} {{ stima.valuta }}
           </td>
         </tr>
         {% endfor %}
@@ -214,7 +233,7 @@
     <div class="totale-block">
       <div class="label">Totale IVA inclusa</div>
       <div class="range">
-        {{ "%.2f"|format(stima.totale.totale_min|float) }} &ndash; {{ "%.2f"|format(stima.totale.totale_max|float) }} {{ stima.valuta }}
+        {{ stima.totale.totale_min|eur }} &ndash; {{ stima.totale.totale_max|eur }} {{ stima.valuta }}
       </div>
     </div>
 

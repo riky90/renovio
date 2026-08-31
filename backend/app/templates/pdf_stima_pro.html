@@ -43,6 +43,16 @@
         margin-bottom: 8mm;
       }
 
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 3mm;
+      }
+
+      .brand .logo {
+        flex: none;
+      }
+
       .wordmark {
         font-size: 18pt;
         font-weight: 700;
@@ -244,8 +254,17 @@
   <body>
     <div class="header">
       <div class="brand">
-        <div class="wordmark">Renovio <span class="pro-badge">PRO</span></div>
-        <div class="payoff">La stima trasparente per la tua casa</div>
+        <svg class="logo" width="30" height="30" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="32" height="32" rx="9" fill="#e8722a" />
+          <path d="M8 15.5 16 9l8 6.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M9.2 20.6h13.6" stroke="#fff" stroke-width="2.4" stroke-linecap="round" />
+          <circle cx="9.2" cy="20.6" r="1.9" fill="#f4b60e" />
+          <circle cx="22.8" cy="20.6" r="1.9" fill="#f4b60e" />
+        </svg>
+        <div class="brand-text">
+          <div class="wordmark">Renovio <span class="pro-badge">PRO</span></div>
+          <div class="payoff">La stima trasparente per la tua casa</div>
+        </div>
       </div>
       <div class="header-right">
         <div class="nome">{{ nome }}</div>
@@ -302,14 +321,14 @@
               <td class="um">{{ voce.um }}</td>
               <td class="qta">{{ "%.2f"|format(voce.quantita_stimata|float) }}</td>
               <td class="range">
-                &euro; {{ "%.2f"|format(voce.prezzo_min|float) }} &ndash; &euro; {{ "%.2f"|format(voce.prezzo_max|float) }}
+                &euro; {{ voce.prezzo_min|eur }} &ndash; &euro; {{ voce.prezzo_max|eur }}
               </td>
             </tr>
             {% endfor %}
           </tbody>
         </table>
         <div class="sottocategoria-subtotale">
-          Subtotale: &euro; {{ "%.2f"|format(sc.totale_min|float) }} &ndash; &euro; {{ "%.2f"|format(sc.totale_max|float) }}
+          Subtotale: &euro; {{ sc.totale_min|eur }} &ndash; &euro; {{ sc.totale_max|eur }}
         </div>
         {% else %}
         <div class="nessuna-voce">Nessuna voce stimata per questa sottocategoria.</div>
@@ -319,14 +338,14 @@
 
       <div class="categoria-totale">
         <span>Totale {{ categoria.nome }}</span>
-        <span class="range">&euro; {{ "%.2f"|format(categoria.totale_min|float) }} &ndash; &euro; {{ "%.2f"|format(categoria.totale_max|float) }}</span>
+        <span class="range">&euro; {{ categoria.totale_min|eur }} &ndash; &euro; {{ categoria.totale_max|eur }}</span>
       </div>
     </div>
     {% endfor %}
 
     <div class="totale-generale">
       <span class="label">Totale generale stimato</span>
-      <span class="range">&euro; {{ "%.2f"|format(dettaglio.totale_min|float) }} &ndash; &euro; {{ "%.2f"|format(dettaglio.totale_max|float) }}</span>
+      <span class="range">&euro; {{ dettaglio.totale_min|eur }} &ndash; &euro; {{ dettaglio.totale_max|eur }}</span>
     </div>
 
     <div class="footer">
