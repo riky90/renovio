@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { ArrowRight, Check } from "lucide-react";
 import { CityAutocomplete } from "@/components/CityAutocomplete";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -65,7 +66,7 @@ export function EstimateForm({ onSubmit, isSubmitting }: EstimateFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex w-full flex-col gap-8">
+    <form onSubmit={handleSubmit} className="flex w-full flex-col gap-6">
       <CityAutocomplete
         value={citta}
         onChange={setCitta}
@@ -105,12 +106,17 @@ export function EstimateForm({ onSubmit, isSubmitting }: EstimateFormProps) {
                 onClick={() => setTipo(option.code)}
                 aria-pressed={selected}
                 className={cn(
-                  "flex min-h-11 flex-col gap-1 rounded-lg border px-4 py-3 text-left transition-colors",
+                  "relative flex min-h-11 flex-col gap-1 rounded-lg border px-4 py-3 text-left transition-all",
                   selected
-                    ? "border-primary bg-accent ring-2 ring-primary"
-                    : "border-border bg-card hover:border-muted-foreground/40"
+                    ? "border-primary bg-accent shadow-sm ring-1 ring-primary"
+                    : "border-border bg-card hover:border-primary/40 hover:bg-accent/40"
                 )}
               >
+                {selected && (
+                  <span className="absolute right-2.5 top-2.5 flex size-4 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                    <Check className="size-3" aria-hidden />
+                  </span>
+                )}
                 <span className="text-sm font-semibold">{option.nome}</span>
                 <span className="text-sm text-muted-foreground">{option.descrizione}</span>
               </button>
@@ -123,9 +129,16 @@ export function EstimateForm({ onSubmit, isSubmitting }: EstimateFormProps) {
       <Button
         type="submit"
         disabled={!formValid || isSubmitting}
-        className="h-11 w-full bg-primary text-base font-semibold text-primary-foreground hover:bg-primary/90"
+        className="group h-12 w-full bg-primary text-base font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
       >
-        {isSubmitting ? "Calcolo in corso..." : "Calcola la stima"}
+        {isSubmitting ? (
+          "Calcolo in corso..."
+        ) : (
+          <>
+            Calcola la stima
+            <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+          </>
+        )}
       </Button>
     </form>
   );

@@ -28,9 +28,22 @@ class UserOut(BaseModel):
     id: int
     email: EmailStr
     nome: str
+    cognome: str | None = None
+    telefono: str | None = None
+    citta: str | None = None
     role: str
     pro: bool
     created_at: datetime
+
+
+class ProfiloUpdateRequest(BaseModel):
+    """Aggiornamento profilo dell'utente corrente. NON include email (identità
+    di login), role o pro: quei campi non sono mai scrivibili dal client."""
+
+    nome: str = Field(min_length=1, max_length=200)
+    cognome: str | None = Field(default=None, max_length=200)
+    telefono: str | None = Field(default=None, max_length=40)
+    citta: str | None = Field(default=None, max_length=200)
 
 
 class PasswordDimenticataRequest(BaseModel):

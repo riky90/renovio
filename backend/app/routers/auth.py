@@ -27,6 +27,7 @@ from app.oauth import oauth
 from app.schemas.auth import (
     LoginRequest,
     PasswordDimenticataRequest,
+    ProfiloUpdateRequest,
     RegistrazioneRequest,
     ReimpostaPasswordRequest,
     UserOut,
@@ -51,10 +52,21 @@ def _to_user_out(session, user) -> UserOut:
         id=user.id,
         email=user.email,
         nome=user.nome,
+        cognome=user.cognome,
+        telefono=user.telefono,
+        citta=user.citta,
         role=user.role,
         pro=subscription_is_active(session, user),
         created_at=user.created_at,
     )
+
+
+def _blank_to_none(value: str | None) -> str | None:
+    """Normalizza i campi opzionali: stringa vuota/spazi -> None."""
+    if value is None:
+        return None
+    stripped = value.strip()
+    return stripped or None
 
 
 @router.post("/registrati", response_model=UserOut, status_code=status.HTTP_201_CREATED)
@@ -116,6 +128,28 @@ def logout(
 def me(user=Depends(get_current_user)) -> UserOut:
     with SessionLocal() as session:
         return _to_user_out(session, user)
+
+
+@router.patch("/me", response_model=UserOut)
+def aggiorna_profilo(payload: ProfiloUpdateRequest, user=Depends(get_current_user)) -> UserOut:
+    """Aggiorna i dati profilo dell'utente corrente (nome/cognome/telefono/
+    citta). email/role/pro non sono toccati: l'identità di login e lo stato
+    abbonamento non passano mai da qui."""
+    from app.models.user import User
+
+    with SessionLocal() as session:
+        db_user = session.get(User, user.id)
+        if db_user is None:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Utente non trovato")
+
+        db_user.nome = payload.nome.strip()
+        db_user.cognome = _blank_to_none(payload.cognome)
+        db_user.telefono = _blank_to_none(payload.telefono)
+        db_user.citta = _blank_to_none(payload.citta)
+        session.commit()
+        session.refresh(db_user)
+
+        return _to_user_out(session, db_user)
 
 
 @router.post("/password-dimenticata")

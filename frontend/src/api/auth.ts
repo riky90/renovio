@@ -1,4 +1,4 @@
-import { apiGet, apiPost, ApiError } from "@/api/client";
+import { apiGet, apiPatch, apiPost, ApiError } from "@/api/client";
 
 export type UserRole = "user" | "consulente" | "admin";
 
@@ -6,10 +6,20 @@ export interface UserOut {
   id: number;
   email: string;
   nome: string;
+  cognome: string | null;
+  telefono: string | null;
+  citta: string | null;
   role: UserRole;
   /** Stato Pro derivato server-side dalla tessera abbonamento; mai scrivibile dal client. */
   pro: boolean;
   created_at: string;
+}
+
+export interface ProfiloUpdateInput {
+  nome: string;
+  cognome?: string | null;
+  telefono?: string | null;
+  citta?: string | null;
 }
 
 export interface RegistrazioneInput {
@@ -86,4 +96,12 @@ export async function postPasswordDimenticata(input: PasswordDimenticataInput): 
  */
 export async function postReimpostaPassword(input: ReimpostaPasswordInput): Promise<void> {
   await apiPost<{ detail: string }>("/auth/reimposta-password", input);
+}
+
+/**
+ * PATCH /auth/me — aggiorna i dati profilo dell'utente corrente
+ * (nome/cognome/telefono/città). email/role/pro non sono modificabili qui.
+ */
+export async function patchProfilo(input: ProfiloUpdateInput): Promise<UserOut> {
+  return apiPatch<UserOut>("/auth/me", input);
 }

@@ -30,7 +30,7 @@
 
       body {
         font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-        color: #0f172a; /* slate-900 */
+        color: #22201c; /* slate-900 */
         margin: 0;
       }
 
@@ -38,15 +38,22 @@
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        border-bottom: 3px solid #2563eb; /* blue-600 accent rule */
+        border-bottom: 3px solid #e8722a; /* blue-600 accent rule */
         padding-bottom: 10mm;
         margin-bottom: 8mm;
       }
 
       .wordmark {
-        font-size: 16pt;
+        font-size: 18pt;
         font-weight: 700;
-        color: #0f172a;
+        color: #22201c;
+        letter-spacing: -0.02em;
+      }
+
+      .payoff {
+        margin-top: 1mm;
+        font-size: 8.5pt;
+        color: #78716a;
       }
 
       .wordmark .pro-badge {
@@ -54,8 +61,8 @@
         margin-left: 6px;
         font-size: 8pt;
         font-weight: 700;
-        color: #2563eb;
-        border: 1px solid #2563eb;
+        color: #e8722a;
+        border: 1px solid #e8722a;
         border-radius: 3px;
         padding: 1px 5px;
         vertical-align: middle;
@@ -63,12 +70,12 @@
 
       .header-right {
         text-align: right;
-        color: #475569; /* slate-500 */
+        color: #5c554d; /* slate-500 */
         font-size: 9pt;
       }
 
       .header-right .nome {
-        color: #0f172a;
+        color: #22201c;
         font-size: 10pt;
         font-weight: 600;
       }
@@ -76,8 +83,8 @@
       .riepilogo {
         display: flex;
         gap: 10mm;
-        background: #f8fafc; /* slate-50 */
-        border: 1px solid #e2e8f0; /* slate-200 */
+        background: #faf7f1; /* slate-50 */
+        border: 1px solid #e9e1d4; /* slate-200 */
         border-radius: 4px;
         padding: 5mm 6mm;
         margin-bottom: 6mm;
@@ -87,13 +94,13 @@
         font-size: 8pt;
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        color: #64748b; /* slate-500 */
+        color: #78716a; /* slate-500 */
       }
 
       .riepilogo-item .value {
         font-size: 11pt;
         font-weight: 600;
-        color: #0f172a;
+        color: #22201c;
       }
 
       .disclaimer-box {
@@ -114,8 +121,8 @@
       .categoria-titolo {
         font-size: 13pt;
         font-weight: 700;
-        color: #0f172a;
-        border-bottom: 2px solid #2563eb;
+        color: #22201c;
+        border-bottom: 2px solid #e8722a;
         padding-bottom: 2mm;
         margin-bottom: 4mm;
       }
@@ -128,7 +135,7 @@
       .sottocategoria-titolo {
         font-size: 10.5pt;
         font-weight: 600;
-        color: #1e293b; /* slate-800 */
+        color: #33302b; /* slate-800 */
         margin-bottom: 2mm;
       }
 
@@ -143,14 +150,14 @@
         font-size: 7.5pt;
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        color: #64748b;
-        border-bottom: 1px solid #e2e8f0;
+        color: #78716a;
+        border-bottom: 1px solid #e9e1d4;
         padding: 1.5mm 2.5mm;
       }
 
       .voci td {
         padding: 2mm 2.5mm;
-        border-bottom: 1px solid #f1f5f9; /* slate-100 */
+        border-bottom: 1px solid #f3eee5; /* slate-100 */
         font-size: 9pt;
       }
 
@@ -170,7 +177,7 @@
 
       .nessuna-voce {
         font-size: 9pt;
-        color: #64748b;
+        color: #78716a;
         font-style: italic;
         padding: 2mm 2.5mm;
       }
@@ -178,7 +185,7 @@
       .sottocategoria-subtotale {
         text-align: right;
         font-size: 9pt;
-        color: #475569; /* slate-600 */
+        color: #5c554d; /* slate-600 */
         font-variant-numeric: tabular-nums;
         padding: 0 2.5mm 1mm;
       }
@@ -187,12 +194,12 @@
         display: flex;
         justify-content: space-between;
         align-items: baseline;
-        border-top: 1px solid #e2e8f0;
+        border-top: 1px solid #e9e1d4;
         margin-top: 2mm;
         padding-top: 2mm;
         font-size: 10pt;
         font-weight: 600;
-        color: #1e293b;
+        color: #33302b;
       }
 
       .categoria-totale .range {
@@ -205,8 +212,8 @@
         display: flex;
         justify-content: space-between;
         align-items: baseline;
-        background: #eff6ff; /* blue-50 */
-        border: 1px solid #2563eb;
+        background: #fbe9dc; /* blue-50 */
+        border: 1px solid #e8722a;
         border-radius: 4px;
         padding: 5mm 6mm;
         margin: 4mm 0 8mm;
@@ -215,28 +222,31 @@
       .totale-generale .label {
         font-size: 11pt;
         font-weight: 700;
-        color: #0f172a;
+        color: #22201c;
       }
 
       .totale-generale .range {
         font-size: 13pt;
         font-weight: 700;
-        color: #2563eb;
+        color: #e8722a;
         font-variant-numeric: tabular-nums;
         white-space: nowrap;
       }
 
       .footer {
-        border-top: 1px solid #e2e8f0;
+        border-top: 1px solid #e9e1d4;
         padding-top: 4mm;
         font-size: 8pt;
-        color: #64748b;
+        color: #78716a;
       }
     </style>
   </head>
   <body>
     <div class="header">
-      <div class="wordmark">ristruttura-stima <span class="pro-badge">PRO</span></div>
+      <div class="brand">
+        <div class="wordmark">Renovio <span class="pro-badge">PRO</span></div>
+        <div class="payoff">La stima trasparente per la tua casa</div>
+      </div>
       <div class="header-right">
         <div class="nome">{{ nome }}</div>
         <div>{{ data_generazione }}</div>

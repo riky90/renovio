@@ -11,6 +11,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { AccountMenu } from "@/components/AccountMenu";
+import { BrandMark } from "@/components/BrandMark";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -82,10 +83,17 @@ export function AdminLayout({
 
   return (
     <div className="flex min-h-svh flex-col bg-background">
-      <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 md:px-6">
-        <div className="flex items-center gap-2">
-          <span className="text-lg font-semibold text-foreground">ristruttura-stima</span>
-          <Badge variant="secondary">{user.role === "admin" ? "Admin" : "Consulente"}</Badge>
+      <header className="sticky top-0 z-40 flex items-center justify-between gap-3 border-b border-border bg-background/85 px-4 py-3 backdrop-blur-md md:px-6">
+        <div className="flex items-center gap-3">
+          <Link to="/" aria-label="Renovio — home" className="rounded-md">
+            <BrandMark />
+          </Link>
+          <Badge
+            variant="secondary"
+            className="border border-primary/20 bg-accent text-accent-foreground"
+          >
+            {user.role === "admin" ? "Admin" : "Consulente"}
+          </Badge>
         </div>
         <AccountMenu user={user} />
       </header>
@@ -114,20 +122,22 @@ export function AdminLayout({
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "flex min-h-11 items-center gap-2 rounded-md border-l-[3px] px-3 py-2 text-sm font-semibold transition-colors",
+                  "flex min-h-11 items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-semibold transition-colors",
                   isActive
-                    ? "border-l-primary text-primary"
-                    : "border-l-transparent text-foreground hover:bg-muted",
+                    ? "bg-accent text-accent-foreground"
+                    : "text-foreground hover:bg-muted",
                 )}
               >
-                <Icon className="size-4" />
+                <Icon
+                  className={cn("size-4", isActive ? "text-primary" : "text-muted-foreground")}
+                />
                 {item.label}
               </Link>
             );
           })}
         </nav>
 
-        <div className="flex-1 p-4 lg:p-6">{children}</div>
+        <div className="mx-auto w-full max-w-5xl flex-1 p-4 lg:p-6">{children}</div>
       </div>
     </div>
   );

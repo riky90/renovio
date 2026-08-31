@@ -58,7 +58,8 @@ export function AccountMenu({ user }: AccountMenuProps) {
         {isStaff && (
           <DropdownMenuItem onSelect={() => navigate("/admin")}>{areaLabel}</DropdownMenuItem>
         )}
-        <DropdownMenuItem onSelect={() => navigate("/le-mie-stime")}>Le mie stime</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => navigate("/le-mie-stime")}>I miei progetti</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => navigate("/impostazioni")}>Impostazioni</DropdownMenuItem>
         {!user.pro && (
           <DropdownMenuItem onSelect={() => navigate("/passa-a-pro")}>Passa a Pro</DropdownMenuItem>
         )}

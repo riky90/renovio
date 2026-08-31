@@ -36,6 +36,11 @@ class User(Base):
     # Nullable: un utente arrivato via Google-only (D-05) non ha password locale.
     password_hash: Mapped[str | None] = mapped_column(String, nullable=True)
     nome: Mapped[str] = mapped_column(String(200), nullable=False)
+    # Campi profilo (D-profilo): opzionali, compilati dall'utente in Impostazioni.
+    # Nullable perché registrazione/Google non li raccolgono.
+    cognome: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    telefono: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    citta: Mapped[str | None] = mapped_column(String(200), nullable=True)
     role: Mapped[str] = mapped_column(String(16), nullable=False, default="user", server_default="user")
     created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.now())
 

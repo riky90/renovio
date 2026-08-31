@@ -1,4 +1,4 @@
-import { Lock } from "lucide-react";
+import { Bath, DoorOpen, Hammer, Lock, Paintbrush, type LucideIcon } from "lucide-react";
 import { Link } from "react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatEurRange } from "@/lib/currency";
@@ -11,31 +11,42 @@ const COVERAGE_NOTES: Record<string, string> = {
   "D-PRODOTTI": "Sanitari, rubinetteria, apparecchi e prodotti finiti.",
 };
 
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
+  "A-EDILE": Hammer,
+  "B-FINITURE": Paintbrush,
+  "C-SERRAMENTI": DoorOpen,
+  "D-PRODOTTI": Bath,
+};
+
 interface CategoryCardProps {
   categoria: CategoriaOut;
   /** Utente Free (non Pro): mostra la striscia teaser bloccata. Nessun teaser per Pro. */
   isPro?: boolean;
 }
 
-/** Neutral category card — never accent-styled; range is IVA-inclusive. */
+/** Card categoria — neutra; il range è IVA inclusa. */
 export function CategoryCard({ categoria, isPro = false }: CategoryCardProps) {
   const nota = COVERAGE_NOTES[categoria.code];
+  const Icon = CATEGORY_ICONS[categoria.code] ?? Hammer;
 
   return (
-    <Card className="border-border bg-card">
-      <CardHeader>
+    <Card className="gap-0 border-border bg-card shadow-sm transition-shadow hover:shadow-md">
+      <CardHeader className="gap-2">
+        <span className="flex size-9 items-center justify-center rounded-lg bg-accent text-accent-foreground">
+          <Icon className="size-4.5" aria-hidden />
+        </span>
         <CardTitle className="text-sm font-semibold">{categoria.nome}</CardTitle>
         {nota && <p className="text-sm text-muted-foreground">{nota}</p>}
       </CardHeader>
-      <CardContent className="flex flex-col gap-3">
-        <p className="text-xl font-semibold tabular-nums">
+      <CardContent className="flex flex-col gap-3 pt-4">
+        <p className="font-display text-xl font-bold tabular-nums">
           {formatEurRange(categoria.totale_min, categoria.totale_max)}
         </p>
         {!isPro && (
           <div className="flex items-center gap-2 rounded-md border border-border bg-muted px-3 py-2">
             <Lock className="size-4 shrink-0 text-muted-foreground" aria-hidden />
             <p className="text-sm text-muted-foreground">
-              Dettaglio disponibile con Pro ·{" "}
+              Dettaglio con Pro ·{" "}
               <Link
                 to="/passa-a-pro"
                 className="font-medium text-primary underline-offset-4 hover:underline"

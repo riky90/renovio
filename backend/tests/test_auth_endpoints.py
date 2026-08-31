@@ -156,3 +156,43 @@ class TestAdminGuard:
 
         ping_as_user = admin_client.get(ADMIN_PING_URL)
         assert ping_as_user.status_code == 403
+
+
+class TestAggiornaProfilo:
+    def test_patch_me_aggiorna_campi_profilo(self, client):
+        assert _registra(client).status_code == 201  # setta il cookie di sessione
+
+        resp = client.patch(
+            ME_URL,
+            json={
+                "nome": "Mario",
+                "cognome": "Rossi",
+                "telefono": "0522 123456",
+                "citta": "Reggio nell'Emilia",
+            },
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["nome"] == "Mario"
+        assert body["cognome"] == "Rossi"
+        assert body["telefono"] == "0522 123456"
+        assert body["citta"] == "Reggio nell'Emilia"
+
+        # Persistito: GET /me riflette la modifica.
+        assert client.get(ME_URL).json()["cognome"] == "Rossi"
+
+    def test_patch_me_opzionali_vuoti_diventano_null(self, client):
+        assert _registra(client).status_code == 201
+
+        resp = client.patch(
+            ME_URL,
+            json={"nome": "Mario", "cognome": "   ", "telefono": "", "citta": None},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["cognome"] is None
+        assert body["telefono"] is None
+        assert body["citta"] is None
+
+    def test_patch_me_non_autenticato_401(self, client):
+        assert client.patch(ME_URL, json={"nome": "X"}).status_code == 401

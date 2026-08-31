@@ -27,7 +27,7 @@
 
       body {
         font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-        color: #0f172a; /* slate-900 */
+        color: #22201c; /* slate-900 */
         margin: 0;
       }
 
@@ -35,25 +35,32 @@
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        border-bottom: 3px solid #2563eb; /* blue-600 accent rule */
+        border-bottom: 3px solid #e8722a; /* blue-600 accent rule */
         padding-bottom: 10mm;
         margin-bottom: 8mm;
       }
 
       .wordmark {
-        font-size: 16pt;
+        font-size: 18pt;
         font-weight: 700;
-        color: #0f172a;
+        color: #22201c;
+        letter-spacing: -0.02em;
+      }
+
+      .payoff {
+        margin-top: 1mm;
+        font-size: 8.5pt;
+        color: #78716a;
       }
 
       .header-right {
         text-align: right;
-        color: #475569; /* slate-500 */
+        color: #5c554d; /* slate-500 */
         font-size: 9pt;
       }
 
       .header-right .nome {
-        color: #0f172a;
+        color: #22201c;
         font-size: 10pt;
         font-weight: 600;
       }
@@ -61,8 +68,8 @@
       .riepilogo {
         display: flex;
         gap: 10mm;
-        background: #f8fafc; /* slate-50 */
-        border: 1px solid #e2e8f0; /* slate-200 */
+        background: #faf7f1; /* slate-50 */
+        border: 1px solid #e9e1d4; /* slate-200 */
         border-radius: 4px;
         padding: 5mm 6mm;
         margin-bottom: 6mm;
@@ -72,13 +79,13 @@
         font-size: 8pt;
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        color: #64748b; /* slate-500 */
+        color: #78716a; /* slate-500 */
       }
 
       .riepilogo-item .value {
         font-size: 11pt;
         font-weight: 600;
-        color: #0f172a;
+        color: #22201c;
       }
 
       .disclaimer-box {
@@ -102,14 +109,14 @@
         font-size: 8pt;
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        color: #64748b;
-        border-bottom: 1px solid #e2e8f0;
+        color: #78716a;
+        border-bottom: 1px solid #e9e1d4;
         padding: 2mm 3mm;
       }
 
       .categorie td {
         padding: 3mm;
-        border-bottom: 1px solid #f1f5f9; /* slate-100 */
+        border-bottom: 1px solid #f3eee5; /* slate-100 */
         font-size: 10pt;
       }
 
@@ -123,7 +130,7 @@
       }
 
       .totale-block {
-        background: #2563eb; /* blue-600 */
+        background: #e8722a; /* blue-600 */
         color: #ffffff;
         border-radius: 4px;
         padding: 6mm 8mm;
@@ -147,16 +154,19 @@
       }
 
       .footer {
-        border-top: 1px solid #e2e8f0;
+        border-top: 1px solid #e9e1d4;
         padding-top: 4mm;
         font-size: 8pt;
-        color: #64748b;
+        color: #78716a;
       }
     </style>
   </head>
   <body>
     <div class="header">
-      <div class="wordmark">ristruttura-stima</div>
+      <div class="brand">
+        <div class="wordmark">Renovio</div>
+        <div class="payoff">La stima trasparente per la tua casa</div>
+      </div>
       <div class="header-right">
         <div class="nome">{{ nome }}</div>
         <div>{{ data_generazione }}</div>

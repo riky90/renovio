@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, Navigate } from "react-router";
-import { AccountMenu } from "@/components/AccountMenu";
+import { ArrowLeft, ArrowRight, CalendarDays, MapPin, Plus, Ruler } from "lucide-react";
+import { SiteFooter } from "@/components/SiteFooter";
+import { SiteHeader } from "@/components/SiteHeader";
 import { DettaglioProView } from "@/components/DettaglioProView";
 import { SavedEstimateDetail } from "@/components/SavedEstimateDetail";
 import { LeadContactDialog } from "@/components/LeadContactDialog";
@@ -22,9 +24,9 @@ function formatData(iso: string): string {
 }
 
 /**
- * Storico "Le mie stime" (UI-SPEC F): lista + empty state + dettaglio
- * immutabile (via getStimaDettaglio, mai ricalcolato). Rotta protetta:
- * anonimo -> redirect a /accedi.
+ * "I miei progetti" (ex "Le mie stime", UI-SPEC F): dashboard a card + empty
+ * state + dettaglio immutabile (via getStimaDettaglio, mai ricalcolato).
+ * Rotta protetta: anonimo -> redirect a /accedi.
  */
 export function LeMieStimePage() {
   const { user, isLoading: isAuthLoading } = useAuth();
@@ -54,126 +56,146 @@ export function LeMieStimePage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-[480px] flex-col gap-8 px-4 py-8 sm:max-w-[640px] sm:px-6 sm:py-12 lg:py-16">
-      <Link
-        to="/"
-        className="self-start text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-      >
-        ← Torna alla home
-      </Link>
+    <div className="flex min-h-svh flex-col bg-background">
+      <SiteHeader />
+      <main className="flex-1">
+        <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6 sm:py-12">
+          {selectedId !== null ? (
+            <div className="mx-auto flex max-w-2xl flex-col gap-6">
+              <button
+                type="button"
+                onClick={() => {
+                  setContactOpen(false);
+                  setSelectedId(null);
+                }}
+                className="flex items-center gap-1.5 self-start text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+              >
+                <ArrowLeft className="size-4" /> I miei progetti
+              </button>
 
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-lg font-semibold text-foreground">Le mie stime</h1>
-        {user && !isAuthLoading ? (
-          <AccountMenu user={user} />
-        ) : (
-          <Skeleton className="size-8 rounded-full" />
-        )}
-      </div>
+              {isPro ? (
+                <DettaglioProView stimaId={selectedId} />
+              ) : (
+                <>
+                  {dettaglioQuery.isLoading && (
+                    <div className="flex flex-col gap-4">
+                      <Skeleton className="h-14 w-full" />
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        {Array.from({ length: 4 }).map((_, i) => (
+                          <Skeleton key={i} className="h-28 w-full" />
+                        ))}
+                      </div>
+                      <Skeleton className="h-32 w-full" />
+                    </div>
+                  )}
 
-      {selectedId !== null ? (
-        <div className="flex flex-col gap-6">
-          <button
-            type="button"
-            onClick={() => {
-              setContactOpen(false);
-              setSelectedId(null);
-            }}
-            className="self-start text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-          >
-            ← Le mie stime
-          </button>
-
-          {isPro ? (
-            <DettaglioProView stimaId={selectedId} />
-          ) : (
-            <>
-              {dettaglioQuery.isLoading && (
-                <div className="flex flex-col gap-4">
-                  <Skeleton className="h-14 w-full" />
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    {Array.from({ length: 4 }).map((_, i) => (
-                      <Skeleton key={i} className="h-28 w-full" />
-                    ))}
-                  </div>
-                  <Skeleton className="h-32 w-full" />
-                </div>
+                  {dettaglioQuery.isSuccess && dettaglioQuery.data && (
+                    <SavedEstimateDetail stima={dettaglioQuery.data} isPro={isPro} />
+                  )}
+                </>
               )}
 
               {dettaglioQuery.isSuccess && dettaglioQuery.data && (
-                <SavedEstimateDetail stima={dettaglioQuery.data} isPro={isPro} />
+                <div className="flex flex-col gap-3 border-t border-border pt-6">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-11 w-full"
+                    onClick={() => setContactOpen(true)}
+                  >
+                    Contatta un professionista
+                  </Button>
+                  <LeadContactDialog
+                    open={contactOpen}
+                    onOpenChange={setContactOpen}
+                    result={dettaglioQuery.data}
+                  />
+                </div>
               )}
+            </div>
+          ) : (
+            <>
+              <header className="flex flex-wrap items-end justify-between gap-4">
+                <div className="flex flex-col gap-1">
+                  <h1 className="text-3xl font-bold text-foreground">I miei progetti</h1>
+                  <p className="text-muted-foreground">
+                    Le stime che hai salvato, sempre a portata di mano.
+                  </p>
+                </div>
+                <Button asChild>
+                  <Link to="/">
+                    <Plus className="size-4" /> Nuova stima
+                  </Link>
+                </Button>
+              </header>
+
+              <div className="mt-8">
+                {storicoQuery.isLoading && (
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <Skeleton key={i} className="h-36 w-full rounded-xl" />
+                    ))}
+                  </div>
+                )}
+
+                {storicoQuery.isSuccess && storicoQuery.data.length === 0 && (
+                  <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border bg-secondary/30 px-6 py-16 text-center">
+                    <h2 className="text-xl font-bold text-foreground">
+                      Non hai ancora progetti salvati
+                    </h2>
+                    <p className="max-w-sm text-sm text-muted-foreground">
+                      Calcola una nuova stima per vederla qui: resterà salvata nel tuo account, con
+                      tutti i dettagli.
+                    </p>
+                    <Button asChild className="h-11 px-6">
+                      <Link to="/">
+                        <Plus className="size-4" /> Nuova stima
+                      </Link>
+                    </Button>
+                  </div>
+                )}
+
+                {storicoQuery.isSuccess && storicoQuery.data.length > 0 && (
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {storicoQuery.data.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setSelectedId(item.id)}
+                        className="group flex flex-col gap-4 rounded-xl border border-border bg-card p-5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <span className="flex items-center gap-2 font-display text-lg font-bold text-foreground">
+                            <MapPin className="size-4 text-primary" aria-hidden />
+                            {item.citta}
+                          </span>
+                          <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
+                        </div>
+
+                        <span className="font-display text-xl font-bold tabular-nums text-foreground">
+                          {formatEurRange(item.totale_min, item.totale_max)}
+                        </span>
+
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1.5">
+                            <Ruler className="size-3.5" aria-hidden /> {item.mq} m²
+                          </span>
+                          <span>{TIPO_LABELS[item.tipo] ?? item.tipo}</span>
+                          <span className="flex items-center gap-1.5">
+                            <CalendarDays className="size-3.5" aria-hidden />
+                            {formatData(item.created_at)}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </>
           )}
-
-          {dettaglioQuery.isSuccess && dettaglioQuery.data && (
-            <div className="flex flex-col gap-3 border-t border-border pt-6">
-              <Button
-                type="button"
-                variant="outline"
-                className="h-11 w-full"
-                onClick={() => setContactOpen(true)}
-              >
-                Contatta un professionista
-              </Button>
-              <LeadContactDialog
-                open={contactOpen}
-                onOpenChange={setContactOpen}
-                result={dettaglioQuery.data}
-              />
-            </div>
-          )}
         </div>
-      ) : (
-        <>
-          {storicoQuery.isLoading && (
-            <div className="flex flex-col gap-2">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-16 w-full" />
-              ))}
-            </div>
-          )}
-
-          {storicoQuery.isSuccess && storicoQuery.data.length === 0 && (
-            <div className="flex flex-col items-center gap-4 py-12 text-center">
-              <h2 className="text-lg font-semibold text-foreground">
-                Non hai ancora stime salvate
-              </h2>
-              <p className="max-w-sm text-sm text-muted-foreground">
-                Calcola una nuova stima per vederla qui: resterà salvata nel tuo account, con
-                tutti i dettagli.
-              </p>
-              <Button asChild className="h-11 bg-primary text-primary-foreground hover:bg-primary/90">
-                <Link to="/">Nuova stima</Link>
-              </Button>
-            </div>
-          )}
-
-          {storicoQuery.isSuccess && storicoQuery.data.length > 0 && (
-            <div className="flex flex-col gap-2">
-              {storicoQuery.data.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setSelectedId(item.id)}
-                  className="flex min-h-11 flex-col gap-1 rounded-lg border border-border bg-secondary px-4 py-3 text-left transition-colors hover:border-muted-foreground/40"
-                >
-                  <span className="flex items-center justify-between gap-3 text-sm font-semibold text-foreground">
-                    <span>{item.citta}</span>
-                    <span className="tabular-nums">
-                      {formatEurRange(item.totale_min, item.totale_max)}
-                    </span>
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {item.mq} m² · {TIPO_LABELS[item.tipo] ?? item.tipo} ·{" "}
-                    {formatData(item.created_at)}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-        </>
-      )}
-    </main>
+      </main>
+      <SiteFooter />
+    </div>
   );
 }

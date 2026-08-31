@@ -116,7 +116,7 @@ export function RegistratiPage() {
             {postAuthState !== "saving" && (
               <div className="flex flex-col gap-2">
                 <Button asChild className="h-11 w-full bg-primary text-base font-semibold text-primary-foreground hover:bg-primary/90">
-                  <Link to="/le-mie-stime">Vai a Le mie stime</Link>
+                  <Link to="/le-mie-stime">Vai a I miei progetti</Link>
                 </Button>
                 <Button asChild variant="outline" className="h-11 w-full">
                   <Link to="/">Nuova stima</Link>

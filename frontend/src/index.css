@@ -1,33 +1,59 @@
 @import "tailwindcss";
 @import "@fontsource-variable/inter";
+@import "@fontsource-variable/bricolage-grotesque";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+  ristruttura-stima — design system
+  Palette calda "da cantiere": arancio primario, rosso di segnale, oro Pro,
+  su neutri sabbia/carbone. Ispirazione layout: SaaS pulito stile hausme.it.
+  I token semantici qui sotto ri-vestono automaticamente tutti i componenti shadcn.
+*/
 :root {
-  --radius: 0.625rem;
-  --background: oklch(0.984 0.003 247.858); /* slate-50 */
-  --foreground: oklch(0.208 0.042 265.755); /* slate-900 */
-  --card: oklch(1 0 0); /* white */
-  --card-foreground: oklch(0.208 0.042 265.755);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.208 0.042 265.755);
-  --primary: oklch(0.546 0.245 262.881); /* blue-600 accent */
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.968 0.007 247.896); /* slate-100 */
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417); /* slate-500 */
-  --accent: oklch(0.932 0.032 255.585); /* blue-50 */
-  --accent-foreground: oklch(0.379 0.146 265.522);
-  --destructive: oklch(0.577 0.245 27.325); /* red-600 */
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.929 0.013 255.508); /* slate-200 */
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.546 0.245 262.881);
-  --amber-bg: oklch(0.987 0.026 102.212); /* amber-50 */
-  --amber-border: oklch(0.879 0.169 91.605); /* amber-300 */
-  --amber-fg: oklch(0.555 0.163 48.998); /* amber-700 */
+  --radius: 0.75rem;
+
+  /* Neutri caldi */
+  --background: #fbf8f3;          /* carta calda */
+  --foreground: #22201c;          /* inchiostro caldo */
+  --card: #ffffff;
+  --card-foreground: #22201c;
+  --popover: #ffffff;
+  --popover-foreground: #22201c;
+
+  /* Arancio — colore guida */
+  --primary: #e8722a;
+  --primary-foreground: #ffffff;
+
+  /* Superfici sabbia */
+  --secondary: #f3eee5;
+  --secondary-foreground: #33302b;
+  --muted: #f3eee5;
+  --muted-foreground: #7a7169;
+
+  /* Accento = arancio tenue (hover/selezione) */
+  --accent: #fbe9dc;
+  --accent-foreground: #b5551d;
+
+  /* Rosso di segnale */
+  --destructive: #e11d22;
+  --destructive-foreground: #ffffff;
+
+  /* Bordi/campi */
+  --border: #e9e1d4;
+  --input: #e4dbcc;
+  --ring: #e8722a;
+
+  /* Oro — riservato a Pro / highlight */
+  --gold: #f4b60e;
+  --gold-foreground: #4a3b00;
+  --gold-soft: #fdf3d6;
+
+  /* Avviso/fallback (armonizzato all'oro) */
+  --amber-bg: #fdf6e3;
+  --amber-border: #f2ce5b;
+  --amber-fg: #8a5a12;
 }
 
 @theme inline {
@@ -50,6 +76,9 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-gold: var(--gold);
+  --color-gold-foreground: var(--gold-foreground);
+  --color-gold-soft: var(--gold-soft);
   --color-amber-bg: var(--amber-bg);
   --color-amber-border: var(--amber-border);
   --color-amber-fg: var(--amber-fg);
@@ -58,6 +87,7 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --font-sans: "Inter Variable", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Bricolage Grotesque Variable", "Inter Variable", system-ui, sans-serif;
 }
 
 @layer base {
@@ -65,6 +95,17 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
   }
 }

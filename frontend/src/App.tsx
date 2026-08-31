@@ -5,6 +5,8 @@ import { AccediPage } from "@/routes/AccediPage";
 import { PasswordDimenticataPage } from "@/routes/PasswordDimenticataPage";
 import { ReimpostaPasswordPage } from "@/routes/ReimpostaPasswordPage";
 import { LeMieStimePage } from "@/routes/LeMieStimePage";
+import { ImpostazioniPage } from "@/routes/ImpostazioniPage";
+import { SupportoPage } from "@/routes/SupportoPage";
 import { PassaAProPage } from "@/routes/PassaAProPage";
 import { DettaglioProPage } from "@/pages/DettaglioProPage";
 import { LeadDashboardPage } from "@/pages/admin/LeadDashboardPage";
@@ -22,6 +24,8 @@ const router = createBrowserRouter([
   { path: "/password-dimenticata", element: <PasswordDimenticataPage /> },
   { path: "/reimposta-password", element: <ReimpostaPasswordPage /> },
   { path: "/le-mie-stime", element: <LeMieStimePage /> },
+  { path: "/impostazioni", element: <ImpostazioniPage /> },
+  { path: "/supporto", element: <SupportoPage /> },
   { path: "/passa-a-pro", element: <PassaAProPage /> },
   { path: "/dettaglio-pro", element: <DettaglioProPage /> },
   { path: "/admin", element: <Navigate to="/admin/lead" replace /> },

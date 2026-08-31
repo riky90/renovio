@@ -1,13 +1,14 @@
 import { useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Link } from "react-router";
+import { Gauge, MapPin, Zap, type LucideIcon } from "lucide-react";
 import { CategoryCard } from "@/components/CategoryCard";
 import { DettaglioProView } from "@/components/DettaglioProView";
 import { EstimateForm, type EstimateFormValues } from "@/components/EstimateForm";
 import { FallbackDisclaimer } from "@/components/FallbackDisclaimer";
+import { SiteFooter } from "@/components/SiteFooter";
+import { SiteHeader } from "@/components/SiteHeader";
 import { SoftWallCta } from "@/components/SoftWallCta";
 import { TotalCard } from "@/components/TotalCard";
-import { AccountMenu } from "@/components/AccountMenu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -27,11 +28,53 @@ const ERROR_COPY =
 const SAVE_ERROR_COPY =
   "Non siamo riusciti a salvare la stima per aprire il dettaglio. Riprova tra qualche istante.";
 
+interface Benefit {
+  icon: LucideIcon;
+  title: string;
+  body: string;
+}
+
+const BENEFITS: Benefit[] = [
+  {
+    icon: Gauge,
+    title: "Sempre a range",
+    body: "Mai un numero secco: un minimo e un massimo onesti, prima del sopralluogo.",
+  },
+  {
+    icon: MapPin,
+    title: "Su misura per la città",
+    body: "Prezzi calibrati sul listino locale, non su medie nazionali generiche.",
+  },
+  {
+    icon: Zap,
+    title: "Pronta in 30 secondi",
+    body: "Tre informazioni, nessuna registrazione. Il calcolo è gratuito.",
+  },
+];
+
+const STEPS: { n: string; title: string; body: string }[] = [
+  {
+    n: "01",
+    title: "Inserisci i dati",
+    body: "Città dell'immobile, superficie in m² e tipo di lavori. Bastano tre informazioni.",
+  },
+  {
+    n: "02",
+    title: "Ottieni il range",
+    body: "Una stima onesta minimo–massimo, IVA inclusa, divisa per categoria di lavori.",
+  },
+  {
+    n: "03",
+    title: "Approfondisci",
+    body: "Sblocca il dettaglio voce per voce con Pro, o fatti ricontattare da un referente.",
+  },
+];
+
 export function EstimatePage() {
   const mutation = useMutation<StimaResponse, Error, EstimateFormValues>({
     mutationFn: postStima,
   });
-  const { user, isLoading: isAuthLoading } = useAuth();
+  const { user } = useAuth();
 
   // Auto-save da loggato (D-07): nessun ricalcolo, si congela esattamente il
   // payload gia' mostrato dal risultato corrente.
@@ -66,124 +109,175 @@ export function EstimatePage() {
   const showResult = mutation.isSuccess && result;
   const showLoading = mutation.isPending;
   const showError = mutation.isError;
+  const isIdle = !showResult && !showLoading && !showError;
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-[480px] flex-col gap-8 px-4 py-8 sm:max-w-[640px] sm:px-6 sm:py-12 lg:py-16">
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between gap-3">
-          <h1 className="text-lg font-semibold text-foreground">ristruttura-stima</h1>
-          {isAuthLoading ? (
-            <Skeleton className="size-8 rounded-full" />
-          ) : user ? (
-            <AccountMenu user={user} />
-          ) : (
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/accedi">Accedi</Link>
-            </Button>
-          )}
-        </div>
-        {!showResult && !showLoading && !showError && (
-          <p className="text-center text-sm text-muted-foreground">
-            Inserisci i dati per ottenere la tua stima gratuita. Bastano tre informazioni:
-            città, superficie in m² e tipo di ristrutturazione. La stima è gratuita e non
-            richiede registrazione.
-          </p>
-        )}
-      </div>
+    <div className="flex min-h-svh flex-col bg-background">
+      <SiteHeader />
 
-      {!showResult && !showLoading && (
-        <EstimateForm onSubmit={handleSubmit} isSubmitting={mutation.isPending} />
-      )}
+      <main className="flex-1">
+        {isIdle ? (
+          <section className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6 sm:py-16 lg:py-20">
+            <div className="mx-auto max-w-2xl text-center">
+              <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <span className="size-1.5 rounded-full bg-primary" />
+                Stima pre-sopralluogo · gratuita
+              </span>
+              <h1 className="mt-5 text-balance text-4xl font-bold leading-[1.05] text-foreground sm:text-5xl">
+                Quanto costa <span className="text-primary">ristrutturare</span> casa?
+              </h1>
+              <p className="mx-auto mt-4 max-w-xl text-balance text-base text-muted-foreground sm:text-lg">
+                Una stima onesta, a range, in trenta secondi. Bastano città, superficie e tipo
+                di lavori — niente registrazione.
+              </p>
+            </div>
 
-      {showLoading && input && (
-        <div className="flex flex-col gap-8">
-          <SummaryPanel input={input} onModifica={handleModifica} disabled />
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-28 w-full" />
-            ))}
-          </div>
-          <Skeleton className="h-32 w-full" />
-        </div>
-      )}
+            <div className="mx-auto mt-10 max-w-xl rounded-2xl border border-border bg-card p-6 shadow-lg shadow-black/[0.03] sm:p-8">
+              <EstimateForm onSubmit={handleSubmit} isSubmitting={mutation.isPending} />
+            </div>
 
-      {showError && input && (
-        <div className="flex flex-col gap-6">
-          <SummaryPanel input={input} onModifica={handleModifica} />
-          <Alert variant="destructive">
-            <AlertDescription>{ERROR_COPY}</AlertDescription>
-          </Alert>
-          <Button type="button" onClick={() => mutation.mutate(input)} className="w-full">
-            Riprova
-          </Button>
-        </div>
-      )}
+            <ul className="mx-auto mt-12 grid max-w-4xl grid-cols-1 gap-6 sm:grid-cols-3">
+              {BENEFITS.map(({ icon: Icon, title, body }) => (
+                <li key={title} className="flex flex-col gap-3">
+                  <span className="flex size-10 items-center justify-center rounded-xl bg-accent text-primary">
+                    <Icon className="size-5" aria-hidden />
+                  </span>
+                  <h3 className="text-base font-semibold text-foreground">{title}</h3>
+                  <p className="text-sm leading-relaxed text-muted-foreground">{body}</p>
+                </li>
+              ))}
+            </ul>
 
-      {showResult && result && input && (
-        <div className="flex flex-col gap-8">
-          <SummaryPanel input={input} onModifica={handleModifica} />
+            <div className="mx-auto mt-20 max-w-4xl border-t border-border pt-12">
+              <h2 className="text-center text-2xl font-bold text-foreground sm:text-3xl">
+                Come funziona
+              </h2>
+              <ol className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-3">
+                {STEPS.map((step) => (
+                  <li key={step.n} className="flex flex-col gap-3">
+                    <span className="font-display text-3xl font-bold tabular-nums text-primary/30">
+                      {step.n}
+                    </span>
+                    <h3 className="text-base font-semibold text-foreground">{step.title}</h3>
+                    <p className="text-sm leading-relaxed text-muted-foreground">{step.body}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
 
-          {user?.pro ? (
-            // Pro (P2): dettaglio inline al posto del riepilogo a card, sulla
-            // stima appena auto-salvata. Finché il save è in corso mostra lo
-            // skeleton (enabled=false); se il save fallisce, offre un retry.
-            saveMutation.isError ? (
-              <div className="flex flex-col gap-4">
+            <div className="mx-auto mt-20 max-w-4xl overflow-hidden rounded-2xl border border-border bg-card px-6 py-10 text-center shadow-sm sm:px-10 sm:py-12">
+              <h2 className="text-2xl font-bold text-foreground sm:text-3xl">
+                Scopri quanto costa, senza impegno
+              </h2>
+              <p className="mx-auto mt-3 max-w-md text-muted-foreground">
+                Gratis e senza registrazione. Prezzi calibrati sul listino reale della tua città.
+              </p>
+              <Button
+                type="button"
+                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                className="mt-6 h-11 px-6 text-base font-semibold"
+              >
+                Calcola la tua stima
+              </Button>
+            </div>
+          </section>
+        ) : (
+          <div className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-10 sm:px-6 sm:py-12">
+            {showLoading && input && (
+              <>
+                <SummaryPanel input={input} onModifica={handleModifica} disabled />
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <Skeleton key={i} className="h-32 w-full rounded-xl" />
+                  ))}
+                </div>
+                <Skeleton className="h-40 w-full rounded-xl" />
+              </>
+            )}
+
+            {showError && input && (
+              <>
+                <SummaryPanel input={input} onModifica={handleModifica} />
                 <Alert variant="destructive">
-                  <AlertDescription>{SAVE_ERROR_COPY}</AlertDescription>
+                  <AlertDescription>{ERROR_COPY}</AlertDescription>
                 </Alert>
-                <Button
-                  type="button"
-                  onClick={() => saveMutation.mutate(result)}
-                  className="w-full"
-                >
+                <Button type="button" onClick={() => mutation.mutate(input)} className="w-full">
                   Riprova
                 </Button>
-              </div>
-            ) : (
-              <DettaglioProView
-                stimaId={saveMutation.data?.id ?? NaN}
-                enabled={saveMutation.data?.id != null}
-              />
-            )
-          ) : (
-            <>
-              {result.fallback && result.disclaimer && (
-                <FallbackDisclaimer disclaimer={result.disclaimer} />
-              )}
+              </>
+            )}
 
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {result.categorie.map((categoria) => (
-                  <CategoryCard key={categoria.code} categoria={categoria} isPro={!!user?.pro} />
-                ))}
-              </div>
+            {showResult && result && input && (
+              <>
+                <SummaryPanel input={input} onModifica={handleModifica} />
 
-              <div className="flex flex-col gap-2">
-                {result.extra.map((extra) => (
-                  <div
-                    key={extra.code}
-                    className="flex items-center justify-between text-sm text-muted-foreground"
-                  >
-                    <span>{extra.nome}</span>
-                    <span className="tabular-nums">{formatEur(extra.importo)}</span>
-                  </div>
-                ))}
-              </div>
+                {user?.pro ? (
+                  saveMutation.isError ? (
+                    <div className="flex flex-col gap-4">
+                      <Alert variant="destructive">
+                        <AlertDescription>{SAVE_ERROR_COPY}</AlertDescription>
+                      </Alert>
+                      <Button
+                        type="button"
+                        onClick={() => saveMutation.mutate(result)}
+                        className="w-full"
+                      >
+                        Riprova
+                      </Button>
+                    </div>
+                  ) : (
+                    <DettaglioProView
+                      stimaId={saveMutation.data?.id ?? NaN}
+                      enabled={saveMutation.data?.id != null}
+                    />
+                  )
+                ) : (
+                  <>
+                    {result.fallback && result.disclaimer && (
+                      <FallbackDisclaimer disclaimer={result.disclaimer} />
+                    )}
 
-              <TotalCard totale={result.totale} />
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      {result.categorie.map((categoria) => (
+                        <CategoryCard
+                          key={categoria.code}
+                          categoria={categoria}
+                          isPro={!!user?.pro}
+                        />
+                      ))}
+                    </div>
 
-              <SoftWallCta
-                result={result}
-                isAuthenticated={!!user}
-                savedId={saveMutation.data?.id ?? null}
-                isSaving={saveMutation.isPending}
-                isPro={!!user?.pro}
-              />
-            </>
-          )}
-        </div>
-      )}
-    </main>
+                    <div className="flex flex-col gap-2 rounded-lg border border-border bg-secondary/50 px-4 py-3">
+                      {result.extra.map((extra) => (
+                        <div
+                          key={extra.code}
+                          className="flex items-center justify-between text-sm text-muted-foreground"
+                        >
+                          <span>{extra.nome}</span>
+                          <span className="tabular-nums">{formatEur(extra.importo)}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <TotalCard totale={result.totale} />
+
+                    <SoftWallCta
+                      result={result}
+                      isAuthenticated={!!user}
+                      savedId={saveMutation.data?.id ?? null}
+                      isSaving={saveMutation.isPending}
+                      isPro={!!user?.pro}
+                    />
+                  </>
+                )}
+              </>
+            )}
+          </div>
+        )}
+      </main>
+
+      <SiteFooter />
+    </div>
   );
 }
 
@@ -195,7 +289,7 @@ interface SummaryPanelProps {
 
 function SummaryPanel({ input, onModifica, disabled }: SummaryPanelProps) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-secondary px-4 py-3">
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-sm">
       <div className="flex flex-wrap items-center gap-2">
         <Badge variant="secondary">{input.citta}</Badge>
         <Badge variant="secondary">{input.mq} m²</Badge>
@@ -205,7 +299,7 @@ function SummaryPanel({ input, onModifica, disabled }: SummaryPanelProps) {
         type="button"
         onClick={onModifica}
         disabled={disabled}
-        className="text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline disabled:pointer-events-none disabled:opacity-50"
+        className="text-sm font-medium text-primary underline-offset-4 hover:underline disabled:pointer-events-none disabled:opacity-50"
       >
         Modifica
       </button>
