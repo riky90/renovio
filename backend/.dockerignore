@@ -1,0 +1,9 @@
+.venv/
+dev.db
+__pycache__/
+*.pyc
+.env
+.env.prod
+.pytest_cache/
+.python-version
+README.md

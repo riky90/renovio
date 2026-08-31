@@ -51,7 +51,12 @@ class AuthService:
             SESSION_COOKIE_NAME,
             session_id,
             httponly=True,
-            samesite="lax",
+            # In prod (COOKIE_SECURE=True, HTTPS) frontend e backend stanno su
+            # domini diversi (Vercel vs Render): serve SameSite=None perche' il
+            # cookie viaggi sulle fetch cross-site, e None richiede Secure=True.
+            # In dev locale (http, COOKIE_SECURE=False) None+non-Secure verrebbe
+            # rifiutato dal browser, quindi si resta su Lax.
+            samesite="none" if settings.COOKIE_SECURE else "lax",
             secure=settings.COOKIE_SECURE,
             max_age=int(SESSION_TTL.total_seconds()),
         )
