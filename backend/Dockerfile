@@ -26,6 +26,11 @@ ENV PORT=8000
 # Applica migrazioni, semina il listino (idempotente: upsert per chiave
 # naturale, sicuro a ogni boot) e avvia uvicorn. Su free tier (istanza
 # singola) eseguire questi step al boot e' sicuro.
+# --proxy-headers + --forwarded-allow-ips=* : dietro il proxy di Render fa sì
+# che uvicorn onori X-Forwarded-Proto (https), così request.url_for() genera
+# redirect https corretti per il callback Google OAuth (evita redirect_uri
+# mismatch). Il container riceve traffico solo tramite il proxy di Render.
 CMD uv run alembic upgrade head && \
     uv run python scripts/seed.py && \
-    uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT \
+      --proxy-headers --forwarded-allow-ips="*"
