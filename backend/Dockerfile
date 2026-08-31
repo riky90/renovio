@@ -23,7 +23,9 @@ COPY . .
 # Render inietta $PORT a runtime; default 8000 in locale.
 ENV PORT=8000
 
-# Applica le migrazioni e avvia uvicorn. Su free tier (istanza singola)
-# eseguire le migrazioni al boot e' sicuro.
+# Applica migrazioni, semina il listino (idempotente: upsert per chiave
+# naturale, sicuro a ogni boot) e avvia uvicorn. Su free tier (istanza
+# singola) eseguire questi step al boot e' sicuro.
 CMD uv run alembic upgrade head && \
+    uv run python scripts/seed.py && \
     uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT

@@ -40,10 +40,21 @@ from app.models.dettaglio_pro import CoefficienteQuantitaVoce, Sottocategoria, V
 from app.models.listino import Listino, ListinoCategoria  # noqa: E402
 from app.models.testo import Testo  # noqa: E402
 
-# docs/ lives at the project root, two levels above this file (backend/scripts/).
-SEED_JSON_PATH = Path(__file__).resolve().parent.parent.parent / "docs" / "seed-coefficienti-base.json"
+# I dati seed vivono in DUE posizioni possibili:
+#  1) backend/seed_data/ — copia inclusa nell'immagine Docker (build context =
+#     backend/, quindi docs/ alla root del repo NON e' raggiungibile in prod);
+#  2) docs/ alla root del repo — sorgente storica usata in dev locale.
+# Si preferisce la copia backend-local (prod) con fallback a docs/ (dev).
+def _resolve_seed(filename: str) -> Path:
+    local = _BACKEND_DIR / "seed_data" / filename
+    if local.exists():
+        return local
+    return _BACKEND_DIR.parent / "docs" / filename
+
+
+SEED_JSON_PATH = _resolve_seed("seed-coefficienti-base.json")
 # Dati dettaglio Pro (03-02, D-03): stesso listino RE, estensione dello stesso seed idempotente.
-SEED_DETTAGLIO_PRO_JSON_PATH = Path(__file__).resolve().parent.parent.parent / "docs" / "seed-dettaglio-pro.json"
+SEED_DETTAGLIO_PRO_JSON_PATH = _resolve_seed("seed-dettaglio-pro.json")
 
 CATEGORIA_NOMI = {
     "A-EDILE": "Edile",
