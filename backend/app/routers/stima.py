@@ -24,6 +24,8 @@ from fastapi import APIRouter, Request
 from app.db import SessionLocal
 from app.limiter import limiter
 from app.schemas.stima import (
+    BonusDettaglioOut,
+    BonusOut,
     CategoriaOut,
     ExtraOut,
     StimaInputEcho,
@@ -31,6 +33,7 @@ from app.schemas.stima import (
     StimaResponse,
     TotaleOut,
 )
+from app.services.bonus_service import BonusService
 from app.services.city_resolver import resolve_listino
 from app.services.estimation import EstimationService
 from app.services.testo_service import get_testo
@@ -103,12 +106,68 @@ def crea_stima(payload: StimaRequest, request: Request) -> StimaResponse:
 
         disclaimer = get_testo(session, "disclaimer_fallback_citta", citta=payload.citta) if fallback else None
 
+        # I bonus si calcolano DOPO, dai totali lordi gia' pronti: cosi'
+        # `EstimationService` non viene toccato e il suo oracolo di regressione
+        # (85 mq totale RE -> 47.985-70.575) resta intatto per costruzione.
+        #
+        # Si passa `result.extra` e non `extra_out`: il primo porta `.totale`
+        # (il lordo IVA inclusa gia' arrotondato dal servizio), il secondo solo
+        # importo e aliquota. La detrazione si applica alla spesa sostenuta,
+        # cioe' al lordo — e usare quello del servizio garantisce che la base
+        # dei bonus riconcili esattamente col totale mostrato all'utente.
+        bonus_result = BonusService.compute(
+            session,
+            categorie_out,
+            destinazione=payload.destinazione.value,
+            disclaimer=get_testo(session, "disclaimer_bonus"),
+            extra=result.extra,
+        )
+
         return StimaResponse(
-            input=StimaInputEcho(citta=payload.citta, mq=payload.mq, tipo=payload.tipo),
+            input=StimaInputEcho(
+                citta=payload.citta,
+                mq=payload.mq,
+                tipo=payload.tipo,
+                destinazione=payload.destinazione,
+            ),
             fallback=fallback,
             disclaimer=disclaimer,
             valuta=listino.valuta,
             categorie=categorie_out,
             extra=extra_out,
             totale=totale_out,
+            bonus=_bonus_out(bonus_result),
         )
+
+
+def _bonus_out(result) -> BonusOut | None:
+    """Mappa campo-per-campo, come ovunque nei router: mai `model_validate` su
+    una dataclass interna."""
+    if result is None:
+        return None
+    return BonusOut(
+        bonus=[
+            BonusDettaglioOut(
+                code=d.code,
+                nome=d.nome,
+                descrizione=d.descrizione,
+                base_min=d.base_min,
+                base_max=d.base_max,
+                aliquota_pct=d.aliquota_pct,
+                tetto_spesa_eur=d.tetto_spesa_eur,
+                tetto_modalita=d.tetto_modalita,
+                tetto_raggiunto=d.tetto_raggiunto,
+                rate_annuali=d.rate_annuali,
+                detrazione_min=d.detrazione_min,
+                detrazione_max=d.detrazione_max,
+                rata_annua_min=d.rata_annua_min,
+                rata_annua_max=d.rata_annua_max,
+            )
+            for d in result.bonus
+        ],
+        detrazione_min=result.detrazione_min,
+        detrazione_max=result.detrazione_max,
+        rata_annua_min=result.rata_annua_min,
+        rata_annua_max=result.rata_annua_max,
+        disclaimer=result.disclaimer,
+    )

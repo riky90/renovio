@@ -10,7 +10,8 @@ from sqlalchemy.orm import Session, sessionmaker
 from app.db import Base
 from app.models.catalogo import Categoria, ComuneListino, Extra, Moltiplicatore, TipoRistrutturazione
 from app.models.listino import Listino, ListinoCategoria
-from scripts.seed import load_seed_data, seed
+from app.models.testo import Testo as TestoRow  # alias: evita la collection di pytest
+from scripts.seed import TESTI_INIZIALI, load_seed_data, seed
 
 EXPECTED_COUNTS = {
     "listino": 1,
@@ -62,3 +63,24 @@ def test_seed_is_idempotent(session):
     seed(session, data)  # re-run must not duplicate any row
 
     assert _counts(session) == EXPECTED_COUNTS
+
+
+def test_seed_non_sovrascrive_testi_modificati(session):
+    """`seed()` gira a ogni boot del container (Dockerfile CMD). Se `seed_testi`
+    riscrivesse `valore`, ogni testo modificato dal pannello admin tornerebbe al
+    default cablato a ogni deploy — i disclaimer sono contenuto editoriale
+    dell'admin, il seed li crea ma non li possiede."""
+    data = load_seed_data()
+    seed(session, data)
+
+    chiave = next(iter(TESTI_INIZIALI))
+    row = session.get(TestoRow, chiave)
+    assert row is not None
+    row.valore = "Testo riscritto dall'admin dal pannello."
+    session.flush()
+
+    seed(session, data)  # secondo boot del container
+
+    assert session.get(TestoRow, chiave).valore == "Testo riscritto dall'admin dal pannello."
+    # e le chiavi mancanti continuano a essere create
+    assert session.query(TestoRow).count() == len(TESTI_INIZIALI)

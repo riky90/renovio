@@ -18,12 +18,13 @@ from sqlalchemy import select
 
 from app.db import SessionLocal
 from app.dependencies.auth import require_admin
-from app.models.catalogo import TipoRistrutturazione
+from app.models.catalogo import LivelloFinitura, TipoRistrutturazione
 from app.models.dettaglio_pro import CoefficienteQuantitaVoce, Sottocategoria, Voce
 from app.models.listino import Listino
 from app.schemas.admin_dettaglio_pro import (
     CoeffVoceIn,
     CoeffVoceOut,
+    LivelloFinituraAdminOut,
     SottocategoriaIn,
     SottocategoriaOut,
     SottocategoriaUpdate,
@@ -33,6 +34,19 @@ from app.schemas.admin_dettaglio_pro import (
 )
 
 router = APIRouter(prefix="/dettaglio-pro", tags=["admin-dettaglio-pro"])
+
+
+# --- Livelli di finitura ---------------------------------------------------
+
+
+@router.get("/livelli", response_model=list[LivelloFinituraAdminOut])
+def lista_livelli(_admin=Depends(require_admin)) -> list[LivelloFinituraAdminOut]:
+    """Livelli assegnabili a una voce. Sola lettura: i tre livelli sono
+    struttura del prodotto e li possiede il seed — cio' che l'admin cura e'
+    quale voce sta in quale livello."""
+    with SessionLocal() as session:
+        rows = session.query(LivelloFinitura).order_by(LivelloFinitura.ordine).all()
+        return [LivelloFinituraAdminOut.model_validate(r, from_attributes=True) for r in rows]
 
 
 # --- Sottocategorie --------------------------------------------------------
@@ -131,6 +145,7 @@ def crea_voce(payload: VoceIn, _admin=Depends(require_admin)) -> VoceOut:
             um=payload.um,
             prezzo_unitario_cliente=payload.prezzo_unitario_cliente,
             ordine=payload.ordine,
+            livello=payload.livello,
         )
         session.add(row)
         session.commit()

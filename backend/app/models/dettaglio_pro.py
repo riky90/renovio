@@ -60,6 +60,18 @@ class Voce(Base):
     prezzo_unitario_cliente: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     ordine: Mapped[int] = mapped_column(nullable=False, default=0, server_default="0")
 
+    # Livello di finitura a cui la voce appartiene ('base'|'medio'|'alto',
+    # codici di `livello_finitura`). NESSUNA FK, stesso precedente di
+    # `Sottocategoria.famiglia`: e' una etichetta di classificazione curata a
+    # mano dall'admin, non una relazione da cui dipenda l'integrita' del
+    # computo.
+    #
+    # NULL = voce COMUNE a tutti i livelli -> sempre inclusa. E' il valore
+    # corretto per posa, materiali di consumo e montaggio, ed e' anche cio' che
+    # rende retrocompatibile l'introduzione del campo: finche' l'admin non
+    # cura nulla, il motore Pro produce esattamente il risultato di prima.
+    livello: Mapped[str | None] = mapped_column(String(16), nullable=True)
+
 
 class CoefficienteQuantitaVoce(Base):
     """Coefficiente quantita-per-m2 (o domanda mirata) per voce, per tipo di

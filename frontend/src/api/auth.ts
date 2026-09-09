@@ -1,4 +1,4 @@
-import { apiGet, apiPatch, apiPost, ApiError } from "@/api/client";
+import { apiDelete, apiGet, apiPatch, apiPost, apiPostFile, ApiError } from "@/api/client";
 
 export type UserRole = "user" | "consulente" | "admin";
 
@@ -9,6 +9,12 @@ export interface UserOut {
   cognome: string | null;
   telefono: string | null;
   citta: string | null;
+  /**
+   * URL pubblico dell'avatar su object storage, o null. SOLA LETTURA: si
+   * cambia con postAvatar/deleteAvatar, mai da patchProfilo — il backend non
+   * accetta questo campo su PATCH /auth/me.
+   */
+  avatar_url: string | null;
   role: UserRole;
   /** Stato Pro derivato server-side dalla tessera abbonamento; mai scrivibile dal client. */
   pro: boolean;
@@ -104,4 +110,20 @@ export async function postReimpostaPassword(input: ReimpostaPasswordInput): Prom
  */
 export async function patchProfilo(input: ProfiloUpdateInput): Promise<UserOut> {
   return apiPatch<UserOut>("/auth/me", input);
+}
+
+/**
+ * POST /auth/me/avatar — carica la foto profilo (multipart). Il backend
+ * valida, ridimensiona e ri-encodifica in WEBP, e risponde con lo `UserOut`
+ * aggiornato. 400 = immagine rifiutata, 503 = storage non configurato: in
+ * entrambi i casi `ApiError.message` porta il messaggio del backend, da
+ * mostrare all'utente cosi' com'e'.
+ */
+export async function postAvatar(file: File): Promise<UserOut> {
+  return apiPostFile<UserOut>("/auth/me/avatar", file);
+}
+
+/** DELETE /auth/me/avatar — rimuove la foto profilo. */
+export async function deleteAvatar(): Promise<UserOut> {
+  return apiDelete<UserOut>("/auth/me/avatar");
 }

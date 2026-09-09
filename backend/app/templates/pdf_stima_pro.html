@@ -285,6 +285,18 @@
         <div class="label">Tipo</div>
         <div class="value">{{ tipo }}</div>
       </div>
+      {%- set con_livello = dettaglio.categorie | selectattr('livello_scelto') | list %}
+      {%- if con_livello %}
+      <div class="riepilogo-item">
+        <div class="label">Livelli</div>
+        <div class="value">
+          {%- for categoria in con_livello -%}
+          {{ categoria.nome }}: {{ categoria.livello_scelto_nome or categoria.livello_scelto }}
+          {%- if not loop.last %} &middot; {% endif -%}
+          {%- endfor -%}
+        </div>
+      </div>
+      {%- endif %}
     </div>
 
     <div class="disclaimer-box">

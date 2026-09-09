@@ -3,10 +3,12 @@
 before Alembic autogenerate or `Base.metadata.create_all` runs.
 """
 
+from app.models.bonus import AliquotaBonus, BonusCategoria, BonusExtra, BonusFiscale
 from app.models.catalogo import (
     Categoria,
     ComuneListino,
     Extra,
+    LivelloFinitura,
     Moltiplicatore,
     Referente,
     TipoRistrutturazione,
@@ -18,12 +20,17 @@ from app.models.subscription import Subscription
 from app.models.user import PasswordResetToken, User, UserSession
 
 __all__ = [
+    "AliquotaBonus",
+    "BonusCategoria",
+    "BonusExtra",
+    "BonusFiscale",
     "Categoria",
     "CoefficienteQuantitaVoce",
     "ComuneListino",
     "Extra",
     "Listino",
     "ListinoCategoria",
+    "LivelloFinitura",
     "Moltiplicatore",
     "PasswordResetToken",
     "Referente",

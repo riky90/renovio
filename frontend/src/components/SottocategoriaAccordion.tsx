@@ -14,15 +14,34 @@ interface SottocategoriaAccordionProps {
 }
 
 /**
+ * Etichette dei livelli, risolte dal catalogo del server e passate qui per
+ * nome: il badge mostra "Lusso", non "alto".
+ */
+type NomiLivelli = Record<string, string>;
+
+/**
  * Accordion shadcn con un item per sottocategoria (UI-SPEC §C.3): trigger =
  * codice·nome per la famiglia gerarchica (A-EDILE), nome-gruppo per la
  * famiglia catalogo (B/C/D). Contenuto = righe-voce a range, nessun accent
  * sulle righe (solo il chevron del trigger, gestito dal primitivo shadcn).
  */
-export function SottocategoriaAccordion({ categoria }: SottocategoriaAccordionProps) {
+export function SottocategoriaAccordion({
+  categoria,
+  nomiLivelli = {},
+}: SottocategoriaAccordionProps & { nomiLivelli?: NomiLivelli }) {
   return (
     <div className="flex flex-col gap-2">
-      <h3 className="text-base font-semibold text-foreground">{categoria.nome}</h3>
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h3 className="text-base font-semibold text-foreground">{categoria.nome}</h3>
+        {categoria.livello_scelto && (
+          <span className="rounded-full border border-border bg-secondary px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+            Finitura:{" "}
+            {categoria.livello_scelto_nome ??
+              nomiLivelli[categoria.livello_scelto] ??
+              categoria.livello_scelto}
+          </span>
+        )}
+      </div>
       <Accordion type="multiple" className="rounded-lg border border-border bg-card px-4">
         {categoria.sottocategorie.map((sottocategoria, index) => (
           <AccordionItem
@@ -40,7 +59,11 @@ export function SottocategoriaAccordion({ categoria }: SottocategoriaAccordionPr
                 ) : (
                   <div className="flex flex-col gap-2">
                     {vociVisibili.map((voce, voceIndex) => (
-                      <VoceRow key={voce.codice ?? voceIndex} voce={voce} />
+                      <VoceRow
+                        key={voce.codice ?? voceIndex}
+                        voce={voce}
+                        nomiLivelli={nomiLivelli}
+                      />
                     ))}
                   <div className="flex items-baseline justify-between gap-3 pt-2 text-sm font-medium text-foreground">
                     <span className="text-muted-foreground">Subtotale</span>
@@ -72,10 +95,17 @@ function triggerLabel(sottocategoria: SottocategoriaOut): string {
   return sottocategoria.nome;
 }
 
-function VoceRow({ voce }: { voce: VoceOut }) {
+function VoceRow({ voce, nomiLivelli }: { voce: VoceOut; nomiLivelli: NomiLivelli }) {
   return (
     <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-b border-border py-1 text-sm last:border-b-0">
-      <p className="flex-1 basis-full text-foreground sm:basis-auto">{voce.descrizione}</p>
+      <p className="flex-1 basis-full text-foreground sm:basis-auto">
+        {voce.descrizione}
+        {voce.livello && (
+          <span className="ml-2 rounded-full bg-secondary px-2 py-0.5 text-xs text-muted-foreground">
+            {nomiLivelli[voce.livello] ?? voce.livello}
+          </span>
+        )}
+      </p>
       <p className="tabular-nums text-muted-foreground">
         {formatQuantita(voce.quantita_stimata)} {voce.um}
       </p>

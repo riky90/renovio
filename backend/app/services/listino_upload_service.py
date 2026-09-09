@@ -245,7 +245,17 @@ def _upsert_sottocategoria(db: Session, listino_id: int, riga: VoceRigaIn) -> So
 
 def _upsert_voce(db: Session, sotto: Sottocategoria, riga: VoceRigaIn) -> Voce:
     """Upsert per chiave naturale (sottocategoria_id, codice-o-descrizione)
-    — MAI un DELETE di righe assenti dal file (D-24)."""
+    — MAI un DELETE di righe assenti dal file (D-24).
+
+    `voce.livello` NON compare qui, ed e' deliberato. Questa funzione
+    sovrascrive incondizionatamente i campi che tocca; il file Excel del
+    computo non ha una colonna livello e non l'avra', quindi se `livello`
+    entrasse nel giro ogni ri-caricamento del listino azzererebbe la curatela
+    dei livelli fatta a mano dall'admin — e con tutti i livelli a NULL il
+    motore Pro torna a sommare i cataloghi di alternative. Il livello si cura
+    solo da `routers/admin/dettaglio_pro.py`. Test di regressione:
+    `tests/test_dettaglio_pro_livelli.py::test_upload_excel_non_azzera_livello`.
+    """
     query = db.query(Voce).filter_by(sottocategoria_id=sotto.id)
     query = query.filter_by(codice=riga.codice) if riga.codice is not None else query.filter_by(
         codice=None, descrizione=riga.descrizione

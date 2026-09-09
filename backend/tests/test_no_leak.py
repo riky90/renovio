@@ -5,6 +5,8 @@ città (RE non-fallback and a fallback città) and any tipo.
 
 from __future__ import annotations
 
+import json
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -91,7 +93,22 @@ def test_response_never_leaks_impresa_secret(client, citta, fallback_expected, t
     body = response.json()
     assert body["fallback"] is fallback_expected
 
-    raw_text = response.text
+    # Il blocco `bonus` (0011) viene ESCLUSO dallo scan a sottostringhe, ed e'
+    # l'unica esclusione del file. Motivo: le aliquote fiscali abitano lo stesso
+    # intervallo numerico dei coefficienti impresa e li COINCIDONO davvero — il
+    # coefficiente di D-PRODOTTI e' 0.5 e il bonus ristrutturazione prima casa
+    # e' il 50%, cioe' "0.5000". Nessuno scan testuale (ne' un confronto per
+    # valore) puo' distinguere i due, quindi tenerli insieme renderebbe il test
+    # rosso per una collisione di cifre invece che per una fuga.
+    #
+    # La garanzia non si indebolisce, si sposta: il blocco bonus e' un DTO a
+    # campi chiusi (`BonusOut`/`BonusDettaglioOut` in schemas/stima.py) e qui
+    # sotto se ne verifica l'elenco esatto delle chiavi. Aggiungere un campo a
+    # quel DTO rompe questo test, che e' esattamente il comportamento voluto:
+    # nessun campo nuovo entra nella risposta senza passare da qui.
+    bonus = body.get("bonus")
+    corpo_senza_bonus = {k: v for k, v in body.items() if k != "bonus"}
+    raw_text = json.dumps(corpo_senza_bonus)
 
     for forbidden in FORBIDDEN_SUBSTRINGS:
         assert forbidden not in raw_text, f"forbidden substring '{forbidden}' leaked in response"
@@ -100,3 +117,30 @@ def test_response_never_leaks_impresa_secret(client, citta, fallback_expected, t
         assert coeff_value not in raw_text, f"forbidden coefficient value '{coeff_value}' leaked in response"
 
     _assert_no_forbidden_keys(body)
+
+    if bonus is not None:
+        assert set(bonus) == {
+            "bonus",
+            "detrazione_min",
+            "detrazione_max",
+            "rata_annua_min",
+            "rata_annua_max",
+            "disclaimer",
+        }
+        for dettaglio in bonus["bonus"]:
+            assert set(dettaglio) == {
+                "code",
+                "nome",
+                "descrizione",
+                "base_min",
+                "base_max",
+                "aliquota_pct",
+                "tetto_spesa_eur",
+                "tetto_modalita",
+                "tetto_raggiunto",
+                "rate_annuali",
+                "detrazione_min",
+                "detrazione_max",
+                "rata_annua_min",
+                "rata_annua_max",
+            }

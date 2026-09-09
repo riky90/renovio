@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import json
 import sys
+from datetime import date as _date
 from decimal import Decimal
 from pathlib import Path
 
@@ -35,7 +36,20 @@ if str(_BACKEND_DIR) not in sys.path:
 
 import app.models  # noqa: E402, F401 - registers all ORM entities on Base.metadata
 from app.db import Base, SessionLocal, engine  # noqa: E402
-from app.models.catalogo import Categoria, ComuneListino, Extra, Moltiplicatore, TipoRistrutturazione  # noqa: E402
+from app.models.bonus import (  # noqa: E402
+    AliquotaBonus,
+    BonusCategoria,
+    BonusExtra,
+    BonusFiscale,
+)
+from app.models.catalogo import (  # noqa: E402
+    Categoria,
+    ComuneListino,
+    Extra,
+    LivelloFinitura,
+    Moltiplicatore,
+    TipoRistrutturazione,
+)
 from app.models.dettaglio_pro import CoefficienteQuantitaVoce, Sottocategoria, Voce  # noqa: E402
 from app.models.listino import Listino, ListinoCategoria  # noqa: E402
 from app.models.testo import Testo  # noqa: E402
@@ -64,6 +78,28 @@ CATEGORIA_NOMI = {
 }
 CATEGORIA_ORDINE = {"A-EDILE": 1, "B-FINITURE": 2, "C-SERRAMENTI": 3, "D-PRODOTTI": 4}
 
+# Dove il livello di finitura ha senso. A-EDILE resta FUORI: demolizioni,
+# impianti e massetti dipendono dal TIPO di ristrutturazione, non dal gusto del
+# cliente. Vive qui e finisce in tabella (`categoria.livello_selezionabile`)
+# invece di essere un `if code == "A-EDILE"` sparso nel motore.
+CATEGORIA_LIVELLO_SELEZIONABILE = {
+    "A-EDILE": False,
+    "B-FINITURE": True,
+    "C-SERRAMENTI": True,
+    "D-PRODOTTI": True,
+}
+
+# I tre livelli di finitura. `medio` e' il default applicato quando l'utente non
+# sceglie: e' la scelta piu' difendibile su una stima pre-sopralluogo.
+LIVELLI_FINITURA = [
+    {"code": "base", "nome": "Entry level", "ordine": 1, "is_default": False,
+     "descrizione": "Materiali di serie, buon rapporto qualita/prezzo."},
+    {"code": "medio", "nome": "Medio", "ordine": 2, "is_default": True,
+     "descrizione": "Materiali di fascia media, la scelta piu' frequente."},
+    {"code": "alto", "nome": "Lusso", "ordine": 3, "is_default": False,
+     "descrizione": "Materiali di pregio e finiture su misura."},
+]
+
 # Internal margin coefficient per category (foglio `listini` del computo).
 # SEGRETO server-side: mai esposto al client (D-11 / CLAUDE.md). Mappatura
 # fissata in 01-RESEARCH.md Open Question 1 (A1): A->0.65, B->0.6, C->0.55, D->0.5.
@@ -89,11 +125,136 @@ RE_ALIASES = ["Reggio Emilia", "Reggio nell'Emilia"]
 # Testi/disclaimer iniziali (D-14): valori identici agli hardcoded attuali,
 # migrati in tabella Testo. Scope v1 SOLO backend-owned (04-RESEARCH.md Open
 # Question 1) — nessuna chiave per il fallback referente D-05 (Pitfall 5).
+# --- Bonus fiscali (0011) --------------------------------------------------
+# NORMATIVA 2026 verificata su fonti aggiornate. Le aliquote CALANO dal 2027:
+# per questo la riga 2027 e' gia' seminata oggi, con `valido_dal`. Il passaggio
+# d'anno non deve richiedere un deploy — e' un dato, non un rilascio.
+#
+# Barriere architettoniche 75%: SCADUTO il 31/12/2025. Dal 2026 quegli
+# interventi rientrano nel bonus ristrutturazione, quindi non c'e' una riga
+# dedicata. Questo commento esiste perche' la sua assenza non sembri una
+# dimenticanza.
+BONUS_FISCALI = [
+    {
+        "code": "RISTRUTTURAZIONE",
+        "nome": "Bonus ristrutturazione",
+        "descrizione": (
+            "Detrazione IRPEF sugli interventi di recupero edilizio, in 10 quote annuali."
+        ),
+        "ordine": 1,
+        "attivo": True,
+    },
+    {
+        "code": "ECOBONUS",
+        "nome": "Ecobonus",
+        "descrizione": (
+            "Detrazione sugli interventi di riqualificazione energetica "
+            "(serramenti, schermature, coibentazioni), in 10 quote annuali."
+        ),
+        "ordine": 2,
+        "attivo": True,
+    },
+    {
+        # Seminato ma SPENTO: serve un input dedicato (la spesa per l'arredo),
+        # che il form non raccoglie. Acceso il giorno che quell'input esiste.
+        "code": "MOBILI",
+        "nome": "Bonus mobili",
+        "descrizione": "Detrazione sull'acquisto di mobili e grandi elettrodomestici.",
+        "ordine": 3,
+        "attivo": False,
+    },
+    {
+        # Seminato ma SPENTO: serve la classe di rischio sismico dell'immobile.
+        "code": "SISMABONUS",
+        "nome": "Sismabonus",
+        "descrizione": "Detrazione sugli interventi di riduzione del rischio sismico.",
+        "ordine": 4,
+        "attivo": False,
+    },
+]
+
+_DAL_2026 = _date(2026, 1, 1)
+_AL_2026 = _date(2026, 12, 31)
+_DAL_2027 = _date(2027, 1, 1)
+
+ALIQUOTE_BONUS = [
+    # --- 2026 -------------------------------------------------------------
+    {"bonus_code": "RISTRUTTURAZIONE", "destinazione": "prima_casa", "aliquota_pct": "0.50",
+     "tetto_spesa_eur": "96000", "tetto_modalita": "per_unita_immobiliare", "rate_annuali": 10,
+     "valido_dal": _DAL_2026, "valido_al": _AL_2026,
+     "note": "Abitazione principale, 2026."},
+    {"bonus_code": "RISTRUTTURAZIONE", "destinazione": "altro", "aliquota_pct": "0.36",
+     "tetto_spesa_eur": "96000", "tetto_modalita": "per_unita_immobiliare", "rate_annuali": 10,
+     "valido_dal": _DAL_2026, "valido_al": _AL_2026,
+     "note": "Immobili diversi dall'abitazione principale, 2026."},
+    {"bonus_code": "ECOBONUS", "destinazione": "prima_casa", "aliquota_pct": "0.50",
+     "tetto_spesa_eur": "60000", "tetto_modalita": "per_intervento", "rate_annuali": 10,
+     "valido_dal": _DAL_2026, "valido_al": _AL_2026,
+     "note": "Massimale serramenti/schermature. Cappotto 60.000, climatizzazione 30.000, "
+             "riqualificazione globale 100.000: da differenziare quando la stima "
+             "distinguera' i singoli interventi."},
+    {"bonus_code": "ECOBONUS", "destinazione": "altro", "aliquota_pct": "0.36",
+     "tetto_spesa_eur": "60000", "tetto_modalita": "per_intervento", "rate_annuali": 10,
+     "valido_dal": _DAL_2026, "valido_al": _AL_2026, "note": None},
+    # --- dal 2027: aliquote ridotte, gia' a DB ----------------------------
+    {"bonus_code": "RISTRUTTURAZIONE", "destinazione": "prima_casa", "aliquota_pct": "0.36",
+     "tetto_spesa_eur": "96000", "tetto_modalita": "per_unita_immobiliare", "rate_annuali": 10,
+     "valido_dal": _DAL_2027, "valido_al": None,
+     "note": "Aliquota ridotta dal 2027. Da riverificare: dal 2028 e' previsto anche un "
+             "abbassamento del tetto di spesa."},
+    {"bonus_code": "RISTRUTTURAZIONE", "destinazione": "altro", "aliquota_pct": "0.30",
+     "tetto_spesa_eur": "96000", "tetto_modalita": "per_unita_immobiliare", "rate_annuali": 10,
+     "valido_dal": _DAL_2027, "valido_al": None, "note": "Aliquota ridotta dal 2027."},
+    {"bonus_code": "ECOBONUS", "destinazione": "prima_casa", "aliquota_pct": "0.36",
+     "tetto_spesa_eur": "60000", "tetto_modalita": "per_intervento", "rate_annuali": 10,
+     "valido_dal": _DAL_2027, "valido_al": None, "note": "Aliquota ridotta dal 2027."},
+    {"bonus_code": "ECOBONUS", "destinazione": "altro", "aliquota_pct": "0.30",
+     "tetto_spesa_eur": "60000", "tetto_modalita": "per_intervento", "rate_annuali": 10,
+     "valido_dal": _DAL_2027, "valido_al": None, "note": "Aliquota ridotta dal 2027."},
+    # Bonus spenti: le aliquote esistono comunque, cosi' accenderli e' un flag.
+    {"bonus_code": "MOBILI", "destinazione": "prima_casa", "aliquota_pct": "0.50",
+     "tetto_spesa_eur": "5000", "tetto_modalita": "per_unita_immobiliare", "rate_annuali": 10,
+     "valido_dal": _DAL_2026, "valido_al": None, "note": "Spento: manca l'input spesa mobili."},
+    {"bonus_code": "SISMABONUS", "destinazione": "prima_casa", "aliquota_pct": "0.50",
+     "tetto_spesa_eur": None, "tetto_modalita": None, "rate_annuali": 10,
+     "valido_dal": _DAL_2026, "valido_al": None, "note": "Spento: manca la classe di rischio."},
+]
+
+# Quale spesa alimenta quale bonus. La somma delle quote per categoria sui
+# bonus ATTIVI deve stare entro 1, altrimenti la stessa spesa verrebbe
+# detratta due volte (verificato da test_bonus.py e da un 409 lato admin).
+BONUS_CATEGORIE = [
+    {"bonus_code": "RISTRUTTURAZIONE", "categoria_code": "A-EDILE", "quota": "1"},
+    {"bonus_code": "RISTRUTTURAZIONE", "categoria_code": "B-FINITURE", "quota": "1"},
+    {"bonus_code": "RISTRUTTURAZIONE", "categoria_code": "D-PRODOTTI", "quota": "1"},
+    # I serramenti vanno sull'ECOBONUS, non sul bonus ristrutturazione.
+    {"bonus_code": "ECOBONUS", "categoria_code": "C-SERRAMENTI", "quota": "1"},
+]
+
+# Quali EXTRA alimentano quale bonus. CSE/CSP (sicurezza in cantiere) e
+# pratiche amministrative sono prestazioni tecniche connesse all'intervento e
+# rientrano nella spesa detraibile del bonus ristrutturazione: sono elencati
+# qui e non sommati d'ufficio perche' la detraibilita' di un extra e' curatela
+# fiscale, e un extra futuro non detraibile deve poter restare fuori senza
+# toccare il codice. Stesso vincolo delle categorie: somma delle quote per
+# extra sui bonus attivi entro 1.
+BONUS_EXTRA = [
+    {"bonus_code": "RISTRUTTURAZIONE", "extra_code": "CSE_CSP", "quota": "1"},
+    {"bonus_code": "RISTRUTTURAZIONE", "extra_code": "pratiche", "quota": "1"},
+]
+
 TESTI_INIZIALI = {
     "disclaimer_fallback_citta": (
         "Stima basata sul listino di Reggio Emilia, non ancora tarata su {citta}."
     ),
     "email_conferma_lead_subject": "Conferma richiesta contatto professionista",
+    # Contenuto minimo non negoziabile: capienza IRPEF, 10 rate, bonifico
+    # parlante + ENEA, "non e' consulenza fiscale". Modificabile da admin (il
+    # seed non lo sovrascrive piu' — vedi seed_testi), ma non rimovibile dalla
+    # UI: viaggia dentro `BonusOut`.
+    "disclaimer_bonus": (
+        "Gli importi delle detrazioni sono una stima commerciale, non consulenza fiscale: verificali sempre con il tuo commercialista prima di impegnarti in una spesa. La detrazione si recupera in 10 quote annuali di pari importo e solo entro la capienza IRPEF: se l'imposta lorda dell'anno e' inferiore alla rata, la parte eccedente si perde e non e' recuperabile negli anni successivi. Per averne diritto servono il pagamento con bonifico parlante e gli adempimenti previsti (per l'ecobonus, la comunicazione ENEA entro 90 giorni dalla fine dei lavori). Gli importi qui indicati derivano da una stima pre-sopralluogo e sono espressi a range."
+    ),
 }
 
 
@@ -139,7 +300,16 @@ def _upsert_sottocategoria(session: Session, listino: Listino, sotto_data: dict)
 
 
 def _upsert_voce(session: Session, sotto: Sottocategoria, voce_data: dict) -> Voce:
-    """Upsert per chiave naturale (sottocategoria_id, codice-o-descrizione)."""
+    """Upsert per chiave naturale (sottocategoria_id, codice-o-descrizione).
+
+    `livello` segue una regola DIVERSA dagli altri campi: si scrive solo se la
+    chiave e' presente nel JSON di seed. Il motivo e' lo stesso di `seed_testi`
+    (che il seed a ogni boot del container aveva gia' morso una volta): il
+    livello delle voci e' curatela dell'admin dal pannello, non un dato che il
+    seed possiede. Un `voce.livello = voce_data.get("livello")` incondizionato
+    riporterebbe a NULL tutta la classificazione a ogni deploy — e con tutti i
+    livelli a NULL il motore torna a sommare i cataloghi, cioe' il bug che
+    questa feature esiste per chiudere."""
     codice = voce_data.get("codice")
     descrizione = voce_data["descrizione"]
     query = session.query(Voce).filter_by(sottocategoria_id=sotto.id)
@@ -153,6 +323,7 @@ def _upsert_voce(session: Session, sotto: Sottocategoria, voce_data: dict) -> Vo
             um=voce_data["um"],
             prezzo_unitario_cliente=_dec(voce_data["prezzo_unitario_cliente"]),
             ordine=voce_data.get("ordine", 0),
+            livello=voce_data.get("livello"),
         )
         session.add(voce)
         session.flush()
@@ -161,6 +332,8 @@ def _upsert_voce(session: Session, sotto: Sottocategoria, voce_data: dict) -> Vo
         voce.um = voce_data["um"]
         voce.prezzo_unitario_cliente = _dec(voce_data["prezzo_unitario_cliente"])
         voce.ordine = voce_data.get("ordine", 0)
+        if "livello" in voce_data:
+            voce.livello = voce_data["livello"]
     return voce
 
 
@@ -201,11 +374,108 @@ def seed_dettaglio_pro(session: Session, listino: Listino, data: dict | None = N
                 _upsert_coefficiente_qta(session, voce, tipo_code, coeff_data)
 
 
+def seed_bonus(session: Session) -> None:
+    """Upsert idempotente di bonus, aliquote e mapping (categoria|extra)->bonus.
+    Chiamata da `seed()` — mai un secondo script (D-12/Pitfall 5).
+
+    Chiavi naturali: `bonus_fiscale.code` (PK), `aliquota_bonus`
+    (bonus_code, destinazione, valido_dal), `bonus_categoria`
+    (bonus_code, categoria_code), `bonus_extra` (bonus_code, extra_code).
+    Nessun DELETE: una riga aggiunta a mano
+    dall'admin non viene mai rimossa dal seed."""
+    for dati in BONUS_FISCALI:
+        row = session.get(BonusFiscale, dati["code"])
+        if row is None:
+            row = BonusFiscale(code=dati["code"])
+            session.add(row)
+        row.nome = dati["nome"]
+        row.descrizione = dati["descrizione"]
+        row.ordine = dati["ordine"]
+        row.attivo = dati["attivo"]
+    session.flush()
+
+    for dati in ALIQUOTE_BONUS:
+        row = (
+            session.query(AliquotaBonus)
+            .filter_by(
+                bonus_code=dati["bonus_code"],
+                destinazione=dati["destinazione"],
+                valido_dal=dati["valido_dal"],
+            )
+            .one_or_none()
+        )
+        if row is None:
+            row = AliquotaBonus(
+                bonus_code=dati["bonus_code"],
+                destinazione=dati["destinazione"],
+                valido_dal=dati["valido_dal"],
+            )
+            session.add(row)
+        row.aliquota_pct = _dec(dati["aliquota_pct"])
+        row.tetto_spesa_eur = (
+            _dec(dati["tetto_spesa_eur"]) if dati["tetto_spesa_eur"] is not None else None
+        )
+        row.tetto_modalita = dati["tetto_modalita"]
+        row.rate_annuali = dati["rate_annuali"]
+        row.valido_al = dati["valido_al"]
+        row.note = dati["note"]
+    session.flush()
+
+    for dati in BONUS_CATEGORIE:
+        row = (
+            session.query(BonusCategoria)
+            .filter_by(bonus_code=dati["bonus_code"], categoria_code=dati["categoria_code"])
+            .one_or_none()
+        )
+        if row is None:
+            row = BonusCategoria(
+                bonus_code=dati["bonus_code"], categoria_code=dati["categoria_code"]
+            )
+            session.add(row)
+        row.quota_ammissibile_pct = _dec(dati["quota"])
+
+    for dati in BONUS_EXTRA:
+        row = (
+            session.query(BonusExtra)
+            .filter_by(bonus_code=dati["bonus_code"], extra_code=dati["extra_code"])
+            .one_or_none()
+        )
+        if row is None:
+            row = BonusExtra(bonus_code=dati["bonus_code"], extra_code=dati["extra_code"])
+            session.add(row)
+        row.quota_ammissibile_pct = _dec(dati["quota"])
+
+
+def seed_livelli_finitura(session: Session) -> None:
+    """Upsert idempotente dei livelli di finitura (chiave naturale: `code`, che
+    e' la PK). Chiamata da `seed()` — mai un secondo script (D-12/Pitfall 5).
+
+    A differenza di `seed_testi`, qui l'upsert SOVRASCRIVE: nome, ordine e
+    default dei tre livelli sono struttura del prodotto, non contenuto
+    editoriale dell'admin. Cio' che l'admin cura e' l'assegnazione dei livelli
+    alle VOCI (`voce.livello`), e quella il seed rispetta: vedi la regola
+    condizionale in `_upsert_voce`."""
+    for dati in LIVELLI_FINITURA:
+        row = session.get(LivelloFinitura, dati["code"])
+        if row is None:
+            row = LivelloFinitura(code=dati["code"])
+            session.add(row)
+        row.nome = dati["nome"]
+        row.ordine = dati["ordine"]
+        row.descrizione = dati["descrizione"]
+        row.is_default = dati["is_default"]
+
+
 def seed_testi(session: Session) -> None:
-    """Idempotent upsert dei testi/disclaimer iniziali (D-14) nella tabella
-    Testo, upsert per chiave naturale (`chiave` e' gia' la PK). Chiamata da
-    `seed()` — STESSA funzione idempotente, non un secondo script
-    (D-12/Pitfall 5)."""
+    """Create-if-missing dei testi/disclaimer iniziali (D-14) nella tabella
+    Testo, per chiave naturale (`chiave` e' gia' la PK). Chiamata da `seed()`
+    — STESSA funzione idempotente, non un secondo script (D-12/Pitfall 5).
+
+    ATTENZIONE: qui NON si aggiorna il valore di una riga esistente. `seed()`
+    gira a ogni boot del container (Dockerfile CMD), quindi un upsert che
+    riscrive `valore` riporterebbe ogni testo modificato dal pannello admin
+    al default cablato a ogni deploy. I testi sono contenuto editoriale
+    dell'admin: il seed li crea, non li possiede."""
     import datetime as _dt
 
     for chiave, valore in TESTI_INIZIALI.items():
@@ -213,8 +483,7 @@ def seed_testi(session: Session) -> None:
         if row is None:
             row = Testo(chiave=chiave, valore=valore, updated_at=_dt.datetime.now(_dt.timezone.utc))
             session.add(row)
-        else:
-            row.valore = valore
+        # else: riga gia' presente -> non si tocca (vedi docstring).
 
 
 def seed(session: Session, data: dict | None = None) -> Listino:
@@ -244,6 +513,7 @@ def seed(session: Session, data: dict | None = None) -> Listino:
             cat.nome = CATEGORIA_NOMI[code]
             cat.ordine = CATEGORIA_ORDINE[code]
             cat.iva_pct = _dec(iva)
+        cat.livello_selezionabile = CATEGORIA_LIVELLO_SELEZIONABILE.get(code, False)
     session.flush()
 
     # 3. listino_categoria (4): base_eur_mq (prezzo cliente) + coefficiente_impresa (segreto)
@@ -317,7 +587,13 @@ def seed(session: Session, data: dict | None = None) -> Listino:
     # listino RE, stessa funzione seed() idempotente (D-03/D-12/Pitfall 5).
     seed_dettaglio_pro(session, listino)
 
-    # 9. testi/disclaimer (D-14) — stessa funzione seed() idempotente.
+    # 9. livelli di finitura (0010) — stessa funzione seed() idempotente.
+    seed_livelli_finitura(session)
+
+    # 10. bonus fiscali (0011) — stessa funzione seed() idempotente.
+    seed_bonus(session)
+
+    # 11. testi/disclaimer (D-14) — stessa funzione seed() idempotente.
     seed_testi(session)
 
     session.commit()

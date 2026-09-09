@@ -55,6 +55,8 @@ class VoceIn(BaseModel):
     um: str = Field(min_length=1, max_length=16)
     prezzo_unitario_cliente: Decimal = Field(gt=0)
     ordine: int = Field(default=0, ge=0)
+    # None = voce comune a tutti i livelli (posa, consumo, montaggio).
+    livello: str | None = Field(default=None, max_length=16)
 
 
 class VoceUpdate(BaseModel):
@@ -63,6 +65,9 @@ class VoceUpdate(BaseModel):
     um: str | None = Field(default=None, min_length=1, max_length=16)
     prezzo_unitario_cliente: Decimal | None = Field(default=None, gt=0)
     ordine: int | None = Field(default=None, ge=0)
+    # PATCH usa `exclude_unset`: omettere `livello` non lo tocca, mandarlo a
+    # `null` lo riporta esplicitamente a "comune a tutti i livelli".
+    livello: str | None = Field(default=None, max_length=16)
 
 
 class VoceOut(BaseModel):
@@ -73,6 +78,15 @@ class VoceOut(BaseModel):
     um: str
     prezzo_unitario_cliente: Decimal
     ordine: int
+    livello: str | None = None
+
+
+class LivelloFinituraAdminOut(BaseModel):
+    code: str
+    nome: str
+    ordine: int
+    descrizione: str | None
+    is_default: bool
 
 
 # --- Applicazione per tipo (CoefficienteQuantitaVoce) ----------------------

@@ -1,8 +1,11 @@
 import { Link, Navigate, useSearchParams } from "react-router";
+import { useQuery } from "@tanstack/react-query";
 import { AccountMenu } from "@/components/AccountMenu";
+import { BonusPanel } from "@/components/BonusPanel";
 import { DettaglioProView } from "@/components/DettaglioProView";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { getStimaDettaglio } from "@/api/stima";
 
 const INTRO_COPY =
   "Voci e quantità stimate a partire da superficie e tipo di intervento. Questo dettaglio è una stima indipendente, più precisa del totale rapido — i due numeri possono differire.";
@@ -19,6 +22,16 @@ export function DettaglioProPage() {
   const stimaIdParam = searchParams.get("stima");
   const stimaId = stimaIdParam ? Number(stimaIdParam) : NaN;
   const { user, isLoading: isAuthLoading } = useAuth();
+
+  // Le detrazioni si leggono dallo SNAPSHOT, non dal dettaglio Pro: i bonus si
+  // calcolano sui totali lordi del motore Free (il Pro non modella l'IVA), e
+  // `risultato_json` e' esattamente quel calcolo, congelato. Stessa fonte usata
+  // da SavedEstimateDetail, quindi i due punti d'ingresso non divergono.
+  const snapshotQuery = useQuery({
+    queryKey: ["stima-dettaglio", stimaId],
+    queryFn: () => getStimaDettaglio(stimaId),
+    enabled: Number.isFinite(stimaId),
+  });
 
   if (!isAuthLoading && (!user || !user.pro)) {
     return <Navigate to="/passa-a-pro" replace />;
@@ -50,6 +63,8 @@ export function DettaglioProPage() {
       </div>
 
       <DettaglioProView stimaId={stimaId} />
+
+      {snapshotQuery.data?.bonus && <BonusPanel bonus={snapshotQuery.data.bonus} />}
 
       <Button variant="outline" asChild className="h-11 w-full">
         <Link to="/">Torna alla stima</Link>

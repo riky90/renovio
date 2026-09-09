@@ -229,3 +229,30 @@ def test_post_risposte_persiste_e_get_successivo_le_riflette(http_client):
         if v["codice"] == "A.0.3"
     )
     assert Decimal(voce_bagni["quantita_stimata"]) == Decimal("3.00")
+
+
+def test_risposte_salvate_distingue_zero_zero_zero_da_nessuna_risposta(http_client):
+    """`{0, 0, 0}` e' una risposta legittima — "non ho bagni da rifare" — e non
+    deve essere indistinguibile dal non aver mai risposto.
+
+    Senza questo flag il client deduce lo stato dalla somma delle risposte e
+    riapre il pannello domande addosso a chi ha appena risposto zero."""
+    http_client.post(
+        REGISTRAZIONE_URL,
+        json={"email": "zero.pro@example.com", "password": "Password123", "nome": "Zero"},
+    )
+    http_client.post(ATTIVA_PRO_URL)
+    stima_id = http_client.post(STIME_URL, json=_stima_payload()).json()["id"]
+
+    prima = http_client.get(f"{STIME_URL}/{stima_id}/dettaglio-pro").json()
+    assert prima["risposte_salvate"] is False
+
+    post_response = http_client.post(
+        f"{STIME_URL}/{stima_id}/dettaglio-pro/risposte",
+        json={"bagni": 0, "porte": 0, "condizionatori": 0},
+    )
+    assert post_response.json()["risposte_salvate"] is True
+
+    dopo = http_client.get(f"{STIME_URL}/{stima_id}/dettaglio-pro").json()
+    assert dopo["risposte_salvate"] is True
+    assert dopo["risposte"] == {"bagni": 0, "porte": 0, "condizionatori": 0}

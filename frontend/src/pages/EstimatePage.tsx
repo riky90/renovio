@@ -1,14 +1,15 @@
 import { useEffect } from "react";
+import { useNavigate } from "react-router";
 import { useMutation } from "@tanstack/react-query";
 import { Gauge, MapPin, Zap, type LucideIcon } from "lucide-react";
 import { CategoryCard } from "@/components/CategoryCard";
-import { DettaglioProView } from "@/components/DettaglioProView";
 import { EstimateForm, type EstimateFormValues } from "@/components/EstimateForm";
 import { FallbackDisclaimer } from "@/components/FallbackDisclaimer";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SoftWallCta } from "@/components/SoftWallCta";
 import { TotalCard } from "@/components/TotalCard";
+import { BonusPanel } from "@/components/BonusPanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,10 +24,13 @@ const TIPO_LABELS: Record<EstimateFormValues["tipo"], string> = {
   totale: "Totale",
 };
 
+const DESTINAZIONE_LABELS: Record<EstimateFormValues["destinazione"], string> = {
+  prima_casa: "Abitazione principale",
+  altro: "Altro immobile",
+};
+
 const ERROR_COPY =
   "Non siamo riusciti a calcolare la stima. Controlla i dati inseriti e riprova. Se il problema persiste, riprova tra qualche istante.";
-const SAVE_ERROR_COPY =
-  "Non siamo riusciti a salvare la stima per aprire il dettaglio. Riprova tra qualche istante.";
 
 interface Benefit {
   icon: LucideIcon;
@@ -78,7 +82,12 @@ export function EstimatePage() {
 
   // Auto-save da loggato (D-07): nessun ricalcolo, si congela esattamente il
   // payload gia' mostrato dal risultato corrente.
-  const saveMutation = useMutation({ mutationFn: postSalvaStima });
+  // L'arrow è necessaria: `postSalvaStima` ha un secondo parametro opzionale
+  // (`preferenze_pro`, usato dal form Pro) e react-query passerebbe lì il
+  // proprio context. Qui la home non ha preferenze da mandare.
+  const saveMutation = useMutation({
+    mutationFn: (payload: StimaResponse) => postSalvaStima(payload),
+  });
 
   const result = mutation.data;
   const input = mutation.variables;
@@ -211,28 +220,12 @@ export function EstimatePage() {
               <>
                 <SummaryPanel input={input} onModifica={handleModifica} />
 
-                {user?.pro ? (
-                  saveMutation.isError ? (
-                    <div className="flex flex-col gap-4">
-                      <Alert variant="destructive">
-                        <AlertDescription>{SAVE_ERROR_COPY}</AlertDescription>
-                      </Alert>
-                      <Button
-                        type="button"
-                        onClick={() => saveMutation.mutate(result)}
-                        className="w-full"
-                      >
-                        Riprova
-                      </Button>
-                    </div>
-                  ) : (
-                    <DettaglioProView
-                      stimaId={saveMutation.data?.id ?? NaN}
-                      enabled={saveMutation.data?.id != null}
-                    />
-                  )
-                ) : (
-                  <>
+                {/* Il risultato sintetico si mostra a TUTTI, Pro inclusi: e' anche
+                    l'unico posto in cui i bonus compaiono, perche' si calcolano
+                    sui totali lordi del motore Free (il motore Pro non modella
+                    l'IVA). Il dettaglio voce per voce vive su /nuova-stima e
+                    /dettaglio-pro, dove le domande mirate sono state poste. */}
+                <>
                     {result.fallback && result.disclaimer && (
                       <FallbackDisclaimer disclaimer={result.disclaimer} />
                     )}
@@ -261,6 +254,8 @@ export function EstimatePage() {
 
                     <TotalCard totale={result.totale} />
 
+                    {result.bonus && <BonusPanel bonus={result.bonus} />}
+
                     <SoftWallCta
                       result={result}
                       isAuthenticated={!!user}
@@ -268,8 +263,9 @@ export function EstimatePage() {
                       isSaving={saveMutation.isPending}
                       isPro={!!user?.pro}
                     />
-                  </>
-                )}
+                </>
+
+                {user?.pro && <CtaDettaglioPro />}
               </>
             )}
           </div>
@@ -277,6 +273,31 @@ export function EstimatePage() {
       </main>
 
       <SiteFooter />
+    </div>
+  );
+}
+
+/**
+ * Per un utente Pro la home resta la stima rapida: il dettaglio voce per voce
+ * richiede le domande mirate e i livelli di finitura, che si raccolgono nel
+ * form a due step su /nuova-stima.
+ */
+function CtaDettaglioPro() {
+  const navigate = useNavigate();
+
+  return (
+    <div className="flex flex-col items-start gap-3 rounded-xl border border-primary/30 bg-accent/40 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-0.5">
+        <span className="text-sm font-semibold text-foreground">
+          Vuoi il dettaglio voce per voce?
+        </span>
+        <span className="text-sm text-muted-foreground">
+          Rispondi a due domande in piu' e ottieni il computo completo.
+        </span>
+      </div>
+      <Button type="button" onClick={() => navigate("/nuova-stima")} className="shrink-0">
+        Vai alla stima Pro
+      </Button>
     </div>
   );
 }
@@ -294,6 +315,7 @@ function SummaryPanel({ input, onModifica, disabled }: SummaryPanelProps) {
         <Badge variant="secondary">{input.citta}</Badge>
         <Badge variant="secondary">{input.mq} m²</Badge>
         <Badge variant="secondary">{TIPO_LABELS[input.tipo]}</Badge>
+        <Badge variant="secondary">{DESTINAZIONE_LABELS[input.destinazione]}</Badge>
       </div>
       <button
         type="button"

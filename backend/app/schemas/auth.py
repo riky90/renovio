@@ -31,6 +31,9 @@ class UserOut(BaseModel):
     cognome: str | None = None
     telefono: str | None = None
     citta: str | None = None
+    # Sola lettura: si cambia con POST/DELETE /auth/me/avatar, mai come campo
+    # di `ProfiloUpdateRequest`.
+    avatar_url: str | None = None
     role: str
     pro: bool
     created_at: datetime

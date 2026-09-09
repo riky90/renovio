@@ -11,16 +11,26 @@ Ogni rotta sta dietro `Depends(require_pro)`: 401 anonimo (via
 Pro"). Ownership-filter `id + user_id` -> `HTTPException(404)` (mai 403),
 stesso pattern anti-IDOR di `routers/stime_salvate.py`.
 
+A quel gate se ne affianca un SECONDO, ortogonale: `stima.tier` (congelato
+al salvataggio) deve valere 'pro'. `require_pro` guarda l'abbonamento
+CORRENTE, il tier guarda il piano con cui la stima e' NATA. Senza il
+secondo, abbonarsi trasformerebbe retroattivamente in Pro tutte le stime
+Free gia' salvate — che e' esattamente il bug che questa coppia di gate
+chiude. Una stima Free non diventa Pro: si rifa'.
+
 Il calcolo e' SEMPRE on-demand dallo snapshot (`citta`/`mq`/`tipo` colonne
 scalari di `StimaSalvata`, mai da `risultato_json`, D-09): questa e'
 l'asimmetria voluta rispetto al PDF Free (che legge solo lo snapshot
 congelato) — qui non serve un secondo snapshot perche' il dettaglio Pro
-deve restare aggiornabile dagli admin (Fase 4).
+deve restare aggiornabile dagli admin (Fase 4). Resta valida: cio' che il
+tier congela e' la DISPONIBILITA' del dettaglio, non il suo calcolo.
 
 Le risposte alle domande mirate (bagni/porte/condizionatori) sono
 persistite in `stima.risposte_pro_json`: GET, POST risposte e pdf-pro
 leggono/scrivono la STESSA colonna, cosi' la schermata e il PDF Pro non
-possono divergere (03-RESEARCH.md Pitfall 3).
+possono divergere (03-RESEARCH.md Pitfall 3). Dal 0010 vale lo stesso per i
+livelli di finitura in `stima.livelli_pro_json`: stessa colonna per tutti e
+tre gli endpoint, stessa garanzia.
 """
 
 from __future__ import annotations
@@ -34,22 +44,36 @@ from app.db import SessionLocal
 from app.dependencies.auth import require_pro
 from app.models.stima_salvata import StimaSalvata
 from app.models.user import User
+from app.models.catalogo import Categoria, LivelloFinitura
 from app.schemas.dettaglio_pro import (
     CategoriaDettagliataOut,
+    CategoriaLivelloOut,
     DettaglioProOut,
+    LivelloFinituraOut,
+    OpzioniProOut,
     RisposteDomandeOut,
     RisposteDomandeRequest,
     SottocategoriaOut,
     VoceOut,
 )
 from app.services.city_resolver import resolve_listino
-from app.services.dettaglio_pro import DettaglioProResult, DettaglioProService
+from app.services.dettaglio_pro import (
+    DettaglioProResult,
+    DettaglioProService,
+    LivelliNonValidi,
+    validate_livelli,
+)
 from app.services.pdf_service import PdfService, build_filename_pro
 
 router = APIRouter(prefix="/me", tags=["dettaglio-pro"])
 
 
-def _to_out(result: DettaglioProResult, risposte: dict) -> DettaglioProOut:
+def _to_out(
+    result: DettaglioProResult,
+    risposte: dict,
+    livelli_disponibili: list[LivelloFinitura],
+    risposte_salvate: bool = False,
+) -> DettaglioProOut:
     """Mappa campo-per-campo il risultato del servizio nel DTO chiuso — mai
     `model_validate` su entita' ORM o dataclass interne."""
     return DettaglioProOut(
@@ -70,6 +94,7 @@ def _to_out(result: DettaglioProResult, risposte: dict) -> DettaglioProOut:
                                 quantita_stimata=voce.quantita_stimata,
                                 prezzo_min=voce.prezzo_min,
                                 prezzo_max=voce.prezzo_max,
+                                livello=voce.livello,
                             )
                             for voce in sotto.voci
                         ],
@@ -80,16 +105,48 @@ def _to_out(result: DettaglioProResult, risposte: dict) -> DettaglioProOut:
                 ],
                 totale_min=cat.totale_min,
                 totale_max=cat.totale_max,
+                livello_scelto=cat.livello_scelto,
+                livello_scelto_nome=cat.livello_scelto_nome,
             )
             for cat in result.categorie
         ],
         totale_min=result.totale_min,
         totale_max=result.totale_max,
         risposte=RisposteDomandeOut(**risposte),
+        risposte_salvate=risposte_salvate,
+        # L'eco si ricostruisce dal RISULTATO, non dall'input: cosi' contiene i
+        # livelli davvero applicati, default inclusi.
+        livelli={
+            cat.code: cat.livello_scelto for cat in result.categorie if cat.livello_scelto
+        },
+        livelli_disponibili=[
+            LivelloFinituraOut(
+                code=row.code,
+                nome=row.nome,
+                ordine=row.ordine,
+                descrizione=row.descrizione,
+                is_default=row.is_default,
+            )
+            for row in livelli_disponibili
+        ],
     )
 
 
 def _get_owned_stima(session: Session, stima_id: int, current_user: User) -> StimaSalvata:
+    """Ownership + tier. Due gate ortogonali, in quest'ordine:
+
+    1. la riga non esiste o e' di un altro utente -> 404 (mai 403), cosi'
+       l'esistenza non trapela (anti-IDOR, stesso pattern di
+       `routers/stime_salvate.py`);
+    2. la riga esiste ed e' dell'utente ma e' stata creata col piano Free ->
+       403. Qui il 403 e' corretto proprio perche' l'ownership e' gia' stata
+       verificata sopra: non si sta rivelando nulla che il chiamante non
+       possieda gia'.
+
+    Il secondo gate e' cio' che impedisce a una stima Free storica di
+    diventare Pro quando l'utente si abbona (`Depends(require_pro)` guarda
+    l'abbonamento CORRENTE, questo guarda il tier CONGELATO della stima).
+    """
     stmt = select(StimaSalvata).where(
         StimaSalvata.id == stima_id,
         StimaSalvata.user_id == current_user.id,
@@ -97,18 +154,70 @@ def _get_owned_stima(session: Session, stima_id: int, current_user: User) -> Sti
     row = session.execute(stmt).scalar_one_or_none()
     if row is None:
         raise HTTPException(404, "Stima non trovata")
+    if (row.tier or "free") != "pro":
+        raise HTTPException(
+            403,
+            "Questa stima e' stata creata con il piano Free. "
+            "Rifalla in versione Pro per il dettaglio voce per voce.",
+        )
     return row
 
 
-def _compute_dettaglio(session: Session, row: StimaSalvata) -> tuple[DettaglioProResult, dict]:
+def _compute_dettaglio(
+    session: Session, row: StimaSalvata
+) -> tuple[DettaglioProResult, dict, bool]:
     """Unico punto di calcolo condiviso da GET dettaglio-pro, POST risposte e
     GET pdf-pro — garantisce parita' numerica by-construction tra schermata
     e PDF (03-RESEARCH.md Pitfall 2): stessi argomenti (listino risolto da
-    `row.citta`, `row.mq`, `row.tipo`, `row.risposte_pro_json`)."""
+    `row.citta`, `row.mq`, `row.tipo`, `row.risposte_pro_json`,
+    `row.livelli_pro_json`).
+
+    Aggiungere qui un secondo punto di calcolo — anche solo per il PDF — e' il
+    modo piu' rapido di far divergere schermata e stampa."""
     listino, _fallback = resolve_listino(session, row.citta)
+    # La colonna NULL e la risposta {0, 0, 0} sono due stati diversi e vanno
+    # tenuti distinti fin da qui: `or {}` serve al calcolo, il flag alla UI.
+    risposte_salvate = row.risposte_pro_json is not None
     risposte = row.risposte_pro_json or {}
-    result = DettaglioProService.compute(session, listino, row.mq, row.tipo, risposte)
-    return result, risposte
+    livelli = row.livelli_pro_json or {}
+    result = DettaglioProService.compute(session, listino, row.mq, row.tipo, risposte, livelli)
+    return result, risposte, risposte_salvate
+
+
+def _livelli_disponibili(session: Session) -> list[LivelloFinitura]:
+    return session.query(LivelloFinitura).order_by(LivelloFinitura.ordine).all()
+
+
+@router.get("/opzioni-pro", response_model=OpzioniProOut)
+def opzioni_pro(_current_user: User = Depends(require_pro)) -> OpzioniProOut:
+    """Catalogo dei livelli + categorie che li ammettono, per il form Pro.
+
+    Esiste separato da `GET /admin/dettaglio-pro/livelli` perche' quello e'
+    dietro `require_admin`: gli stessi dati servono a un utente Pro qualunque,
+    e riusare l'endpoint admin avrebbe significato allargarne il gate.
+
+    Le categorie arrivano da `livello_selezionabile`, mai da un elenco di
+    codici cablato nel client (regola 3 del CLAUDE.md: e' un dato)."""
+    with SessionLocal() as session:
+        categorie = (
+            session.query(Categoria)
+            .filter_by(livello_selezionabile=True)
+            .order_by(Categoria.ordine)
+            .all()
+        )
+        return OpzioniProOut(
+            categorie=[CategoriaLivelloOut(code=c.code, nome=c.nome) for c in categorie],
+            livelli=[
+                LivelloFinituraOut(
+                    code=r.code,
+                    nome=r.nome,
+                    ordine=r.ordine,
+                    descrizione=r.descrizione,
+                    is_default=r.is_default,
+                )
+                for r in _livelli_disponibili(session)
+            ],
+        )
 
 
 @router.get("/stime/{stima_id}/dettaglio-pro", response_model=DettaglioProOut)
@@ -119,9 +228,9 @@ def dettaglio_pro(
     with SessionLocal() as session:
         row = _get_owned_stima(session, stima_id, current_user)
 
-        result, risposte = _compute_dettaglio(session, row)
+        result, risposte, risposte_salvate = _compute_dettaglio(session, row)
 
-        return _to_out(result, risposte)
+        return _to_out(result, risposte, _livelli_disponibili(session), risposte_salvate)
 
 
 @router.post("/stime/{stima_id}/dettaglio-pro/risposte", response_model=DettaglioProOut)
@@ -133,14 +242,23 @@ def salva_risposte_dettaglio_pro(
     with SessionLocal() as session:
         row = _get_owned_stima(session, stima_id, current_user)
 
-        risposte = payload.model_dump()
+        # `livelli` viaggia nello stesso payload ma vive in un'altra colonna:
+        # va escluso da `risposte_pro_json`, che deve continuare a contenere
+        # esattamente e solo le tre risposte mirate.
+        risposte = payload.model_dump(exclude={"livelli"})
         row.risposte_pro_json = risposte
+        if payload.livelli is not None:
+            try:
+                validate_livelli(session, payload.livelli)
+            except LivelliNonValidi as exc:
+                raise HTTPException(400, str(exc)) from exc
+            row.livelli_pro_json = payload.livelli
         session.commit()
         session.refresh(row)
 
-        result, risposte = _compute_dettaglio(session, row)
+        result, risposte, risposte_salvate = _compute_dettaglio(session, row)
 
-        return _to_out(result, risposte)
+        return _to_out(result, risposte, _livelli_disponibili(session), risposte_salvate)
 
 
 @router.get("/stime/{stima_id}/pdf-pro")
@@ -155,7 +273,7 @@ def scarica_pdf_pro(
     with SessionLocal() as session:
         row = _get_owned_stima(session, stima_id, current_user)
 
-        result, _risposte = _compute_dettaglio(session, row)
+        result, _risposte, _salvate = _compute_dettaglio(session, row)
 
         pdf_bytes = PdfService.render_pro(result, row, current_user)
         filename = build_filename_pro(row)

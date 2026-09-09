@@ -24,6 +24,9 @@ _FALLBACK_VALORI = {
         "Stima basata sul listino di Reggio Emilia, non ancora tarata su {citta}."
     ),
     "email_conferma_lead_subject": "Conferma richiesta contatto professionista",
+    "disclaimer_bonus": (
+        "Gli importi delle detrazioni sono una stima commerciale, non consulenza fiscale: verificali sempre con il tuo commercialista prima di impegnarti in una spesa. La detrazione si recupera in 10 quote annuali di pari importo e solo entro la capienza IRPEF: se l'imposta lorda dell'anno e' inferiore alla rata, la parte eccedente si perde e non e' recuperabile negli anni successivi. Per averne diritto servono il pagamento con bonifico parlante e gli adempimenti previsti (per l'ecobonus, la comunicazione ENEA entro 90 giorni dalla fine dei lavori). Gli importi qui indicati derivano da una stima pre-sopralluogo e sono espressi a range."
+    ),
 }
 
 

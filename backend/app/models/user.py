@@ -41,6 +41,10 @@ class User(Base):
     cognome: Mapped[str | None] = mapped_column(String(200), nullable=True)
     telefono: Mapped[str | None] = mapped_column(String(40), nullable=True)
     citta: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    # URL pubblico dell'avatar su R2. Scritto SOLO dall'endpoint di upload
+    # (mai da `ProfiloUpdateRequest`): una stringa arbitraria dal client
+    # aprirebbe a SSRF e hotlinking.
+    avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     role: Mapped[str] = mapped_column(String(16), nullable=False, default="user", server_default="user")
     created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.now())
 

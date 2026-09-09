@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { listListiniForSelect } from "@/api/admin/referenti";
 import {
+  listLivelli,
   listSottocategorie,
   createSottocategoria,
   updateSottocategoria,
@@ -71,9 +72,24 @@ interface VoceForm {
   um: string;
   prezzo: string;
   ordine: string;
+  livello: string;
 }
 
-const EMPTY_VOCE: VoceForm = { codice: "", descrizione: "", um: "", prezzo: "", ordine: "0" };
+/**
+ * Valore sentinella del Select: Radix non ammette `value=""` su un SelectItem,
+ * quindi "nessun livello" viaggia come stringa e si riconverte in `null` al
+ * confine API — dove null significa "voce comune a tutti i livelli".
+ */
+const LIVELLO_COMUNE = "__comune__";
+
+const EMPTY_VOCE: VoceForm = {
+  codice: "",
+  descrizione: "",
+  um: "",
+  prezzo: "",
+  ordine: "0",
+  livello: LIVELLO_COMUNE,
+};
 
 function sottoLabel(s: SottocategoriaOut): string {
   return s.codice ? `${s.codice} · ${s.nome}` : s.nome;
@@ -90,6 +106,14 @@ function DettaglioProContent() {
   const listiniQuery = useQuery({
     queryKey: ["admin-listini-select"],
     queryFn: listListiniForSelect,
+    enabled: isAdmin,
+  });
+
+  // I livelli sono un catalogo piccolo e stabile: una sola query per pagina,
+  // condivisa da tutti i dialog voce.
+  const livelliQuery = useQuery({
+    queryKey: ["admin-pro-livelli"],
+    queryFn: listLivelli,
     enabled: isAdmin,
   });
 
@@ -170,6 +194,7 @@ function DettaglioProContent() {
               um: editingVoce.um,
               prezzo: String(editingVoce.prezzo_unitario_cliente),
               ordine: String(editingVoce.ordine),
+              livello: editingVoce.livello ?? LIVELLO_COMUNE,
             }
           : EMPTY_VOCE,
       );
@@ -188,6 +213,7 @@ function DettaglioProContent() {
         um: voceForm.um.trim(),
         prezzo_unitario_cliente: Number(voceForm.prezzo),
         ordine: Number(voceForm.ordine) || 0,
+        livello: voceForm.livello === LIVELLO_COMUNE ? null : voceForm.livello,
       };
       return editingVoce
         ? updateVoce(editingVoce.id, base)
@@ -378,6 +404,23 @@ function DettaglioProContent() {
           <Input id="voce-prezzo" type="number" min={0} step="0.01" value={voceForm.prezzo} onChange={(e) => setVoceForm((f) => ({ ...f, prezzo: e.target.value }))} />
         </div>
         <div className="flex flex-col gap-2">
+          <Label htmlFor="voce-livello">Livello di finitura</Label>
+          <Select value={voceForm.livello} onValueChange={(v) => setVoceForm((f) => ({ ...f, livello: v }))}>
+            <SelectTrigger id="voce-livello" className="w-full"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value={LIVELLO_COMUNE}>— comune a tutti i livelli —</SelectItem>
+              {(livelliQuery.data ?? []).map((l) => (
+                <SelectItem key={l.code} value={l.code}>{l.nome}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">
+            Le voci di un catalogo sono alternative: solo quelle del livello scelto dal cliente
+            entrano nel computo. Lascia &quot;comune a tutti i livelli&quot; per posa, materiali di
+            consumo e montaggio, che vanno sempre inclusi.
+          </p>
+        </div>
+        <div className="flex flex-col gap-2">
           <Label htmlFor="voce-ordine">Ordine</Label>
           <Input id="voce-ordine" type="number" min={0} value={voceForm.ordine} onChange={(e) => setVoceForm((f) => ({ ...f, ordine: e.target.value }))} />
         </div>
@@ -477,6 +520,11 @@ function SottoCollapsible({
                     </p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       {v.um} · {v.prezzo_unitario_cliente} € al cliente
+                      {v.livello && (
+                        <span className="ml-2 rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium">
+                          {v.livello}
+                        </span>
+                      )}
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-1">

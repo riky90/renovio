@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Link, Navigate } from "react-router";
+import { Link, Navigate, useSearchParams } from "react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Check, Copy, CreditCard, Gift, Mail, Sparkles, User } from "lucide-react";
+import { ProfileHeaderCard } from "@/components/ProfileHeaderCard";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { CityAutocomplete } from "@/components/CityAutocomplete";
@@ -22,8 +23,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AUTH_QUERY_KEY, useAuth } from "@/hooks/useAuth";
 import { patchProfilo, type UserOut } from "@/api/auth";
 
+/** Le tre tab, nell'ordine in cui compaiono anche nel menu account. */
+const TAB_VALIDE = ["profilo", "abbonamento", "referral"] as const;
+
 export function ImpostazioniPage() {
   const { user, isLoading } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // La tab sta nell'URL: e' cio' che permette al menu account di puntare
+  // direttamente ad Abbonamento o Invita un amico. Un valore non riconosciuto
+  // (arriva dalla barra degli indirizzi, quindi non e' fidato) ricade su
+  // "profilo" invece di lasciare la pagina senza tab attiva.
+  const tabParam = searchParams.get("tab");
+  const tab = (TAB_VALIDE as readonly string[]).includes(tabParam ?? "")
+    ? (tabParam as string)
+    : "profilo";
 
   if (isLoading) {
     return (
@@ -48,7 +62,11 @@ export function ImpostazioniPage() {
         <p className="text-muted-foreground">Gestisci il tuo profilo e l'abbonamento.</p>
       </header>
 
-      <Tabs defaultValue="profilo" className="mt-8 gap-6">
+      <Tabs
+        value={tab}
+        onValueChange={(value) => setSearchParams({ tab: value }, { replace: true })}
+        className="mt-8 gap-6"
+      >
         <TabsList>
           <TabsTrigger value="profilo">
             <User className="size-4" /> Profilo
@@ -124,73 +142,76 @@ function ProfiloTab({ user }: { user: UserOut }) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>I tuoi dati</CardTitle>
-        <CardDescription>
-          Usiamo questi dati per identificarti e per ricontattarti sulle tue stime.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="nome">Nome</Label>
-              <Input
-                id="nome"
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
-                aria-invalid={!nomeValido}
-                autoComplete="given-name"
-              />
-              {!nomeValido && <p className="text-sm text-destructive">Il nome è obbligatorio.</p>}
+    <div className="flex flex-col gap-6">
+      <ProfileHeaderCard user={user} />
+      <Card>
+        <CardHeader>
+          <CardTitle>I tuoi dati</CardTitle>
+          <CardDescription>
+            Usiamo questi dati per identificarti e per ricontattarti sulle tue stime.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="nome">Nome</Label>
+                <Input
+                  id="nome"
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  aria-invalid={!nomeValido}
+                  autoComplete="given-name"
+                />
+                {!nomeValido && <p className="text-sm text-destructive">Il nome è obbligatorio.</p>}
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="cognome">Cognome</Label>
+                <Input
+                  id="cognome"
+                  value={cognome}
+                  onChange={(e) => setCognome(e.target.value)}
+                  autoComplete="family-name"
+                />
+              </div>
             </div>
+    
             <div className="flex flex-col gap-2">
-              <Label htmlFor="cognome">Cognome</Label>
-              <Input
-                id="cognome"
-                value={cognome}
-                onChange={(e) => setCognome(e.target.value)}
-                autoComplete="family-name"
-              />
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" value={user.email} readOnly disabled />
+              <p className="text-sm text-muted-foreground">
+                L'email di accesso non è modificabile da qui.
+              </p>
             </div>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" value={user.email} readOnly disabled />
-            <p className="text-sm text-muted-foreground">
-              L'email di accesso non è modificabile da qui.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="telefono">Telefono</Label>
-              <Input
-                id="telefono"
-                type="tel"
-                inputMode="tel"
-                placeholder="Es. 0522 123456"
-                value={telefono}
-                onChange={(e) => setTelefono(e.target.value)}
-                autoComplete="tel"
-              />
+    
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="telefono">Telefono</Label>
+                <Input
+                  id="telefono"
+                  type="tel"
+                  inputMode="tel"
+                  placeholder="Es. 0522 123456"
+                  value={telefono}
+                  onChange={(e) => setTelefono(e.target.value)}
+                  autoComplete="tel"
+                />
+              </div>
+              <CityAutocomplete value={citta} onChange={setCitta} />
             </div>
-            <CityAutocomplete value={citta} onChange={setCitta} />
-          </div>
-
-          <div className="flex items-center gap-3 pt-1">
-            <Button type="submit" disabled={!nomeValido || !dirty || mutation.isPending}>
-              {mutation.isPending ? "Salvataggio..." : "Salva modifiche"}
-            </Button>
-            {!dirty && !mutation.isPending && (
-              <span className="text-sm text-muted-foreground">Nessuna modifica da salvare.</span>
-            )}
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+    
+            <div className="flex items-center gap-3 pt-1">
+              <Button type="submit" disabled={!nomeValido || !dirty || mutation.isPending}>
+                {mutation.isPending ? "Salvataggio..." : "Salva modifiche"}
+              </Button>
+              {!dirty && !mutation.isPending && (
+                <span className="text-sm text-muted-foreground">Nessuna modifica da salvare.</span>
+              )}
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 

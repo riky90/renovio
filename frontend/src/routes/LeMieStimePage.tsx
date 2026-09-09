@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, Navigate } from "react-router";
-import { ArrowLeft, ArrowRight, CalendarDays, MapPin, Plus, Ruler } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, MapPin, Plus, Ruler, Sparkles } from "lucide-react";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { DettaglioProView } from "@/components/DettaglioProView";
 import { SavedEstimateDetail } from "@/components/SavedEstimateDetail";
 import { LeadContactDialog } from "@/components/LeadContactDialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatEurRange } from "@/lib/currency";
@@ -39,7 +40,15 @@ export function LeMieStimePage() {
     enabled: !!user,
   });
 
-  const isPro = !!user?.pro;
+  // Il piano dell'utente. Serve solo per il teaser di upgrade e per offrire
+  // il "rifai in versione Pro": NON decide quale vista mostrare.
+  const isUtentePro = !!user?.pro;
+
+  // Il tier CONGELATO della stima selezionata — questo si' decide la vista.
+  // Letto dall'item di lista gia' in cache invece che dal dettaglio, cosi' non
+  // c'e' un frame in cui si mostra la vista sbagliata mentre il dettaglio carica.
+  const selected = storicoQuery.data?.find((item) => item.id === selectedId);
+  const isStimaPro = selected?.tier === "pro";
 
   // Snapshot base immutabile della stima selezionata. Per il Pro il dettaglio
   // è ricalcolato da DettaglioProView, ma lo snapshot base serve comunque come
@@ -73,10 +82,26 @@ export function LeMieStimePage() {
                 <ArrowLeft className="size-4" /> I miei progetti
               </button>
 
-              {isPro ? (
+              {isStimaPro ? (
                 <DettaglioProView stimaId={selectedId} />
               ) : (
                 <>
+                  {isUtentePro && selected && (
+                    <div className="flex flex-col gap-3 rounded-xl border border-primary/30 bg-accent/60 p-4 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="text-sm text-accent-foreground">
+                        <span className="font-semibold">Questa stima è stata creata con il piano Free.</span>{" "}
+                        Resta com'è: per il dettaglio voce per voce rifalla in versione Pro.
+                      </p>
+                      <Button asChild size="sm" className="shrink-0">
+                        <Link
+                          to={`/?citta=${encodeURIComponent(selected.citta)}&mq=${selected.mq}&tipo=${selected.tipo}`}
+                        >
+                          <Sparkles className="size-4" /> Rifai in versione Pro
+                        </Link>
+                      </Button>
+                    </div>
+                  )}
+
                   {dettaglioQuery.isLoading && (
                     <div className="flex flex-col gap-4">
                       <Skeleton className="h-14 w-full" />
@@ -90,7 +115,7 @@ export function LeMieStimePage() {
                   )}
 
                   {dettaglioQuery.isSuccess && dettaglioQuery.data && (
-                    <SavedEstimateDetail stima={dettaglioQuery.data} isPro={isPro} />
+                    <SavedEstimateDetail stima={dettaglioQuery.data} isPro={isUtentePro} />
                   )}
                 </>
               )}
@@ -169,7 +194,14 @@ export function LeMieStimePage() {
                             <MapPin className="size-4 text-primary" aria-hidden />
                             {item.citta}
                           </span>
-                          <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
+                          <span className="flex shrink-0 items-center gap-2">
+                            {item.tier === "pro" && (
+                              <Badge variant="secondary" className="text-[0.65rem] uppercase tracking-wide">
+                                Pro
+                              </Badge>
+                            )}
+                            <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
+                          </span>
                         </div>
 
                         <span className="font-display text-xl font-bold tabular-nums text-foreground">

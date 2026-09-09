@@ -192,8 +192,10 @@ class TestParitaSchermataPdf:
 
         with session_factory() as session:
             row = session.query(StimaSalvata).filter_by(id=stima_id).one()
-            result, risposte = dettaglio_pro_router_module._compute_dettaglio(session, row)
-            pdf_out = dettaglio_pro_router_module._to_out(result, risposte)
+            result, risposte, _salvate = dettaglio_pro_router_module._compute_dettaglio(session, row)
+            pdf_out = dettaglio_pro_router_module._to_out(
+                result, risposte, dettaglio_pro_router_module._livelli_disponibili(session)
+            )
 
         assert pdf_out.model_dump(mode="json") == json_body
 

@@ -48,6 +48,32 @@ class Settings(BaseSettings):
     # Email del primo admin, promosso a role="admin" da seed/bootstrap (D-03)
     ADMIN_EMAIL: str = ""
 
+    # Object storage S3-compatibile (Cloudflare R2) per gli avatar profilo.
+    # Tutti default "" come SMTP/SECRET_KEY: senza credenziali l'app resta
+    # importabile e l'endpoint avatar risponde 503, mai un 500.
+    R2_ENDPOINT_URL: str = ""
+    R2_ACCESS_KEY_ID: str = ""
+    R2_SECRET_ACCESS_KEY: str = ""
+    R2_BUCKET: str = ""
+    # Base URL pubblica del bucket (dominio r2.dev o custom domain), senza
+    # slash finale: e' il prefisso di `User.avatar_url`.
+    R2_PUBLIC_BASE_URL: str = ""
+
+    @property
+    def storage_configured(self) -> bool:
+        """True solo se TUTTI e cinque i valori sono presenti: una config a
+        meta' e' indistinguibile da nessuna config, e fallire al primo upload
+        con un 500 di boto3 sarebbe peggio di un 503 esplicito."""
+        return all(
+            [
+                self.R2_ENDPOINT_URL,
+                self.R2_ACCESS_KEY_ID,
+                self.R2_SECRET_ACCESS_KEY,
+                self.R2_BUCKET,
+                self.R2_PUBLIC_BASE_URL,
+            ]
+        )
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]

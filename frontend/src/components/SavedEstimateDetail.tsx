@@ -1,3 +1,4 @@
+import { BonusPanel } from "@/components/BonusPanel";
 import { CategoryCard } from "@/components/CategoryCard";
 import { FallbackDisclaimer } from "@/components/FallbackDisclaimer";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
@@ -10,6 +11,11 @@ const TIPO_LABELS: Record<string, string> = {
   leggera: "Leggera",
   moderata: "Moderata",
   totale: "Totale",
+};
+
+const DESTINAZIONE_LABELS: Record<string, string> = {
+  prima_casa: "Abitazione principale",
+  altro: "Altro immobile",
 };
 
 interface SavedEstimateDetailProps {
@@ -32,6 +38,9 @@ export function SavedEstimateDetail({ stima, isPro = false }: SavedEstimateDetai
         <Badge variant="secondary">{stima.input.citta}</Badge>
         <Badge variant="secondary">{stima.input.mq} m²</Badge>
         <Badge variant="secondary">{TIPO_LABELS[stima.input.tipo] ?? stima.input.tipo}</Badge>
+        <Badge variant="secondary">
+          {DESTINAZIONE_LABELS[stima.input.destinazione] ?? stima.input.destinazione}
+        </Badge>
       </div>
 
       {stima.fallback && stima.disclaimer && (
@@ -57,6 +66,10 @@ export function SavedEstimateDetail({ stima, isPro = false }: SavedEstimateDetai
       </div>
 
       <TotalCard totale={stima.totale} />
+
+      {/* Assente sugli snapshot v1, salvati prima della feature: la vista si
+          degrada senza il pannello invece di rompersi. */}
+      {stima.bonus && <BonusPanel bonus={stima.bonus} />}
 
       <PdfDownloadButton stimaId={stima.id} />
     </div>

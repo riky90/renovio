@@ -7,6 +7,8 @@ export interface VoceOut {
   quantita_stimata: number;
   prezzo_min: number;
   prezzo_max: number;
+  /** Livello di finitura della voce; null = comune a tutti i livelli. */
+  livello: string | null;
 }
 
 export interface SottocategoriaOut {
@@ -24,6 +26,13 @@ export interface CategoriaDettagliataOut {
   sottocategorie: SottocategoriaOut[];
   totale_min: number;
   totale_max: number;
+  /**
+   * Livello EFFETTIVAMENTE applicato. null dove la categoria non prevede un
+   * livello (A-EDILE): è anche il modo in cui il client sa quali selettori
+   * mostrare, senza cablare i codici categoria.
+   */
+  livello_scelto: string | null;
+  livello_scelto_nome: string | null;
 }
 
 export interface RisposteDomande {
@@ -32,11 +41,30 @@ export interface RisposteDomande {
   condizionatori: number;
 }
 
+export interface LivelloFinituraOut {
+  code: string;
+  nome: string;
+  ordine: number;
+  descrizione: string | null;
+  is_default: boolean;
+}
+
+/** Livelli scelti per categoria: { "B-FINITURE": "medio", ... }. */
+export type LivelliPerCategoria = Record<string, string>;
+
 export interface DettaglioProOut {
   categorie: CategoriaDettagliataOut[];
   totale_min: number;
   totale_max: number;
   risposte: RisposteDomande;
+  /**
+   * True se l'utente ha DAVVERO risposto alle domande mirate. Distingue
+   * `{0, 0, 0}` (risposta legittima) dal non aver mai risposto — cosa che la
+   * somma delle tre risposte non può fare.
+   */
+  risposte_salvate: boolean;
+  livelli: LivelliPerCategoria;
+  livelli_disponibili: LivelloFinituraOut[];
 }
 
 /**
@@ -52,6 +80,7 @@ interface RawVoceOut {
   quantita_stimata: unknown;
   prezzo_min: unknown;
   prezzo_max: unknown;
+  livello: string | null;
 }
 
 interface RawSottocategoriaOut {
@@ -69,6 +98,8 @@ interface RawCategoriaDettagliataOut {
   sottocategorie: RawSottocategoriaOut[];
   totale_min: unknown;
   totale_max: unknown;
+  livello_scelto: string | null;
+  livello_scelto_nome: string | null;
 }
 
 interface RawDettaglioProOut {
@@ -76,6 +107,13 @@ interface RawDettaglioProOut {
   totale_min: unknown;
   totale_max: unknown;
   risposte: RisposteDomande;
+  risposte_salvate?: boolean;
+  /**
+   * `livelli` e `livelli_disponibili` NON passano da toNumber(): sono codici e
+   * etichette, non importi. Farceli passare li trasformerebbe in NaN.
+   */
+  livelli: LivelliPerCategoria;
+  livelli_disponibili: LivelloFinituraOut[];
 }
 
 function toNumber(value: unknown): number {
@@ -98,16 +136,22 @@ function normalizeDettaglioPro(raw: RawDettaglioProOut): DettaglioProOut {
           quantita_stimata: toNumber(voce.quantita_stimata),
           prezzo_min: toNumber(voce.prezzo_min),
           prezzo_max: toNumber(voce.prezzo_max),
+          livello: voce.livello ?? null,
         })),
         totale_min: toNumber(sotto.totale_min),
         totale_max: toNumber(sotto.totale_max),
       })),
       totale_min: toNumber(cat.totale_min),
       totale_max: toNumber(cat.totale_max),
+      livello_scelto: cat.livello_scelto ?? null,
+      livello_scelto_nome: cat.livello_scelto_nome ?? null,
     })),
     totale_min: toNumber(raw.totale_min),
     totale_max: toNumber(raw.totale_max),
     risposte: raw.risposte,
+    risposte_salvate: raw.risposte_salvate ?? false,
+    livelli: raw.livelli ?? {},
+    livelli_disponibili: raw.livelli_disponibili ?? [],
   };
 }
 
@@ -117,15 +161,21 @@ export async function getDettaglioPro(stimaId: number): Promise<DettaglioProOut>
   return normalizeDettaglioPro(raw);
 }
 
-/** POST /api/v1/me/stime/{id}/dettaglio-pro/risposte — persiste le risposte e ricalcola. */
+/**
+ * POST /api/v1/me/stime/{id}/dettaglio-pro/risposte — persiste risposte e
+ * livelli sulla stessa stima e ricalcola. Un solo endpoint per entrambi: sono
+ * i due parametri dello stesso calcolo, e separarli aprirebbe la porta a uno
+ * stato incoerente fra due chiamate.
+ */
 export async function postRisposteDettaglioPro(
   stimaId: number,
-  risposte: RisposteDomande
+  risposte: RisposteDomande,
+  livelli?: LivelliPerCategoria
 ): Promise<DettaglioProOut> {
-  const raw = await apiPost<RawDettaglioProOut>(
-    `/me/stime/${stimaId}/dettaglio-pro/risposte`,
-    risposte
-  );
+  const raw = await apiPost<RawDettaglioProOut>(`/me/stime/${stimaId}/dettaglio-pro/risposte`, {
+    ...risposte,
+    ...(livelli ? { livelli } : {}),
+  });
   return normalizeDettaglioPro(raw);
 }
 

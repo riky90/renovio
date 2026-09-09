@@ -16,7 +16,7 @@ from __future__ import annotations
 import hashlib
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, UploadFile, status
 from fastapi.responses import RedirectResponse
 
 from app.config import settings
@@ -41,6 +41,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 LOGIN_ERROR_DETAIL = "Email o password non corretti"
 RESET_REQUEST_MESSAGE = "Ti abbiamo inviato un'email con le istruzioni per reimpostare la password."
 RESET_INVALID_MESSAGE = "Il link non e' piu' valido."
+STORAGE_OFF_DETAIL = "Caricamento immagini non disponibile: storage non configurato."
 
 
 def _hash_reset_token(token: str) -> str:
@@ -55,6 +56,7 @@ def _to_user_out(session, user) -> UserOut:
         cognome=user.cognome,
         telefono=user.telefono,
         citta=user.citta,
+        avatar_url=user.avatar_url,
         role=user.role,
         pro=subscription_is_active(session, user),
         created_at=user.created_at,
@@ -148,6 +150,95 @@ def aggiorna_profilo(payload: ProfiloUpdateRequest, user=Depends(get_current_use
         db_user.citta = _blank_to_none(payload.citta)
         session.commit()
         session.refresh(db_user)
+
+        return _to_user_out(session, db_user)
+
+
+@router.post("/me/avatar", response_model=UserOut)
+@limiter.limit("5/minute")
+async def carica_avatar(request: Request, file: UploadFile, user=Depends(get_current_user)) -> UserOut:
+    """Carica l'avatar dell'utente corrente su R2 e ne salva l'URL.
+
+    L'ordine conta: si valida e normalizza l'immagine PRIMA di parlare con lo
+    storage, e si scrive in DB solo dopo che l'oggetto e' davvero sul bucket.
+    Il vecchio oggetto si cancella per ultimo, best-effort: un orfano nel
+    bucket non deve far fallire un upload gia' riuscito.
+
+    Rate limit 5/minute come registrazione e login: un upload e' l'endpoint
+    piu' costoso dell'app (banda + decodifica immagine).
+    """
+    from app.models.user import User
+    from app.services.avatar_service import AvatarValidationError, process_avatar
+    from app.services.storage_service import (
+        StorageError,
+        StorageNotConfigured,
+        avatar_key,
+        delete_avatar,
+        key_from_url,
+        upload_avatar,
+    )
+
+    content = await file.read()
+    try:
+        webp = process_avatar(content)
+    except AvatarValidationError as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
+
+    with SessionLocal() as session:
+        db_user = session.get(User, user.id)
+        if db_user is None:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Utente non trovato")
+
+        vecchia_key = key_from_url(db_user.avatar_url)
+        try:
+            url = upload_avatar(avatar_key(db_user.id), webp)
+        except StorageNotConfigured as exc:
+            raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, STORAGE_OFF_DETAIL) from exc
+        except StorageError as exc:
+            raise HTTPException(status.HTTP_502_BAD_GATEWAY, str(exc)) from exc
+
+        db_user.avatar_url = url
+        session.commit()
+        session.refresh(db_user)
+
+        if vecchia_key:
+            try:
+                delete_avatar(vecchia_key)
+            except (StorageError, StorageNotConfigured):
+                pass
+
+        return _to_user_out(session, db_user)
+
+
+@router.delete("/me/avatar", response_model=UserOut)
+def rimuovi_avatar(user=Depends(get_current_user)) -> UserOut:
+    """Azzera `avatar_url` e cancella l'oggetto. La colonna si azzera anche se
+    la cancellazione remota fallisce: l'utente ha chiesto di non vedere piu'
+    quella foto, e un oggetto orfano su R2 non e' una ragione per dirgli di
+    no."""
+    from app.models.user import User
+    from app.services.storage_service import (
+        StorageError,
+        StorageNotConfigured,
+        delete_avatar,
+        key_from_url,
+    )
+
+    with SessionLocal() as session:
+        db_user = session.get(User, user.id)
+        if db_user is None:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Utente non trovato")
+
+        key = key_from_url(db_user.avatar_url)
+        db_user.avatar_url = None
+        session.commit()
+        session.refresh(db_user)
+
+        if key:
+            try:
+                delete_avatar(key)
+            except (StorageError, StorageNotConfigured):
+                pass
 
         return _to_user_out(session, db_user)
 

@@ -6,7 +6,7 @@ See 01-RESEARCH.md "Data Model (prescrittivo)" - implemented verbatim.
 
 from decimal import Decimal
 
-from sqlalchemy import ForeignKey, Numeric, String, UniqueConstraint
+from sqlalchemy import Boolean, ForeignKey, Numeric, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -21,6 +21,40 @@ class Categoria(Base):
     nome: Mapped[str] = mapped_column(String(100), nullable=False)
     ordine: Mapped[int] = mapped_column(nullable=False)
     iva_pct: Mapped[Decimal] = mapped_column(Numeric(4, 3), nullable=False)
+
+    # Il livello di finitura si sceglie solo dove dipende dal GUSTO del cliente
+    # (B-FINITURE / C-SERRAMENTI / D-PRODOTTI), non dove dipende dal tipo di
+    # ristrutturazione (A-EDILE). E' un DATO in tabella e non un `if` sul codice
+    # categoria (ENG-02): un domani una categoria nuova entra o esce dal
+    # meccanismo dal pannello admin, senza deploy.
+    livello_selezionabile: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="0"
+    )
+
+
+class LivelloFinitura(Base):
+    """I livelli di finitura selezionabili: base / medio / alto.
+
+    Gemello strutturale di `TipoRistrutturazione` (lookup a `code` PK, con
+    `ordine` e `nome` visualizzabili). Tabella e non enum Python per due
+    ragioni: serve un default lato server (`is_default`, applicato quando il
+    client non manda nulla) e la regola ENG-02 vuole questi dati in DB,
+    modificabili da admin.
+
+    Il livello e' cio' che sceglie UNA voce per famiglia nei cataloghi
+    `famiglia='catalogo'`: gres, parquet e porte sono ALTERNATIVE per la stessa
+    stanza, non addendi. Vedi `services/dettaglio_pro.py`.
+    """
+
+    __tablename__ = "livello_finitura"
+
+    code: Mapped[str] = mapped_column(String(16), primary_key=True)
+    nome: Mapped[str] = mapped_column(String(100), nullable=False)
+    ordine: Mapped[int] = mapped_column(nullable=False, default=0, server_default="0")
+    descrizione: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    is_default: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="0"
+    )
 
 
 class TipoRistrutturazione(Base):

@@ -21,20 +21,24 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db import SessionLocal
-from app.dependencies.auth import get_current_user
+from app.dependencies.auth import get_current_user, subscription_is_active
 from app.models.stima_salvata import StimaSalvata
 from app.models.user import User
-from app.schemas.stima import CategoriaOut, ExtraOut, StimaInputEcho, TotaleOut
+from app.schemas.stima import BonusOut, CategoriaOut, ExtraOut, StimaInputEcho, TotaleOut
 from app.schemas.stima_salvata import (
     StimaSalvataCreate,
     StimaSalvataListItem,
     StimaSalvataOut,
 )
+from app.services.dettaglio_pro import LivelliNonValidi, validate_livelli
 from app.services.pdf_service import PdfService, build_filename
 
 router = APIRouter(prefix="/me", tags=["stime"])
 
-SCHEMA_VERSION = 1
+# v2: lo snapshot puo' contenere la chiave `bonus` e `input.destinazione`.
+# Gli snapshot v1 restano leggibili e non vengono mai riscritti — si leggono
+# con `.get()` e i default degli schemi.
+SCHEMA_VERSION = 2
 
 
 class StimaSalvataCreatedOut(BaseModel):
@@ -48,11 +52,28 @@ def salva_stima(
     current_user: User = Depends(get_current_user),
 ) -> StimaSalvataCreatedOut:
     with SessionLocal() as session:
-        risultato_json = payload.model_dump(mode="json")
+        # `exclude={"preferenze_pro"}`: senza questo, i parametri di ricalcolo
+        # finirebbero DENTRO lo snapshot immutabile, che per contratto ha la
+        # forma di `StimaResponse` — cioe' cio' che l'utente ha visto. La forma
+        # dello snapshot resta identica a prima di questa feature.
+        risultato_json = payload.model_dump(mode="json", exclude={"preferenze_pro"})
         risultato_json["schema_version"] = SCHEMA_VERSION
+
+        # Il tier si congela QUI, una volta sola: e' il piano attivo adesso, non
+        # quello che l'utente avra' in futuro (vedi models/stima_salvata.py).
+        tier = "pro" if subscription_is_active(session, current_user) else "free"
+
+        preferenze = payload.preferenze_pro
+        livelli = preferenze.livelli if preferenze else None
+        if livelli:
+            try:
+                validate_livelli(session, livelli)
+            except LivelliNonValidi as exc:
+                raise HTTPException(400, str(exc)) from exc
 
         row = StimaSalvata(
             user_id=current_user.id,
+            tier=tier,
             citta=payload.input.citta,
             mq=payload.input.mq,
             tipo=payload.input.tipo.value,
@@ -60,6 +81,12 @@ def salva_stima(
             totale_max=payload.totale.totale_max,
             fallback=payload.fallback,
             risultato_json=risultato_json,
+            livelli_pro_json=livelli or None,
+            risposte_pro_json=(
+                preferenze.risposte.model_dump()
+                if preferenze and preferenze.risposte is not None
+                else None
+            ),
         )
         session.add(row)
         session.commit()
@@ -86,6 +113,7 @@ def lista_stime(current_user: User = Depends(get_current_user)) -> list[StimaSal
                 tipo=row.tipo,
                 totale_min=row.totale_min,
                 totale_max=row.totale_max,
+                tier=row.tier or "free",
                 created_at=row.created_at,
             )
             for row in rows
@@ -111,6 +139,7 @@ def dettaglio_stima(
         return StimaSalvataOut(
             id=row.id,
             created_at=row.created_at,
+            tier=row.tier or "free",
             input=StimaInputEcho(**snapshot["input"]),
             fallback=snapshot["fallback"],
             disclaimer=snapshot["disclaimer"],
@@ -118,6 +147,10 @@ def dettaglio_stima(
             categorie=[CategoriaOut(**c) for c in snapshot["categorie"]],
             extra=[ExtraOut(**e) for e in snapshot["extra"]],
             totale=TotaleOut(**snapshot["totale"]),
+            # `.get()` e non `snapshot["bonus"]`: un KeyError qui romperebbe
+            # TUTTO lo storico di TUTTI gli utenti, perche' nessuna riga salvata
+            # prima di questa feature ha la chiave.
+            bonus=BonusOut(**snapshot["bonus"]) if snapshot.get("bonus") else None,
         )
 
 

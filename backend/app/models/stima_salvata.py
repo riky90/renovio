@@ -46,4 +46,18 @@ class StimaSalvata(Base):
     # non divergono se l'utente risponde una volta e poi rivede lo stesso risultato.
     risposte_pro_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
+    # Livelli di finitura scelti per categoria ({"B-FINITURE": "medio", ...}) —
+    # gemello di `risposte_pro_json`: stessa colonna JSON generica, stessa
+    # ragione (schermata e PDF Pro leggono da qui, quindi non possono
+    # divergere). Nullable: NULL significa "l'utente non ha scelto", e il
+    # motore applica il livello `is_default`.
+    livelli_pro_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+
+    # Tier con cui la stima e' stata creata ('free' | 'pro'). Valorizzato UNA
+    # VOLTA al salvataggio dal piano allora attivo e MAI piu' toccato: se
+    # l'utente passa a Pro, le sue stime Free storiche restano Free. Nullable a
+    # schema per la regola additiva su SQLite (D-24) — il codice legge sempre
+    # `row.tier or "free"`.
+    tier: Mapped[str | None] = mapped_column(String(16), nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.now())

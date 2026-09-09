@@ -19,6 +19,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 
 from app.routers.admin import (
+    bonus,
     citta,
     coefficienti,
     dettaglio_pro,
@@ -34,6 +35,7 @@ from app.routers.admin import (
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 router.include_router(ping.router)
+router.include_router(bonus.router)
 router.include_router(listini.router)
 router.include_router(coefficienti.router)
 router.include_router(citta.router)

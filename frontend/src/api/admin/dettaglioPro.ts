@@ -35,6 +35,11 @@ export interface VoceOut {
   um: string;
   prezzo_unitario_cliente: number;
   ordine: number;
+  /**
+   * Livello di finitura della voce; null = comune a tutti i livelli, cioè
+   * sempre inclusa (posa, materiali di consumo, montaggio).
+   */
+  livello: string | null;
 }
 
 export interface VoceInput {
@@ -44,10 +49,28 @@ export interface VoceInput {
   um: string;
   prezzo_unitario_cliente: number;
   ordine: number;
+  livello?: string | null;
+}
+
+export interface LivelloFinituraOut {
+  code: string;
+  nome: string;
+  ordine: number;
+  descrizione: string | null;
+  is_default: boolean;
 }
 
 const SOTTO = "/admin/dettaglio-pro/sottocategorie";
 const VOCI = "/admin/dettaglio-pro/voci";
+const LIVELLI = "/admin/dettaglio-pro/livelli";
+
+/**
+ * Livelli assegnabili a una voce. Sola lettura: i tre livelli li possiede il
+ * seed, quello che l'admin cura è QUALE VOCE sta in quale livello.
+ */
+export async function listLivelli(): Promise<LivelloFinituraOut[]> {
+  return apiGet<LivelloFinituraOut[]>(LIVELLI);
+}
 
 export async function listSottocategorie(listinoId: number): Promise<SottocategoriaOut[]> {
   return apiGet<SottocategoriaOut[]>(`${SOTTO}?listino_id=${listinoId}`);

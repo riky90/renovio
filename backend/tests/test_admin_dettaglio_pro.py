@@ -284,3 +284,93 @@ class TestComuniExtra:
             comuni = {row.comune_nome for row in s.query(ComuneListino).filter_by(listino_id=listino_id)}
         assert {"Modena", "Carpi", "Sassuolo"} <= comuni
         assert not any(x.strip() == "" for x in comuni)
+
+
+# --- Livelli di finitura (0010) --------------------------------------------
+
+
+class TestAdminLivelloVoce:
+    """La curatela dei livelli e' lavoro dell'admin dal pannello: e' l'unico
+    canale che scrive `voce.livello` (seed e upload Excel lo lasciano stare)."""
+
+    def _seed_livelli(self, sf):
+        from app.models.catalogo import LivelloFinitura
+
+        with sf() as s:
+            for ordine, (code, nome, default) in enumerate(
+                [("base", "Entry level", False), ("medio", "Medio", True), ("alto", "Lusso", False)], 1
+            ):
+                s.add(LivelloFinitura(code=code, nome=nome, ordine=ordine, is_default=default))
+            s.commit()
+
+    def _crea_voce(self, c, lid) -> int:
+        sotto_id = c.post(
+            SOTTO_URL,
+            json={"listino_id": lid, "categoria_code": "A-EDILE", "nome": "GRUPPO", "famiglia": "catalogo"},
+        ).json()["id"]
+        return c.post(
+            VOCI_URL,
+            json={
+                "sottocategoria_id": sotto_id,
+                "descrizione": "Gres 60x60",
+                "um": "mq",
+                "prezzo_unitario_cliente": "30.00",
+                "livello": "alto",
+            },
+        ).json()["id"]
+
+    def test_lista_livelli_403_per_utente_normale(self, client):
+        c, _ = client
+        _user(c)
+        assert c.get("/api/v1/admin/dettaglio-pro/livelli").status_code == 403
+
+    def test_lista_livelli_ordinata(self, client):
+        c, sf = client
+        _admin(c)
+        self._seed_livelli(sf)
+
+        r = c.get("/api/v1/admin/dettaglio-pro/livelli")
+
+        assert r.status_code == 200
+        assert [liv["code"] for liv in r.json()] == ["base", "medio", "alto"]
+        assert [liv["code"] for liv in r.json() if liv["is_default"]] == ["medio"]
+
+    def test_livello_alla_creazione_e_in_patch(self, client):
+        """Il livello si imposta gia' alla POST e si cambia con la PATCH."""
+        c, sf = client
+        _admin(c)
+        self._seed_livelli(sf)
+        lid = _seed_listino_categoria(sf)
+
+        voce_id = self._crea_voce(c, lid)
+
+        r = c.patch(f"{VOCI_URL}/{voce_id}", json={"livello": "medio"})
+        assert r.status_code == 200
+        assert r.json()["livello"] == "medio"
+
+    def test_livello_riportabile_a_comune_a_tutti(self, client):
+        """`null` esplicito = "voce comune a tutti i livelli", il valore che
+        tiene dentro posa e montaggio."""
+        c, sf = client
+        _admin(c)
+        self._seed_livelli(sf)
+        lid = _seed_listino_categoria(sf)
+        voce_id = self._crea_voce(c, lid)
+
+        r = c.patch(f"{VOCI_URL}/{voce_id}", json={"livello": None})
+
+        assert r.status_code == 200
+        assert r.json()["livello"] is None
+
+    def test_patch_senza_livello_non_lo_tocca(self, client):
+        """`exclude_unset`: modificare il prezzo non deve azzerare la
+        classificazione."""
+        c, sf = client
+        _admin(c)
+        self._seed_livelli(sf)
+        lid = _seed_listino_categoria(sf)
+        voce_id = self._crea_voce(c, lid)
+
+        r = c.patch(f"{VOCI_URL}/{voce_id}", json={"prezzo_unitario_cliente": "44.00"})
+
+        assert r.json()["livello"] == "alto"

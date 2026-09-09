@@ -15,6 +15,11 @@ diverge, and the Pro detail stays responsive to admin-tuned coefficients
 (Fase 4). This asymmetry with `render()` is intentional, not an oversight —
 a future refactor must NOT "fix" `render_pro()` to read a frozen snapshot
 instead, and must NOT "fix" `render()` to recompute live.
+
+Nota (0009): `stima.tier` congela il piano con cui la stima e' nata, e il
+router rifiuta `pdf-pro` su una stima Free. Questo NON intacca l'asimmetria
+qui descritta — congela CHI puo' scaricare il PDF Pro, non COME viene
+calcolato. Il calcolo di `render_pro()` resta live.
 """
 
 from __future__ import annotations
