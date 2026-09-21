@@ -6,6 +6,22 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
+  Varianti stato per i componenti shadcn/Radix.
+  I componenti in `components/ui/` sono scritti nella forma breve
+  (`data-active:`, `data-open:`, `data-horizontal:`), ma Radix espone lo stato
+  come `data-state="active"` e l'orientamento come `data-orientation="horizontal"`.
+  Senza queste mappature Tailwind emette selettori `[data-active]` che non
+  matchano nulla: il CSS si genera, si carica e non si applica mai — ed e'
+  cosi' che le Tabs finivano in riga invece che in colonna.
+*/
+@custom-variant data-active (&[data-state="active"]);
+@custom-variant data-open (&[data-state="open"]);
+@custom-variant data-closed (&[data-state="closed"]);
+@custom-variant data-checked (&[data-state="checked"]);
+@custom-variant data-horizontal (&[data-orientation="horizontal"]);
+@custom-variant data-vertical (&[data-orientation="vertical"]);
+
+/*
   ristruttura-stima — design system
   Palette calda "da cantiere": arancio primario, rosso di segnale, oro Pro,
   su neutri sabbia/carbone. Ispirazione layout: SaaS pulito stile hausme.it.
