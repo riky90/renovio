@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: domande e motore parametrico
-status: Phase 07 complete (committata)
-last_updated: "2026-09-21T00:00:00.000Z"
+status: Phase 08 context gathered
+last_updated: "2026-09-21T20:30:00.000Z"
 progress:
   total_phases: 6
   completed_phases: 3
@@ -16,8 +16,8 @@ progress:
 
 ## Current Position
 
-Phase: 08 (export/import Excel dal pannello admin) — NEXT
-Plan: `.planning/phases/08-export-import-excel/`
+Phase: 08 (export/import Excel dal pannello admin) — CONTEXT GATHERED, da pianificare
+Plan: `.planning/phases/08-export-import-excel/08-CONTEXT.md`
 
 - **Milestone:** v2.0 (domande e motore parametrico), fasi **05-10**. La v1.0 (MVP, fasi
   01-04) e' **completa, verificata e in produzione dal 2026-09-09** — backend su Render,
@@ -26,8 +26,10 @@ Plan: `.planning/phases/08-export-import-excel/`
   unico), 07 (arredo). Le prime due eseguite fuori dal ciclo GSD e ricostruite in
   retrospettiva nei rispettivi `NN-RETRO-SUMMARY.md`; la 07 e' la prima pianificata ed
   eseguita dentro la milestone (`07-01-PLAN.md` -> `07-01-SUMMARY.md`).
-- **Status:** Phase 07 complete, verificata dal vivo e **committata** (`6158eef`). Phase 08 next.
-  Sei commit in attesa di push: il push deploya su Render, e si fa a fine milestone.
+- **Status:** Phase 07 complete e committata (`6158eef`). Phase 08 ha il suo `08-CONTEXT.md`
+  (26 decisioni, commit `19dfa66`) e aspetta `/gsd:plan-phase 08`.
+  **Dodici commit in attesa di push**: il push deploya su Render e si fa a fine milestone
+  (`git push origin master:main`), e prima serve `BACKEND_PUBLIC_URL` configurata su Render.
 - **Numerazione:** le fasi non ripartono da 01 a ogni milestone (regola GSD). Il piano
   originale chiamava queste fasi 1-6; qui sono **05-10**. La corrispondenza e':
   `piano Fase 1 -> 05` · `2 -> 06` · `3 -> 07` · `4 -> 08` · `5 -> 09` · `6 -> 10`.
@@ -37,6 +39,27 @@ Plan: `.planning/phases/08-export-import-excel/`
 - **Stack (da RESEARCH):** FastAPI + SQLAlchemy 2.0 + Pydantic v2 + Postgres/Alembic · React 19 + Vite + TS 5.9 + react-query + Tailwind/shadcn · autocomplete comuni ISTAT bundlato offline.
 
 ## Last Session
+
+- **2026-09-21 (6)** — **Fix delle Tabs e contesto della Fase 08.** Due commit di codice:
+  `906010f` mappa le varianti `data-*` dei componenti shadcn agli attributi che Radix emette
+  davvero (i componenti in `components/ui/` usano `data-active:`/`data-horizontal:`, Radix
+  scrive `data-state`/`data-orientation`, e senza le `@custom-variant` Tailwind generava 62
+  selettori che non matchavano nulla — le Tabs restavano in riga e la `TabsList` diventava
+  una colonna grigia su `/impostazioni` e `/admin/coefficienti`); `699b751` sposta la tab
+  della pagina profilo dalla query string al path (`/impostazioni/profilo`), con shim per i
+  vecchi `?tab=` e lo slug `referral` rinominato `invita`.
+  **Contesto Fase 08 raccolto** (`19dfa66`): sei aree, 26 decisioni, nessuna girata a
+  "decidi tu". Le due scoperte che cambiano il piano: `POST /admin/domande/anteprima`
+  esiste gia' completo, quindi PAR-04 e' solo frontend; e la pagina CRUD del catalogo
+  domande e' stata fatta entrare in fase da Riccardo contro la raccomandazione contraria —
+  rischio di split annotato in D-21.
+  **Due falsi negativi di `gsd-sdk` trovati**: `init.plan-phase` riporta
+  `agents_installed: false` elencando tutti e 33 gli agenti come mancanti (stanno in
+  `~/.claude/agent-domains/dev/`, e funzionano) — chip `task_c73d3d23`; e
+  `state.record-session` risponde `"recorded": false` **ma scrive lo stesso**, avendo
+  riscritto questo frontmatter con `completed_phases: 1`, `total_plans: 1` e `percent: 17`
+  contro `completed_plans: 3`. Valori ripristinati a mano.
+
 
 - **2026-09-21 (4)** — **Fase 07 committata + igiene, niente push.** Tre commit nuovi sopra
   i tre in attesa: `feat(arredo)` (Fase 07, 33 file), `fix(footer)` (chiave React duplicata

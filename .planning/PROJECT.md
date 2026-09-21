@@ -23,10 +23,10 @@ Da `(città, mq, tipo)` a una **stima credibile a range** in pochi secondi, senz
 30 piani su 4 fasi, 21/21 requisiti consegnati. Archivio:
 `.planning/milestones/v1.0-ROADMAP.md`.
 
-**In corso:** v2.0 — *domande e motore parametrico*, fasi **05-10**. Le fasi 05 e 06
-(catalogo domande in database, motore Free parametrico, wizard unico) sono complete e
-committate; la 07 (arredo) e' la prossima. 27 requisiti mappati in
-`.planning/REQUIREMENTS.md`.
+**In corso:** v2.0 — *domande e motore parametrico*, fasi **05-10**. Le fasi 05, 06 e 07
+(catalogo domande in database, motore Free parametrico, wizard unico, forfait arredo) sono
+complete e committate; la 08 (export/import Excel dal pannello admin) ha il contesto
+raccolto e aspetta il piano. 27 requisiti mappati in `.planning/REQUIREMENTS.md`.
 
 **Obiettivi della v2:** la v1 risponde a `(citta, mq, tipo)`; la v2 risponde a *com'e' fatta
 questa casa e cosa vuoi farci* — e lo fa senza che aggiungere una domanda costi un deploy.
@@ -34,9 +34,11 @@ Il catalogo di domande, le opzioni e i loro effetti sono **dati amministrabili**
 della milestone chiude il bug dei cataloghi alternativi nel motore Pro, che oggi somma voci
 che sono alternative fra loro.
 
-**Debito noto portato dentro la v2:** i coefficienti sono una bozza e non una taratura; la
-curatela di `voce.livello` esiste solo nel `dev.db` locale; le cinque variabili `R2_*` non
-sono configurate su Render (upload avatar a 503).
+**Debito noto portato dentro la v2:** i coefficienti sono una bozza e non una taratura — e
+non sono tarabili da soli, perche' il computo sorgente non ha quantita'; la curatela di
+`voce.livello` esiste solo nel `dev.db` locale (21 voci su 191), ed e' la Fase 08 a renderla
+trasportabile. Lo storage avatar non e' piu' un debito: R2 resta la strada maestra se le
+cinque `R2_*` ci sono, altrimenti i byte stanno nella tabella `avatar_blob` (2026-09-21).
 
 ## Requirements
 
