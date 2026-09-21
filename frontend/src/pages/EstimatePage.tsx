@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useMutation } from "@tanstack/react-query";
 import { Gauge, MapPin, Zap, type LucideIcon } from "lucide-react";
+import { ArredoCard } from "@/components/ArredoCard";
 import { CategoryCard } from "@/components/CategoryCard";
 import { EstimateWizard, type EstimateWizardSubmit } from "@/components/EstimateWizard";
 import { FallbackDisclaimer } from "@/components/FallbackDisclaimer";
@@ -259,6 +260,10 @@ export function EstimatePage() {
                     <TotalCard totale={result.totale} />
 
                     {result.bonus && <BonusPanel bonus={result.bonus} />}
+
+                    {/* Dopo il totale e i bonus: l'arredo e' un'informazione
+                        in piu', non parte della cifra che l'utente confronta. */}
+                    {result.arredo && <ArredoCard arredo={result.arredo} />}
 
                     <SoftWallCta
                       result={result}

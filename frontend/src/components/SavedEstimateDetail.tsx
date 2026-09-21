@@ -1,3 +1,4 @@
+import { ArredoCard } from "@/components/ArredoCard";
 import { BonusPanel } from "@/components/BonusPanel";
 import { CategoryCard } from "@/components/CategoryCard";
 import { FallbackDisclaimer } from "@/components/FallbackDisclaimer";
@@ -70,6 +71,9 @@ export function SavedEstimateDetail({ stima, isPro = false }: SavedEstimateDetai
       {/* Assente sugli snapshot v1, salvati prima della feature: la vista si
           degrada senza il pannello invece di rompersi. */}
       {stima.bonus && <BonusPanel bonus={stima.bonus} />}
+
+      {/* Idem per l'arredo: assente su ogni snapshot anteriore alla fase 07. */}
+      {stima.arredo && <ArredoCard arredo={stima.arredo} />}
 
       <PdfDownloadButton stimaId={stima.id} />
     </div>

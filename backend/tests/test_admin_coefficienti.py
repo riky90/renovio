@@ -176,14 +176,18 @@ class TestEffettoImmediato:
 
 
 class TestCrudIva:
-    def test_get_iva_lista_4_categorie(self, client):
+    def test_get_iva_lista_tutte_le_categorie(self, client):
+        """Cinque dalla fase 07: l'admin governa l'IVA di OGNI categoria in
+        tabella, compresa `E-ARREDO`, che e' fuori dal totale lavori ma avra'
+        voci Pro con la loro aliquota (fase 08). Nasconderla qui vorrebbe dire
+        un'aliquota non modificabile da pannello, contro ENG-02."""
         _registra_admin(client)
         response = client.get(f"{COEFF_URL}/iva")
         assert response.status_code == 200
         rows = response.json()
-        assert len(rows) == 4
         codes = {r["code"] for r in rows}
-        assert codes == {"A-EDILE", "B-FINITURE", "C-SERRAMENTI", "D-PRODOTTI"}
+        assert codes == {"A-EDILE", "B-FINITURE", "C-SERRAMENTI", "D-PRODOTTI", "E-ARREDO"}
+        assert len(rows) == 5
 
     def test_patch_iva_modifica_categoria(self, client):
         _registra_admin(client)

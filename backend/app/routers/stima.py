@@ -17,6 +17,7 @@ an approximation — see `_split_imponibile_iva`.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
 
 from fastapi import APIRouter, Request
@@ -24,6 +25,8 @@ from fastapi import APIRouter, Request
 from app.db import SessionLocal
 from app.limiter import limiter
 from app.schemas.stima import (
+    ArredoAmbienteOut,
+    ArredoOut,
     BonusDettaglioOut,
     BonusOut,
     CategoriaOut,
@@ -33,12 +36,30 @@ from app.schemas.stima import (
     StimaResponse,
     TotaleOut,
 )
+from app.services.arredo import ArredoService
 from app.services.bonus_service import BonusService
 from app.services.city_resolver import resolve_listino
 from app.services.estimation import EstimationService
 from app.services.testo_service import get_testo
 
 router = APIRouter(prefix="/stima", tags=["stima"])
+
+#: Il codice della categoria arredo. Sta qui e non in un servizio perche' e'
+#: l'unico punto in cui il totale arredo viene PRESENTATO come se fosse una
+#: categoria — per la base dei bonus. Il calcolo dell'arredo, quello vero, non
+#: lo nomina mai (vedi `services/arredo.py`).
+CATEGORIA_ARREDO = "E-ARREDO"
+
+
+@dataclass(frozen=True)
+class _CategoriaArredoPerBonus:
+    """Il minimo che `BonusService.CategoriaConTotale` chiede: un codice e due
+    totali lordi. Non e' una categoria del motore Free — quella e' esclusa dal
+    totale lavori — ma per il calcolo della detrazione si comporta come tale."""
+
+    code: str
+    totale_min: Decimal
+    totale_max: Decimal
 
 
 def _split_imponibile_iva(totale: Decimal, iva_pct: Decimal) -> tuple[Decimal, Decimal]:
@@ -121,9 +142,29 @@ def crea_stima(payload: StimaRequest, request: Request) -> StimaResponse:
         # importo e aliquota. La detrazione si applica alla spesa sostenuta,
         # cioe' al lordo — e usare quello del servizio garantisce che la base
         # dei bonus riconcili esattamente col totale mostrato all'utente.
+        # L'arredo si calcola anch'esso DOPO e per conto suo: non passa dal
+        # motore Free, che e' il totale LAVORI. `None` quando non c'e' nulla
+        # da mostrare — mai una sezione a zero.
+        arredo_result = ArredoService.compute(session, payload.risposte)
+
+        # I bonus vedono l'arredo come una pseudo-categoria `E-ARREDO`, ed e'
+        # tutto cio' che serve per accendere il Bonus Mobili: `BonusService`
+        # costruisce la base da {codice categoria: (min, max)}, e la riga
+        # `bonus_categoria (MOBILI, E-ARREDO)` dice il resto. Nessuna riga di
+        # codice fiscale in piu', nessun ramo dedicato nel servizio.
+        basi_bonus: list = list(categorie_out)
+        if arredo_result is not None:
+            basi_bonus.append(
+                _CategoriaArredoPerBonus(
+                    code=CATEGORIA_ARREDO,
+                    totale_min=arredo_result.totale_min,
+                    totale_max=arredo_result.totale_max,
+                )
+            )
+
         bonus_result = BonusService.compute(
             session,
-            categorie_out,
+            basi_bonus,
             destinazione=payload.destinazione.value,
             disclaimer=get_testo(session, "disclaimer_bonus"),
             extra=result.extra,
@@ -144,6 +185,7 @@ def crea_stima(payload: StimaRequest, request: Request) -> StimaResponse:
             extra=extra_out,
             totale=totale_out,
             bonus=_bonus_out(bonus_result),
+            arredo=_arredo_out(session, arredo_result),
         )
 
 
@@ -177,4 +219,24 @@ def _bonus_out(result) -> BonusOut | None:
         rata_annua_min=result.rata_annua_min,
         rata_annua_max=result.rata_annua_max,
         disclaimer=result.disclaimer,
+    )
+
+
+def _arredo_out(session, result) -> ArredoOut | None:
+    """Mappa campo-per-campo, come `_bonus_out`. Il disclaimer si legge QUI e
+    finisce dentro il payload, cosi' viaggia nello snapshot e nel PDF."""
+    if result is None:
+        return None
+    return ArredoOut(
+        livello_code=result.livello_code,
+        livello_nome=result.livello_nome,
+        ambienti=[
+            ArredoAmbienteOut(
+                code=a.code, nome=a.nome, eur_min=a.eur_min, eur_max=a.eur_max
+            )
+            for a in result.ambienti
+        ],
+        totale_min=result.totale_min,
+        totale_max=result.totale_max,
+        disclaimer=get_testo(session, "disclaimer_arredo"),
     )

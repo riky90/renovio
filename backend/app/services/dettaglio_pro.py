@@ -225,6 +225,15 @@ class DettaglioProService:
                     )
                 )
 
+            # Categoria senza NESSUNA sottocategoria nel listino -> scartata,
+            # per la stessa ragione della sottocategoria svuotata poco sopra:
+            # una card a 0 EUR e' rumore. Il caso vivo e' `E-ARREDO`, che
+            # esiste in tabella per il Free (forfait) e per le voci Pro che
+            # arriveranno con l'import Excel: finche' quelle voci non ci sono,
+            # la categoria non ha niente da mostrare nel dettaglio.
+            if not sotto_rows:
+                continue
+
             cat_min = sum((s.totale_min for s in sottocategorie), Decimal("0"))
             cat_max = sum((s.totale_max for s in sottocategorie), Decimal("0"))
             categorie.append(

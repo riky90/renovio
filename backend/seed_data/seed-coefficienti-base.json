@@ -38,7 +38,8 @@
     "A-EDILE": 0.1,
     "B-FINITURE": 0.22,
     "C-SERRAMENTI": 0.22,
-    "D-PRODOTTI": 0.1
+    "D-PRODOTTI": 0.1,
+    "E-ARREDO": 0.22
   },
   "extra": {
     "CSE_CSP": 800,

@@ -87,7 +87,18 @@ class EstimationService:
 
         correzioni = risolvi_effetti_free(session, mq=mq, tipo=tipo, risposte=risposte).correzioni
 
-        categorie_rows = session.query(Categoria).order_by(Categoria.ordine).all()
+        # SOLO le categorie che fanno parte del totale lavori. L'arredo
+        # (`E-ARREDO`, `nel_totale_lavori=False`) e' una categoria a tutti gli
+        # effetti — ha voci, IVA e un suo posto nel dettaglio Pro — ma non e'
+        # una lavorazione, e il totale che l'utente confronta con un preventivo
+        # edile non deve contenerla. Il filtro e' sul dato, non sul codice:
+        # vedi `models/catalogo.py::Categoria.nel_totale_lavori`.
+        categorie_rows = (
+            session.query(Categoria)
+            .filter(Categoria.nel_totale_lavori.is_(True))
+            .order_by(Categoria.ordine)
+            .all()
+        )
 
         categorie: list[CategoriaEstimata] = []
         sum_min = Decimal("0")

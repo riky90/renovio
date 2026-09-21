@@ -37,10 +37,17 @@ def test_seed_dettaglio_pro_covers_all_categories(session):
     seed(session, data)
 
     categoria_codes = {c for (c,) in session.query(Categoria.code).all()}
-    assert categoria_codes == {"A-EDILE", "B-FINITURE", "C-SERRAMENTI", "D-PRODOTTI"}
+    assert categoria_codes == {"A-EDILE", "B-FINITURE", "C-SERRAMENTI", "D-PRODOTTI", "E-ARREDO"}
 
+    # Il dettaglio Pro copre le categorie di LAVORO. `E-ARREDO` non ha ancora
+    # voci: nel Free e' un forfait per ambiente (`forfait_arredo`), e le voci
+    # vere arrivano con l'import Excel (fase 08). Finche' non ci sono, il
+    # motore Pro scarta la categoria invece di mostrarne una vuota a 0 EUR.
+    categorie_di_lavoro = {
+        c for (c,) in session.query(Categoria.code).filter(Categoria.nel_totale_lavori.is_(True))
+    }
     sotto_categoria_codes = {c for (c,) in session.query(Sottocategoria.categoria_code).distinct().all()}
-    assert sotto_categoria_codes == categoria_codes
+    assert sotto_categoria_codes == categorie_di_lavoro
 
     gerarchiche = session.query(Sottocategoria).filter_by(categoria_code="A-EDILE", famiglia="gerarchica").all()
     assert len(gerarchiche) >= 11

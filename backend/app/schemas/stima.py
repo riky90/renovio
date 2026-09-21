@@ -135,6 +135,32 @@ class BonusOut(BaseModel):
     disclaimer: str
 
 
+class ArredoAmbienteOut(BaseModel):
+    """Un ambiente arredato: importi LORDI, IVA inclusa, come li vede il
+    cliente in un negozio di arredamento."""
+
+    code: str
+    nome: str
+    eur_min: Decimal
+    eur_max: Decimal
+
+
+class ArredoOut(BaseModel):
+    """Il forfait di arredo. Sta ACCANTO a `totale`, non dentro: l'arredo non
+    e' una lavorazione, e il totale che l'utente confronta con un preventivo
+    edile non deve contenerlo.
+
+    Il disclaimer viaggia qui dentro, come per i bonus: cosi' finisce nello
+    snapshot congelato e nel PDF, e non e' rimovibile dal client."""
+
+    livello_code: str
+    livello_nome: str
+    ambienti: list[ArredoAmbienteOut]
+    totale_min: Decimal
+    totale_max: Decimal
+    disclaimer: str
+
+
 class StimaResponse(BaseModel):
     input: StimaInputEcho
     fallback: bool
@@ -146,3 +172,6 @@ class StimaResponse(BaseModel):
     # None = nessun bonus applicabile (o snapshot v1 salvato prima di questa
     # feature). Mai una sezione a zero.
     bonus: BonusOut | None = None
+    # None = nessun ambiente da arredare scelto, nessun forfait curato, o
+    # snapshot salvato prima di questa feature. Mai una sezione a zero.
+    arredo: ArredoOut | None = None

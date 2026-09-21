@@ -15,7 +15,11 @@ from scripts.seed import TESTI_INIZIALI, load_seed_data, seed
 
 EXPECTED_COUNTS = {
     "listino": 1,
-    "categoria": 4,
+    # 5 e non 4 dalla fase 07: `E-ARREDO` e' una categoria vera in tabella,
+    # ma `nel_totale_lavori=False` la tiene fuori dal motore Free. Il conteggio
+    # qui e' un ORACOLO di seed, quindi si aggiorna a mano quando la struttura
+    # cambia davvero — mai allentandolo a `>= 4`.
+    "categoria": 5,
     "tipo": 3,
     "moltiplicatore": 12,
     "extra": 2,

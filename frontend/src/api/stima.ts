@@ -91,6 +91,23 @@ export interface BonusOut {
   disclaimer: string;
 }
 
+export interface ArredoAmbienteOut {
+  code: string;
+  nome: string;
+  eur_min: number;
+  eur_max: number;
+}
+
+export interface ArredoOut {
+  livello_code: string;
+  livello_nome: string;
+  ambienti: ArredoAmbienteOut[];
+  totale_min: number;
+  totale_max: number;
+  /** Viaggia nel payload, non nella UI: non e' rimovibile lato client. */
+  disclaimer: string;
+}
+
 export interface StimaResponse {
   input: StimaInputEcho;
   fallback: boolean;
@@ -104,6 +121,12 @@ export interface StimaResponse {
    * aliquota valida) e sugli snapshot v1 salvati prima della feature.
    */
   bonus: BonusOut | null;
+  /**
+   * null quando non ci sono ambienti da arredare scelti, o nessun forfait
+   * curato per quel livello, e sugli snapshot salvati prima della feature.
+   * E' FRATELLO di `totale`, mai dentro: l'arredo non e' una lavorazione.
+   */
+  arredo: ArredoOut | null;
 }
 
 /**
@@ -137,6 +160,18 @@ interface RawBonusOut {
   disclaimer: string;
   [key: string]: unknown;
 }
+interface RawArredoAmbienteOut {
+  code: string;
+  nome: string;
+  [key: string]: unknown;
+}
+interface RawArredoOut {
+  livello_code: string;
+  livello_nome: string;
+  ambienti: RawArredoAmbienteOut[];
+  disclaimer: string;
+  [key: string]: unknown;
+}
 interface RawStimaResponse {
   input: StimaInputEcho;
   fallback: boolean;
@@ -147,6 +182,8 @@ interface RawStimaResponse {
   totale: Record<string, unknown>;
   /** Assente sugli snapshot v1: non e' un errore, e' l'assenza della feature. */
   bonus?: RawBonusOut | null;
+  /** Idem: assente su ogni snapshot salvato prima della fase 07. */
+  arredo?: RawArredoOut | null;
 }
 
 const NUMERIC_CATEGORIA_FIELDS = [
@@ -222,6 +259,27 @@ function normalizeBonus(raw: RawBonusOut | null | undefined): BonusOut | null {
   return out;
 }
 
+const NUMERIC_ARREDO_FIELDS = ["totale_min", "totale_max"] as const;
+
+function normalizeArredo(raw: RawArredoOut | null | undefined): ArredoOut | null {
+  if (raw == null) return null;
+  const out = {
+    livello_code: raw.livello_code,
+    livello_nome: raw.livello_nome,
+    ambienti: raw.ambienti.map((a) => ({
+      code: a.code,
+      nome: a.nome,
+      eur_min: toNumber(a.eur_min),
+      eur_max: toNumber(a.eur_max),
+    })),
+    disclaimer: raw.disclaimer,
+  } as ArredoOut;
+  for (const field of NUMERIC_ARREDO_FIELDS) {
+    out[field] = toNumber(raw[field]);
+  }
+  return out;
+}
+
 /**
  * ATTENZIONE, PRIMA DI AGGIUNGERE UN CAMPO ALLA RISPOSTA: questa funzione
  * RICOSTRUISCE l'oggetto campo per campo, non fa spread. Tutto cio' che non e'
@@ -255,6 +313,7 @@ function normalizeResponse(raw: RawStimaResponse): StimaResponse {
       return acc;
     }, {} as TotaleOut),
     bonus: normalizeBonus(raw.bonus),
+    arredo: normalizeArredo(raw.arredo),
   };
 }
 

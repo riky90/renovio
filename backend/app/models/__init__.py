@@ -3,6 +3,7 @@
 before Alembic autogenerate or `Base.metadata.create_all` runs.
 """
 
+from app.models.arredo import ForfaitArredo
 from app.models.bonus import AliquotaBonus, BonusCategoria, BonusExtra, BonusFiscale
 from app.models.catalogo import (
     Categoria,
@@ -32,6 +33,7 @@ __all__ = [
     "Domanda",
     "EffettoOpzione",
     "Extra",
+    "ForfaitArredo",
     "Listino",
     "ListinoCategoria",
     "LivelloFinitura",

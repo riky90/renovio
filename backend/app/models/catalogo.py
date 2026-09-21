@@ -31,6 +31,18 @@ class Categoria(Base):
         Boolean, nullable=False, default=False, server_default="0"
     )
 
+    # Se questa categoria entra nel TOTALE LAVORI. `false` solo per l'arredo,
+    # che non e' una lavorazione: viaggia accanto al totale, mai dentro, cosi'
+    # la riconciliazione `Sigma categorie + extra = totale` resta vera e il
+    # numero resta confrontabile con un preventivo edile.
+    #
+    # E' un DATO e non un `if` sul codice categoria, per la stessa ragione di
+    # `livello_selezionabile`: un domani una categoria nuova entra o esce dal
+    # totale dal pannello admin, senza deploy e senza migrazione (ENG-02).
+    nel_totale_lavori: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default="1"
+    )
+
 
 class LivelloFinitura(Base):
     """I livelli di finitura selezionabili: base / medio / alto.

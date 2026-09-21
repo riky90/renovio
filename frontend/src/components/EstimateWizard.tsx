@@ -263,6 +263,10 @@ const GRUPPI_PER_STEP: Record<string, number> = {
   ambienti: 2,
   ristrutturazione: 3,
   energia: 3,
+  // L'arredo cadrebbe qui comunque per ripiego. E' elencato per SCELTA:
+  // sta nello step della ristrutturazione perche' e' li' che l'utente
+  // ragiona su cosa vuole ottenere, non su com'e' fatta la casa.
+  arredo: 3,
 };
 
 const STEP_DI_RIPIEGO = 3;

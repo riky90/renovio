@@ -36,6 +36,7 @@ if str(_BACKEND_DIR) not in sys.path:
 
 import app.models  # noqa: E402, F401 - registers all ORM entities on Base.metadata
 from app.db import Base, SessionLocal, engine  # noqa: E402
+from app.models.arredo import ForfaitArredo
 from app.models.bonus import (  # noqa: E402
     AliquotaBonus,
     BonusCategoria,
@@ -83,8 +84,9 @@ CATEGORIA_NOMI = {
     "B-FINITURE": "Finiture",
     "C-SERRAMENTI": "Serramenti/Porte",
     "D-PRODOTTI": "Prodotti",
+    "E-ARREDO": "Arredo",
 }
-CATEGORIA_ORDINE = {"A-EDILE": 1, "B-FINITURE": 2, "C-SERRAMENTI": 3, "D-PRODOTTI": 4}
+CATEGORIA_ORDINE = {"A-EDILE": 1, "B-FINITURE": 2, "C-SERRAMENTI": 3, "D-PRODOTTI": 4, "E-ARREDO": 5}
 
 # Dove il livello di finitura ha senso. A-EDILE resta FUORI: demolizioni,
 # impianti e massetti dipendono dal TIPO di ristrutturazione, non dal gusto del
@@ -95,6 +97,27 @@ CATEGORIA_LIVELLO_SELEZIONABILE = {
     "B-FINITURE": True,
     "C-SERRAMENTI": True,
     "D-PRODOTTI": True,
+    "E-ARREDO": True,
+}
+
+# Quali categorie entrano nel TOTALE LAVORI. `E-ARREDO` no: l'arredo non e' una
+# lavorazione, e il numero che l'utente confronta con un preventivo edile non
+# deve contenerlo. Vive accanto al totale (`StimaResponse.arredo`), mai dentro.
+#
+# Anche questa e' curatela e non schema: la migrazione 0015 porta la colonna a
+# `true` ovunque, il seed la abbassa qui, e domani l'admin la sposta dal
+# pannello senza una migrazione nuova.
+#
+# `E-ARREDO` non compare in `base_eur_mq` ne' nei `moltiplicatori_tipo` del
+# file dei coefficienti, ed e' corretto: il Free non la calcola a euro/m2 ma a
+# forfait per ambiente, e il motore la salta prima ancora di cercare la riga di
+# listino. Le voci Pro dell'arredo arrivano con l'import Excel (Fase 08).
+CATEGORIA_NEL_TOTALE_LAVORI = {
+    "A-EDILE": True,
+    "B-FINITURE": True,
+    "C-SERRAMENTI": True,
+    "D-PRODOTTI": True,
+    "E-ARREDO": False,
 }
 
 # I tre livelli di finitura. `medio` e' il default applicato quando l'utente non
@@ -237,6 +260,12 @@ BONUS_CATEGORIE = [
     {"bonus_code": "RISTRUTTURAZIONE", "categoria_code": "D-PRODOTTI", "quota": "1"},
     # I serramenti vanno sull'ECOBONUS, non sul bonus ristrutturazione.
     {"bonus_code": "ECOBONUS", "categoria_code": "C-SERRAMENTI", "quota": "1"},
+    # L'arredo alimenta il BONUS MOBILI e nient'altro. La riga esiste anche se
+    # il bonus e' SPENTO: e' precisamente cio' che rende l'accensione un flag
+    # da pannello admin invece di un deploy (ARR-04). `E-ARREDO` non e' nel
+    # totale lavori, quindi non c'e' nessun rischio di doppia detrazione con
+    # RISTRUTTURAZIONE, che su quella categoria non ha quota.
+    {"bonus_code": "MOBILI", "categoria_code": "E-ARREDO", "quota": "1"},
 ]
 
 # Quali EXTRA alimentano quale bonus. CSE/CSP (sicurezza in cantiere) e
@@ -256,6 +285,15 @@ TESTI_INIZIALI = {
         "Stima basata sul listino di Reggio Emilia, non ancora tarata su {citta}."
     ),
     "email_conferma_lead_subject": "Conferma richiesta contatto professionista",
+    # Viaggia DENTRO `ArredoOut`, quindi finisce nello snapshot congelato e nel
+    # PDF e non e' rimovibile dal client. Dice la cosa che l'utente deve capire
+    # in una riga: questo numero non e' nel totale dei lavori.
+    "disclaimer_arredo": (
+        "L'arredo non e' compreso nel totale dei lavori: e' una spesa separata, "
+        "che ti mostriamo a parte per darti il quadro completo. Gli importi sono "
+        "forfait indicativi per ambiente, IVA inclusa, e variano molto con i "
+        "marchi e le misure reali."
+    ),
     # Contenuto minimo non negoziabile: capienza IRPEF, 10 rate, bonifico
     # parlante + ENEA, "non e' consulenza fiscale". Modificabile da admin (il
     # seed non lo sovrascrive piu' — vedi seed_testi), ma non rimovibile dalla
@@ -559,6 +597,51 @@ def seed_domande(session: Session, data: dict | None = None) -> None:
         # else: gia' presente -> curatela dell'admin, non si tocca.
 
     session.flush()
+    _seed_forfait_arredo(session, data.get("forfait_arredo", []))
+    session.flush()
+
+
+def _seed_forfait_arredo(session: Session, righe: list[dict]) -> None:
+    """Create-if-missing dei forfait di arredo, per chiave naturale
+    (opzione, livello).
+
+    Stessa regola di proprieta' degli effetti e per la stessa ragione: gli
+    importi sono curatela: una volta tarati su un negozio vero non devono
+    tornare alla bozza al deploy successivo. La chiave naturale non contiene
+    gli euro, altrimenti ogni taratura creerebbe un doppione invece di
+    riconoscere la riga.
+
+    Una riga che punta a un'opzione o a un livello inesistenti viene SALTATA in
+    silenzio invece di far fallire il boot: il seed gira all'avvio del
+    container, e un errore di curatela nel JSON non deve impedire all'app di
+    partire. La conseguenza e' visibile — l'ambiente semplicemente non produce
+    forfait — e non nascosta.
+    """
+    for r in righe:
+        opzione = (
+            session.query(OpzioneDomanda)
+            .filter_by(domanda_code=r["domanda_code"], code=r["opzione_code"])
+            .one_or_none()
+        )
+        if opzione is None:
+            continue
+        if session.get(LivelloFinitura, r["livello_code"]) is None:
+            continue
+        esiste = (
+            session.query(ForfaitArredo)
+            .filter_by(opzione_id=opzione.id, livello_code=r["livello_code"])
+            .one_or_none()
+        )
+        if esiste is not None:
+            continue
+        session.add(
+            ForfaitArredo(
+                opzione_id=opzione.id,
+                livello_code=r["livello_code"],
+                eur_min=_dec(r["eur_min"]),
+                eur_max=_dec(r["eur_max"]),
+            )
+        )
 
 
 def _crea_effetto_se_manca(session: Session, opzione: OpzioneDomanda, e_data: dict) -> None:
@@ -645,6 +728,7 @@ def seed(session: Session, data: dict | None = None) -> Listino:
             cat.ordine = CATEGORIA_ORDINE[code]
             cat.iva_pct = _dec(iva)
         cat.livello_selezionabile = CATEGORIA_LIVELLO_SELEZIONABILE.get(code, False)
+        cat.nel_totale_lavori = CATEGORIA_NEL_TOTALE_LAVORI.get(code, True)
     session.flush()
 
     # 3. listino_categoria (4): base_eur_mq (prezzo cliente) + coefficiente_impresa (segreto)

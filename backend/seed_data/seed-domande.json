@@ -1,5 +1,5 @@
 {
-  "nota": "BOZZA. Le domande e le opzioni sono struttura del prodotto e il seed le riscrive a ogni boot; i VALORI degli effetti e le attese sono curatela e il seed li crea soltanto se mancano, cosi' una taratura fatta dal pannello admin non viene azzerata dal deploy successivo. I numeri qui sotto sono un punto di partenza plausibile, non una taratura: vanno confermati su preventivi reali. Tutti gli importi sono in euro-cliente, mai coefficiente impresa.",
+  "nota": "BOZZA. Le domande e le opzioni sono struttura del prodotto e il seed le riscrive a ogni boot; i VALORI degli effetti e le attese sono curatela e il seed li crea soltanto se mancano, cosi' una taratura fatta dal pannello admin non viene azzerata dal deploy successivo. I numeri qui sotto sono un punto di partenza plausibile, non una taratura: vanno confermati su preventivi reali. Tutti gli importi sono in euro-cliente, mai coefficiente impresa. I forfait di arredo (`forfait_arredo`) seguono la stessa regola: struttura riscritta a ogni boot, importi creati solo se mancanti. Sono importi LORDI, IVA inclusa, come li vede il cliente in un negozio di arredamento.",
   "attese": [
     {
       "attributo_code": "locali",
@@ -150,6 +150,36 @@
       "fascia_mq_min": 180,
       "fascia_mq_max": 2000,
       "valore_atteso": 9
+    },
+    {
+      "attributo_code": "condizionatori",
+      "fascia_mq_min": 0,
+      "fascia_mq_max": 49,
+      "valore_atteso": 1
+    },
+    {
+      "attributo_code": "condizionatori",
+      "fascia_mq_min": 50,
+      "fascia_mq_max": 79,
+      "valore_atteso": 1
+    },
+    {
+      "attributo_code": "condizionatori",
+      "fascia_mq_min": 80,
+      "fascia_mq_max": 119,
+      "valore_atteso": 2
+    },
+    {
+      "attributo_code": "condizionatori",
+      "fascia_mq_min": 120,
+      "fascia_mq_max": 179,
+      "valore_atteso": 3
+    },
+    {
+      "attributo_code": "condizionatori",
+      "fascia_mq_min": 180,
+      "fascia_mq_max": 2000,
+      "valore_atteso": 4
     },
     {
       "attributo_code": "piano",
@@ -544,6 +574,36 @@
               "tipo_effetto": "eur_per_scostamento",
               "target_categoria_code": "C-SERRAMENTI",
               "valore": "480"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "condizionatori",
+      "testo": "Quanti climatizzatori (split) vuoi installare?",
+      "help": "Conta un'unita' interna per ogni ambiente da climatizzare. Se non vuoi la climatizzazione, lascia 0.",
+      "tipo_controllo": "stepper",
+      "gruppo": "ambienti",
+      "ordine": 75,
+      "tier_minimo": "free",
+      "attributo_code": "condizionatori",
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "ordine": 1,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "eur_per_scostamento",
+              "target_categoria_code": "A-EDILE",
+              "valore": "700"
+            },
+            {
+              "tipo_effetto": "eur_per_scostamento",
+              "target_categoria_code": "D-PRODOTTI",
+              "valore": "900"
             }
           ]
         }
@@ -962,6 +1022,187 @@
           ]
         }
       ]
+    },
+    {
+      "code": "ambienti_arredo",
+      "testo": "Quali ambienti vuoi arredare?",
+      "help": "Il costo dell'arredo resta FUORI dal totale dei lavori: te lo mostriamo a parte, perche' non e' una lavorazione e non va confrontato con un preventivo edile.",
+      "tipo_controllo": "scelta_multipla",
+      "gruppo": "arredo",
+      "ordine": 105,
+      "tier_minimo": "free",
+      "opzioni": [
+        {
+          "code": "cucina",
+          "etichetta": "Cucina",
+          "descrizione": "Mobili, elettrodomestici da incasso, piano e schienale.",
+          "ordine": 1,
+          "is_default": false
+        },
+        {
+          "code": "soggiorno",
+          "etichetta": "Soggiorno",
+          "descrizione": "Divano, tavolo e sedie, parete attrezzata.",
+          "ordine": 2,
+          "is_default": false
+        },
+        {
+          "code": "camera",
+          "etichetta": "Camera matrimoniale",
+          "descrizione": "Letto, armadio, comodini.",
+          "ordine": 3,
+          "is_default": false
+        },
+        {
+          "code": "cameretta",
+          "etichetta": "Cameretta",
+          "descrizione": "Letto, armadio, scrivania.",
+          "ordine": 4,
+          "is_default": false
+        },
+        {
+          "code": "bagno",
+          "etichetta": "Bagno",
+          "descrizione": "Mobile lavabo, specchio, accessori. I sanitari stanno nei lavori.",
+          "ordine": 5,
+          "is_default": false
+        },
+        {
+          "code": "ingresso",
+          "etichetta": "Ingresso e studio",
+          "descrizione": "Scarpiera, libreria, scrivania.",
+          "ordine": 6,
+          "is_default": false
+        }
+      ]
+    }
+  ],
+  "forfait_arredo": [
+    {
+      "domanda_code": "ambienti_arredo",
+      "opzione_code": "cucina",
+      "livello_code": "base",
+      "eur_min": 4500,
+      "eur_max": 7000
+    },
+    {
+      "domanda_code": "ambienti_arredo",
+      "opzione_code": "cucina",
+      "livello_code": "medio",
+      "eur_min": 8000,
+      "eur_max": 13000
+    },
+    {
+      "domanda_code": "ambienti_arredo",
+      "opzione_code": "cucina",
+      "livello_code": "alto",
+      "eur_min": 15000,
+      "eur_max": 26000
+    },
+    {
+      "domanda_code": "ambienti_arredo",
+      "opzione_code": "soggiorno",
+      "livello_code": "base",
+      "eur_min": 2200,
+      "eur_max": 3800
+    },
+    {
+      "domanda_code": "ambienti_arredo",
+      "opzione_code": "soggiorno",
+      "livello_code": "medio",
+      "eur_min": 4200,
+      "eur_max": 7500
+    },
+    {
+      "domanda_code": "ambienti_arredo",
+      "opzione_code": "soggiorno",
+      "livello_code": "alto",
+      "eur_min": 8500,
+      "eur_max": 16000
+    },
+    {
+      "domanda_code": "ambienti_arredo",
+      "opzione_code": "camera",
+      "livello_code": "base",
+      "eur_min": 1800,
+      "eur_max": 3000
+    },
+    {
+      "domanda_code": "ambienti_arredo",
+      "opzione_code": "camera",
+      "livello_code": "medio",
+      "eur_min": 3400,
+      "eur_max": 5800
+    },
+    {
+      "domanda_code": "ambienti_arredo",
+      "opzione_code": "camera",
+      "livello_code": "alto",
+      "eur_min": 6500,
+      "eur_max": 12000
+    },
+    {
+      "domanda_code": "ambienti_arredo",
+      "opzione_code": "cameretta",
+      "livello_code": "base",
+      "eur_min": 1500,
+      "eur_max": 2600
+    },
+    {
+      "domanda_code": "ambienti_arredo",
+      "opzione_code": "cameretta",
+      "livello_code": "medio",
+      "eur_min": 2800,
+      "eur_max": 4800
+    },
+    {
+      "domanda_code": "ambienti_arredo",
+      "opzione_code": "cameretta",
+      "livello_code": "alto",
+      "eur_min": 5200,
+      "eur_max": 9000
+    },
+    {
+      "domanda_code": "ambienti_arredo",
+      "opzione_code": "bagno",
+      "livello_code": "base",
+      "eur_min": 600,
+      "eur_max": 1100
+    },
+    {
+      "domanda_code": "ambienti_arredo",
+      "opzione_code": "bagno",
+      "livello_code": "medio",
+      "eur_min": 1200,
+      "eur_max": 2200
+    },
+    {
+      "domanda_code": "ambienti_arredo",
+      "opzione_code": "bagno",
+      "livello_code": "alto",
+      "eur_min": 2500,
+      "eur_max": 4500
+    },
+    {
+      "domanda_code": "ambienti_arredo",
+      "opzione_code": "ingresso",
+      "livello_code": "base",
+      "eur_min": 700,
+      "eur_max": 1400
+    },
+    {
+      "domanda_code": "ambienti_arredo",
+      "opzione_code": "ingresso",
+      "livello_code": "medio",
+      "eur_min": 1500,
+      "eur_max": 2800
+    },
+    {
+      "domanda_code": "ambienti_arredo",
+      "opzione_code": "ingresso",
+      "livello_code": "alto",
+      "eur_min": 3000,
+      "eur_max": 5500
     }
   ]
 }

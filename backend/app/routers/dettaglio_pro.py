@@ -197,11 +197,20 @@ def opzioni_pro(_current_user: User = Depends(require_pro)) -> OpzioniProOut:
     e riusare l'endpoint admin avrebbe significato allargarne il gate.
 
     Le categorie arrivano da `livello_selezionabile`, mai da un elenco di
-    codici cablato nel client (regola 3 del CLAUDE.md: e' un dato)."""
+    codici cablato nel client (regola 3 del CLAUDE.md: e' un dato).
+
+    Filtrate anche su `nel_totale_lavori`: il selettore del livello serve a
+    scegliere le voci del DETTAGLIO, e `E-ARREDO` nel dettaglio non c'e'
+    (il suo livello lo sceglie la domanda del wizard, che governa il forfait
+    Free). Offrirne il selettore vorrebbe dire mostrare un comando che non
+    cambia niente sullo schermo."""
     with SessionLocal() as session:
         categorie = (
             session.query(Categoria)
-            .filter_by(livello_selezionabile=True)
+            .filter(
+                Categoria.livello_selezionabile.is_(True),
+                Categoria.nel_totale_lavori.is_(True),
+            )
             .order_by(Categoria.ordine)
             .all()
         )

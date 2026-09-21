@@ -158,7 +158,20 @@ class RisoluzioneFree:
         return bool(self.correzioni)
 
 
+@dataclass(frozen=True)
+class ScelteRisolte:
+    """Il catalogo dopo aver applicato risposte, default e visibilita'.
+
+    `domande` sono quelle attive del tier, in ordine; `opzioni` sono quelle
+    effettivamente scelte e VISIBILI. Chi consuma questo oggetto non deve
+    rifare nessuna delle tre regole."""
+
+    domande: list[Domanda]
+    opzioni: list[OpzioneDomanda]
+
+
 _VUOTA = RisoluzioneFree(correzioni={}, applicati=[])
+_SCELTE_VUOTE = ScelteRisolte(domande=[], opzioni=[])
 
 
 # --- validazione (usata dagli endpoint admin) -------------------------------
@@ -322,32 +335,33 @@ def _visibili(domande: list[Domanda], scelte: dict[str, set[str]]) -> dict[str, 
     return stato
 
 
-def risolvi_effetti_free(
+def risolvi_scelte(
     session: Session,
     *,
-    mq: int,
-    tipo: str,
     risposte: dict[str, Any] | None,
-) -> RisoluzioneFree:
-    """Traduce le risposte nelle tre correzioni Free, per categoria.
+    tier: str = TIER_FREE,
+) -> ScelteRisolte:
+    """Quali domande sono in gioco e quali opzioni risultano scelte.
 
-    `risposte is None` spegne il layer e torna una risoluzione vuota: e' la
-    retrocompatibilita' esplicita per i client e i test che postano ancora
-    `{citta, mq, tipo}`, e il motore in quel caso produce un risultato
-    bit-identico a prima. Un dizionario vuoto invece ACCENDE il layer, e le
-    domande non risposte cadono sui loro default.
+    E' la meta' del lavoro che NON riguarda gli effetti: leggere il catalogo,
+    applicare i default, risolvere la visibilita' condizionale. Vive qui da
+    sola perche' ha un secondo consumatore — `services/arredo.py` — e due copie
+    della regola di visibilita' vorrebbero dire che prima o poi una domanda
+    nascosta smette di pesare sul prezzo ma continua a portare arredo.
+
+    `risposte is None` torna vuoto: e' il layer spento.
     """
     if risposte is None:
-        return _VUOTA
+        return _SCELTE_VUOTE
 
     domande = (
         session.query(Domanda)
-        .filter(Domanda.attiva.is_(True), Domanda.tier_minimo == TIER_FREE)
+        .filter(Domanda.attiva.is_(True), Domanda.tier_minimo == tier)
         .order_by(Domanda.ordine, Domanda.code)
         .all()
     )
     if not domande:
-        return _VUOTA
+        return _SCELTE_VUOTE
 
     codici = [d.code for d in domande]
     opzioni_per_domanda: dict[str, list[OpzioneDomanda]] = {c: [] for c in codici}
@@ -367,11 +381,32 @@ def risolvi_effetti_free(
         domande, {code: {o.code for o in ops} for code, ops in scelte_per_domanda.items()}
     )
 
-    opzioni_attive = [
-        o for d in domande if visibili[d.code] for o in scelte_per_domanda[d.code]
-    ]
+    return ScelteRisolte(
+        domande=domande,
+        opzioni=[o for d in domande if visibili[d.code] for o in scelte_per_domanda[d.code]],
+    )
+
+
+def risolvi_effetti_free(
+    session: Session,
+    *,
+    mq: int,
+    tipo: str,
+    risposte: dict[str, Any] | None,
+) -> RisoluzioneFree:
+    """Traduce le risposte nelle tre correzioni Free, per categoria.
+
+    `risposte is None` spegne il layer e torna una risoluzione vuota: e' la
+    retrocompatibilita' esplicita per i client e i test che postano ancora
+    `{citta, mq, tipo}`, e il motore in quel caso produce un risultato
+    bit-identico a prima. Un dizionario vuoto invece ACCENDE il layer, e le
+    domande non risposte cadono sui loro default.
+    """
+    scelte = risolvi_scelte(session, risposte=risposte, tier=TIER_FREE)
+    opzioni_attive = scelte.opzioni
     if not opzioni_attive:
         return _VUOTA
+    domande = scelte.domande
 
     effetti_per_opzione: dict[int, list[EffettoOpzione]] = {o.id: [] for o in opzioni_attive}
     for e in (

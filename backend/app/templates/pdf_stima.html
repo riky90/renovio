@@ -318,6 +318,32 @@
     </div>
     {% endif %}
 
+    {# L'arredo sta DOPO il totale e dopo i bonus, e lo dice in chiaro nel
+       titolo: non e' una lavorazione e non va sommato al totale lavori.
+       `stima.arredo` manca su ogni snapshot salvato prima della fase 07 —
+       l'`if` non e' difensivo, e' la retrocompatibilita' dello storico. #}
+    {% if stima.arredo %}
+    <div class="bonus-block">
+      <div class="titolo">
+        Arredo &mdash; non compreso nel totale lavori (finiture {{ stima.arredo.livello_nome }})
+      </div>
+      {% for a in stima.arredo.ambienti %}
+      <div class="bonus-row">
+        <span class="nome">{{ a.nome }}</span>
+        <span>{{ a.eur_min|eur }} &ndash; {{ a.eur_max|eur }} {{ stima.valuta }}</span>
+      </div>
+      {% endfor %}
+      <div class="bonus-totale">
+        <span>Totale arredo</span>
+        <span>
+          {{ stima.arredo.totale_min|eur }} &ndash; {{ stima.arredo.totale_max|eur }}
+          {{ stima.valuta }}
+        </span>
+      </div>
+      <div class="bonus-disclaimer">{{ stima.arredo.disclaimer }}</div>
+    </div>
+    {% endif %}
+
     <div class="footer">
       Stima indicativa, non sostituisce un sopralluogo professionale.<br />
       {{ filename }}
