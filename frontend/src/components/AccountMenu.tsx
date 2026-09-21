@@ -43,7 +43,7 @@ export function AccountMenu({ user }: AccountMenuProps) {
             d'ingresso alla pagina utente, che e' la cosa che ci si aspetta di
             poter cliccare quando si apre il proprio menu account. */}
         <DropdownMenuItem
-          onSelect={() => navigate("/impostazioni")}
+          onSelect={() => navigate("/impostazioni/profilo")}
           className="flex flex-col items-start gap-0.5 py-2"
         >
           <span className="flex items-center gap-2 text-sm font-medium text-foreground">
@@ -57,13 +57,13 @@ export function AccountMenu({ user }: AccountMenuProps) {
 
         {/* Le tre sezioni della pagina utente in cima, ognuna sulla propria
             tab: sono le voci che si cercano piu' spesso. */}
-        <DropdownMenuItem onSelect={() => navigate("/impostazioni?tab=profilo")}>
+        <DropdownMenuItem onSelect={() => navigate("/impostazioni/profilo")}>
           Profilo
         </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => navigate("/impostazioni?tab=abbonamento")}>
+        <DropdownMenuItem onSelect={() => navigate("/impostazioni/abbonamento")}>
           Abbonamento
         </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => navigate("/impostazioni?tab=referral")}>
+        <DropdownMenuItem onSelect={() => navigate("/impostazioni/invita")}>
           Invita un amico
         </DropdownMenuItem>
         <DropdownMenuSeparator />

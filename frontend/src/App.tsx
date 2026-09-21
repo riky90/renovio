@@ -5,7 +5,7 @@ import { AccediPage } from "@/routes/AccediPage";
 import { PasswordDimenticataPage } from "@/routes/PasswordDimenticataPage";
 import { ReimpostaPasswordPage } from "@/routes/ReimpostaPasswordPage";
 import { LeMieStimePage } from "@/routes/LeMieStimePage";
-import { ImpostazioniPage } from "@/routes/ImpostazioniPage";
+import { ImpostazioniPage, ImpostazioniRedirect } from "@/routes/ImpostazioniPage";
 import { SupportoPage } from "@/routes/SupportoPage";
 import { PassaAProPage } from "@/routes/PassaAProPage";
 import { DettaglioProPage } from "@/pages/DettaglioProPage";
@@ -26,7 +26,10 @@ const router = createBrowserRouter([
   { path: "/password-dimenticata", element: <PasswordDimenticataPage /> },
   { path: "/reimposta-password", element: <ReimpostaPasswordPage /> },
   { path: "/le-mie-stime", element: <LeMieStimePage /> },
-  { path: "/impostazioni", element: <ImpostazioniPage /> },
+  // La tab sta nel path, non in query string. La rotta senza tab esiste solo
+  // per reggere i vecchi link `/impostazioni?tab=...` e rimandarli al posto giusto.
+  { path: "/impostazioni", element: <ImpostazioniRedirect /> },
+  { path: "/impostazioni/:tab", element: <ImpostazioniPage /> },
   { path: "/supporto", element: <SupportoPage /> },
   { path: "/passa-a-pro", element: <PassaAProPage /> },
   { path: "/nuova-stima", element: <NuovaStimaProPage /> },

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, Navigate, useSearchParams } from "react-router";
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Check, Copy, CreditCard, Gift, Mail, Sparkles, User } from "lucide-react";
@@ -23,21 +23,37 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AUTH_QUERY_KEY, useAuth } from "@/hooks/useAuth";
 import { patchProfilo, type UserOut } from "@/api/auth";
 
-/** Le tre tab, nell'ordine in cui compaiono anche nel menu account. */
-const TAB_VALIDE = ["profilo", "abbonamento", "referral"] as const;
+/**
+ * Le tre tab, nell'ordine in cui compaiono anche nel menu account. Lo slug e'
+ * anche il segmento di URL: `/impostazioni/profilo`, `/impostazioni/abbonamento`,
+ * `/impostazioni/invita`.
+ */
+const TAB_VALIDE = ["profilo", "abbonamento", "invita"] as const;
+
+/** Vecchi slug da `?tab=`: solo "referral" ha cambiato nome diventando "invita". */
+const TAB_LEGACY: Record<string, string> = { referral: "invita" };
+
+/**
+ * `/impostazioni` non ha una pagina propria: serve solo a raccogliere i link
+ * vecchi in query string e a mandarli sul path giusto. Un `tab` non
+ * riconosciuto arriva dalla barra degli indirizzi, quindi non e' fidato: ricade
+ * su Profilo invece di produrre un URL rotto.
+ */
+export function ImpostazioniRedirect() {
+  const [searchParams] = useSearchParams();
+  const richiesto = searchParams.get("tab") ?? "";
+  const slug = TAB_LEGACY[richiesto] ?? richiesto;
+  const destinazione = (TAB_VALIDE as readonly string[]).includes(slug) ? slug : "profilo";
+  return <Navigate to={`/impostazioni/${destinazione}`} replace />;
+}
 
 export function ImpostazioniPage() {
   const { user, isLoading } = useAuth();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { tab: tabParam } = useParams();
+  const navigate = useNavigate();
 
-  // La tab sta nell'URL: e' cio' che permette al menu account di puntare
-  // direttamente ad Abbonamento o Invita un amico. Un valore non riconosciuto
-  // (arriva dalla barra degli indirizzi, quindi non e' fidato) ricade su
-  // "profilo" invece di lasciare la pagina senza tab attiva.
-  const tabParam = searchParams.get("tab");
-  const tab = (TAB_VALIDE as readonly string[]).includes(tabParam ?? "")
-    ? (tabParam as string)
-    : "profilo";
+  const tabValida = (TAB_VALIDE as readonly string[]).includes(tabParam ?? "");
+  const tab = tabValida ? (tabParam as string) : "profilo";
 
   if (isLoading) {
     return (
@@ -55,6 +71,12 @@ export function ImpostazioniPage() {
     return <Navigate to="/accedi" replace />;
   }
 
+  // Path inventato a mano: normalizza l'URL invece di mostrare Profilo sotto
+  // un indirizzo che dice altro.
+  if (!tabValida) {
+    return <Navigate to="/impostazioni/profilo" replace />;
+  }
+
   return (
     <PageShell>
       <header className="flex flex-col gap-1">
@@ -64,7 +86,7 @@ export function ImpostazioniPage() {
 
       <Tabs
         value={tab}
-        onValueChange={(value) => setSearchParams({ tab: value }, { replace: true })}
+        onValueChange={(value) => navigate(`/impostazioni/${value}`, { replace: true })}
         className="mt-8 gap-6"
       >
         {/* A tutta larghezza: e' la scelta principale della pagina, non un
@@ -77,7 +99,7 @@ export function ImpostazioniPage() {
           <TabsTrigger value="abbonamento">
             <CreditCard className="size-4" /> Abbonamento
           </TabsTrigger>
-          <TabsTrigger value="referral">
+          <TabsTrigger value="invita">
             <Gift className="size-4" /> Invita un amico
           </TabsTrigger>
         </TabsList>
@@ -88,7 +110,7 @@ export function ImpostazioniPage() {
         <TabsContent value="abbonamento">
           <AbbonamentoTab user={user} />
         </TabsContent>
-        <TabsContent value="referral">
+        <TabsContent value="invita">
           <ReferralTab nome={user.nome} />
         </TabsContent>
       </Tabs>
