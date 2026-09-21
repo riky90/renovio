@@ -16,4 +16,20 @@ App web di stima costi ristrutturazione. Pianificazione GSD in `.planning/`. Bri
 - Bozza coefficienti da estrarre dal file (listino RE).
 
 ## Stato ambiente
-Gli agenti GSD non risultano installati e lo shim `gsd-sdk` sul PATH è rotto (punta a un temp di sessione precedente). I workflow automatici (plan/execute con subagent) non gireranno finché non si esegue `npx get-shit-done-cc@latest --global`. I documenti di planning sono stati generati inline.
+GSD è installato e funzionante: `~/.claude/get-shit-done/` contiene workflow, template e
+contexts, gli agenti `gsd-*` vivono in `~/.claude/agent-domains/dev/` (agganciato a questa
+cartella) e lo shim `gsd-sdk` sul PATH risolve a `~/.claude/gsd-source/bin/gsd-sdk.js`.
+I workflow con subagent (`/gsd:plan-phase`, `/gsd:execute-phase`) girano.
+
+La pianificazione di questo progetto è una milestone GSD vera: `.planning/ROADMAP.md`,
+`.planning/REQUIREMENTS.md` e `.planning/phases/NN-*/`. Le fasi non ripartono da 01 a ogni
+milestone: la v1.0 ha usato 01-04, la v2.0 usa 05-10.
+
+## Ambiente di sviluppo
+- Backend: virtualenv in `backend/.venv`. I test si lanciano con
+  `backend/.venv/Scripts/python.exe -m pytest` — il `python` di sistema non ha le
+  dipendenze. La suite completa impiega ~11 minuti.
+- Git: il ramo locale è `master`, il remoto è `main`. Il push è quindi
+  `git push origin master:main`, e deploya su Render.
+- L'identità git è impostata **per-repo** (`user.email` = account personale): su questo
+  PC il default globale è l'email aziendale e Vercel la rifiuta. Mai `--global`.
