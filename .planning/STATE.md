@@ -2,27 +2,27 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: domande e motore parametrico
-status: Phase 1 complete
+status: Phase 2 complete
 last_updated: "2026-09-21T00:00:00.000Z"
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
-  completed_plans: 1
-  percent: 17
+  completed_plans: 2
+  percent: 33
 ---
 
 # Project State — ristruttura-stima
 
 ## Current Position
 
-Phase: 02 (wizard unico, domande servite dal DB) — NEXT
+Phase: 03 (arredo, categoria E-ARREDO) — NEXT
 Plan: piano v2 fuori da GSD — `~/.claude/plans/il-punto-1-come-steady-comet.md`
 
 - **Milestone:** v2 (domande e motore parametrico). La v1 (MVP, 4 fasi) e' **completa,
   verificata e in produzione dal 2026-09-09** — backend su Render, frontend su Vercel.
-- **Phase:** 1 di 6 completa (catalogo domande + motore Free parametrico)
-- **Status:** Phase 1 complete, Phase 2 next
+- **Phase:** 2 di 6 complete (catalogo domande + motore parametrico; wizard unico)
+- **Status:** Phase 2 complete, Phase 3 next
 - **Nota sul tracking:** le sei fasi della v2 non sono state generate da `/gsd-new-milestone`
   e non hanno una directory sotto `.planning/phases/`. Il piano vive nel file sopra; questo
   STATE.md e' allineato a mano. Riallinearlo, o rigenerare la milestone con GSD, e' una
@@ -32,6 +32,25 @@ Plan: piano v2 fuori da GSD — `~/.claude/plans/il-punto-1-come-steady-comet.md
 
 ## Last Session
 
+- **2026-09-21 (2)** — **Fase 2 v2 completa: domande servite dal DB e wizard unico.**
+  `GET /api/v1/domande?tier=&mq=` serve catalogo, opzioni e i default gia' risolti per la
+  fascia di metri quadri — risolti dal server con la stessa `attese_per_mq()` che fa da
+  baseline allo scostamento, cosi' non esistono due copie della regola. Il catalogo **non
+  pubblica gli effetti**: la taratura resta server-side, verificato sul JSON serializzato.
+  Frontend: nuovo primitivo `components/ui/number-stepper.tsx` (-/valore/+, tap 44px) al
+  posto degli input numerici grezzi, perche' questi campi arrivano pre-compilati e si
+  aggiustano invece di compilarsi; `EstimateWizard` unico (Free 3 step, Pro 4) al posto di
+  `EstimateForm` + `EstimateFormPro`, entrambi cancellati; `DomandaField` disegna una
+  domanda qualsiasi conoscendo solo i cinque `tipo_controllo`, e un gruppo sconosciuto cade
+  nello step 3 invece di sparire. Le risposte alle domande nascoste non entrano nello
+  snapshot. **Sparito `EstimateFormPro.tsx:DOMANDE`**; `DettaglioProView.tsx:FIELD_LABELS`
+  **resta**: le sue tre chiavi sono il contratto del motore Pro e `condizionatori` non ha
+  ancora una domanda nel catalogo — la migrazione vera e' Fase 5. Verifica: **430 passed,
+  5 skipped** (421 + 9 nuovi), `tsc -b` pulito, flusso provato dal vivo: 85 m2 Reggio
+  Emilia totale dal wizard -> 47.985-70.575 (oracolo esatto); a Modena 200 m2 layer spento
+  e risposte sui default coincidono (109.110-162.262) e +2 bagni sposta di 5.808 euro.
+  Corretto in corsa un errore di validazione mostrato prima che il campo fosse compilabile.
+  **Non ancora pushato in produzione.** Prossimo: Fase 3 (arredo). Prima:
 - **2026-09-21** — **Fase 1 v2 completa: catalogo domande in database + motore Free
   parametrico.** Migrazione `0014`, tutta additiva. Nuove tabelle `domanda` /
   `opzione_domanda` / `effetto_opzione` / `attesa_immobile`; `app/services/effetti.py` come
