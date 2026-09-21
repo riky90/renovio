@@ -1,113 +1,145 @@
 # Roadmap — ristruttura-stima
 
-**Mode:** Vertical MVP · **Granularity:** coarse · 4 fasi · 21 requisiti v1 mappati (100%)
+**Milestone attiva:** v2.0 — *domande e motore parametrico* · **Granularity:** coarse · 6 fasi (05–10) · 27 requisiti v2 mappati (100%)
 
-Ogni fase consegna una capability utente end-to-end. Il valore centrale (stima a range) arriva già in Fase 1.
+La v1 risponde a `(città, mq, tipo)`. La v2 risponde a *com'è fatta questa casa e cosa vuoi
+farci* — e lo fa senza che aggiungere una domanda costi un deploy: il catalogo di domande, le
+opzioni e i loro effetti sono dati amministrabili, non codice.
+
+**Regola di numerazione GSD:** le fasi non ripartono da 01 a ogni milestone. La v1 ha usato
+01–04, la v2 usa **05–10**.
+
+<details>
+<summary><strong>✅ Milestone v1.0 — MVP (fasi 01–04, 30 piani) — SHIPPED 2026-09-09</strong></summary>
+
+Dal computo Excel di Reggio Emilia a una stima self-service a range: quattro categorie, IVA
+differenziata, extra, account con Google, PDF brandizzato Free e Pro, lead al professionista,
+pannello admin completo. In produzione dal 2026-09-09 (backend su Render, frontend su Vercel).
+
+| Fase | Nome | Piani | Requisiti |
+|------|------|-------|-----------|
+| 01 | Stima Free end-to-end | 4/4 | EST-01..06, ENG-01..03 |
+| 02 | Account & PDF | 9/9 | AUTH-01..04, PDF-01 |
+| 03 | Pro & dettaglio sottocategorie | 6/6 | PRO-01..03, PDF-02 |
+| 04 | Lead & pannello admin | 11/11 | LEAD-01..03, ADM-01..04 |
+
+Dettaglio completo, decisioni chiave e debito tecnico ereditato:
+[`.planning/milestones/v1.0-ROADMAP.md`](milestones/v1.0-ROADMAP.md).
+Requisiti archiviati: [`.planning/milestones/v1.0-REQUIREMENTS.md`](milestones/v1.0-REQUIREMENTS.md).
+
+</details>
 
 ---
 
-### Phase 1: Stima Free end-to-end
+### Phase 05: Catalogo domande + motore Free parametrico
 
-**Goal:** Da (città, mq, tipo) a una stima Free a range con i 4 totali di categoria, IVA ed extra, alimentata da un listino Reggio Emilia in database.
+**Status:** ✅ Complete (2026-09-21) — commit `5ea305b`. Eseguita **fuori dal ciclo GSD**, ricostruita qui in retrospettiva: vedi `05-RETRO-SUMMARY.md`.
+**Goal:** Un solo catalogo di domande in database alimenta il motore Free, che applica moltiplicatori, €/m² additivi e correzioni per scostamento — restando bit-identico alla v1 quando nessuno risponde.
 **Mode:** mvp
-**UI hint:** yes
-**Requirements:** EST-01, EST-02, EST-03, EST-04, EST-05, EST-06, ENG-01, ENG-02, ENG-03
+**UI hint:** no
+**Requirements:** QST-01, QST-02, QST-03, QST-04, PAR-01, PAR-02, PAR-03, PAR-05
 **Success Criteria:**
 
-1. L'utente inserisce città, mq e tipo e ottiene 4 totali di categoria come range min–max in pochi secondi
-2. I totali applicano l'IVA differenziata per categoria e includono i costi extra
-3. Nessun prezzo/coefficiente impresa è visibile o inviato al client
-4. Prezzi e coefficienti provengono dal database (seed listino RE), non dal codice
-5. Una città senza listino proprio produce comunque una stima con disclaimer esplicito
+1. Le tabelle `domanda` / `opzione_domanda` / `effetto_opzione` / `attesa_immobile` esistono e sono seminate (migrazione `0014`)
+2. `tipo_effetto` è un insieme chiuso di sette valori, risolti da `services/effetti.py` — nessun `if` di business nel motore
+3. Senza risposte, o con risposte pari agli attesi, l'oracolo primario non si muove: 85 m² · totale · RE → 47.985–70.575 €
+4. Una correzione per scostamento sposta **solo** la categoria bersagliata e solo della differenza dall'atteso
+5. Nessun coefficiente impresa entra nel nuovo layer
 
-**Plans:** 4/4 plans complete
-Plans:
+**Plans:** eseguita fuori GSD, in un solo blocco.
 
-- [x] 01-01-PLAN.md — Walking Skeleton: scaffold backend/frontend + schema Alembic + loop health end-to-end (ENG-02)
-- [x] 01-02-PLAN.md — Seed idempotente RE + motore di stima Decimal (IVA/categoria, extra, fallback) [TDD] (ENG-01, ENG-03, EST-03, EST-04, EST-06)
-- [x] 01-03-PLAN.md — API POST /api/v1/stima + schemi anti-leak + test assenza chiavi impresa (EST-01, EST-02, EST-05, EST-06)
-- [x] 01-04-PLAN.md — UI Free: form input + schermata risultato (4 card + totale + disclaimer + CTA soft-wall) (EST-01, EST-02, EST-06)
+- [x] 05-RETRO — Catalogo domande in database e motore Free parametrico (`5ea305b`)
 
-### Phase 2: Account & PDF
+### Phase 06: Wizard unico, domande servite dal DB
 
-**Goal:** L'utente si registra/accede (email + Google), le sue stime vengono salvate e può scaricare un PDF Free brandizzato.
+**Status:** ✅ Complete (2026-09-21) — commit `1f2a8b8`. Eseguita **fuori dal ciclo GSD**, ricostruita qui in retrospettiva: vedi `06-RETRO-SUMMARY.md`.
+**Goal:** Un solo wizard a 4 step per Free e Pro, con le domande e i default serviti dal database: aggiungere una domanda torna a essere lavoro da pannello admin.
 **Mode:** mvp
 **UI hint:** yes
-**Requirements:** AUTH-01, AUTH-02, AUTH-03, AUTH-04, PDF-01
+**Requirements:** WIZ-01, WIZ-02, WIZ-03
 **Success Criteria:**
 
-1. L'utente crea un account con email/password e accede anche con Google
-2. La sessione persiste e l'utente può fare logout
-3. Le stime effettuate restano associate all'account
-4. L'utente scarica un PDF sintetico brandizzato della propria stima
-5. Esiste un ruolo admin separato dall'utente finale
+1. `GET /api/v1/domande?tier=&mq=` serve catalogo, opzioni e default già risolti per la fascia di m²
+2. Il payload **non** contiene gli effetti, verificato sul JSON serializzato
+3. `EstimateForm` ed `EstimateFormPro` collassano in `EstimateWizard` (1 · Dove — 2 · L'immobile — 3 · La ristrutturazione — 4 · Le finiture)
+4. `NumberStepper` sostituisce gli input numerici grezzi
+5. I default derivano dai m², mai zero, e lo step 2 è saltabile
 
-**Plans:** 9/9 plans complete
-Plans:
+**Plans:** eseguita fuori GSD, in un solo blocco.
 
-- [x] 02-01-PLAN.md — Setup dipendenze e configurazione Account & PDF
-- [x] 02-02-PLAN.md — Fondazione backend autenticazione (AUTH-01, AUTH-03, AUTH-04)
-- [x] 02-03-PLAN.md — Endpoint HTTP auth + guard admin (AUTH-01, AUTH-03, AUTH-04)
-- [x] 02-04-PLAN.md — Frontend autenticazione (router, pagine, sessione) (AUTH-01, AUTH-03)
-- [x] 02-05-PLAN.md — Login Google (OAuth Authlib) + convergenza account (AUTH-02)
-- [x] 02-06-PLAN.md — Recupero password via email (D-04) (AUTH-01)
-- [x] 02-07-PLAN.md — Salvataggio stima e storico backend
-- [x] 02-08-PLAN.md — PDF Free branded download (PDF-01)
-- [x] 02-09-PLAN.md — Save-at-signup, storico, download PDF frontend end-to-end (PDF-01, AUTH-03) — Task 1-2 completi, Task 3 checkpoint human-verify aperto
+- [x] 06-RETRO — Domande servite dal DB e wizard unico Free/Pro (`1f2a8b8`)
 
-### Phase 3: Pro & dettaglio sottocategorie
+### Phase 07: Arredo
 
-**Status:** ✅ Complete & verified (2026-08-27) — 6/6 plans; 03-VERIFICATION.md 9/9 code-level; human-verify approvato; override PDF (GTK3) concesso come Fase 2
-**Goal:** L'utente Pro sblocca l'apertura per sottocategorie (a.1/a.2) con voci e quantità stimate dal motore parametrico, dietro paywall, con PDF dettagliato.
+**Status:** ✅ Complete (2026-09-21) — 1/1 piano, `07-01-SUMMARY.md`. Verificata dal vivo: totale lavori invariato, arredo accanto e non dentro. **Non ancora committata.**
+**Goal:** L'utente dice quali ambienti vuole arredare e riceve un forfait arredo a range, esposto **accanto** al totale lavori e mai dentro — e da lì il Bonus Mobili diventa accendibile.
 **Mode:** mvp
 **UI hint:** yes
-**Requirements:** PRO-01, PRO-02, PRO-03, PDF-02
+**Requirements:** ARR-01, ARR-02, ARR-03, ARR-04
 **Success Criteria:**
 
-1. L'utente Pro vede le sottocategorie con voci e quantità stimate; l'utente Free no
-2. Il dettaglio Pro è ricostruito bottom-up dalle voci del computo (quantità stimate da mq+tipo): è una stima più precisa e indipendente dal totale Free, non deve riconciliare con esso
-3. Il dettaglio è correttamente protetto da paywall in base allo stato Pro dell'account
-4. L'utente Pro scarica un PDF dettagliato brandizzato con le sottocategorie
+1. Esiste la categoria `E-ARREDO` e la colonna `categoria.nel_totale_lavori` la esclude dal totale lavori come **dato**, non come costante nel codice
+2. Il forfait Free viene da una tabella `(ambiente, livello) → eur_min, eur_max`, guidata dalla multiselect "ambienti da arredare"
+3. `StimaResponse.arredo` è fratello di `totale`: `None` quando non richiesto (mai zeri), con disclaimer *dentro* il payload, così finisce nello snapshot e nel PDF
+4. **L'oracolo non si muove**: `totale` resta il totale lavori, la riconciliazione Σ categorie + extra = totale resta esatta
+5. `bonus_fiscale.mobili` si può accendere dal pannello admin senza deploy
 
-### Phase 4: Lead & pannello admin
+### Phase 08: Export/import Excel dal pannello admin
 
-**Status:** ✅ Complete & approvata (2026-08-29) — 11/11 plans; 04-VERIFICATION.md 12/12 verità (LEAD-01..03, ADM-01..04 + 5 criteri); verifica live E2E superata e approvata dall'utente (checkpoint 04-06/07/08/09/11 chiusi). Post-fase, fuori dai piani GSD: ruolo `consulente` + gestione ruoli utenti (`/admin/utenti`), CRUD voci di dettaglio Pro con applicazione per tipo (`/admin/dettaglio-pro`), mappatura comuni extra all'upload, e rifiniture UI (menu account admin/consulente, contatta professionista dalle stime salvate, accordion voci Pro, hide voci a €0). Backend 255 test, build frontend pulita.
-**Goal:** Da ogni livello l'utente contatta un professionista (lead via email + dashboard); l'admin gestisce listini, coefficienti, città, referenti e testi senza toccare codice.
+**Status:** ⏳ NEXT
+**Goal:** La curatela dei dati esce dal `dev.db` e diventa un file che l'admin scarica, modifica e ricarica senza perdere nulla — prerequisito di ogni taratura seria.
 **Mode:** mvp
 **UI hint:** yes
-**Requirements:** LEAD-01, LEAD-02, LEAD-03, ADM-01, ADM-02, ADM-03, ADM-04
+**Requirements:** CUR-01, CUR-02, CUR-03, CUR-04, PAR-04
 **Success Criteria:**
 
-1. Da Free e da Pro l'utente invia una richiesta di contatto con i dati della stima
-2. Il lead arriva via email e compare nella dashboard admin
-3. L'admin crea/modifica listini prezzi per città e coefficienti del modello, e le stime ne risentono subito
-4. L'admin configura i referenti per città (modello multi-referente, un referente attivo in v1)
-5. L'admin modifica città, mappature e testi/disclaimer dall'interfaccia
+1. **Round-trip**: il file uscito da `GET /admin/{risorsa}/export.xlsx` si ricarica da `POST /admin/upload-listino/preview` senza riformattarlo
+2. Colonna assente nel file = campo non toccato (la regola che protegge `voce.livello`, già coperta da `test_upload_excel_non_azzera_livello`)
+3. L'export che contiene il coefficiente impresa è scaricabile solo dal ruolo `admin`, con nome file marcato e foglio di avviso in testa
+4. L'export dei lead traccia chi scarica e quando
+5. L'anteprima admin della stima mostra il breakdown e **quali effetti hanno sparato**
 
-**Plans:** 11/11 plans complete
-Plans:
-**Wave 1**
+### Phase 09: Configuratore Pro e chiusura del bug dei cataloghi
 
-- [x] 04-01-PLAN.md — Lead capture backend: modello Lead + migr. 0006 + resolve_referente + POST /lead (LEAD-01/02/03)
-- [x] 04-02-PLAN.md — Admin backend: package + CRUD listino (create città) + categoria + voce prezzo/UM (ADM-01)
+**Status:** pending
+**Goal:** Il motore Pro smette di sommare voci alternative: gli assi di scelta diventano dati, e i coefficienti quantità vengono tarati nella stessa fase in cui si aggiunge risoluzione.
+**Mode:** mvp
+**UI hint:** yes
+**Requirements:** QST-05, CFG-01, CFG-02, CFG-03, CFG-04, WIZ-04
+**Success Criteria:**
 
-**Wave 2** *(blocked on Wave 1 completion)*
+1. `DettaglioProService.compute()` risolve `includi` / `escludi` / `fattore_quantita` / `quantita_per_unita` dallo stesso catalogo del Free
+2. **Nessuna sottocategoria di tipo `catalogo` contiene più di una famiglia di alternative**, verificato da un test che *conta* le voci incluse per sottocategoria — non da un'ispezione a occhio
+3. Migrazione senza perdita: `voce.livello` → asse `finitura`; le tre `domanda_mirata_key` → domande `stepper` con `quantita_per_unita`
+4. `computo_parsing.py` non assegna più lo stesso `0,6 × TIPO_FACTOR` a tutte le voci a m²
+5. Il percorso Pro del wizard è esercitato dal vivo end-to-end con un account Pro reale
 
-- [x] 04-03-PLAN.md — Admin backend: Testo migr. 0007 + disclaimer read-through + CRUD città/testi (ADM-03)
-- [x] 04-04-PLAN.md — Admin backend: dashboard lead (filtri/detail/patch) + CRUD referenti (ADM-04)
-- [x] 04-05-PLAN.md — Admin backend: upload Excel due-passi (destinazione esistente/nuova città) hardened + gate pacchetti (ADM-01)
-- [x] 04-06-PLAN.md — Lead frontend: LeadContactDialog + SoftWallCta reale (LEAD-01)
-- [x] 04-10-PLAN.md — Admin backend: CRUD coefficienti (moltiplicatori/iva/extra/Pro) + effetto immediato (ADM-02)
+**Rischio dichiarato:** fino alla chiusura di questa fase il dettaglio Pro resta **gonfiato al
+rialzo** su A-EDILE, B-FINITURE (tranne il gres), C-SERRAMENTI e D-PRODOTTI. È una scelta
+consapevole, non una dimenticanza.
 
-**Wave 3** *(blocked on Wave 2 completion)*
+### Phase 10: Risultato leggibile e tetto di budget
 
-- [x] 04-07-PLAN.md — Admin frontend: shell /admin + componenti condivisi + rotte + stub pages (ADM-04 fondazione)
+**Status:** pending
+**Goal:** Il numero smette di essere un numero: si legge da dove viene, quanto pesa ogni categoria, quanto è davvero incerto — e cosa fare se supera il budget dichiarato.
+**Mode:** mvp
+**UI hint:** yes
+**Requirements:** RIS-01, RIS-02, RIS-03, RIS-04
+**Success Criteria:**
 
-**Wave 4** *(blocked on Wave 3 completion)*
+1. `RangeBar` è proporzionale ai valori reali (oggi i pallini sono fissi a 12% e 88%)
+2. Ogni `CategoryCard` mostra l'incidenza €/m² e il peso relativo della categoria
+3. Il riepilogo espone imponibile, IVA ed extra
+4. Superato il budget dichiarato, compare un avviso con il confronto ricalcolato a finiture inferiori
+5. Il budget **non** muove il prezzo: due assi distinti, *finiture* sì e *budget* no
 
-- [x] 04-08-PLAN.md — Admin frontend: CRUD listini/voci + coefficienti + upload Excel UI (esistente/nuova città) (ADM-01/02)
-- [x] 04-09-PLAN.md — Admin frontend: CRUD città/mappature/tipi + testi (ADM-03)
-- [x] 04-11-PLAN.md — Admin frontend: dashboard lead + CRUD referenti (ADM-04)
+---
+
+## Dopo la v2
+
+Invariate dal piano precedente e non ancora schedulate: progetti come contenitore di più
+stime · indirizzo e geocoding · AI come **parser** del testo libero, mai come stimatore ·
+igiene (test runner frontend, `tsc -b` ufficiale, `R2_*` su Render).
 
 ---
 
@@ -115,13 +147,12 @@ Plans:
 
 | Requisito | Fase |
 |-----------|------|
-| AUTH-01..04 | 2 |
-| EST-01..06 | 1 |
-| ENG-01..03 | 1 |
-| PRO-01..03 | 3 |
-| PDF-01 | 2 |
-| PDF-02 | 3 |
-| LEAD-01..03 | 4 |
-| ADM-01..04 | 4 |
+| QST-01..04 | 05 |
+| PAR-01..03, PAR-05 | 05 |
+| WIZ-01..03 | 06 |
+| ARR-01..04 | 07 |
+| CUR-01..04, PAR-04 | 08 |
+| QST-05, CFG-01..04, WIZ-04 | 09 |
+| RIS-01..04 | 10 |
 
-Tutti i 21 requisiti v1 sono mappati a esattamente una fase.
+Tutti i 27 requisiti v2 sono mappati a esattamente una fase.

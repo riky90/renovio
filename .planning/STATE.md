@@ -2,31 +2,36 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: domande e motore parametrico
-status: Phase 2 complete
+status: Phase 07 complete
 last_updated: "2026-09-21T00:00:00.000Z"
 progress:
   total_phases: 6
-  completed_phases: 2
-  total_plans: 6
-  completed_plans: 2
-  percent: 33
+  completed_phases: 3
+  total_plans: 7
+  completed_plans: 3
+  percent: 50
 ---
 
 # Project State — ristruttura-stima
 
 ## Current Position
 
-Phase: 03 (arredo, categoria E-ARREDO) — NEXT
-Plan: piano v2 fuori da GSD — `~/.claude/plans/il-punto-1-come-steady-comet.md`
+Phase: 08 (export/import Excel dal pannello admin) — NEXT
+Plan: `.planning/phases/08-export-import-excel/`
 
-- **Milestone:** v2 (domande e motore parametrico). La v1 (MVP, 4 fasi) e' **completa,
-  verificata e in produzione dal 2026-09-09** — backend su Render, frontend su Vercel.
-- **Phase:** 2 di 6 complete (catalogo domande + motore parametrico; wizard unico)
-- **Status:** Phase 2 complete, Phase 3 next
-- **Nota sul tracking:** le sei fasi della v2 non sono state generate da `/gsd-new-milestone`
-  e non hanno una directory sotto `.planning/phases/`. Il piano vive nel file sopra; questo
-  STATE.md e' allineato a mano. Riallinearlo, o rigenerare la milestone con GSD, e' una
-  decisione ancora aperta.
+- **Milestone:** v2.0 (domande e motore parametrico), fasi **05-10**. La v1.0 (MVP, fasi
+  01-04) e' **completa, verificata e in produzione dal 2026-09-09** — backend su Render,
+  frontend su Vercel — e archiviata in `.planning/milestones/v1.0-ROADMAP.md`.
+- **Phase:** 3 di 6 complete — 05 (catalogo domande + motore Free parametrico), 06 (wizard
+  unico), 07 (arredo). Le prime due eseguite fuori dal ciclo GSD e ricostruite in
+  retrospettiva nei rispettivi `NN-RETRO-SUMMARY.md`; la 07 e' la prima pianificata ed
+  eseguita dentro la milestone (`07-01-PLAN.md` -> `07-01-SUMMARY.md`).
+- **Status:** Phase 07 complete e verificata dal vivo, NON committata. Phase 08 next
+- **Numerazione:** le fasi non ripartono da 01 a ogni milestone (regola GSD). Il piano
+  originale chiamava queste fasi 1-6; qui sono **05-10**. La corrispondenza e':
+  `piano Fase 1 -> 05` · `2 -> 06` · `3 -> 07` · `4 -> 08` · `5 -> 09` · `6 -> 10`.
+  Il piano sorgente resta `~/.claude/plans/il-punto-1-come-steady-comet.md`, ora tradotto in
+  `.planning/ROADMAP.md` + `.planning/REQUIREMENTS.md` (27 requisiti v2).
 - **Regola range (locked):** ±% solo sui lavori (4 categorie); extra fissi (€2.806 lordo); totale = Σ card + extra. Oracolo primario: 85 mq · totale = €47.985–€70.575.
 - **Stack (da RESEARCH):** FastAPI + SQLAlchemy 2.0 + Pydantic v2 + Postgres/Alembic · React 19 + Vite + TS 5.9 + react-query + Tailwind/shadcn · autocomplete comuni ISTAT bundlato offline.
 

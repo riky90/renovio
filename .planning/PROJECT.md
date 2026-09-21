@@ -17,6 +17,27 @@ Da `(città, mq, tipo)` a una **stima credibile a range** in pochi secondi, senz
 - **Rete di professionisti**: visione a più referenti per città; v1 con l'utente come unico referente.
 - Brief completo della discussione: `BRIEF-DISCUSSIONE.md` (root del progetto).
 
+## Current State
+
+**Shipped:** v1.0 (MVP) — 2026-09-09, in produzione. Backend su Render, frontend su Vercel.
+30 piani su 4 fasi, 21/21 requisiti consegnati. Archivio:
+`.planning/milestones/v1.0-ROADMAP.md`.
+
+**In corso:** v2.0 — *domande e motore parametrico*, fasi **05-10**. Le fasi 05 e 06
+(catalogo domande in database, motore Free parametrico, wizard unico) sono complete e
+committate; la 07 (arredo) e' la prossima. 27 requisiti mappati in
+`.planning/REQUIREMENTS.md`.
+
+**Obiettivi della v2:** la v1 risponde a `(citta, mq, tipo)`; la v2 risponde a *com'e' fatta
+questa casa e cosa vuoi farci* — e lo fa senza che aggiungere una domanda costi un deploy.
+Il catalogo di domande, le opzioni e i loro effetti sono **dati amministrabili**. La fine
+della milestone chiude il bug dei cataloghi alternativi nel motore Pro, che oggi somma voci
+che sono alternative fra loro.
+
+**Debito noto portato dentro la v2:** i coefficienti sono una bozza e non una taratura; la
+curatela di `voce.livello` esiste solo nel `dev.db` locale; le cinque variabili `R2_*` non
+sono configurate su Render (upload avatar a 503).
+
 ## Requirements
 
 ### Validated
@@ -74,4 +95,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-08-24 after initialization*
+*Last updated: 2026-09-21 — milestone v1.0 archiviata, v2.0 aperta (fasi 05-10).*
