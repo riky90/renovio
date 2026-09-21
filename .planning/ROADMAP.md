@@ -139,7 +139,15 @@ consapevole, non una dimenticanza.
 
 Invariate dal piano precedente e non ancora schedulate: progetti come contenitore di più
 stime · indirizzo e geocoding · AI come **parser** del testo libero, mai come stimatore ·
-igiene (test runner frontend, `tsc -b` ufficiale, `R2_*` su Render).
+igiene (test runner frontend, `tsc -b` ufficiale).
+
+**Storage avatar — chiuso fuori piano (2026-09-21).** Le cinque `R2_*` non sono mai state
+configurate e l'upload avatar rispondeva 503 in produzione dal deploy. Aprire un bucket R2
+richiede una carta di credito anche sul piano gratuito, quindi `services/storage_service.py`
+ha ora **due backend**: R2 se le cinque variabili ci sono, la tabella `avatar_blob`
+(migrazione `0016`) altrimenti, servita da `GET /api/v1/media/{key}`. Il router non è
+cambiato; quale backend sia attivo si legge da `GET /health/db` → `"storage"`. In produzione
+va impostata **una** variabile, `BACKEND_PUBLIC_URL`.
 
 ---
 

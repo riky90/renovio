@@ -59,9 +59,15 @@ class Settings(BaseSettings):
     # slash finale: e' il prefisso di `User.avatar_url`.
     R2_PUBLIC_BASE_URL: str = ""
 
+    # URL pubblico di QUESTO backend, senza slash finale. Serve solo al
+    # backend di storage "db": un avatar servito da noi ha bisogno di un URL
+    # assoluto in `User.avatar_url`, perche' quel campo finisce in un `<img
+    # src>` renderizzato dal frontend, che gira su un'altra origine.
+    BACKEND_PUBLIC_URL: str = "http://localhost:8000"
+
     @property
     def storage_configured(self) -> bool:
-        """True solo se TUTTI e cinque i valori sono presenti: una config a
+        """True solo se TUTTI e cinque i valori R2 sono presenti: una config a
         meta' e' indistinguibile da nessuna config, e fallire al primo upload
         con un 500 di boto3 sarebbe peggio di un 503 esplicito."""
         return all(
@@ -73,6 +79,23 @@ class Settings(BaseSettings):
                 self.R2_PUBLIC_BASE_URL,
             ]
         )
+
+    @property
+    def storage_backend(self) -> str:
+        """Quale backend serve gli avatar: `"r2"` o `"db"`.
+
+        R2 ha la precedenza quando e' configurato per intero — e' la strada
+        maestra, serve le immagini da una CDN e non appesantisce il database.
+        Senza R2 si usa `avatar_blob`, che e' l'unico posto durevole che l'app
+        ha gia': il filesystem di Render e' effimero.
+
+        Non esiste piu' uno stato "nessuno storage": la proprieta' ritorna
+        sempre un backend funzionante, ed e' per questo che l'upload avatar ha
+        smesso di rispondere 503. `StorageNotConfigured` resta nel codice
+        perche' il backend "db" puo' comunque fallire il suo prerequisito
+        (vedi `services/storage_service.py`).
+        """
+        return "r2" if self.storage_configured else "db"
 
     @property
     def cors_origins_list(self) -> list[str]:

@@ -4,6 +4,7 @@ before Alembic autogenerate or `Base.metadata.create_all` runs.
 """
 
 from app.models.arredo import ForfaitArredo
+from app.models.avatar import AvatarBlob
 from app.models.bonus import AliquotaBonus, BonusCategoria, BonusExtra, BonusFiscale
 from app.models.catalogo import (
     Categoria,
@@ -24,6 +25,7 @@ from app.models.user import PasswordResetToken, User, UserSession
 __all__ = [
     "AliquotaBonus",
     "AttesaImmobile",
+    "AvatarBlob",
     "BonusCategoria",
     "BonusExtra",
     "BonusFiscale",

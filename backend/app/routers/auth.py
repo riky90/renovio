@@ -157,12 +157,17 @@ def aggiorna_profilo(payload: ProfiloUpdateRequest, user=Depends(get_current_use
 @router.post("/me/avatar", response_model=UserOut)
 @limiter.limit("5/minute")
 async def carica_avatar(request: Request, file: UploadFile, user=Depends(get_current_user)) -> UserOut:
-    """Carica l'avatar dell'utente corrente su R2 e ne salva l'URL.
+    """Carica l'avatar dell'utente corrente e ne salva l'URL.
 
     L'ordine conta: si valida e normalizza l'immagine PRIMA di parlare con lo
     storage, e si scrive in DB solo dopo che l'oggetto e' davvero sul bucket.
-    Il vecchio oggetto si cancella per ultimo, best-effort: un orfano nel
-    bucket non deve far fallire un upload gia' riuscito.
+    Il vecchio oggetto si cancella per ultimo, best-effort: un orfano non
+    deve far fallire un upload gia' riuscito.
+
+    Quale storage sia dietro `upload_avatar` non si decide qui: e' il
+    dispatch di `services/storage_service.py` fra R2 e la tabella
+    `avatar_blob`. Questo handler non e' cambiato quando il secondo backend
+    e' comparso, ed e' il punto della faccenda.
 
     Rate limit 5/minute come registrazione e login: un upload e' l'endpoint
     piu' costoso dell'app (banda + decodifica immagine).
@@ -214,8 +219,8 @@ async def carica_avatar(request: Request, file: UploadFile, user=Depends(get_cur
 def rimuovi_avatar(user=Depends(get_current_user)) -> UserOut:
     """Azzera `avatar_url` e cancella l'oggetto. La colonna si azzera anche se
     la cancellazione remota fallisce: l'utente ha chiesto di non vedere piu'
-    quella foto, e un oggetto orfano su R2 non e' una ragione per dirgli di
-    no."""
+    quella foto, e un oggetto orfano nello storage non e' una ragione per
+    dirgli di no."""
     from app.models.user import User
     from app.services.storage_service import (
         StorageError,

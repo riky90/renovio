@@ -8,8 +8,17 @@ Tre garanzie contano piu' delle altre:
 2. **Gli EXIF spariscono.** Una foto con coordinate GPS caricata come avatar
    diventerebbe la posizione di casa dell'utente pubblicata su un URL
    pubblico. La ri-encodifica WEBP li elimina.
-3. **Senza credenziali si risponde 503 e non si scrive in DB.** Mai un 500 di
-   boto3, mai una colonna che punta a un oggetto che non esiste.
+3. **Non si scrive mai una colonna che punta a un oggetto che non esiste.**
+   Se lo storage attivo fallisce, `avatar_url` resta com'era: mai un 500 di
+   boto3, mai un URL che da' 404.
+
+Dalla migrazione 0016 i backend sono due (vedi `services/storage_service.py`):
+R2 quando le cinque `R2_*` ci sono, la tabella `avatar_blob` altrimenti.
+`TestBackendDatabase` esercita il secondo **senza** credenziali R2 e verifica
+la proprieta' che conta: il router non e' cambiato, quindi le stesse garanzie
+di validazione e privacy valgono identiche sotto entrambi. Il 503 non e' piu'
+il comportamento di default — e' quello che resta quando anche il secondo
+backend non ha il suo prerequisito.
 
 Il client boto3 e' monkeypatchato: la suite non tocca la rete.
 """
@@ -30,6 +39,7 @@ from app.config import settings
 from app.db import Base
 from app.limiter import limiter
 from app.main import app
+from app.models.avatar import AvatarBlob
 from app.models.user import User
 
 REGISTRAZIONE_URL = "/api/v1/auth/registrati"
@@ -37,6 +47,8 @@ ME_URL = "/api/v1/auth/me"
 AVATAR_URL = "/api/v1/auth/me/avatar"
 
 PUBLIC_BASE = "https://pub-test.r2.dev"
+BACKEND_BASE = "https://api.test.renovio"
+DB_BASE = BACKEND_BASE + "/api/v1/media"
 
 
 class FakeS3:
@@ -69,8 +81,8 @@ def fake_s3(monkeypatch):
 
 
 @pytest.fixture()
-def storage_off(monkeypatch):
-    """Nessuna credenziale: `storage_configured` e' False."""
+def storage_db(monkeypatch):
+    """Nessuna credenziale R2: il dispatch sceglie il backend `avatar_blob`."""
     for campo in (
         "R2_ENDPOINT_URL",
         "R2_ACCESS_KEY_ID",
@@ -79,6 +91,15 @@ def storage_off(monkeypatch):
         "R2_PUBLIC_BASE_URL",
     ):
         monkeypatch.setattr(settings, campo, "")
+    monkeypatch.setattr(settings, "BACKEND_PUBLIC_URL", BACKEND_BASE)
+
+
+@pytest.fixture()
+def storage_off(monkeypatch, storage_db):
+    """Nemmeno il backend db ha il suo prerequisito: niente R2 e nessun
+    `BACKEND_PUBLIC_URL`, quindi non sapremmo da quale URL servire i byte che
+    stiamo per scrivere. E' l'unico caso rimasto in cui si risponde 503."""
+    monkeypatch.setattr(settings, "BACKEND_PUBLIC_URL", "")
 
 
 @pytest.fixture()
@@ -218,12 +239,113 @@ class TestPrivacy:
 
 
 class TestStorageNonConfigurato:
-    def test_upload_senza_credenziali_ritorna_503_e_non_scrive_in_db(self, client, storage_off):
+    def test_upload_senza_nessun_backend_ritorna_503_e_non_scrive_in_db(self, client, storage_off):
+        """Ne' R2 ne' `BACKEND_PUBLIC_URL`: non c'e' un posto da cui servire
+        l'immagine, quindi non ha senso scriverla. 503, e la colonna resta
+        vuota."""
         response = _upload(client, _png())
 
         assert response.status_code == 503
         assert "storage" in response.json()["detail"].lower()
         assert _db_user(client).avatar_url is None
+
+
+class TestBackendDatabase:
+    """Il backend che si usa in produzione oggi: nessuna credenziale R2, i
+    byte in `avatar_blob`, le immagini servite da `GET /api/v1/avatars/{key}`.
+
+    Il punto di questi test non e' che il database sappia tenere dei byte —
+    lo sapevamo. E' che **il router non e' cambiato**: la scelta del backend
+    vive tutta in `storage_service`, quindi il 503 in produzione si e' chiuso
+    senza toccare una riga di `routers/auth.py`.
+    """
+
+    def test_senza_credenziali_r2_il_backend_attivo_e_il_database(self, storage_db):
+        assert settings.storage_backend == "db"
+
+    def test_upload_ritorna_200_e_un_url_servito_da_noi(self, client, storage_db):
+        response = _upload(client, _png())
+
+        assert response.status_code == 200
+        url = response.json()["avatar_url"]
+        assert url.startswith(DB_BASE + "/avatars/")
+        assert url.endswith(".webp")
+        assert _db_user(client).avatar_url == url
+
+    def test_i_byte_scritti_sono_il_webp_normalizzato(self, client, storage_db):
+        """Stessa pipeline del backend R2: 512px massimo e formato WEBP. Se
+        questa cambiasse fra i due backend, la scelta dello storage smetterebbe
+        di essere invisibile al resto dell'app."""
+        _upload(client, _png(size=(900, 600)))
+
+        with client.session_local() as session:  # type: ignore[attr-defined]
+            blob = session.query(AvatarBlob).one()
+
+        assert blob.content_type == "image/webp"
+        assert blob.user_id == _db_user(client).id
+        immagine = Image.open(io.BytesIO(blob.dati))
+        assert immagine.format == "WEBP"
+        assert max(immagine.size) <= 512
+
+    def test_la_get_serve_i_byte_con_cache_immutable(self, client, storage_db):
+        url = _upload(client, _png()).json()["avatar_url"]
+        key = url.removeprefix(DB_BASE + "/")
+
+        response = client.get(f"/api/v1/media/{key}")
+
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "image/webp"
+        assert "immutable" in response.headers["cache-control"]
+        assert Image.open(io.BytesIO(response.content)).format == "WEBP"
+
+    def test_una_key_inesistente_e_404_non_500(self, client, storage_db):
+        response = client.get("/api/v1/media/avatars/999/inventata.webp")
+
+        assert response.status_code == 404
+
+    def test_il_secondo_upload_cancella_la_riga_vecchia(self, client, storage_db):
+        """La key cambia a ogni upload: senza la cancellazione del vecchio
+        blob la tabella crescerebbe per sempre, e a differenza di un bucket
+        qui i byte pesano sul database di produzione."""
+        primo = _upload(client, _png(colore="red")).json()["avatar_url"]
+        secondo = _upload(client, _png(colore="blue")).json()["avatar_url"]
+
+        assert primo != secondo
+        with client.session_local() as session:  # type: ignore[attr-defined]
+            chiavi = [k for (k,) in session.query(AvatarBlob.key).all()]
+
+        assert chiavi == [secondo.removeprefix(DB_BASE + "/")]
+
+    def test_delete_azzera_la_colonna_e_svuota_la_tabella(self, client, storage_db):
+        _upload(client, _png())
+
+        response = client.delete(AVATAR_URL)
+
+        assert response.status_code == 200
+        assert _db_user(client).avatar_url is None
+        with client.session_local() as session:  # type: ignore[attr-defined]
+            assert session.query(AvatarBlob).count() == 0
+
+    def test_la_validazione_vale_identica_sotto_questo_backend(self, client, storage_db):
+        """Il `.txt` rinominato `.png` prende 400 anche qui, e non lascia
+        residui: la validazione sta a monte del dispatch, non dentro un
+        backend."""
+        response = _upload(client, b"non sono un'immagine", filename="finta.png")
+
+        assert response.status_code == 400
+        with client.session_local() as session:  # type: ignore[attr-defined]
+            assert session.query(AvatarBlob).count() == 0
+        assert _db_user(client).avatar_url is None
+
+    def test_gli_exif_gps_non_sopravvivono_nemmeno_qui(self, client, storage_db):
+        """La garanzia di privacy e' del `avatar_service`, non dello storage:
+        va verificata sotto ogni backend, altrimenti e' vera per accidente."""
+        _upload(client, _jpeg_con_gps(), filename="foto.jpg", content_type="image/jpeg")
+
+        with client.session_local() as session:  # type: ignore[attr-defined]
+            blob = session.query(AvatarBlob).one()
+
+        assert Image.open(io.BytesIO(blob.dati)).getexif().get(0x8825) is None
 
 
 class TestAutorizzazione:

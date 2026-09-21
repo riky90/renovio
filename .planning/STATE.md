@@ -2,7 +2,7 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: domande e motore parametrico
-status: Phase 07 complete
+status: Phase 07 complete (committata)
 last_updated: "2026-09-21T00:00:00.000Z"
 progress:
   total_phases: 6
@@ -26,7 +26,8 @@ Plan: `.planning/phases/08-export-import-excel/`
   unico), 07 (arredo). Le prime due eseguite fuori dal ciclo GSD e ricostruite in
   retrospettiva nei rispettivi `NN-RETRO-SUMMARY.md`; la 07 e' la prima pianificata ed
   eseguita dentro la milestone (`07-01-PLAN.md` -> `07-01-SUMMARY.md`).
-- **Status:** Phase 07 complete e verificata dal vivo, NON committata. Phase 08 next
+- **Status:** Phase 07 complete, verificata dal vivo e **committata** (`6158eef`). Phase 08 next.
+  Sei commit in attesa di push: il push deploya su Render, e si fa a fine milestone.
 - **Numerazione:** le fasi non ripartono da 01 a ogni milestone (regola GSD). Il piano
   originale chiamava queste fasi 1-6; qui sono **05-10**. La corrispondenza e':
   `piano Fase 1 -> 05` · `2 -> 06` · `3 -> 07` · `4 -> 08` · `5 -> 09` · `6 -> 10`.
@@ -36,6 +37,31 @@ Plan: `.planning/phases/08-export-import-excel/`
 - **Stack (da RESEARCH):** FastAPI + SQLAlchemy 2.0 + Pydantic v2 + Postgres/Alembic · React 19 + Vite + TS 5.9 + react-query + Tailwind/shadcn · autocomplete comuni ISTAT bundlato offline.
 
 ## Last Session
+
+- **2026-09-21 (4)** — **Fase 07 committata + igiene, niente push.** Tre commit nuovi sopra
+  i tre in attesa: `feat(arredo)` (Fase 07, 33 file), `fix(footer)` (chiave React duplicata
+  sui due link a `/supporto`: era gia' corretta nel working tree), `chore(planning)` (la
+  milestone v2.0 come milestone GSD). **Push volutamente rimandato** a fine milestone: il
+  push deploya su Render e semina in produzione.
+  **R2 chiuso senza R2.** Aprire un bucket Cloudflare richiede una carta di credito anche
+  sul piano gratuito, quindi `services/storage_service.py` ha ora due backend dietro le
+  stesse quattro funzioni: R2 quando le cinque `R2_*` ci sono (strada maestra, intatta),
+  altrimenti la tabella `avatar_blob` (migrazione `0016`) servita da `GET
+  /api/v1/media/{key}` con `Cache-Control: immutable`. `routers/auth.py` non e' cambiato —
+  e' il punto della faccenda. Nuova variabile **`BACKEND_PUBLIC_URL`** (una, non cinque);
+  `GET /health/db` espone ora `"storage": "r2"|"db"`, perche' la domanda "quale storage e'
+  attivo in produzione?" ha ricevuto per mesi una risposta letta dalle variabili d'ambiente
+  invece che dall'app. Provato dal vivo: upload 200, WEBP 512px, immagine servita.
+  **Nota di ambiente del `CLAUDE.md` riscritta**: diceva che gli agenti GSD non erano
+  installati e che lo shim `gsd-sdk` era rotto — false entrambe, verificate.
+  **Guardia sui massimali ecobonus**: il tetto seminato di 60.000 e' il massimale dei soli
+  serramenti; un test ora fallisce il giorno in cui una seconda categoria si attacca
+  all'ECOBONUS, invece di lasciar calcolare in silenzio una detrazione sbagliata.
+  Chiusi come falsi: worktree GSD abbandonato (non esiste), warning REQ-ID (nessun REQ-ID
+  nel repo), `GEMINI_API_KEY` (nessun riferimento nel progetto), account Pro mancante (il
+  tuo ce l'ha attivo dal 2026-08-27). Le "21 voci demo per terzili" sono lo stesso difetto
+  gia' tracciato come bug dei cataloghi: 21 voci su 191 con `voce.livello`, tutte in
+  B-FINITURE. Prossimo: Fase 08.
 
 - **2026-09-21 (2)** — **Fase 2 v2 completa: domande servite dal DB e wizard unico.**
   `GET /api/v1/domande?tier=&mq=` serve catalogo, opzioni e i default gia' risolti per la

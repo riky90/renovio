@@ -294,6 +294,50 @@ class TestAntiDoppioConteggio:
         assert all(n == 1 for n in conteggio.values())
 
 
+class TestMassimaliEcobonus:
+    """Guardia sul massimale per_intervento dell'ECOBONUS.
+
+    Il tetto seminato, 60.000 euro, e' il massimale di *serramenti e
+    schermature*. I massimali dell'ecobonus non sono uno solo — cappotto
+    60.000, climatizzazione 30.000, riqualificazione globale 100.000 — ma
+    `aliquota_bonus` ne tiene uno per (bonus, destinazione, periodo).
+
+    Finche' l'unica categoria che alimenta l'ECOBONUS e' `C-SERRAMENTI` il
+    valore e' semplicemente giusto, e differenziare i massimali sarebbe
+    astrazione per un caso che non esiste. Il giorno che una seconda categoria
+    ci si attacca, pero', quel 60.000 diventa una detrazione sbagliata
+    calcolata in silenzio su una spesa che ha un altro tetto.
+
+    Questo test e' il punto in cui quel giorno fa rumore invece di passare
+    inosservato: un TODO non ferma nessuno, un test rosso si'.
+    """
+
+    def test_ecobonus_e_alimentato_da_una_sola_categoria(self, session):
+        categorie = {
+            m.categoria_code
+            for m in session.query(BonusCategoria).filter_by(bonus_code="ECOBONUS").all()
+        }
+
+        assert categorie == {"C-SERRAMENTI"}, (
+            "Una seconda categoria alimenta l'ECOBONUS. Il tetto per_intervento e' "
+            "unico per (bonus, destinazione, periodo) e vale 60.000, cioe' il "
+            "massimale dei soli serramenti: prima di aggiungere questa categoria "
+            "il massimale va differenziato per tipo di intervento, altrimenti la "
+            "detrazione esce sbagliata senza che nulla lo segnali. "
+            f"Categorie trovate: {sorted(categorie)}"
+        )
+
+    def test_il_tetto_seminato_e_quello_dei_serramenti(self, session):
+        """Se qualcuno cambia il numero, deve farlo sapendo a quale intervento
+        si riferisce."""
+        tetti = {
+            a.tetto_spesa_eur
+            for a in session.query(AliquotaBonus).filter_by(bonus_code="ECOBONUS").all()
+        }
+
+        assert tetti == {Decimal("60000.00")}
+
+
 class TestSeedIdempotente:
     def test_seed_ripetuto_non_duplica_aliquote(self, session):
         prima = session.query(AliquotaBonus).count()

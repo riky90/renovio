@@ -11,6 +11,7 @@ from app.limiter import limiter
 from app.routers import (
     admin,
     auth,
+    avatars,
     dettaglio_pro,
     domande,
     health,
@@ -45,6 +46,7 @@ app.include_router(health.router, prefix="/api/v1")
 app.include_router(stima.router, prefix="/api/v1")
 app.include_router(domande.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1")
+app.include_router(avatars.router, prefix="/api/v1")
 app.include_router(admin.router, prefix="/api/v1")
 app.include_router(stime_salvate.router, prefix="/api/v1")
 app.include_router(subscription.router, prefix="/api/v1")

@@ -312,11 +312,12 @@ function soloVisibili(risposte: Risposte, visibili: Domanda[]): Risposte {
  * Le tre domande mirate del motore Pro (`coefficiente_qta_voce.domanda_mirata_key`).
  *
  * NON e' il catalogo: e' il contratto che il motore Pro si aspetta ancora, e
- * che la Fase 5 sostituisce quando anche il configuratore Pro passera' dal
- * catalogo. Fino ad allora due delle tre chiavi esistono gia' come domande
- * (`bagni`, `porte`) e si leggono da li' invece di chiederle una seconda volta;
- * `condizionatori` non ha ancora una domanda corrispondente e resta a zero
- * finche' non gliela si crea.
+ * che la Fase 09 sostituisce quando anche il configuratore Pro passera' dal
+ * catalogo. Fino ad allora tutte e tre le chiavi esistono come domande del
+ * catalogo (`bagni`, `porte`, `condizionatori`) e si leggono da li' invece di
+ * chiederle una seconda volta. Quello che resta da sciogliere non e' piu' una
+ * domanda mancante: e' che questo oggetto ha tre campi fissi, mentre una
+ * quarta chiave mirata creata dal pannello admin non avrebbe dove entrare.
  */
 function preferenzePro(livelli: Record<string, string>, risposte: Risposte): PreferenzePro {
   const numero = (code: string): number => {
