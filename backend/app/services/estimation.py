@@ -129,7 +129,9 @@ class EstimationService:
                 # di lasciare in piedi una coda di correzioni.
                 imponibile = imponibile * corr.moltiplicatore
                 if corr.moltiplicatore != 0:
-                    imponibile += corr.eur_mq * Decimal(mq) + corr.eur_scostamento
+                    imponibile += (
+                        corr.eur_mq * Decimal(mq) + corr.eur_fisso + corr.eur_scostamento
+                    )
                 if imponibile < 0:
                     imponibile = Decimal("0")
 

@@ -192,3 +192,57 @@ class AttesaImmobile(Base):
     fascia_mq_min: Mapped[int] = mapped_column(nullable=False)
     fascia_mq_max: Mapped[int] = mapped_column(nullable=False)
     valore_atteso: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+
+
+class DerivazioneRisposta(Base):
+    """Una risposta che l'utente non sa, dedotta da una che sa.
+
+    "Non la so" e' la risposta di default alla classe energetica, e finche'
+    resta tale non ha effetti: vale classe C, la neutra. L'anno di costruzione
+    pero' lo sanno quasi tutti, e dice molto — un immobile anteriore al 1980
+    non e' in classe C.
+
+    Sta in tabella e non in tre righe di `if` per la ragione di sempre (regola
+    #3): "prima del 1980 -> G" e' un numero di dominio come un prezzo, per di
+    piu' una BOZZA da confermare con l'esperto. Si cambia dal pannello admin,
+    non con un deploy.
+
+    Le colonne descrivono la forma del problema, non il caso d'uso: "quando la
+    domanda X vale `quando_opzione_code`, leggi la domanda Y e deduci
+    `opzione_code`". La stessa forma serve il giorno in cui l'impianto termico
+    ignoto si deduce dall'anno.
+
+    La deduzione si applica in `risolvi_scelte()` DOPO i default e PRIMA della
+    visibilita' e degli effetti, cosi' da li' in poi nessun consumatore — il
+    motore, l'arredo, i bonus — sa che la risposta e' dedotta invece che
+    digitata. E' il punto: una sola risposta risolta, non due verita'.
+    """
+
+    __tablename__ = "derivazione_risposta"
+    __table_args__ = (
+        UniqueConstraint(
+            "domanda_code",
+            "quando_opzione_code",
+            "da_domanda_code",
+            "da_opzione_code",
+            name="uq_derivazione_risposta",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+
+    domanda_code: Mapped[str] = mapped_column(
+        ForeignKey("domanda.code", ondelete="CASCADE"), nullable=False
+    )
+    quando_opzione_code: Mapped[str] = mapped_column(String(64), nullable=False)
+
+    da_domanda_code: Mapped[str] = mapped_column(
+        ForeignKey("domanda.code", ondelete="CASCADE"), nullable=False
+    )
+    da_opzione_code: Mapped[str] = mapped_column(String(64), nullable=False)
+
+    opzione_code: Mapped[str] = mapped_column(String(64), nullable=False)
+
+    attiva: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default="1"
+    )

@@ -51,7 +51,7 @@ export function CoefficientiPage() {
         <h1 className="text-lg font-semibold text-foreground">Coefficienti</h1>
 
         <Tabs defaultValue="moltiplicatori">
-          <TabsList>
+          <TabsList className="w-full">
             <TabsTrigger value="moltiplicatori">Moltiplicatori</TabsTrigger>
             <TabsTrigger value="base">Base €/m²</TabsTrigger>
             <TabsTrigger value="iva">IVA</TabsTrigger>

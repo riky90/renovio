@@ -6,6 +6,7 @@ import { DettaglioProView } from "@/components/DettaglioProView";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { getStimaDettaglio } from "@/api/stima";
+import { ArredoCard } from "@/components/ArredoCard";
 
 const INTRO_COPY =
   "Voci e quantità stimate a partire da superficie e tipo di intervento. Questo dettaglio è una stima indipendente, più precisa del totale rapido — i due numeri possono differire.";
@@ -65,6 +66,13 @@ export function DettaglioProPage() {
       <DettaglioProView stimaId={stimaId} />
 
       {snapshotQuery.data?.bonus && <BonusPanel bonus={snapshotQuery.data.bonus} />}
+
+      {/* L'arredo viene dallo snapshot per la stessa ragione dei bonus: e'
+          calcolato dal motore Free e congelato in `risultato_json`. Sta QUI e
+          non dentro `DettaglioProView` perche' `E-ARREDO` resta fuori dal
+          dettaglio voce per voce -- non e' una lavorazione -- ma il Pro deve
+          comunque vederlo, come lo vede il Free sulla sintesi. */}
+      {snapshotQuery.data?.arredo && <ArredoCard arredo={snapshotQuery.data.arredo} />}
 
       <Button variant="outline" asChild className="h-11 w-full">
         <Link to="/">Torna alla stima</Link>

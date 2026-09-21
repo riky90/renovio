@@ -190,19 +190,36 @@ def test_scostamento_negativo_riduce(session, listino):
 
 
 def test_moltiplicatore_su_categoria(session, listino):
-    """pre_1980 -> A-EDILE x1.10: 28.050 x 1.10 = 30.855 -> [24.684, 37.026]."""
-    result = _stima(session, listino, risposte={"anno_costruzione": "pre_1980"})
+    """pre_1980 -> A-EDILE x1.10: 28.050 x 1.10 = 30.855 -> [24.684, 37.026].
+
+    La classe energetica e' dichiarata a mano (`c`, la neutra) per ISOLARE il
+    moltiplicatore dell'eta': senza, l'anno dedurrebbe anche la classe (0017) e
+    il test misurerebbe due effetti credendo di misurarne uno.
+    """
+    result = _stima(
+        session,
+        listino,
+        risposte={"anno_costruzione": "pre_1980", "classe_energetica_attuale": "c"},
+    )
 
     assert _cat(result, "A-EDILE").totale_min == Decimal("24684")
     assert _cat(result, "A-EDILE").totale_max == Decimal("37026")
 
 
 def test_eur_mq_additivo(session, listino):
-    """efficientamento tre_piu -> +80 EUR/m2 su A-EDILE.
+    """obiettivo classe B -> +80 EUR/m2 su A-EDILE.
 
     25.500 + 80 x 85 = 32.300 + IVA 10% -> 35.530 -> [28.424, 42.636]
+
+    L'euro/m2 stava sull'opzione `tre_piu` di `efficientamento` finche' quella
+    domanda era una scelta a tre valori. Ora e' un filtro si-no che apre il
+    punto di arrivo: stessa aritmetica, un'altra riga di catalogo.
     """
-    result = _stima(session, listino, risposte={"efficientamento": "tre_piu"})
+    result = _stima(
+        session,
+        listino,
+        risposte={"efficientamento": "si", "classe_energetica_obiettivo": "b"},
+    )
 
     assert _cat(result, "A-EDILE").totale_min == Decimal("28424")
     assert _cat(result, "A-EDILE").totale_max == Decimal("42636")
@@ -236,7 +253,12 @@ def test_moltiplicatori_prima_degli_additivi(session, listino):
     result = _stima(
         session,
         listino,
-        risposte={"anno_costruzione": "pre_1980", "efficientamento": "tre_piu"},
+        risposte={
+            "anno_costruzione": "pre_1980",
+            "classe_energetica_attuale": "c",
+            "efficientamento": "si",
+            "classe_energetica_obiettivo": "b",
+        },
     )
 
     lordo_atteso = Decimal("34850") * Decimal("1.10")  # + IVA 10%
@@ -276,9 +298,15 @@ def test_scelta_multipla_compone_i_moltiplicatori(session, listino):
 def test_attributo_senza_baseline_conta_dal_primo_metro(session, listino):
     """`muri_da_recuperare` non dichiara un `attributo_code`: la baseline e'
     zero per costruzione, quindi ogni m2 dichiarato pesa. E' diverso dal caso
-    "baseline dichiarata e mancante", che invece si salta."""
+    "baseline dichiarata e mancante", che invece si salta.
+
+    Il filtro `muri_lavori` va dichiarato: la domanda vive sotto di esso, e una
+    risposta a una domanda invisibile non pesa (vedi
+    `test_risposta_a_domanda_filtrata_non_pesa`)."""
     base = _stima(session, listino, risposte={})
-    result = _stima(session, listino, risposte={"muri_da_recuperare": 40})
+    result = _stima(
+        session, listino, risposte={"muri_lavori": "si", "muri_da_recuperare": 40}
+    )
 
     # 25.500 + 40 x 28 = 26.620 + IVA 10% -> 29.282 -> [23.426, 35.138]
     assert _cat(result, "A-EDILE").totale_min == Decimal("23426")
@@ -465,3 +493,116 @@ def test_seed_riscrive_invece_il_testo_di_una_domanda(session):
 
     session.refresh(domanda)
     assert domanda.testo == originale
+
+
+# --- derivazione fra risposte (0017) ----------------------------------------
+
+
+def test_derivazione_deduce_la_classe_dallanno_dichiarato(session, listino):
+    """Chi non sa la classe energetica ma dichiara l'anno ottiene la stessa
+    stima di chi la classe l'ha dichiarata a mano.
+
+    E' il senso della tabella `derivazione_risposta`: da li' in poi nessun
+    consumatore distingue una risposta dedotta da una digitata.
+    """
+    dedotta = _stima(session, listino, risposte={"anno_costruzione": "pre_1980"})
+    dichiarata = _stima(
+        session,
+        listino,
+        risposte={"anno_costruzione": "pre_1980", "classe_energetica_attuale": "g"},
+    )
+
+    assert dedotta.totale_min == dichiarata.totale_min
+    assert dedotta.totale_max == dichiarata.totale_max
+
+
+def test_derivazione_non_scatta_sul_default_dellanno(session, listino):
+    """L'invariante che la derivazione NON deve rompere.
+
+    `anno_costruzione` ha a sua volta un default (`1980_1990`). Se la deduzione
+    partisse dalla risposta RISOLTA invece che da quella data, un utente che
+    non tocca niente si vedrebbe applicare un moltiplicatore dedotto da un anno
+    che non ha mai dichiarato — cioe' il default smetterebbe di essere neutro e
+    l'oracolo primario cambierebbe in silenzio.
+    """
+    assert _stima(session, listino, risposte={}).totale_min == Decimal("47985")
+    assert _stima(session, listino, risposte={"locali": 3}).totale_min == Decimal("47985")
+
+
+def test_derivazione_non_sovrascrive_una_risposta_data(session, listino):
+    """Si deduce solo cio' che l'utente non sa: `non_so` e' il trigger, e una
+    classe dichiarata resta quella dichiarata anche se l'anno direbbe altro."""
+    con_classe = _stima(
+        session,
+        listino,
+        risposte={"anno_costruzione": "pre_1980", "classe_energetica_attuale": "c"},
+    )
+    dedotta = _stima(session, listino, risposte={"anno_costruzione": "pre_1980"})
+
+    # `c` e' la classe neutra, `g` no: se la deduzione avesse sovrascritto la
+    # risposta data, i due numeri coinciderebbero.
+    assert con_classe.totale_min < dedotta.totale_min
+
+
+# --- filtro e importo fisso -------------------------------------------------
+
+
+def test_risposta_a_domanda_filtrata_non_pesa(session, listino):
+    """Le domande sui muri vivono sotto il filtro `muri_lavori`. Rispondere
+    alla domanda figlia senza aprire il filtro non deve cambiare il prezzo:
+    altrimenti un client che manda uno stato vecchio farebbe pagare lavori che
+    l'utente ha tolto."""
+    base = _stima(session, listino, risposte={})
+    filtrata = _stima(session, listino, risposte={"muri_da_rifare_mq": 40})
+    aperta = _stima(
+        session, listino, risposte={"muri_lavori": "si", "muri_da_rifare_mq": 40}
+    )
+
+    assert filtrata.totale_min == base.totale_min
+    assert aperta.totale_min > base.totale_min
+
+
+def test_filtro_aperto_senza_quantita_resta_neutro(session, listino):
+    """Aprire il filtro non costa nulla di per se': i m2 sono a zero."""
+    base = _stima(session, listino, risposte={})
+    aperto = _stima(session, listino, risposte={"muri_lavori": "si"})
+
+    assert aperto.totale_min == base.totale_min
+    assert aperto.totale_max == base.totale_max
+
+
+def test_eur_fisso_non_scala_coi_metri_quadri(session, listino):
+    """La ragione per cui `eur_fisso_categoria` esiste.
+
+    Un impianto fotovoltaico costa quello che costa. Spinto dentro
+    `eur_mq_categoria` costerebbe il doppio in una casa grande il doppio, che e'
+    falso e si vede a occhio nella prima prova su 200 m2.
+    """
+    risposte_si = {"efficientamento": "si"}
+    risposte_fv = {"efficientamento": "si", "interventi_efficientamento": ["fotovoltaico"]}
+
+    def delta(mq):
+        senza = _cat(_stima(session, listino, mq=mq, risposte=risposte_si), "A-EDILE")
+        con = _cat(_stima(session, listino, mq=mq, risposte=risposte_fv), "A-EDILE")
+        return con.totale_min - senza.totale_min
+
+    assert delta(85) == delta(200)
+    assert delta(85) > 0
+
+
+def test_cappotto_scala_coi_metri_quadri(session, listino):
+    """Controprova del test precedente: il cappotto e' genuinamente a m2, e
+    deve comportarsi in modo OPPOSTO all'importo fisso. Senza questo test,
+    `eur_fisso_categoria` passerebbe anche se qualcuno lo applicasse a tutto."""
+    risposte_si = {"efficientamento": "si"}
+    risposte_cappotto = {
+        "efficientamento": "si",
+        "interventi_efficientamento": ["cappotto_esterno"],
+    }
+
+    def delta(mq):
+        senza = _cat(_stima(session, listino, mq=mq, risposte=risposte_si), "A-EDILE")
+        con = _cat(_stima(session, listino, mq=mq, risposte=risposte_cappotto), "A-EDILE")
+        return con.totale_min - senza.totale_min
+
+    assert delta(200) > delta(85)

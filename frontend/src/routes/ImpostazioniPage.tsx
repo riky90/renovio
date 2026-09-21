@@ -58,8 +58,8 @@ export function ImpostazioniPage() {
   return (
     <PageShell>
       <header className="flex flex-col gap-1">
-        <h1 className="text-3xl font-bold text-foreground">Impostazioni</h1>
-        <p className="text-muted-foreground">Gestisci il tuo profilo e l'abbonamento.</p>
+        <h1 className="text-3xl font-bold text-foreground">Profilo</h1>
+        <p className="text-muted-foreground">Gestisci i tuoi dati, l'abbonamento e gli inviti.</p>
       </header>
 
       <Tabs
@@ -67,7 +67,10 @@ export function ImpostazioniPage() {
         onValueChange={(value) => setSearchParams({ tab: value }, { replace: true })}
         className="mt-8 gap-6"
       >
-        <TabsList>
+        {/* A tutta larghezza: e' la scelta principale della pagina, non un
+            accessorio schiacciato a sinistra. I trigger hanno gia' `flex-1`,
+            quindi si spartiscono la riga da soli. */}
+        <TabsList className="w-full">
           <TabsTrigger value="profilo">
             <User className="size-4" /> Profilo
           </TabsTrigger>

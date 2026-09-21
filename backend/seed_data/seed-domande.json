@@ -210,6 +210,66 @@
       "fascia_mq_min": 180,
       "fascia_mq_max": 2000,
       "valore_atteso": 1
+    },
+    {
+      "attributo_code": "superficie_calpestabile",
+      "fascia_mq_min": 0,
+      "fascia_mq_max": 39,
+      "valore_atteso": "17"
+    },
+    {
+      "attributo_code": "superficie_calpestabile",
+      "fascia_mq_min": 40,
+      "fascia_mq_max": 59,
+      "valore_atteso": "42"
+    },
+    {
+      "attributo_code": "superficie_calpestabile",
+      "fascia_mq_min": 60,
+      "fascia_mq_max": 79,
+      "valore_atteso": "60"
+    },
+    {
+      "attributo_code": "superficie_calpestabile",
+      "fascia_mq_min": 80,
+      "fascia_mq_max": 99,
+      "valore_atteso": "76"
+    },
+    {
+      "attributo_code": "superficie_calpestabile",
+      "fascia_mq_min": 100,
+      "fascia_mq_max": 119,
+      "valore_atteso": "93"
+    },
+    {
+      "attributo_code": "superficie_calpestabile",
+      "fascia_mq_min": 120,
+      "fascia_mq_max": 139,
+      "valore_atteso": "110"
+    },
+    {
+      "attributo_code": "superficie_calpestabile",
+      "fascia_mq_min": 140,
+      "fascia_mq_max": 159,
+      "valore_atteso": "127"
+    },
+    {
+      "attributo_code": "superficie_calpestabile",
+      "fascia_mq_min": 160,
+      "fascia_mq_max": 199,
+      "valore_atteso": "153"
+    },
+    {
+      "attributo_code": "superficie_calpestabile",
+      "fascia_mq_min": 200,
+      "fascia_mq_max": 299,
+      "valore_atteso": "212"
+    },
+    {
+      "attributo_code": "superficie_calpestabile",
+      "fascia_mq_min": 300,
+      "fascia_mq_max": 2000,
+      "valore_atteso": "340"
     }
   ],
   "domande": [
@@ -341,6 +401,25 @@
           ]
         }
       ]
+    },
+    {
+      "code": "superficie_calpestabile",
+      "testo": "Quanti m2 calpestabili?",
+      "tipo_controllo": "stepper",
+      "gruppo": "immobile",
+      "ordine": 25,
+      "tier_minimo": "free",
+      "attributo_code": "superficie_calpestabile",
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "ordine": 1,
+          "is_default": false,
+          "effetti": []
+        }
+      ],
+      "help": "La superficie che si cammina, al netto dei muri: di solito intorno all'85% dei metri commerciali. Se non la sai, lascia il valore proposto."
     },
     {
       "code": "piano",
@@ -610,6 +689,32 @@
       ]
     },
     {
+      "code": "muri_lavori",
+      "testo": "Ci sono lavori sui muri?",
+      "tipo_controllo": "toggle",
+      "gruppo": "ambienti",
+      "ordine": 78,
+      "tier_minimo": "free",
+      "attributo_code": null,
+      "opzioni": [
+        {
+          "code": "no",
+          "etichetta": "No",
+          "ordine": 1,
+          "is_default": true,
+          "effetti": []
+        },
+        {
+          "code": "si",
+          "etichetta": "Si",
+          "ordine": 2,
+          "is_default": false,
+          "effetti": []
+        }
+      ],
+      "help": "Muri da risanare, da abbattere o da tirare su. Se non ne tocchi nessuno, lascia No."
+    },
+    {
       "code": "muri_da_recuperare",
       "testo": "Quanti m2 di muri da recuperare?",
       "tipo_controllo": "stepper",
@@ -632,7 +737,131 @@
           ]
         }
       ],
-      "help": "Intonaci da rifare, tracce da chiudere, murature da risanare. Se non lo sai, lascia 0."
+      "help": "Intonaci da rifare, tracce da chiudere, murature da risanare. Se non lo sai, lascia 0.",
+      "visibile_se_domanda_code": "muri_lavori",
+      "visibile_se_opzione_code": "si"
+    },
+    {
+      "code": "muri_da_rifare_mq",
+      "testo": "Quanti m2 di muri da abbattere e rifare?",
+      "tipo_controllo": "stepper",
+      "gruppo": "ambienti",
+      "ordine": 82,
+      "tier_minimo": "free",
+      "attributo_code": null,
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "ordine": 1,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "eur_per_scostamento",
+              "target_categoria_code": "A-EDILE",
+              "valore": "95"
+            }
+          ]
+        }
+      ],
+      "help": "Demolizione piu' ricostruzione, non solo intonaco. Se non ce ne sono, lascia 0.",
+      "visibile_se_domanda_code": "muri_lavori",
+      "visibile_se_opzione_code": "si"
+    },
+    {
+      "code": "muri_da_rifare_portanti",
+      "testo": "Fra i muri da rifare ce n'e' qualcuno portante?",
+      "tipo_controllo": "toggle",
+      "gruppo": "ambienti",
+      "ordine": 83,
+      "tier_minimo": "free",
+      "attributo_code": null,
+      "opzioni": [
+        {
+          "code": "no",
+          "etichetta": "No",
+          "ordine": 1,
+          "is_default": true,
+          "effetti": []
+        },
+        {
+          "code": "si",
+          "etichetta": "Si",
+          "ordine": 2,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "1.08"
+            }
+          ]
+        }
+      ],
+      "help": "Un muro portante regge il peso della casa: servono opere strutturali, calcoli e pratiche. Nel dubbio rispondi Si: lo confermiamo in sopralluogo.",
+      "visibile_se_domanda_code": "muri_lavori",
+      "visibile_se_opzione_code": "si"
+    },
+    {
+      "code": "muri_da_creare_mq",
+      "testo": "Quanti m2 di muri nuovi da creare?",
+      "tipo_controllo": "stepper",
+      "gruppo": "ambienti",
+      "ordine": 84,
+      "tier_minimo": "free",
+      "attributo_code": null,
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "ordine": 1,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "eur_per_scostamento",
+              "target_categoria_code": "A-EDILE",
+              "valore": "110"
+            }
+          ]
+        }
+      ],
+      "help": "Tramezze o pareti nuove per cambiare la distribuzione. Se non ce ne sono, lascia 0.",
+      "visibile_se_domanda_code": "muri_lavori",
+      "visibile_se_opzione_code": "si"
+    },
+    {
+      "code": "muri_da_creare_portanti",
+      "testo": "Fra i muri nuovi ce n'e' qualcuno portante?",
+      "tipo_controllo": "toggle",
+      "gruppo": "ambienti",
+      "ordine": 85,
+      "tier_minimo": "free",
+      "attributo_code": null,
+      "opzioni": [
+        {
+          "code": "no",
+          "etichetta": "No",
+          "ordine": 1,
+          "is_default": true,
+          "effetti": []
+        },
+        {
+          "code": "si",
+          "etichetta": "Si",
+          "ordine": 2,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "1.1"
+            }
+          ]
+        }
+      ],
+      "help": "Raro in un appartamento, normale se si apre un vano o si aggiunge un solaio.",
+      "visibile_se_domanda_code": "muri_lavori",
+      "visibile_se_opzione_code": "si"
     },
     {
       "code": "impianti",
@@ -867,9 +1096,62 @@
       ]
     },
     {
+      "code": "ambienti_arredo",
+      "testo": "Quali ambienti vuoi arredare?",
+      "help": "Il costo dell'arredo resta FUORI dal totale dei lavori: te lo mostriamo a parte, perche' non e' una lavorazione e non va confrontato con un preventivo edile.",
+      "tipo_controllo": "scelta_multipla",
+      "gruppo": "arredo",
+      "ordine": 105,
+      "tier_minimo": "free",
+      "opzioni": [
+        {
+          "code": "cucina",
+          "etichetta": "Cucina",
+          "descrizione": "Mobili, elettrodomestici da incasso, piano e schienale.",
+          "ordine": 1,
+          "is_default": false
+        },
+        {
+          "code": "soggiorno",
+          "etichetta": "Soggiorno",
+          "descrizione": "Divano, tavolo e sedie, parete attrezzata.",
+          "ordine": 2,
+          "is_default": false
+        },
+        {
+          "code": "camera",
+          "etichetta": "Camera matrimoniale",
+          "descrizione": "Letto, armadio, comodini.",
+          "ordine": 3,
+          "is_default": false
+        },
+        {
+          "code": "cameretta",
+          "etichetta": "Cameretta",
+          "descrizione": "Letto, armadio, scrivania.",
+          "ordine": 4,
+          "is_default": false
+        },
+        {
+          "code": "bagno",
+          "etichetta": "Bagno",
+          "descrizione": "Mobile lavabo, specchio, accessori. I sanitari stanno nei lavori.",
+          "ordine": 5,
+          "is_default": false
+        },
+        {
+          "code": "ingresso",
+          "etichetta": "Ingresso e studio",
+          "descrizione": "Scarpiera, libreria, scrivania.",
+          "ordine": 6,
+          "is_default": false
+        }
+      ]
+    },
+    {
       "code": "classe_energetica_attuale",
       "testo": "Qual e' la classe energetica attuale?",
-      "help": "Se non la conosci, la trovi sull'APE dell'immobile. Lascia 'Non la so' se non ce l'hai.",
+      "help": "La trovi sull'APE dell'immobile. Se non ce l'hai, lascia 'Non la so': la stimiamo dall'anno di costruzione.",
       "tipo_controllo": "scelta_singola",
       "gruppo": "energia",
       "ordine": 110,
@@ -971,41 +1253,67 @@
     },
     {
       "code": "efficientamento",
-      "testo": "Vuoi migliorare la classe energetica?",
-      "help": "Cappotto, infissi performanti, impianto a pompa di calore: il salto di classe si paga in lavorazioni aggiuntive.",
-      "tipo_controllo": "scelta_singola",
+      "testo": "Vuoi aumentare la classe energetica?",
+      "help": "Se si, ti chiediamo dove vuoi arrivare e con quali interventi. Il salto di classe si paga in lavorazioni aggiuntive.",
+      "tipo_controllo": "toggle",
       "gruppo": "energia",
       "ordine": 120,
       "tier_minimo": "free",
       "opzioni": [
         {
           "code": "no",
-          "etichetta": "No, non e' una priorita'",
+          "etichetta": "No",
           "ordine": 1,
           "is_default": true,
           "effetti": []
         },
         {
-          "code": "una_due",
-          "etichetta": "Si, di una o due classi",
+          "code": "si",
+          "etichetta": "Si",
+          "ordine": 2,
+          "is_default": false,
+          "effetti": []
+        }
+      ]
+    },
+    {
+      "code": "classe_energetica_obiettivo",
+      "testo": "A che classe energetica vuoi arrivare?",
+      "tipo_controllo": "scelta_singola",
+      "gruppo": "energia",
+      "ordine": 121,
+      "tier_minimo": "free",
+      "attributo_code": null,
+      "opzioni": [
+        {
+          "code": "da_valutare",
+          "etichetta": "Non lo so ancora",
+          "ordine": 1,
+          "is_default": true,
+          "effetti": [],
+          "descrizione": "Lo decidiamo in sopralluogo: contano gli interventi che scegli qui sotto."
+        },
+        {
+          "code": "a",
+          "etichetta": "A",
           "ordine": 2,
           "is_default": false,
           "effetti": [
             {
               "tipo_effetto": "eur_mq_categoria",
               "target_categoria_code": "A-EDILE",
-              "valore": "35"
+              "valore": "110"
             },
             {
               "tipo_effetto": "moltiplicatore_categoria",
               "target_categoria_code": "C-SERRAMENTI",
-              "valore": "1.15"
+              "valore": "1.35"
             }
           ]
         },
         {
-          "code": "tre_piu",
-          "etichetta": "Si, di tre classi o piu'",
+          "code": "b",
+          "etichetta": "B",
           "ordine": 3,
           "is_default": false,
           "effetti": [
@@ -1017,64 +1325,138 @@
             {
               "tipo_effetto": "moltiplicatore_categoria",
               "target_categoria_code": "C-SERRAMENTI",
-              "valore": "1.35"
+              "valore": "1.25"
+            }
+          ]
+        },
+        {
+          "code": "c",
+          "etichetta": "C",
+          "ordine": 4,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "eur_mq_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "55"
+            },
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "C-SERRAMENTI",
+              "valore": "1.15"
+            }
+          ]
+        },
+        {
+          "code": "d",
+          "etichetta": "D",
+          "ordine": 5,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "eur_mq_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "35"
+            },
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "C-SERRAMENTI",
+              "valore": "1.08"
+            }
+          ]
+        },
+        {
+          "code": "e",
+          "etichetta": "E",
+          "ordine": 6,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "eur_mq_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "20"
+            },
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "C-SERRAMENTI",
+              "valore": "1.04"
             }
           ]
         }
-      ]
+      ],
+      "help": "Il punto di arrivo realistico si decide in sopralluogo: qui serve per dimensionare la stima.",
+      "visibile_se_domanda_code": "efficientamento",
+      "visibile_se_opzione_code": "si"
     },
     {
-      "code": "ambienti_arredo",
-      "testo": "Quali ambienti vuoi arredare?",
-      "help": "Il costo dell'arredo resta FUORI dal totale dei lavori: te lo mostriamo a parte, perche' non e' una lavorazione e non va confrontato con un preventivo edile.",
+      "code": "interventi_efficientamento",
+      "testo": "Con quali interventi?",
       "tipo_controllo": "scelta_multipla",
-      "gruppo": "arredo",
-      "ordine": 105,
+      "gruppo": "energia",
+      "ordine": 122,
       "tier_minimo": "free",
+      "attributo_code": null,
       "opzioni": [
         {
-          "code": "cucina",
-          "etichetta": "Cucina",
-          "descrizione": "Mobili, elettrodomestici da incasso, piano e schienale.",
+          "code": "cappotto_esterno",
+          "etichetta": "Cappotto esterno",
           "ordine": 1,
-          "is_default": false
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "eur_mq_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "95"
+            }
+          ],
+          "descrizione": "Isolamento sulla facciata. Il piu' efficace, richiede ponteggio e permessi."
         },
         {
-          "code": "soggiorno",
-          "etichetta": "Soggiorno",
-          "descrizione": "Divano, tavolo e sedie, parete attrezzata.",
+          "code": "cappotto_interno",
+          "etichetta": "Cappotto interno",
           "ordine": 2,
-          "is_default": false
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "eur_mq_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "55"
+            }
+          ],
+          "descrizione": "Isolamento dall'interno. Meno efficace, ma non tocca la facciata e ruba qualche centimetro."
         },
         {
-          "code": "camera",
-          "etichetta": "Camera matrimoniale",
-          "descrizione": "Letto, armadio, comodini.",
+          "code": "fotovoltaico",
+          "etichetta": "Impianto fotovoltaico",
           "ordine": 3,
-          "is_default": false
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "eur_fisso_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "9000"
+            }
+          ],
+          "descrizione": "Costo una tantum, non proporzionale ai metri quadri dell'appartamento."
         },
         {
-          "code": "cameretta",
-          "etichetta": "Cameretta",
-          "descrizione": "Letto, armadio, scrivania.",
+          "code": "cambio_caldaia",
+          "etichetta": "Cambio caldaia o pompa di calore",
           "ordine": 4,
-          "is_default": false
-        },
-        {
-          "code": "bagno",
-          "etichetta": "Bagno",
-          "descrizione": "Mobile lavabo, specchio, accessori. I sanitari stanno nei lavori.",
-          "ordine": 5,
-          "is_default": false
-        },
-        {
-          "code": "ingresso",
-          "etichetta": "Ingresso e studio",
-          "descrizione": "Scarpiera, libreria, scrivania.",
-          "ordine": 6,
-          "is_default": false
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "eur_fisso_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "6500"
+            }
+          ],
+          "descrizione": "Costo una tantum: una caldaia costa quel che costa, non 45 euro al metro quadro."
         }
-      ]
+      ],
+      "help": "Puoi sceglierne piu' di uno.",
+      "visibile_se_domanda_code": "efficientamento",
+      "visibile_se_opzione_code": "si"
     }
   ],
   "forfait_arredo": [
@@ -1203,6 +1585,29 @@
       "livello_code": "alto",
       "eur_min": 3000,
       "eur_max": 5500
+    }
+  ],
+  "derivazioni": [
+    {
+      "domanda_code": "classe_energetica_attuale",
+      "quando_opzione_code": "non_so",
+      "da_domanda_code": "anno_costruzione",
+      "da_opzione_code": "pre_1980",
+      "opzione_code": "g"
+    },
+    {
+      "domanda_code": "classe_energetica_attuale",
+      "quando_opzione_code": "non_so",
+      "da_domanda_code": "anno_costruzione",
+      "da_opzione_code": "1980_1990",
+      "opzione_code": "e"
+    },
+    {
+      "domanda_code": "classe_energetica_attuale",
+      "quando_opzione_code": "non_so",
+      "da_domanda_code": "anno_costruzione",
+      "da_opzione_code": "post_1990",
+      "opzione_code": "d"
     }
   ]
 }

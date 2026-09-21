@@ -14,6 +14,7 @@ di configurazione.
 
   Free  moltiplicatore_categoria  fattore sul base_eur_mq della categoria
         eur_mq_categoria          euro per m2 additivi sulla categoria
+        eur_fisso_categoria       euro una tantum additivi sulla categoria
         eur_per_scostamento       euro per unita' di scostamento dall'atteso
   Pro   includi                   la voce entra nel computo
         escludi                   la voce/sottocategoria/categoria esce
@@ -64,12 +65,19 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from app.models.domanda import AttesaImmobile, Domanda, EffettoOpzione, OpzioneDomanda
+from app.models.domanda import (
+    AttesaImmobile,
+    DerivazioneRisposta,
+    Domanda,
+    EffettoOpzione,
+    OpzioneDomanda,
+)
 
 # --- vocabolario chiuso -----------------------------------------------------
 
 TIPO_MOLTIPLICATORE_CATEGORIA = "moltiplicatore_categoria"
 TIPO_EUR_MQ_CATEGORIA = "eur_mq_categoria"
+TIPO_EUR_FISSO_CATEGORIA = "eur_fisso_categoria"
 TIPO_EUR_PER_SCOSTAMENTO = "eur_per_scostamento"
 TIPO_INCLUDI = "includi"
 TIPO_ESCLUDI = "escludi"
@@ -77,7 +85,12 @@ TIPO_FATTORE_QUANTITA = "fattore_quantita"
 TIPO_QUANTITA_PER_UNITA = "quantita_per_unita"
 
 TIPI_EFFETTO_FREE = frozenset(
-    {TIPO_MOLTIPLICATORE_CATEGORIA, TIPO_EUR_MQ_CATEGORIA, TIPO_EUR_PER_SCOSTAMENTO}
+    {
+        TIPO_MOLTIPLICATORE_CATEGORIA,
+        TIPO_EUR_MQ_CATEGORIA,
+        TIPO_EUR_FISSO_CATEGORIA,
+        TIPO_EUR_PER_SCOSTAMENTO,
+    }
 )
 TIPI_EFFETTO_PRO = frozenset(
     {TIPO_INCLUDI, TIPO_ESCLUDI, TIPO_FATTORE_QUANTITA, TIPO_QUANTITA_PER_UNITA}
@@ -105,6 +118,7 @@ OPZIONE_VALORE = "valore"
 TARGET_AMMESSI: dict[str, frozenset[str]] = {
     TIPO_MOLTIPLICATORE_CATEGORIA: frozenset({"categoria"}),
     TIPO_EUR_MQ_CATEGORIA: frozenset({"categoria"}),
+    TIPO_EUR_FISSO_CATEGORIA: frozenset({"categoria"}),
     TIPO_EUR_PER_SCOSTAMENTO: frozenset({"categoria"}),
     TIPO_INCLUDI: frozenset({"sottocategoria", "voce"}),
     TIPO_ESCLUDI: frozenset({"categoria", "sottocategoria", "voce"}),
@@ -141,10 +155,17 @@ class EffettoApplicato:
 
 @dataclass(frozen=True)
 class CorrezioniCategoria:
-    """Le tre correzioni Free gia' aggregate per una categoria."""
+    """Le quattro correzioni Free gia' aggregate per una categoria.
+
+    `eur_fisso` e' l'importo una tantum: non scala con i m2 e non scala con lo
+    scostamento. Esiste perche' un impianto fotovoltaico e una caldaia costano
+    quello che costano — spinti dentro `eur_mq` darebbero una caldaia da 3.800
+    euro su 85 m2 e da 9.000 su 200, che e' visibilmente falso.
+    """
 
     moltiplicatore: Decimal = Decimal("1")
     eur_mq: Decimal = Decimal("0")
+    eur_fisso: Decimal = Decimal("0")
     eur_scostamento: Decimal = Decimal("0")
 
 
@@ -335,6 +356,68 @@ def _visibili(domande: list[Domanda], scelte: dict[str, set[str]]) -> dict[str, 
     return stato
 
 
+def _applica_derivazioni(
+    session: Session,
+    risposte: dict[str, Any],
+    opzioni_per_domanda: dict[str, list[OpzioneDomanda]],
+    scelte_per_domanda: dict[str, list[OpzioneDomanda]],
+) -> None:
+    """Sostituisce un "non lo so" con la risposta dedotta da un'altra domanda.
+
+    Muta `scelte_per_domanda` sul posto, DOPO i default e PRIMA della
+    visibilita': da qui in poi nessun consumatore — il motore, l'arredo, i
+    bonus, l'anteprima admin — distingue una risposta dedotta da una digitata.
+    E' il punto: una sola risposta risolta, non due verita' che prima o poi
+    divergono.
+
+    Si deduce solo da una risposta DATA DAVVERO
+    -------------------------------------------
+    `da_domanda_code` deve comparire in `risposte`. Non basta che abbia una
+    risposta risolta, perche' ogni domanda ne ha sempre una: il suo default.
+    Dedurre la classe energetica da un anno di costruzione che l'utente non ha
+    mai dichiarato significherebbe far pagare un moltiplicatore a chi non ha
+    toccato niente — cioe' rompere la neutralita' a riposo, che e'
+    l'invariante su cui poggia l'intero layer (vedi `_opzioni_scelte`: l'opzione
+    di default non porta effetti). E' la stessa disciplina di
+    `eur_per_scostamento`, che rinuncia alla correzione invece di applicarla su
+    una baseline inventata.
+
+    Una derivazione che punta a un'opzione inesistente non fa nulla: la
+    risposta resta quella di prima. Silenziosa qui, visibile nell'anteprima
+    admin, che e' il posto giusto per accorgersene.
+    """
+    if not risposte:
+        return
+
+    derivazioni = (
+        session.query(DerivazioneRisposta)
+        .filter(
+            DerivazioneRisposta.attiva.is_(True),
+            DerivazioneRisposta.domanda_code.in_(list(scelte_per_domanda)),
+        )
+        .order_by(DerivazioneRisposta.id)
+        .all()
+    )
+
+    for d in derivazioni:
+        scelte = scelte_per_domanda.get(d.domanda_code)
+        if not scelte or scelte[0].code != d.quando_opzione_code:
+            continue
+        # Confronto con la risposta GREZZA, non con quella risolta: risolta
+        # vuol dire "eventualmente il default", e dedurre da un default e'
+        # precisamente cio' che rompe la neutralita'. Un codice inesistente
+        # ("nel_futuro") non corrisponde a nessuna riga e quindi non deduce
+        # nulla, invece di dedurre dal default su cui e' caduto.
+        if risposte.get(d.da_domanda_code) != d.da_opzione_code:
+            continue
+        dedotta = next(
+            (o for o in opzioni_per_domanda.get(d.domanda_code, []) if o.code == d.opzione_code),
+            None,
+        )
+        if dedotta is not None:
+            scelte_per_domanda[d.domanda_code] = [dedotta]
+
+
 def risolvi_scelte(
     session: Session,
     *,
@@ -377,6 +460,7 @@ def risolvi_scelte(
         d.code: _opzioni_scelte(d, opzioni_per_domanda[d.code], risposte.get(d.code))
         for d in domande
     }
+    _applica_derivazioni(session, risposte, opzioni_per_domanda, scelte_per_domanda)
     visibili = _visibili(
         domande, {code: {o.code for o in ops} for code, ops in scelte_per_domanda.items()}
     )
@@ -427,6 +511,7 @@ def risolvi_effetti_free(
 
     moltiplicatori: dict[str, Decimal] = {}
     eur_mq: dict[str, Decimal] = {}
+    eur_fisso: dict[str, Decimal] = {}
     eur_scost: dict[str, Decimal] = {}
     applicati: list[EffettoApplicato] = []
 
@@ -442,15 +527,17 @@ def risolvi_effetti_free(
                 attese=attese,
                 moltiplicatori=moltiplicatori,
                 eur_mq=eur_mq,
+                eur_fisso=eur_fisso,
                 eur_scost=eur_scost,
             )
             applicati.append(traccia)
 
-    codici_categoria = set(moltiplicatori) | set(eur_mq) | set(eur_scost)
+    codici_categoria = set(moltiplicatori) | set(eur_mq) | set(eur_fisso) | set(eur_scost)
     correzioni = {
         code: CorrezioniCategoria(
             moltiplicatore=moltiplicatori.get(code, Decimal("1")),
             eur_mq=eur_mq.get(code, Decimal("0")),
+            eur_fisso=eur_fisso.get(code, Decimal("0")),
             eur_scostamento=eur_scost.get(code, Decimal("0")),
         )
         for code in sorted(codici_categoria)
@@ -468,6 +555,7 @@ def _applica_effetto_free(
     attese: dict[str, Decimal],
     moltiplicatori: dict[str, Decimal],
     eur_mq: dict[str, Decimal],
+    eur_fisso: dict[str, Decimal],
     eur_scost: dict[str, Decimal],
 ) -> EffettoApplicato:
     """Applica un singolo effetto agli accumulatori e ne restituisce la traccia.
@@ -510,6 +598,12 @@ def _applica_effetto_free(
         contributo = effetto.valore * Decimal(mq)
         eur_mq[categoria] = eur_mq.get(categoria, Decimal("0")) + effetto.valore
         return _traccia(True, contributo=contributo)
+
+    if effetto.tipo_effetto == TIPO_EUR_FISSO_CATEGORIA:
+        # Una tantum: non moltiplica per i m2 ne' per lo scostamento. Il
+        # contributo tracciato coincide con il valore, che e' il punto.
+        eur_fisso[categoria] = eur_fisso.get(categoria, Decimal("0")) + effetto.valore
+        return _traccia(True, contributo=effetto.valore)
 
     # eur_per_scostamento: l'unico effetto Free che scala con la risposta.
     atteso = Decimal("0")

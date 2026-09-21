@@ -54,6 +54,7 @@ from app.models.catalogo import (  # noqa: E402
 from app.models.dettaglio_pro import CoefficienteQuantitaVoce, Sottocategoria, Voce  # noqa: E402
 from app.models.domanda import (  # noqa: E402
     AttesaImmobile,
+    DerivazioneRisposta,
     Domanda,
     EffettoOpzione,
     OpzioneDomanda,
@@ -597,8 +598,30 @@ def seed_domande(session: Session, data: dict | None = None) -> None:
         # else: gia' presente -> curatela dell'admin, non si tocca.
 
     session.flush()
+    _seed_derivazioni(session, data.get("derivazioni", []))
     _seed_forfait_arredo(session, data.get("forfait_arredo", []))
     session.flush()
+
+
+def _seed_derivazioni(session: Session, righe: list[dict]) -> None:
+    """Create-if-missing delle deduzioni fra risposte (0017).
+
+    CURATELA, non struttura: "prima del 1980 -> G" e' una bozza da confermare
+    con l'esperto e si corregge dal pannello admin, quindi vale la stessa
+    regola degli effetti e delle attese — il seed la crea se manca e poi non la
+    tocca piu'. Riscriverla a ogni boot riporterebbe alla bozza una mappa
+    tarata a mano, che e' l'incidente che questa regola esiste per evitare.
+    """
+    for r in righe:
+        chiave = dict(
+            domanda_code=r["domanda_code"],
+            quando_opzione_code=r["quando_opzione_code"],
+            da_domanda_code=r["da_domanda_code"],
+            da_opzione_code=r["da_opzione_code"],
+        )
+        esiste = session.query(DerivazioneRisposta).filter_by(**chiave).one_or_none()
+        if esiste is None:
+            session.add(DerivazioneRisposta(**chiave, opzione_code=r["opzione_code"]))
 
 
 def _seed_forfait_arredo(session: Session, righe: list[dict]) -> None:

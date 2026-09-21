@@ -16,7 +16,13 @@ from app.models.catalogo import (
     TipoRistrutturazione,
 )
 from app.models.dettaglio_pro import CoefficienteQuantitaVoce, Sottocategoria, Voce
-from app.models.domanda import AttesaImmobile, Domanda, EffettoOpzione, OpzioneDomanda
+from app.models.domanda import (
+    AttesaImmobile,
+    DerivazioneRisposta,
+    Domanda,
+    EffettoOpzione,
+    OpzioneDomanda,
+)
 from app.models.listino import Listino, ListinoCategoria
 from app.models.stima_salvata import StimaSalvata
 from app.models.subscription import Subscription
@@ -32,6 +38,7 @@ __all__ = [
     "Categoria",
     "CoefficienteQuantitaVoce",
     "ComuneListino",
+    "DerivazioneRisposta",
     "Domanda",
     "EffettoOpzione",
     "Extra",
