@@ -58,7 +58,7 @@ export function SiteFooter() {
                 </h3>
                 <ul className="flex flex-col gap-2.5">
                   {col.links.map((link) => (
-                    <li key={link.to}>
+                    <li key={link.label}>
                       <Link
                         to={link.to}
                         className="text-sm text-foreground underline-offset-4 transition-colors hover:text-primary hover:underline"
