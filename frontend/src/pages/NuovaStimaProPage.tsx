@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Navigate, useNavigate, useSearchParams } from "react-router";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
-import { EstimateFormPro, type EstimateProSubmit } from "@/components/EstimateFormPro";
+import { EstimateWizard, type EstimateWizardSubmit } from "@/components/EstimateWizard";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -47,8 +47,8 @@ export function NuovaStimaProPage() {
   const [searchParams] = useSearchParams();
 
   const mutation = useMutation({
-    mutationFn: async ({ values, preferenze }: EstimateProSubmit) => {
-      const risultato = await postStima(values);
+    mutationFn: async ({ values, risposte, preferenze }: EstimateWizardSubmit) => {
+      const risultato = await postStima({ ...values, risposte });
       // Le preferenze viaggiano al salvataggio, non al calcolo: il motore Free
       // non le usa, e il dettaglio Pro le rilegge dalle colonne della stima.
       const { id } = await postSalvaStima(risultato, preferenze);
@@ -73,8 +73,8 @@ export function NuovaStimaProPage() {
       <header className="flex flex-col gap-1">
         <h1 className="text-3xl font-bold text-foreground">Nuova stima Pro</h1>
         <p className="text-muted-foreground">
-          Due passaggi: l'immobile, poi le finiture. Il dettaglio voce per voce si apre alla
-          fine.
+          Quattro passaggi: dove, l'immobile, la ristrutturazione, le finiture. Il dettaglio
+          voce per voce si apre alla fine.
         </p>
       </header>
 
@@ -84,7 +84,8 @@ export function NuovaStimaProPage() {
             <AlertDescription>{ERROR_COPY}</AlertDescription>
           </Alert>
         )}
-        <EstimateFormPro
+        <EstimateWizard
+          tier="pro"
           onSubmit={(payload) => mutation.mutate(payload)}
           isSubmitting={mutation.isPending}
           iniziali={inizialiDaQuery(searchParams)}

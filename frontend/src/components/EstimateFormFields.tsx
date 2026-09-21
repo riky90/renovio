@@ -119,79 +119,102 @@ interface EstimateFormFieldsProps {
 }
 
 /**
- * I quattro campi comuni ai due form (città, m², tipo, destinazione).
+ * I quattro campi comuni, composti insieme.
  *
- * Estratti per COMPOSIZIONE e non lasciati in `EstimateForm` con un flag
- * `isPro`: il form Free e quello Pro divergono nel numero di step e nella
- * navigazione, cioè in tutto tranne questi campi. Un flag avrebbe fatto
- * convivere due layout in un solo componente.
+ * Restano anche i quattro campi SEPARATI (`CittaField`, `MqField`, `TipoField`,
+ * `DestinazioneField`): il wizard li distribuisce su step diversi — la citta' e
+ * i m² allo step 1, tipo e destinazione allo step 3 — e per farlo gli serve
+ * poterli montare uno per volta. Questo composto resta il modo di montarli
+ * tutti e quattro in blocco senza ripetere il markup.
  */
 export function EstimateFormFields({ values, onChange, touched }: EstimateFormFieldsProps) {
-  const { cittaValid, mqValid, tipoValid } = validaCampiBase(values);
-
   return (
     <>
-      <CityAutocomplete
-        value={values.citta}
-        onChange={(citta) => onChange({ citta })}
-        error={touched && !cittaValid ? CITTA_ERROR : undefined}
-      />
-
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="mq">Superficie (m²)</Label>
-        <div className="relative">
-          <input
-            id="mq"
-            inputMode="numeric"
-            placeholder="Es. 85"
-            value={values.mqRaw}
-            onChange={(e) => onChange({ mqRaw: e.target.value.replace(/[^0-9]/g, "") })}
-            className={cn(
-              "h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-2.5 py-1 pr-10 text-base shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm",
-              touched && !mqValid && "border-destructive"
-            )}
-          />
-          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground">
-            m²
-          </span>
-        </div>
-        {touched && !mqValid && <p className="text-sm text-destructive">{MQ_ERROR}</p>}
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <Label>Tipo di ristrutturazione</Label>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          {TIPO_OPTIONS.map((option) => (
-            <OptionCard
-              key={option.code}
-              nome={option.nome}
-              descrizione={option.descrizione}
-              selected={values.tipo === option.code}
-              onSelect={() => onChange({ tipo: option.code })}
-            />
-          ))}
-        </div>
-        {touched && !tipoValid && <p className="text-sm text-destructive">{TIPO_ERROR}</p>}
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <Label>Destinazione dell'immobile</Label>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {DESTINAZIONE_OPTIONS.map((option) => (
-            <OptionCard
-              key={option.code}
-              nome={option.nome}
-              descrizione={option.descrizione}
-              selected={values.destinazione === option.code}
-              onSelect={() => onChange({ destinazione: option.code })}
-            />
-          ))}
-        </div>
-        <p className="text-sm text-muted-foreground">
-          Cambia l'aliquota delle detrazioni fiscali.
-        </p>
-      </div>
+      <CittaField values={values} onChange={onChange} touched={touched} />
+      <MqField values={values} onChange={onChange} touched={touched} />
+      <TipoField values={values} onChange={onChange} touched={touched} />
+      <DestinazioneField values={values} onChange={onChange} />
     </>
+  );
+}
+
+export function CittaField({ values, onChange, touched }: EstimateFormFieldsProps) {
+  const { cittaValid } = validaCampiBase(values);
+  return (
+    <CityAutocomplete
+      value={values.citta}
+      onChange={(citta) => onChange({ citta })}
+      error={touched && !cittaValid ? CITTA_ERROR : undefined}
+    />
+  );
+}
+
+export function MqField({ values, onChange, touched }: EstimateFormFieldsProps) {
+  const { mqValid } = validaCampiBase(values);
+  return (
+    <div className="flex flex-col gap-2">
+      <Label htmlFor="mq">Superficie (m²)</Label>
+      <div className="relative">
+        <input
+          id="mq"
+          inputMode="numeric"
+          placeholder="Es. 85"
+          value={values.mqRaw}
+          onChange={(e) => onChange({ mqRaw: e.target.value.replace(/[^0-9]/g, "") })}
+          className={cn(
+            "h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-2.5 py-1 pr-10 text-base shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm",
+            touched && !mqValid && "border-destructive"
+          )}
+        />
+        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground">
+          m²
+        </span>
+      </div>
+      {touched && !mqValid && <p className="text-sm text-destructive">{MQ_ERROR}</p>}
+    </div>
+  );
+}
+
+export function TipoField({ values, onChange, touched }: EstimateFormFieldsProps) {
+  const { tipoValid } = validaCampiBase(values);
+  return (
+    <div className="flex flex-col gap-2">
+      <Label>Tipo di ristrutturazione</Label>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        {TIPO_OPTIONS.map((option) => (
+          <OptionCard
+            key={option.code}
+            nome={option.nome}
+            descrizione={option.descrizione}
+            selected={values.tipo === option.code}
+            onSelect={() => onChange({ tipo: option.code })}
+          />
+        ))}
+      </div>
+      {touched && !tipoValid && <p className="text-sm text-destructive">{TIPO_ERROR}</p>}
+    </div>
+  );
+}
+
+export function DestinazioneField({ values, onChange }: EstimateFormFieldsProps) {
+  return (
+    <div className="flex flex-col gap-2">
+      <Label>Destinazione dell'immobile</Label>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {DESTINAZIONE_OPTIONS.map((option) => (
+          <OptionCard
+            key={option.code}
+            nome={option.nome}
+            descrizione={option.descrizione}
+            selected={values.destinazione === option.code}
+            onSelect={() => onChange({ destinazione: option.code })}
+          />
+        ))}
+      </div>
+      <p className="text-sm text-muted-foreground">
+        Cambia l'aliquota delle detrazioni fiscali.
+      </p>
+    </div>
   );
 }
 

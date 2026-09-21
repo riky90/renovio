@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import { useMutation } from "@tanstack/react-query";
 import { Gauge, MapPin, Zap, type LucideIcon } from "lucide-react";
 import { CategoryCard } from "@/components/CategoryCard";
-import { EstimateForm, type EstimateFormValues } from "@/components/EstimateForm";
+import { EstimateWizard, type EstimateWizardSubmit } from "@/components/EstimateWizard";
 import { FallbackDisclaimer } from "@/components/FallbackDisclaimer";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -15,7 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { formatEur } from "@/lib/currency";
-import { postSalvaStima, postStima, type StimaResponse } from "@/api/stima";
+import { postSalvaStima, postStima, type StimaRequest, type StimaResponse } from "@/api/stima";
+import type { EstimateFormValues } from "@/components/EstimateFormFields";
 import { useAuth } from "@/hooks/useAuth";
 
 const TIPO_LABELS: Record<EstimateFormValues["tipo"], string> = {
@@ -75,7 +76,7 @@ const STEPS: { n: string; title: string; body: string }[] = [
 ];
 
 export function EstimatePage() {
-  const mutation = useMutation<StimaResponse, Error, EstimateFormValues>({
+  const mutation = useMutation<StimaResponse, Error, StimaRequest>({
     mutationFn: postStima,
   });
   const { user } = useAuth();
@@ -106,8 +107,11 @@ export function EstimatePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mutation.isSuccess, result, user]);
 
-  function handleSubmit(values: EstimateFormValues) {
-    mutation.mutate(values);
+  function handleSubmit({ values, risposte }: EstimateWizardSubmit) {
+    // `risposte` viaggia SEMPRE, anche quando e' identico ai default: il
+    // backend distingue "layer spento" (assente) da "tutte le domande sui
+    // default" (presente e pieno), e la home ha appena chiesto quelle domande.
+    mutation.mutate({ ...values, risposte });
   }
 
   function handleModifica() {
@@ -142,7 +146,7 @@ export function EstimatePage() {
             </div>
 
             <div className="mx-auto mt-10 max-w-xl rounded-2xl border border-border bg-card p-6 shadow-lg shadow-black/[0.03] sm:p-8">
-              <EstimateForm onSubmit={handleSubmit} isSubmitting={mutation.isPending} />
+              <EstimateWizard tier="free" onSubmit={handleSubmit} isSubmitting={mutation.isPending} />
             </div>
 
             <ul className="mx-auto mt-12 grid max-w-4xl grid-cols-1 gap-6 sm:grid-cols-3">
@@ -303,7 +307,9 @@ function CtaDettaglioPro() {
 }
 
 interface SummaryPanelProps {
-  input: EstimateFormValues;
+  /** La richiesta inviata, non i valori del form: e' cio' che ha prodotto
+      questo risultato, comprese le risposte del wizard. */
+  input: StimaRequest;
   onModifica: () => void;
   disabled?: boolean;
 }
@@ -315,7 +321,9 @@ function SummaryPanel({ input, onModifica, disabled }: SummaryPanelProps) {
         <Badge variant="secondary">{input.citta}</Badge>
         <Badge variant="secondary">{input.mq} m²</Badge>
         <Badge variant="secondary">{TIPO_LABELS[input.tipo]}</Badge>
-        <Badge variant="secondary">{DESTINAZIONE_LABELS[input.destinazione]}</Badge>
+        <Badge variant="secondary">
+          {DESTINAZIONE_LABELS[input.destinazione ?? "prima_casa"]}
+        </Badge>
       </div>
       <button
         type="button"

@@ -8,7 +8,17 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import settings
 from app.limiter import limiter
-from app.routers import admin, auth, dettaglio_pro, health, lead, stima, stime_salvate, subscription
+from app.routers import (
+    admin,
+    auth,
+    dettaglio_pro,
+    domande,
+    health,
+    lead,
+    stima,
+    stime_salvate,
+    subscription,
+)
 
 app = FastAPI(title="ristruttura-stima API")
 
@@ -33,6 +43,7 @@ app.add_middleware(SessionMiddleware, secret_key=settings.OAUTH_SESSION_SECRET)
 
 app.include_router(health.router, prefix="/api/v1")
 app.include_router(stima.router, prefix="/api/v1")
+app.include_router(domande.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(admin.router, prefix="/api/v1")
 app.include_router(stime_salvate.router, prefix="/api/v1")

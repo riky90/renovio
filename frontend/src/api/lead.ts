@@ -1,5 +1,5 @@
 import { apiPost } from "@/api/client";
-import type { TipoRistrutturazione } from "@/components/EstimateForm";
+import type { TipoRistrutturazione } from "@/components/EstimateFormFields";
 
 export type PreferenzaContatto = "email" | "telefono";
 export type FasciaOraria = "mattina" | "pomeriggio" | "sera";

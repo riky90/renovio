@@ -1,5 +1,6 @@
 import { apiGet, apiPost, ApiError } from "@/api/client";
-import type { TipoRistrutturazione } from "@/components/EstimateForm";
+import type { Risposte } from "@/api/domande";
+import type { TipoRistrutturazione } from "@/components/EstimateFormFields";
 
 export type { TipoRistrutturazione };
 
@@ -12,6 +13,13 @@ export interface StimaRequest {
   tipo: TipoRistrutturazione;
   /** Opzionale sul filo: il backend applica "prima_casa" quando manca. */
   destinazione?: Destinazione;
+  /**
+   * Le risposte del wizard. `undefined` NON e' `{}`: il primo spegne il layer
+   * parametrico e riproduce la stima di prima che il catalogo esistesse, il
+   * secondo lo accende con tutte le domande sui loro default. Un client vecchio
+   * che posta {citta, mq, tipo} continua a ricevere il numero di sempre.
+   */
+  risposte?: Risposte;
 }
 
 export interface StimaInputEcho {
@@ -19,6 +27,12 @@ export interface StimaInputEcho {
   mq: number;
   tipo: TipoRistrutturazione;
   destinazione: Destinazione;
+  /**
+   * Le risposte tornano nell'eco perche' finiscono nello snapshot congelato:
+   * una stima salvata deve restare spiegabile anche dopo che l'admin ha
+   * cambiato la taratura. Assente sugli snapshot salvati prima della feature.
+   */
+  risposte?: Risposte | null;
 }
 
 export interface CategoriaOut {
