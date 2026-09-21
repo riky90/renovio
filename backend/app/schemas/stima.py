@@ -11,8 +11,9 @@ from __future__ import annotations
 
 from decimal import Decimal
 from enum import Enum
+from typing import Annotated, TypeAlias
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StringConstraints
 
 
 class TipoEnum(str, Enum):
@@ -29,6 +30,27 @@ class DestinazioneEnum(str, Enum):
     altro = "altro"
 
 
+#: Il codice di un'opzione del catalogo domande (`opzione_domanda.code`).
+CodiceOpzione: TypeAlias = Annotated[str, StringConstraints(min_length=1, max_length=64)]
+
+#: Il valore di una risposta: un numero (stepper), il codice di un'opzione
+#: (scelta singola / toggle) o una lista di codici (scelta multipla). Tutti e
+#: tre i rami sono limitati: `risposte` arriva dal client, quindi e' input non
+#: fidato e va bloccato allo schema (ASVS V5, stesso criterio di `mq`).
+ValoreRisposta: TypeAlias = (
+    Annotated[int, Field(ge=0, le=10_000)]
+    | CodiceOpzione
+    | Annotated[list[CodiceOpzione], Field(max_length=30)]
+)
+
+#: Le risposte del wizard. `None` NON significa "nessuna risposta": significa
+#: layer parametrico spento, quindi stima identica a prima che il catalogo
+#: domande esistesse. Un dizionario vuoto invece lo accende, e le domande non
+#: risposte cadono sul loro default. La distinzione e' cio' che tiene in piedi
+#: la retrocompatibilita' dei client che postano ancora {citta, mq, tipo}.
+Risposte: TypeAlias = Annotated[dict[CodiceOpzione, ValoreRisposta], Field(max_length=60)]
+
+
 class StimaRequest(BaseModel):
     citta: str = Field(min_length=1, max_length=100)
     mq: int = Field(ge=1, le=2000)
@@ -37,6 +59,7 @@ class StimaRequest(BaseModel):
     # {citta, mq, tipo}. Senza default questo campo sarebbe un breaking change
     # dell'API pubblica.
     destinazione: DestinazioneEnum = DestinazioneEnum.prima_casa
+    risposte: Risposte | None = None
 
 
 class StimaInputEcho(BaseModel):
@@ -46,6 +69,10 @@ class StimaInputEcho(BaseModel):
     # Anche qui con default: gli snapshot v1 congelati non hanno questa chiave
     # e devono restare ricostruibili (`StimaInputEcho(**snapshot["input"])`).
     destinazione: DestinazioneEnum = DestinazioneEnum.prima_casa
+    # Le risposte tornano nell'eco perche' finiscono nello snapshot
+    # congelato: una stima salvata deve restare ricalcolabile e spiegabile
+    # anche dopo che l'admin ha cambiato i coefficienti.
+    risposte: Risposte | None = None
 
 
 class CategoriaOut(BaseModel):

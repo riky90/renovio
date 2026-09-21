@@ -128,3 +128,81 @@ def test_unknown_citta_falls_back_with_disclaimer(client):
 def test_invalid_input_returns_422(client, payload):
     response = client.post("/api/v1/stima", json=payload)
     assert response.status_code == 422
+
+
+# --- catalogo domande (0014): il layer parametrico sul filo HTTP ------------
+
+
+def test_risposte_assenti_lasciano_loracolo_intatto(client):
+    """Il contratto pubblico non cambia: un client che posta ancora
+    {citta, mq, tipo} riceve lo stesso identico numero di prima."""
+    response = client.post(
+        "/api/v1/stima",
+        json={"citta": "Reggio Emilia", "mq": 85, "tipo": "totale"},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert Decimal(str(body["totale"]["totale_min"])) == Decimal("47985")
+    assert body["input"]["risposte"] is None
+
+
+def test_risposte_vuote_non_muovono_il_totale(client):
+    response = client.post(
+        "/api/v1/stima",
+        json={"citta": "Reggio Emilia", "mq": 85, "tipo": "totale", "risposte": {}},
+    )
+
+    assert response.status_code == 200
+    assert Decimal(str(response.json()["totale"]["totale_min"])) == Decimal("47985")
+
+
+def test_risposte_tornano_nelleco_per_finire_nello_snapshot(client):
+    """Una stima salvata deve restare spiegabile: le risposte che l'hanno
+    prodotta vanno congelate insieme al risultato."""
+    risposte = {"bagni": 3, "anno_costruzione": "pre_1980", "impianti": ["termico"]}
+    response = client.post(
+        "/api/v1/stima",
+        json={"citta": "Reggio Emilia", "mq": 85, "tipo": "totale", "risposte": risposte},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["input"]["risposte"] == risposte
+    assert Decimal(str(body["totale"]["totale_min"])) > Decimal("47985")
+
+
+def test_risposte_restano_input_non_fidato(client):
+    """`risposte` arriva dal client come `mq`, quindi va bloccato allo schema
+    (ASVS V5) e non solo nel motore."""
+    for risposte in (
+        {"bagni": 99_999},  # numero fuori range
+        {"bagni": -1},
+        {"x" * 100: 1},  # chiave oltre il limite
+        {"impianti": ["a" * 100]},  # codice opzione oltre il limite
+        {"impianti": ["x"] * 50},  # lista oltre il limite
+    ):
+        response = client.post(
+            "/api/v1/stima",
+            json={"citta": "Reggio Emilia", "mq": 85, "tipo": "totale", "risposte": risposte},
+        )
+        assert response.status_code == 422, risposte
+
+
+def test_nessun_leak_con_le_risposte_attive(client):
+    """L'anti-leak vale anche sul ramo nuovo: le correzioni sono in
+    euro-cliente e nulla del margine impresa deve affiorare."""
+    response = client.post(
+        "/api/v1/stima",
+        json={
+            "citta": "Reggio Emilia",
+            "mq": 85,
+            "tipo": "totale",
+            "risposte": {"bagni": 3, "livello_finiture": "alto"},
+        },
+    )
+
+    assert response.status_code == 200
+    grezzo = response.text.lower()
+    for vietata in ("coefficiente_impresa", "prezzo_impresa", "base_eur_mq", "moltiplicatore"):
+        assert vietata not in grezzo

@@ -1,32 +1,55 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: Phase 4 approved
-last_updated: "2026-08-29T16:11:26.116Z"
+milestone: v2.0
+milestone_name: domande e motore parametrico
+status: Phase 1 complete
+last_updated: "2026-09-21T00:00:00.000Z"
 progress:
-  total_phases: 4
-  completed_phases: 3
-  total_plans: 30
-  completed_plans: 19
-  percent: 63
+  total_phases: 6
+  completed_phases: 1
+  total_plans: 6
+  completed_plans: 1
+  percent: 17
 ---
 
 # Project State — ristruttura-stima
 
 ## Current Position
 
-Phase: 04 (lead-pannello-admin) — EXECUTING
-Plan: 1 of 11
+Phase: 02 (wizard unico, domande servite dal DB) — NEXT
+Plan: piano v2 fuori da GSD — `~/.claude/plans/il-punto-1-come-steady-comet.md`
 
-- **Milestone:** v1 (MVP)
-- **Phase:** 3
-- **Status:** Phase 4 approved
+- **Milestone:** v2 (domande e motore parametrico). La v1 (MVP, 4 fasi) e' **completa,
+  verificata e in produzione dal 2026-09-09** — backend su Render, frontend su Vercel.
+- **Phase:** 1 di 6 completa (catalogo domande + motore Free parametrico)
+- **Status:** Phase 1 complete, Phase 2 next
+- **Nota sul tracking:** le sei fasi della v2 non sono state generate da `/gsd-new-milestone`
+  e non hanno una directory sotto `.planning/phases/`. Il piano vive nel file sopra; questo
+  STATE.md e' allineato a mano. Riallinearlo, o rigenerare la milestone con GSD, e' una
+  decisione ancora aperta.
 - **Regola range (locked):** ±% solo sui lavori (4 categorie); extra fissi (€2.806 lordo); totale = Σ card + extra. Oracolo primario: 85 mq · totale = €47.985–€70.575.
 - **Stack (da RESEARCH):** FastAPI + SQLAlchemy 2.0 + Pydantic v2 + Postgres/Alembic · React 19 + Vite + TS 5.9 + react-query + Tailwind/shadcn · autocomplete comuni ISTAT bundlato offline.
 
 ## Last Session
 
+- **2026-09-21** — **Fase 1 v2 completa: catalogo domande in database + motore Free
+  parametrico.** Migrazione `0014`, tutta additiva. Nuove tabelle `domanda` /
+  `opzione_domanda` / `effetto_opzione` / `attesa_immobile`; `app/services/effetti.py` come
+  unico posto in cui una risposta utente diventa aritmetica (i motori non contengono un solo
+  `if` sul codice di una domanda); `EstimationService.compute()` estesa con un quinto
+  parametro `risposte` opzionale; `StimaRequest.risposte` opzionale, API retrocompatibile;
+  CRUD admin completo su domande/opzioni/effetti/attese piu' `POST /admin/domande/anteprima`,
+  costruita in questa fase e non rimandata perche' e' lo strumento con cui si tara. Seed
+  bozza: 16 domande, 42 opzioni, 52 effetti, 30 attese. **Sette tipi di effetto, insieme
+  chiuso** — niente espressioni in tabella. **Proprieta' del dato asimmetrica**: testo e
+  struttura delle domande sono del prodotto e il seed li riscrive a ogni boot, i valori degli
+  effetti e le attese sono dell'admin e il seed li crea solo se mancano (altrimenti ogni
+  deploy riporterebbe la taratura alla bozza cablata). Verifica: **421 passed, 5 skipped**
+  (baseline 351 + 70 nuovi), `0014` provata upgrade -> downgrade -> upgrade, seed eseguito
+  due volte su DB vergine; l'oracolo primario 85 mq = 47.985-70.575 regge in tre forme (layer
+  spento, layer acceso senza risposte, risposte esplicite pari agli attesi). **I 52
+  coefficienti sono una bozza, non una taratura** — vanno confermati su preventivi reali
+  prima che aggiungano accuratezza e non solo risoluzione. Prossimo: Fase 2. Prima:
 - **2026-08-27** — **Fase 3 COMPLETA e verificata + rifiniture flusso Pro post-piani.** Eseguiti tutti e 6 i piani (03-01..03-06). Poi, su feedback utente in verifica manuale, implementate e committate rifiniture (commit `146cdcb` backend, `31c1371` frontend): (P3) totali a range calcolati dal backend a livello sottocategoria/categoria/generale (service+schema+router+template PDF, fonte unica → schermata e PDF identici); (P2) in home un Pro vede il **dettaglio inline** al posto del riepilogo a card; (P4) in "Le mie stime" un Pro apre la **stima di dettaglio**, non lo snapshot base (auto-save invariato); (P1) AccountMenu Free→"Passa a Pro" / Pro→"Contatta un consulente"; (P5) fix bug teaser "Passa a Pro" mostrato erroneamente ai Pro. Rifattorizzato tutto il dettaglio in `DettaglioProView` condiviso da home/pagina dedicata/le-mie-stime (non possono divergere). Verifica goal-backward `03-VERIFICATION.md`: 9/9 must-have a livello codice, backend 107 passed/4 skip, `tsc` pulito, anti-leak a zero hit. **Checkpoint human-verify (03-06 Task 3) APPROVATO dall'utente** ("ho provato il flusso e funziona, come MVP funziona"). **Override PDF concesso** dall'utente (stesso della Fase 2/02-08): il render byte WeasyPrint non gira su questa macchina Windows senza GTK3 — logica coperta dai test, byte verificabili in ambiente con GTK3 (Debian/Railway), non blocca. **Known issue (deferred su decisione utente):** da anonimo, fatta una prima stima, poi "Accedi" → l'utente NON torna alla sua stima ma finisce su pagina bianca; da sistemare in una fase/patch successiva (non blocca l'MVP). Prima:
 - **2026-08-27** — **Eseguito Plan 03-04 (PDF Pro dettagliato)**: `app/services/pdf_service.py` esteso con `render_pro()` (import WeasyPrint lazy invariato, docstring di modulo che documenta l'asimmetria deliberata recompute-live/Pro vs snapshot-frozen/Free, Pitfall 2) e `build_filename_pro()`; `app/templates/pdf_stima_pro.html` (multi-pagina Jinja2/WeasyPrint, branding Slate/blue-600 con badge PRO, disclaimer di non-riconciliazione D-01, iterazione categoria→sottocategoria→voci a range `€ min – € max`, paginazione `@page`/`break-inside: avoid`, mai dati impresa); `app/routers/dettaglio_pro.py` con `_compute_dettaglio()` estratto come unico punto di calcolo condiviso da GET dettaglio-pro, POST risposte e il nuovo `GET /me/stime/{id}/pdf-pro` (dietro `require_pro`, ownership 404 anti-IDOR, `StreamingResponse` application/pdf) — parità schermata/PDF garantita by-construction, non da un test a posteriori. `test_pdf_pro.py`: matrice 401/403/404 sempre attiva (non richiede GTK3), test di parità numerica esplicito (`_compute_dettaglio()` vs risposta HTTP del GET JSON), byte-generating skip-graceful anti-leak, guard statico anti-`EstimationService`. Deviazione (Rule 1): commento HTML del template riformulato per non contenere letteralmente le stringhe impresa vietate, stesso precedente 02/03-03 per il criterio grep meccanico. Suite backend completa 106/106 passed + 4 skip invariati (GTK3). Vedi `03-04-SUMMARY.md`. Prima:
 - **2026-08-27** — **Eseguito Plan 03-03 (Motore Pro bottom-up + endpoint dettaglio dietro paywall)**: `app/services/dettaglio_pro.py` (`DettaglioProService.compute()`, Decimal puro, sibling di `EstimationService`: itera Categoria→Sottocategoria→Voce, quantita da coefficiente-per-mq o da domanda-mirata/default-conteggio, range per-voce riusando `TipoRistrutturazione.range_pct`, nessun campo impresa, nessun import del motore Free/D-01) + oracolo pinnato su `A.1.1.1`/`A.0.3` dal seed reale; `app/schemas/dettaglio_pro.py` (DTO chiusi anti-leak + `RisposteDomandeRequest` bounded ASVS V5); `app/routers/dettaglio_pro.py` con `GET /me/stime/{id}/dettaglio-pro` + `POST .../dettaglio-pro/risposte` dietro `require_pro`, ownership 404 anti-IDOR, risposte persistite in `risposte_pro_json` cosi' schermata e futuro PDF non divergono (Pitfall 3); wiring in `main.py`. TDD: `test_dettaglio_pro.py` + `test_dettaglio_pro_paywall.py` (oracolo, domanda mirata, matrice 401/403/200, anti-IDOR, anti-leak ricorsivo, integrazione POST-risposte→GET), suite backend completa 101/101 passed + 2 skip invariati (GTK3). Deviazione (Rule 1/2): strategia di calcolo quantita estesa oltre il testo letterale del piano per coprire le righe seedate con `default_conteggio` senza `domanda_mirata_key` (150/300 righe, voci a conteggio non mirate). Vedi `03-03-SUMMARY.md`. Prima:

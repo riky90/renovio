@@ -59,7 +59,13 @@ def _split_imponibile_iva(totale: Decimal, iva_pct: Decimal) -> tuple[Decimal, D
 def crea_stima(payload: StimaRequest, request: Request) -> StimaResponse:
     with SessionLocal() as session:
         listino, fallback = resolve_listino(session, payload.citta)
-        result = EstimationService.compute(session, listino, mq=payload.mq, tipo=payload.tipo.value)
+        result = EstimationService.compute(
+            session,
+            listino,
+            mq=payload.mq,
+            tipo=payload.tipo.value,
+            risposte=payload.risposte,
+        )
 
         categorie_out: list[CategoriaOut] = []
         for cat in result.categorie:
@@ -129,6 +135,7 @@ def crea_stima(payload: StimaRequest, request: Request) -> StimaResponse:
                 mq=payload.mq,
                 tipo=payload.tipo,
                 destinazione=payload.destinazione,
+                risposte=payload.risposte,
             ),
             fallback=fallback,
             disclaimer=disclaimer,

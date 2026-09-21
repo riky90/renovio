@@ -12,17 +12,32 @@ Range/reconciliation rule (binding, 01-CONTEXT.md / 01-02-PLAN.md):
   2. Extras are FIXED gross values — never scaled by the range.
   3. Grand total = SUM(category ranges) + SUM(fixed extras gross).
   4. Full Decimal math; quantize (ROUND_HALF_UP) only on output fields.
+
+Layer parametrico (`risposte`, catalogo domande)
+------------------------------------------------
+Le risposte del wizard non sono colonne di questo modulo: arrivano come
+dizionario e vengono tradotte in tre correzioni per categoria da
+`app/services/effetti.py`, che e' l'unico posto dove una risposta diventa
+aritmetica. Qui si applicano soltanto, nell'ordine dichiarato in `compute()`.
+
+`risposte=None` spegne il layer: nessuna query in piu', nessuna correzione, e
+il risultato e' bit-identico a quello prodotto prima che il catalogo domande
+esistesse. E' la retrocompatibilita' dell'API pubblica resa esplicita, e il
+motivo per cui l'oracolo primario (85 m2 totale RE -> 47.985-70.575) non si
+muove.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from decimal import ROUND_HALF_UP, Decimal
+from typing import Any
 
 from sqlalchemy.orm import Session
 
 from app.models.catalogo import Categoria, Extra, Moltiplicatore, TipoRistrutturazione
 from app.models.listino import Listino, ListinoCategoria
+from app.services.effetti import risolvi_effetti_free
 
 
 def _eur(value: Decimal) -> Decimal:
@@ -57,12 +72,20 @@ class StimaResult:
 
 
 class EstimationService:
-    """Server-side calculation: (listino, mq, tipo) -> StimaResult."""
+    """Server-side calculation: (listino, mq, tipo, risposte) -> StimaResult."""
 
     @staticmethod
-    def compute(session: Session, listino: Listino, mq: int, tipo: str) -> StimaResult:
+    def compute(
+        session: Session,
+        listino: Listino,
+        mq: int,
+        tipo: str,
+        risposte: dict[str, Any] | None = None,
+    ) -> StimaResult:
         tipo_row = session.query(TipoRistrutturazione).filter_by(code=tipo).one()
         range_pct = tipo_row.range_pct
+
+        correzioni = risolvi_effetti_free(session, mq=mq, tipo=tipo, risposte=risposte).correzioni
 
         categorie_rows = session.query(Categoria).order_by(Categoria.ordine).all()
 
@@ -83,6 +106,22 @@ class EstimationService:
             )
 
             imponibile = lc.base_eur_mq * molt.valore * Decimal(mq)
+
+            corr = correzioni.get(cat.code)
+            if corr is not None:
+                # Ordine vincolante (contratto in services/effetti.py):
+                # moltiplicatori PRIMA dei termini additivi, cosi' un euro/m2
+                # di efficientamento non viene scalato da un moltiplicatore
+                # che riguarda tutt'altro. Un moltiplicatore complessivo a 0
+                # azzera la categoria e ne salta i termini additivi: e' il
+                # modo in cui "questo non lo rifaccio" resta intuitivo invece
+                # di lasciare in piedi una coda di correzioni.
+                imponibile = imponibile * corr.moltiplicatore
+                if corr.moltiplicatore != 0:
+                    imponibile += corr.eur_mq * Decimal(mq) + corr.eur_scostamento
+                if imponibile < 0:
+                    imponibile = Decimal("0")
+
             iva = imponibile * cat.iva_pct
             categoria_totale = imponibile + iva
 

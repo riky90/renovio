@@ -51,6 +51,12 @@ from app.models.catalogo import (  # noqa: E402
     TipoRistrutturazione,
 )
 from app.models.dettaglio_pro import CoefficienteQuantitaVoce, Sottocategoria, Voce  # noqa: E402
+from app.models.domanda import (  # noqa: E402
+    AttesaImmobile,
+    Domanda,
+    EffettoOpzione,
+    OpzioneDomanda,
+)
 from app.models.listino import Listino, ListinoCategoria  # noqa: E402
 from app.models.testo import Testo  # noqa: E402
 
@@ -69,6 +75,8 @@ def _resolve_seed(filename: str) -> Path:
 SEED_JSON_PATH = _resolve_seed("seed-coefficienti-base.json")
 # Dati dettaglio Pro (03-02, D-03): stesso listino RE, estensione dello stesso seed idempotente.
 SEED_DETTAGLIO_PRO_JSON_PATH = _resolve_seed("seed-dettaglio-pro.json")
+# Catalogo domande Free (0014): bozza del wizard parametrico.
+SEED_DOMANDE_JSON_PATH = _resolve_seed("seed-domande.json")
 
 CATEGORIA_NOMI = {
     "A-EDILE": "Edile",
@@ -272,6 +280,11 @@ def load_dettaglio_pro_data(path: Path = SEED_DETTAGLIO_PRO_JSON_PATH) -> dict:
         return json.load(f)
 
 
+def load_domande_data(path: Path = SEED_DOMANDE_JSON_PATH) -> dict:
+    with path.open("r", encoding="utf-8") as f:
+        return json.load(f)
+
+
 def _upsert_sottocategoria(session: Session, listino: Listino, sotto_data: dict) -> Sottocategoria:
     """Upsert idempotente per chiave naturale (listino_id, categoria_code,
     codice-o-nome — D-03/Pitfall 1: codice nullable per B/C/D)."""
@@ -466,6 +479,124 @@ def seed_livelli_finitura(session: Session) -> None:
         row.is_default = dati["is_default"]
 
 
+def seed_domande(session: Session, data: dict | None = None) -> None:
+    """Upsert idempotente del catalogo domande (0014). Chiamata da `seed()` —
+    mai un secondo script (D-12/Pitfall 5).
+
+    LA REGOLA DI PROPRIETA', che e' il punto delicato di questa funzione:
+
+      - `domanda` e `opzione_domanda` sono STRUTTURA del prodotto, quindi il
+        seed le possiede e le riscrive a ogni boot. Cambiare il testo di una
+        domanda e' un rilascio, non una configurazione.
+      - `effetto_opzione` e `attesa_immobile` sono CURATELA. Il seed li crea
+        se mancano e poi non li tocca piu'. Un upsert che riscrivesse `valore`
+        riporterebbe ogni coefficiente tarato dal pannello admin alla bozza
+        cablata a ogni deploy — lo stesso incidente che la regola condizionale
+        di `_upsert_voce` evita su `voce.livello`, e la stessa ragione per cui
+        `seed_testi` non aggiorna i testi esistenti.
+
+    Nessun DELETE implicito (D-24): un'opzione tolta dal JSON resta in tabella e
+    va rimossa esplicitamente da admin. Cancellare in automatico righe a cui
+    puntano effetti curati a mano sarebbe distruttivo e silenzioso.
+    """
+    data = data or load_domande_data()
+
+    for d_data in data.get("domande", []):
+        domanda = session.get(Domanda, d_data["code"])
+        if domanda is None:
+            domanda = Domanda(code=d_data["code"])
+            session.add(domanda)
+        domanda.testo = d_data["testo"]
+        domanda.help = d_data.get("help")
+        domanda.tipo_controllo = d_data["tipo_controllo"]
+        domanda.gruppo = d_data.get("gruppo", "")
+        domanda.ordine = d_data.get("ordine", 0)
+        domanda.tier_minimo = d_data.get("tier_minimo", "free")
+        domanda.attributo_code = d_data.get("attributo_code")
+        domanda.obbligatoria = d_data.get("obbligatoria", False)
+        domanda.visibile_se_domanda_code = d_data.get("visibile_se_domanda_code")
+        domanda.visibile_se_opzione_code = d_data.get("visibile_se_opzione_code")
+        domanda.attiva = d_data.get("attiva", True)
+        session.flush()
+
+        for o_data in d_data.get("opzioni", []):
+            opzione = (
+                session.query(OpzioneDomanda)
+                .filter_by(domanda_code=domanda.code, code=o_data["code"])
+                .one_or_none()
+            )
+            if opzione is None:
+                opzione = OpzioneDomanda(domanda_code=domanda.code, code=o_data["code"])
+                session.add(opzione)
+            opzione.etichetta = o_data["etichetta"]
+            opzione.descrizione = o_data.get("descrizione")
+            opzione.immagine_url = o_data.get("immagine_url")
+            opzione.is_default = o_data.get("is_default", False)
+            opzione.ordine = o_data.get("ordine", 0)
+            session.flush()
+
+            for e_data in o_data.get("effetti", []):
+                _crea_effetto_se_manca(session, opzione, e_data)
+
+    for a_data in data.get("attese", []):
+        attesa = (
+            session.query(AttesaImmobile)
+            .filter_by(
+                attributo_code=a_data["attributo_code"],
+                fascia_mq_min=a_data["fascia_mq_min"],
+            )
+            .one_or_none()
+        )
+        if attesa is None:
+            session.add(
+                AttesaImmobile(
+                    attributo_code=a_data["attributo_code"],
+                    fascia_mq_min=a_data["fascia_mq_min"],
+                    fascia_mq_max=a_data["fascia_mq_max"],
+                    valore_atteso=_dec(a_data["valore_atteso"]),
+                )
+            )
+        # else: gia' presente -> curatela dell'admin, non si tocca.
+
+    session.flush()
+
+
+def _crea_effetto_se_manca(session: Session, opzione: OpzioneDomanda, e_data: dict) -> None:
+    """Create-if-missing per chiave naturale (opzione, tipo, bersaglio, tipo_code).
+
+    Il `valore` NON entra nella chiave: e' proprio il numero che l'admin tara, e
+    includerlo creerebbe un doppione a ogni taratura invece di riconoscere la
+    riga gia' esistente.
+    """
+    esiste = (
+        session.query(EffettoOpzione)
+        .filter_by(
+            opzione_id=opzione.id,
+            tipo_effetto=e_data["tipo_effetto"],
+            target_categoria_code=e_data.get("target_categoria_code"),
+            target_sottocategoria_id=e_data.get("target_sottocategoria_id"),
+            target_voce_id=e_data.get("target_voce_id"),
+            tipo_code=e_data.get("tipo_code"),
+        )
+        .one_or_none()
+    )
+    if esiste is not None:
+        return
+    valore = e_data.get("valore")
+    session.add(
+        EffettoOpzione(
+            opzione_id=opzione.id,
+            tipo_effetto=e_data["tipo_effetto"],
+            target_categoria_code=e_data.get("target_categoria_code"),
+            target_sottocategoria_id=e_data.get("target_sottocategoria_id"),
+            target_voce_id=e_data.get("target_voce_id"),
+            tipo_code=e_data.get("tipo_code"),
+            valore=_dec(valore) if valore is not None else None,
+            attivo=e_data.get("attivo", True),
+        )
+    )
+
+
 def seed_testi(session: Session) -> None:
     """Create-if-missing dei testi/disclaimer iniziali (D-14) nella tabella
     Testo, per chiave naturale (`chiave` e' gia' la PK). Chiamata da `seed()`
@@ -595,6 +726,9 @@ def seed(session: Session, data: dict | None = None) -> Listino:
 
     # 11. testi/disclaimer (D-14) — stessa funzione seed() idempotente.
     seed_testi(session)
+
+    # 12. catalogo domande (0014) — stessa funzione seed() idempotente.
+    seed_domande(session)
 
     session.commit()
     return listino

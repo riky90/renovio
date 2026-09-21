@@ -1,0 +1,967 @@
+{
+  "nota": "BOZZA. Le domande e le opzioni sono struttura del prodotto e il seed le riscrive a ogni boot; i VALORI degli effetti e le attese sono curatela e il seed li crea soltanto se mancano, cosi' una taratura fatta dal pannello admin non viene azzerata dal deploy successivo. I numeri qui sotto sono un punto di partenza plausibile, non una taratura: vanno confermati su preventivi reali. Tutti gli importi sono in euro-cliente, mai coefficiente impresa.",
+  "attese": [
+    {
+      "attributo_code": "locali",
+      "fascia_mq_min": 0,
+      "fascia_mq_max": 49,
+      "valore_atteso": 2
+    },
+    {
+      "attributo_code": "locali",
+      "fascia_mq_min": 50,
+      "fascia_mq_max": 79,
+      "valore_atteso": 2
+    },
+    {
+      "attributo_code": "locali",
+      "fascia_mq_min": 80,
+      "fascia_mq_max": 119,
+      "valore_atteso": 3
+    },
+    {
+      "attributo_code": "locali",
+      "fascia_mq_min": 120,
+      "fascia_mq_max": 179,
+      "valore_atteso": 4
+    },
+    {
+      "attributo_code": "locali",
+      "fascia_mq_min": 180,
+      "fascia_mq_max": 2000,
+      "valore_atteso": 5
+    },
+    {
+      "attributo_code": "bagni",
+      "fascia_mq_min": 0,
+      "fascia_mq_max": 49,
+      "valore_atteso": 1
+    },
+    {
+      "attributo_code": "bagni",
+      "fascia_mq_min": 50,
+      "fascia_mq_max": 79,
+      "valore_atteso": 1
+    },
+    {
+      "attributo_code": "bagni",
+      "fascia_mq_min": 80,
+      "fascia_mq_max": 119,
+      "valore_atteso": 1
+    },
+    {
+      "attributo_code": "bagni",
+      "fascia_mq_min": 120,
+      "fascia_mq_max": 179,
+      "valore_atteso": 2
+    },
+    {
+      "attributo_code": "bagni",
+      "fascia_mq_min": 180,
+      "fascia_mq_max": 2000,
+      "valore_atteso": 2
+    },
+    {
+      "attributo_code": "finestre",
+      "fascia_mq_min": 0,
+      "fascia_mq_max": 49,
+      "valore_atteso": 3
+    },
+    {
+      "attributo_code": "finestre",
+      "fascia_mq_min": 50,
+      "fascia_mq_max": 79,
+      "valore_atteso": 4
+    },
+    {
+      "attributo_code": "finestre",
+      "fascia_mq_min": 80,
+      "fascia_mq_max": 119,
+      "valore_atteso": 5
+    },
+    {
+      "attributo_code": "finestre",
+      "fascia_mq_min": 120,
+      "fascia_mq_max": 179,
+      "valore_atteso": 7
+    },
+    {
+      "attributo_code": "finestre",
+      "fascia_mq_min": 180,
+      "fascia_mq_max": 2000,
+      "valore_atteso": 9
+    },
+    {
+      "attributo_code": "portefinestre",
+      "fascia_mq_min": 0,
+      "fascia_mq_max": 49,
+      "valore_atteso": 1
+    },
+    {
+      "attributo_code": "portefinestre",
+      "fascia_mq_min": 50,
+      "fascia_mq_max": 79,
+      "valore_atteso": 1
+    },
+    {
+      "attributo_code": "portefinestre",
+      "fascia_mq_min": 80,
+      "fascia_mq_max": 119,
+      "valore_atteso": 1
+    },
+    {
+      "attributo_code": "portefinestre",
+      "fascia_mq_min": 120,
+      "fascia_mq_max": 179,
+      "valore_atteso": 2
+    },
+    {
+      "attributo_code": "portefinestre",
+      "fascia_mq_min": 180,
+      "fascia_mq_max": 2000,
+      "valore_atteso": 2
+    },
+    {
+      "attributo_code": "porte",
+      "fascia_mq_min": 0,
+      "fascia_mq_max": 49,
+      "valore_atteso": 3
+    },
+    {
+      "attributo_code": "porte",
+      "fascia_mq_min": 50,
+      "fascia_mq_max": 79,
+      "valore_atteso": 4
+    },
+    {
+      "attributo_code": "porte",
+      "fascia_mq_min": 80,
+      "fascia_mq_max": 119,
+      "valore_atteso": 5
+    },
+    {
+      "attributo_code": "porte",
+      "fascia_mq_min": 120,
+      "fascia_mq_max": 179,
+      "valore_atteso": 7
+    },
+    {
+      "attributo_code": "porte",
+      "fascia_mq_min": 180,
+      "fascia_mq_max": 2000,
+      "valore_atteso": 9
+    },
+    {
+      "attributo_code": "piano",
+      "fascia_mq_min": 0,
+      "fascia_mq_max": 49,
+      "valore_atteso": 1
+    },
+    {
+      "attributo_code": "piano",
+      "fascia_mq_min": 50,
+      "fascia_mq_max": 79,
+      "valore_atteso": 1
+    },
+    {
+      "attributo_code": "piano",
+      "fascia_mq_min": 80,
+      "fascia_mq_max": 119,
+      "valore_atteso": 1
+    },
+    {
+      "attributo_code": "piano",
+      "fascia_mq_min": 120,
+      "fascia_mq_max": 179,
+      "valore_atteso": 1
+    },
+    {
+      "attributo_code": "piano",
+      "fascia_mq_min": 180,
+      "fascia_mq_max": 2000,
+      "valore_atteso": 1
+    }
+  ],
+  "domande": [
+    {
+      "code": "tipo_immobile",
+      "testo": "Che tipo di immobile e'?",
+      "help": "Una villetta ha piu' superficie disperdente e piu' murature esterne di un appartamento a parita' di metri quadri.",
+      "tipo_controllo": "scelta_singola",
+      "gruppo": "immobile",
+      "ordine": 10,
+      "tier_minimo": "free",
+      "opzioni": [
+        {
+          "code": "appartamento",
+          "etichetta": "Appartamento",
+          "ordine": 1,
+          "is_default": true,
+          "effetti": []
+        },
+        {
+          "code": "villetta_schiera",
+          "etichetta": "Villetta a schiera",
+          "ordine": 2,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "1.05"
+            },
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "C-SERRAMENTI",
+              "valore": "1.10"
+            }
+          ]
+        },
+        {
+          "code": "villetta_singola",
+          "etichetta": "Villetta singola",
+          "ordine": 3,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "1.10"
+            },
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "C-SERRAMENTI",
+              "valore": "1.20"
+            }
+          ]
+        },
+        {
+          "code": "attico",
+          "etichetta": "Attico o mansarda",
+          "ordine": 4,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "1.08"
+            }
+          ]
+        },
+        {
+          "code": "rustico",
+          "etichetta": "Rustico o casale",
+          "ordine": 5,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "1.25"
+            },
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "C-SERRAMENTI",
+              "valore": "1.15"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "anno_costruzione",
+      "testo": "Di che anni e' l'immobile?",
+      "help": "Piu' l'edificio e' datato, piu' spesso impianti e murature vanno rifatti da zero invece che adeguati.",
+      "tipo_controllo": "scelta_singola",
+      "gruppo": "immobile",
+      "ordine": 20,
+      "tier_minimo": "free",
+      "opzioni": [
+        {
+          "code": "pre_1980",
+          "etichetta": "Prima del 1980",
+          "ordine": 1,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "1.10"
+            }
+          ]
+        },
+        {
+          "code": "1980_1990",
+          "etichetta": "Tra il 1980 e il 1990",
+          "ordine": 2,
+          "is_default": true,
+          "effetti": []
+        },
+        {
+          "code": "post_1990",
+          "etichetta": "Dopo il 1990",
+          "ordine": 3,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "0.95"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "piano",
+      "testo": "A che piano si trova?",
+      "tipo_controllo": "stepper",
+      "gruppo": "immobile",
+      "ordine": 30,
+      "tier_minimo": "free",
+      "attributo_code": "piano",
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "ordine": 1,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "eur_per_scostamento",
+              "target_categoria_code": "A-EDILE",
+              "valore": "350"
+            }
+          ]
+        }
+      ],
+      "help": "Il trasporto di materiali e macerie cresce con il piano. Piano terra: 0."
+    },
+    {
+      "code": "ascensore",
+      "testo": "C'e' un ascensore utilizzabile per i materiali?",
+      "tipo_controllo": "toggle",
+      "gruppo": "immobile",
+      "ordine": 35,
+      "tier_minimo": "free",
+      "opzioni": [
+        {
+          "code": "si",
+          "etichetta": "Si",
+          "ordine": 1,
+          "is_default": true,
+          "effetti": []
+        },
+        {
+          "code": "no",
+          "etichetta": "No",
+          "ordine": 2,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "1.05"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "accessibilita",
+      "testo": "Come si raggiunge l'immobile per carico e scarico?",
+      "help": "Piu' il mezzo si avvicina all'ingresso, meno costa movimentare materiali e macerie.",
+      "tipo_controllo": "scelta_singola",
+      "gruppo": "immobile",
+      "ordine": 40,
+      "tier_minimo": "free",
+      "opzioni": [
+        {
+          "code": "carrabile",
+          "etichetta": "Si arriva col mezzo fino all'ingresso",
+          "ordine": 1,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "0.96"
+            }
+          ]
+        },
+        {
+          "code": "cortile",
+          "etichetta": "Cortile o area privata, ma non fino all'ingresso",
+          "ordine": 2,
+          "is_default": true,
+          "effetti": []
+        },
+        {
+          "code": "strada",
+          "etichetta": "Solo dalla strada pubblica",
+          "ordine": 3,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "1.05"
+            }
+          ]
+        },
+        {
+          "code": "montacarichi",
+          "etichetta": "Serve un montacarichi o un'autoscala",
+          "ordine": 4,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "1.12"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "locali",
+      "testo": "Quanti locali (esclusi bagni e cucina)?",
+      "tipo_controllo": "stepper",
+      "gruppo": "ambienti",
+      "ordine": 50,
+      "tier_minimo": "free",
+      "attributo_code": "locali",
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "ordine": 1,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "eur_per_scostamento",
+              "target_categoria_code": "A-EDILE",
+              "valore": "900"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "bagni",
+      "testo": "Quanti bagni?",
+      "tipo_controllo": "stepper",
+      "gruppo": "ambienti",
+      "ordine": 55,
+      "tier_minimo": "free",
+      "attributo_code": "bagni",
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "ordine": 1,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "eur_per_scostamento",
+              "target_categoria_code": "A-EDILE",
+              "valore": "1900"
+            },
+            {
+              "tipo_effetto": "eur_per_scostamento",
+              "target_categoria_code": "D-PRODOTTI",
+              "valore": "1400"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "finestre",
+      "testo": "Quante finestre?",
+      "tipo_controllo": "stepper",
+      "gruppo": "ambienti",
+      "ordine": 60,
+      "tier_minimo": "free",
+      "attributo_code": "finestre",
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "ordine": 1,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "eur_per_scostamento",
+              "target_categoria_code": "C-SERRAMENTI",
+              "valore": "650"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "portefinestre",
+      "testo": "Quante portefinestre?",
+      "tipo_controllo": "stepper",
+      "gruppo": "ambienti",
+      "ordine": 65,
+      "tier_minimo": "free",
+      "attributo_code": "portefinestre",
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "ordine": 1,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "eur_per_scostamento",
+              "target_categoria_code": "C-SERRAMENTI",
+              "valore": "950"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "porte",
+      "testo": "Quante porte interne?",
+      "tipo_controllo": "stepper",
+      "gruppo": "ambienti",
+      "ordine": 70,
+      "tier_minimo": "free",
+      "attributo_code": "porte",
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "ordine": 1,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "eur_per_scostamento",
+              "target_categoria_code": "C-SERRAMENTI",
+              "valore": "480"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "muri_da_recuperare",
+      "testo": "Quanti m2 di muri da recuperare?",
+      "tipo_controllo": "stepper",
+      "gruppo": "ambienti",
+      "ordine": 80,
+      "tier_minimo": "free",
+      "attributo_code": null,
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "ordine": 1,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "eur_per_scostamento",
+              "target_categoria_code": "A-EDILE",
+              "valore": "28"
+            }
+          ]
+        }
+      ],
+      "help": "Intonaci da rifare, tracce da chiudere, murature da risanare. Se non lo sai, lascia 0."
+    },
+    {
+      "code": "impianti",
+      "testo": "Quali impianti vanno rifatti?",
+      "help": "Su una ristrutturazione totale gli impianti sono gia' compresi nel prezzo base: qui pesano soprattutto sugli interventi piccoli e parziali.",
+      "tipo_controllo": "scelta_multipla",
+      "gruppo": "ristrutturazione",
+      "ordine": 90,
+      "tier_minimo": "free",
+      "opzioni": [
+        {
+          "code": "elettrico",
+          "etichetta": "Elettrico",
+          "ordine": 1,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "1.14",
+              "tipo_code": "leggera"
+            },
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "1.07",
+              "tipo_code": "moderata"
+            },
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "1.00",
+              "tipo_code": "totale"
+            }
+          ]
+        },
+        {
+          "code": "idrico",
+          "etichetta": "Idrico e scarichi",
+          "ordine": 2,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "1.10",
+              "tipo_code": "leggera"
+            },
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "1.05",
+              "tipo_code": "moderata"
+            },
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "1.00",
+              "tipo_code": "totale"
+            }
+          ]
+        },
+        {
+          "code": "gas",
+          "etichetta": "Gas",
+          "ordine": 3,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "1.04",
+              "tipo_code": "leggera"
+            },
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "1.02",
+              "tipo_code": "moderata"
+            },
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "1.00",
+              "tipo_code": "totale"
+            }
+          ]
+        },
+        {
+          "code": "termico",
+          "etichetta": "Riscaldamento e climatizzazione",
+          "ordine": 4,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "1.16",
+              "tipo_code": "leggera"
+            },
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "1.09",
+              "tipo_code": "moderata"
+            },
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "1.00",
+              "tipo_code": "totale"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "livello_finiture",
+      "testo": "Che livello di finiture hai in mente?",
+      "help": "Materiali e apparecchi: e' la leva che sposta di piu' il conto a parita' di lavori.",
+      "tipo_controllo": "scelta_singola",
+      "gruppo": "ristrutturazione",
+      "ordine": 95,
+      "tier_minimo": "free",
+      "opzioni": [
+        {
+          "code": "base",
+          "etichetta": "Economiche",
+          "ordine": 1,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "B-FINITURE",
+              "valore": "0.85"
+            },
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "C-SERRAMENTI",
+              "valore": "0.88"
+            },
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "D-PRODOTTI",
+              "valore": "0.85"
+            }
+          ],
+          "descrizione": "Materiali di serie, buon rapporto qualita/prezzo."
+        },
+        {
+          "code": "medio",
+          "etichetta": "Medie",
+          "ordine": 2,
+          "is_default": true,
+          "effetti": [],
+          "descrizione": "Materiali di fascia media, la scelta piu' frequente."
+        },
+        {
+          "code": "alto",
+          "etichetta": "Alte",
+          "ordine": 3,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "B-FINITURE",
+              "valore": "1.30"
+            },
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "C-SERRAMENTI",
+              "valore": "1.25"
+            },
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "D-PRODOTTI",
+              "valore": "1.35"
+            }
+          ],
+          "descrizione": "Materiali di pregio e finiture su misura."
+        }
+      ]
+    },
+    {
+      "code": "non_rifare",
+      "testo": "C'e' qualcosa che NON vuoi rifare?",
+      "help": "Quello che e' gia' a posto esce dalla stima.",
+      "tipo_controllo": "scelta_multipla",
+      "gruppo": "ristrutturazione",
+      "ordine": 100,
+      "tier_minimo": "free",
+      "opzioni": [
+        {
+          "code": "serramenti",
+          "etichetta": "Serramenti e porte",
+          "ordine": 1,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "C-SERRAMENTI",
+              "valore": "0"
+            }
+          ]
+        },
+        {
+          "code": "finiture",
+          "etichetta": "Pavimenti e rivestimenti",
+          "ordine": 2,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "B-FINITURE",
+              "valore": "0"
+            }
+          ]
+        },
+        {
+          "code": "prodotti",
+          "etichetta": "Sanitari e rubinetteria",
+          "ordine": 3,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "D-PRODOTTI",
+              "valore": "0"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "classe_energetica_attuale",
+      "testo": "Qual e' la classe energetica attuale?",
+      "help": "Se non la conosci, la trovi sull'APE dell'immobile. Lascia 'Non la so' se non ce l'hai.",
+      "tipo_controllo": "scelta_singola",
+      "gruppo": "energia",
+      "ordine": 110,
+      "tier_minimo": "free",
+      "opzioni": [
+        {
+          "code": "non_so",
+          "etichetta": "Non la so",
+          "ordine": 1,
+          "is_default": true,
+          "effetti": []
+        },
+        {
+          "code": "a",
+          "etichetta": "A",
+          "ordine": 2,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "0.98"
+            }
+          ]
+        },
+        {
+          "code": "b",
+          "etichetta": "B",
+          "ordine": 3,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "0.98"
+            }
+          ]
+        },
+        {
+          "code": "c",
+          "etichetta": "C",
+          "ordine": 4,
+          "is_default": false,
+          "effetti": []
+        },
+        {
+          "code": "d",
+          "etichetta": "D",
+          "ordine": 5,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "1.02"
+            }
+          ]
+        },
+        {
+          "code": "e",
+          "etichetta": "E",
+          "ordine": 6,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "1.02"
+            }
+          ]
+        },
+        {
+          "code": "f",
+          "etichetta": "F",
+          "ordine": 7,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "1.04"
+            }
+          ]
+        },
+        {
+          "code": "g",
+          "etichetta": "G",
+          "ordine": 8,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "1.04"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "efficientamento",
+      "testo": "Vuoi migliorare la classe energetica?",
+      "help": "Cappotto, infissi performanti, impianto a pompa di calore: il salto di classe si paga in lavorazioni aggiuntive.",
+      "tipo_controllo": "scelta_singola",
+      "gruppo": "energia",
+      "ordine": 120,
+      "tier_minimo": "free",
+      "opzioni": [
+        {
+          "code": "no",
+          "etichetta": "No, non e' una priorita'",
+          "ordine": 1,
+          "is_default": true,
+          "effetti": []
+        },
+        {
+          "code": "una_due",
+          "etichetta": "Si, di una o due classi",
+          "ordine": 2,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "eur_mq_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "35"
+            },
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "C-SERRAMENTI",
+              "valore": "1.15"
+            }
+          ]
+        },
+        {
+          "code": "tre_piu",
+          "etichetta": "Si, di tre classi o piu'",
+          "ordine": 3,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "eur_mq_categoria",
+              "target_categoria_code": "A-EDILE",
+              "valore": "80"
+            },
+            {
+              "tipo_effetto": "moltiplicatore_categoria",
+              "target_categoria_code": "C-SERRAMENTI",
+              "valore": "1.35"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -14,6 +14,7 @@ from app.models.catalogo import (
     TipoRistrutturazione,
 )
 from app.models.dettaglio_pro import CoefficienteQuantitaVoce, Sottocategoria, Voce
+from app.models.domanda import AttesaImmobile, Domanda, EffettoOpzione, OpzioneDomanda
 from app.models.listino import Listino, ListinoCategoria
 from app.models.stima_salvata import StimaSalvata
 from app.models.subscription import Subscription
@@ -21,17 +22,21 @@ from app.models.user import PasswordResetToken, User, UserSession
 
 __all__ = [
     "AliquotaBonus",
+    "AttesaImmobile",
     "BonusCategoria",
     "BonusExtra",
     "BonusFiscale",
     "Categoria",
     "CoefficienteQuantitaVoce",
     "ComuneListino",
+    "Domanda",
+    "EffettoOpzione",
     "Extra",
     "Listino",
     "ListinoCategoria",
     "LivelloFinitura",
     "Moltiplicatore",
+    "OpzioneDomanda",
     "PasswordResetToken",
     "Referente",
     "Sottocategoria",
