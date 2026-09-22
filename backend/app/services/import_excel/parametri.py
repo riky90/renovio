@@ -88,6 +88,14 @@ _MODEL = {
     FOGLIO_FORFAIT: ForfaitArredo,
 }
 
+# Nome della colonna margine. Definito qui una sola volta e riusato SOLO in
+# due posti: la lettura di anteprima sotto (`_risolvi_listino_categoria`,
+# che NON scrive mai a database — il diff e' sempre di sola lettura) e le
+# due funzioni `_forse_aggiungi_margine`/`_forse_aggiorna_margine` piu' in
+# basso, i SOLI punti del file in cui questa colonna viene effettivamente
+# scritta, entrambi dietro `is_admin` (regola di dominio #1 CLAUDE.md).
+CAMPO_MARGINE = "coefficiente_impresa"
+
 
 @dataclass
 class _Risoluzione:
@@ -103,6 +111,10 @@ class _Risoluzione:
     campi_aggiornati: dict[str, object] = field(default_factory=dict)
     campi_extra: dict[str, object] = field(default_factory=dict)
     chiave_descr: str = ""
+    # Valore del margine letto dal file, SOLO per l'anteprima del diff (mai
+    # scritto da qui: il diff e' sempre di sola lettura). None se la
+    # colonna e' assente dal file o il valore e' fuori bound.
+    margine_preview: object | None = None
 
 
 def _decimal(valore: object) -> Decimal | None:
@@ -165,6 +177,15 @@ def _risolvi_listino_categoria(db: Session, r: RigaPiattaIn) -> _Risoluzione:
     validati: dict[str, object] = {}
     campi_extra: dict[str, object] = {}
 
+    # Lettura di SOLA anteprima (mai una scrittura): il diff deve poter
+    # mostrare all'admin che il margine cambierebbe, la decisione di
+    # scriverlo davvero resta in apply(), dietro is_admin.
+    margine_preview: Decimal | None = None
+    if CAMPO_MARGINE in r.valori:
+        v = _decimal(r.valori[CAMPO_MARGINE])
+        if v is not None and 0 < v <= 1:
+            margine_preview = v
+
     if "base_eur_mq" in r.valori:
         v = _decimal(r.valori["base_eur_mq"])
         if v is None:
@@ -188,6 +209,7 @@ def _risolvi_listino_categoria(db: Session, r: RigaPiattaIn) -> _Risoluzione:
         return _Risoluzione(
             esistente=riga_db, campi_aggiornati=validati, campi_extra=campi_extra,
             chiave_descr=f"listino={riga_db.listino_id} categoria={riga_db.categoria_code}",
+            margine_preview=margine_preview,
         )
 
     listino_id_raw = r.valori.get("listino_id")
@@ -203,13 +225,17 @@ def _risolvi_listino_categoria(db: Session, r: RigaPiattaIn) -> _Risoluzione:
     riga_db = db.query(ListinoCategoria).filter_by(listino_id=listino_id, categoria_code=categoria_code).one_or_none()
     chiave_descr = f"listino={listino_id} categoria={categoria_code}"
     if riga_db is not None:
-        return _Risoluzione(esistente=riga_db, campi_aggiornati=validati, campi_extra=campi_extra, chiave_descr=chiave_descr)
+        return _Risoluzione(
+            esistente=riga_db, campi_aggiornati=validati, campi_extra=campi_extra,
+            chiave_descr=chiave_descr, margine_preview=margine_preview,
+        )
     if "base_eur_mq" not in validati:
         return _Risoluzione(scarto=ScartoRowOut(riga=0, motivo="listino_categoria: riga nuova senza base_eur_mq"))
     return _Risoluzione(
         valori_creazione={"listino_id": listino_id, "categoria_code": categoria_code, **validati},
         campi_extra=campi_extra,
         chiave_descr=chiave_descr,
+        margine_preview=margine_preview,
     )
 
 
@@ -492,11 +518,20 @@ def diff(
             continue
 
         if ris.esistente is None:
-            valori_nuovi = {k: str(v) for k, v in (ris.valori_creazione or {}).items()}
+            # Valori NATIVI (non stringificati): il client re-invia questo
+            # stesso dict come `RigaPiattaIn.valori` in /confirm (round-trip
+            # stateless) — un bool stringificato a mano ("False") tornerebbe
+            # truthy in Python (bool("False") == True). Pydantic serializza
+            # comunque i Decimal come stringa in JSON, stesso pattern del
+            # resto del progetto (Decimal-as-string al confine API).
+            valori_nuovi = dict(ris.valori_creazione or {})
             campi_modificati = list((ris.valori_creazione or {}).keys())
             for campo, valore in ris.campi_extra.items():
-                valori_nuovi[campo] = str(valore)
+                valori_nuovi[campo] = valore
                 campi_modificati.append(campo)
+            if ris.margine_preview is not None:
+                valori_nuovi[CAMPO_MARGINE] = ris.margine_preview
+                campi_modificati.append(CAMPO_MARGINE)
             nuove.append(
                 DiffRigaOut(
                     foglio=r.foglio, id=r.id, chiave_descr=ris.chiave_descr, nuova=True,
@@ -514,6 +549,11 @@ def diff(
                     precedente = getattr(categoria, campo)
                     if precedente != nuovo:
                         cambiati[campo] = (precedente, nuovo)
+        if ris.margine_preview is not None:
+            # Sola anteprima (D-06 apply(), non qui, decide se scrivere davvero).
+            precedente = getattr(ris.esistente, CAMPO_MARGINE)
+            if precedente != ris.margine_preview:
+                cambiati[CAMPO_MARGINE] = (precedente, ris.margine_preview)
 
         if not cambiati:
             continue  # nessun campo presente e' cambiato: riga non riportata (D-09)
@@ -522,8 +562,9 @@ def diff(
             DiffRigaOut(
                 foglio=r.foglio, id=r.id, chiave_descr=ris.chiave_descr, nuova=False,
                 campi_modificati=list(cambiati.keys()),
-                valori_precedenti={k: str(v[0]) for k, v in cambiati.items()},
-                valori_nuovi={k: str(v[1]) for k, v in cambiati.items()},
+                # Valori nativi, stesso motivo del ramo "nuova" sopra.
+                valori_precedenti={k: v[0] for k, v in cambiati.items()},
+                valori_nuovi={k: v[1] for k, v in cambiati.items()},
             )
         )
 
@@ -532,27 +573,26 @@ def diff(
 
 # --- apply ---------------------------------------------------------------------
 
-# Le SOLE due funzioni del file che scrivono `coefficiente_impresa` — vedi
-# docstring di modulo. Isolate qui, non nei resolver sopra: il diff non
-# mostra mai il margine (nessuna riga di preview lo referenzia), solo
-# apply() lo tocca, e solo dietro `is_admin`.
-_CAMPO_MARGINE = "coefficiente_impresa"
+# Le SOLE due funzioni del file che SCRIVONO `coefficiente_impresa` — vedi
+# `CAMPO_MARGINE` e la docstring di modulo. Il resolver sopra lo LEGGE
+# per l'anteprima del diff (mai una scrittura, D-06/CUR-02); qui, e solo
+# qui, il valore raggiunge davvero il database, e solo dietro `is_admin`.
 
 
 def _forse_aggiungi_margine(r: RigaPiattaIn, valori_creazione: dict[str, object], *, is_admin: bool) -> None:
-    if not is_admin or _CAMPO_MARGINE not in r.valori:
+    if not is_admin or CAMPO_MARGINE not in r.valori:
         return
-    margine = _decimal(r.valori[_CAMPO_MARGINE])
+    margine = _decimal(r.valori[CAMPO_MARGINE])
     if margine is not None and 0 < margine <= 1:
-        valori_creazione[_CAMPO_MARGINE] = margine
+        valori_creazione[CAMPO_MARGINE] = margine
 
 
 def _forse_aggiorna_margine(riga_db: ListinoCategoria, r: RigaPiattaIn, *, is_admin: bool) -> None:
-    if not is_admin or _CAMPO_MARGINE not in r.valori:
+    if not is_admin or CAMPO_MARGINE not in r.valori:
         return
-    margine = _decimal(r.valori[_CAMPO_MARGINE])
+    margine = _decimal(r.valori[CAMPO_MARGINE])
     if margine is not None and 0 < margine <= 1:
-        setattr(riga_db, _CAMPO_MARGINE, margine)
+        setattr(riga_db, CAMPO_MARGINE, margine)
 
 
 def apply(
@@ -593,7 +633,7 @@ def apply(
             valori_creazione = dict(ris.valori_creazione or {})
             if r.foglio == FOGLIO_LISTINO_CATEGORIA:
                 _forse_aggiungi_margine(r, valori_creazione, is_admin=is_admin)
-                if _CAMPO_MARGINE not in valori_creazione:
+                if CAMPO_MARGINE not in valori_creazione:
                     # colonna NOT NULL: senza margine non si puo' creare una
                     # riga nuova (limite noto, non esercitato dai test di
                     # questo piano — vedi SUMMARY).
