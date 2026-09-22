@@ -13,6 +13,20 @@ confirm, mai in preview — D-13, T-04-42).
 Anti-leak (D-22): nessun campo qui espone `coefficiente_impresa`/
 `base_eur_mq` — l'upload tocca solo Sottocategoria/Voce (dettaglio Pro,
 D-10: Voce non ha colonne di margine per costruzione).
+
+Formato piatto (08-03, CUR-01/CUR-02): `VoceRigaIn.id` e' la colonna
+tecnica del re-import (D-03). `VoceRigaIn.campi_presenti` e' la convenzione
+scelta per distinguere "campo assente dal file" (non toccare, D-09) da
+"campo presente con valore nullo" (cancella, solo se la colonna a
+database e' nullable): `None` significa "tutti i campi sono presenti" —
+il comportamento legacy di `parse_computo`, che non ha questo concetto e
+sovrascrive sempre incondizionatamente — mentre un `set[str]` esplicito
+elenca SOLO i nomi-campo che la riga porta con se'; un nome assente da
+questo insieme non deve mai essere scritto a database, qualunque valore
+il campo omonimo abbia sull'istanza (che a quel punto e' un placeholder
+mai letto, non un dato reale). Popolato da
+`listino_upload_service.parse_flat_listino`, consumato da `compute_diff`
+e dagli applicatori id-based di `apply_diff_idempotent`.
 """
 
 from __future__ import annotations
@@ -45,6 +59,7 @@ class VoceRigaIn(BaseModel):
     gerarchica — sufficiente per rieseguire l'upsert in `/confirm` senza
     ri-parsare il file (round-trip stateless)."""
 
+    id: int | None = None
     categoria_code: str = Field(min_length=1, max_length=32)
     sottocategoria_codice: str | None = None
     sottocategoria_nome: str = Field(min_length=1, max_length=200)
@@ -55,11 +70,14 @@ class VoceRigaIn(BaseModel):
     um: str = Field(min_length=1, max_length=16)
     prezzo_unitario_cliente: Decimal = Field(gt=0)
     ordine: int = 0
+    livello: str | None = None
+    campi_presenti: set[str] | None = None
 
 
 class DiffRowOut(BaseModel):
     riga: VoceRigaIn
     valore_precedente: Decimal | None = None
+    campi_modificati: list[str] = Field(default_factory=list)
 
 
 class ScartoRowOut(BaseModel):
