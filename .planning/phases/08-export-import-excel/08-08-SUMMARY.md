@@ -143,3 +143,10 @@ None - nessuna configurazione di servizio esterno richiesta.
 ---
 *Phase: 08-export-import-excel*
 *Completed: 2026-09-22*
+
+## Self-Check: PASSED
+
+Tutti i file dichiarati (`backend/alembic/versions/0019_updated_at_curatela.py`,
+`backend/tests/test_import_stale.py`, questo SUMMARY) trovati sul filesystem.
+Tutti e quattro i commit (`8368c9c`, `4895dd4`, `e5b03b5`, `458f160`) trovati
+in `git log --oneline`.
