@@ -162,6 +162,29 @@ preventivi reali o il giudizio dell'esperto di dominio e non e' lavoro di codice
 - Se conviene spezzare la fase in piu' piani e in che ordine; vedi il rischio annotato in
   D-21.
 
+
+### Modifiche dopo la pianificazione (2026-09-22)
+
+- **Split: D-05, D-06, D-07 e D-21..D-25 escono da questa fase** e diventano la **Fase 08.1
+  "Catalogo domande: pagina CRUD e file Excel"**. Il rischio era registrato in D-21 e si e'
+  avverato: il planner ha giudicato che cinque capability non stanno in una fase a fedelta'
+  piena (11-12 piani contro i 7 totali delle tre fasi precedenti). L'argomento decisivo non
+  era visibile in discussione ed e' venuto dal codice: **`/admin/domande` non esiste** — ne'
+  in `NAV_ITEMS` (`frontend/src/pages/admin/AdminLayout.tsx:35`) ne' fra le route
+  (`frontend/src/App.tsx:37`). I bottoni Scarica/Carica del catalogo domande non hanno una
+  pagina dove stare finche' la CRUD non c'e', quindi pagina e file sono accoppiati: separarli
+  avrebbe prodotto un export orfano, non due fasi. Gli otto piani della Fase 08 non dipendono
+  dal catalogo domande, quindi lo split e' costato zero rimaneggiamenti. D-26 resta in Fase 08
+  per le tre pagine che esistono (`/admin/listini`, `/admin/coefficienti`, `/admin/lead`) e
+  passa a 08.1 per `/admin/domande`.
+
+- **Deroga a D-04 sui soli lead.** D-04 dice "riga senza `id` = record nuovo". Sul file dei
+  lead non e' applicabile: `Lead.user_id` e' FK non nullable e dal file non si ricava niente
+  da cui dedurla, quindi creare un lead da Excel vorrebbe dire attribuire un contatto a un
+  utente arbitrario. Il planner ha pianificato **scarto descritto** — la riga senza `id`
+  viene rifiutata con motivo visibile nella preview, invece di creare. Confermato da Riccardo
+  il 2026-09-22: **nessun lead si crea da Excel.** D-04 resta valida sulle altre tre risorse.
+
 </decisions>
 
 <canonical_refs>

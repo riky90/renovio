@@ -115,6 +115,28 @@ Plans:
 (pagina CRUD D-21..D-25 + export/import dei cinque fogli D-05/D-06/D-07). Vedi la
 raccomandazione di split in `.planning/phases/08-export-import-excel/08-CONTEXT.md` D-21.
 
+### Phase 08.1: Catalogo domande: pagina CRUD e file Excel
+
+**Status:** pending
+**Goal:** Il catalogo delle domande smette di essere curabile solo dal seed: prende una pagina nel pannello e un file Excel, così che chi tara le domande non debba passare da un deploy.
+**Mode:** mvp
+**UI hint:** yes
+**Requirements:** CUR-01, CUR-02
+**Depends on:** Phase 08
+**Split from:** Phase 08, il 2026-09-22. Il rischio era già registrato in `08-CONTEXT.md` D-21; il planner ha confermato che cinque capability non stanno in una fase a fedeltà piena. L'argomento decisivo è emerso dal codice e non dalla discussione: **`/admin/domande` non esiste** — né in `NAV_ITEMS` (`frontend/src/pages/admin/AdminLayout.tsx:35`) né fra le route (`frontend/src/App.tsx:37`). I bottoni Scarica/Carica di D-26 per il catalogo non hanno una pagina dove stare finché la CRUD non c'è, quindi pagina e file sono accoppiati e formano una sotto-fase coerente invece di una pagina scorporata e un export orfano.
+**Success Criteria:**
+
+1. `/admin/domande` esiste come route e voce di `NAV_ITEMS`, e cura **domande + opzioni + effetti** in navigazione master-detail annidata (D-21..D-24)
+2. Nessun delete fisico: si disattiva con `attiva = false`, e le stime già salvate che citano la domanda restano leggibili (D-25)
+3. Il file del catalogo esporta **cinque fogli** — `domande`, `opzioni`, `effetti`, `attese`, `derivazioni` — e si ricarica in round-trip a diff zero, stesso criterio di D-12 (D-05, D-06, D-07)
+4. `derivazione_risposta` diventa curabile senza toccare il seed: è la tabella che deduce la classe energetica dall'anno e oggi non ha né endpoint né pagina (D-06)
+5. La toolbar Scarica/Carica di D-26 è in testa alla pagina nuova, come sulle altre quattro
+
+**Nota:** il backend CRUD di domande/opzioni/effetti **esiste già per intero** (`backend/app/routers/admin/domande.py:144-413`). La fase è in gran parte frontend più una voce nel registro export/import costruito in Fase 08. Chiude il chip `task_9da38ee9` e la violazione della regola #3 di `CLAUDE.md`.
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 08.1 to break down)
+
 ### Phase 09: Configuratore Pro e chiusura del bug dei cataloghi
 
 **Status:** pending
@@ -176,6 +198,7 @@ va impostata **una** variabile, `BACKEND_PUBLIC_URL`.
 | WIZ-01..03 | 06 |
 | ARR-01..04 | 07 |
 | CUR-01..04, PAR-04 | 08 |
+| CUR-01..02 (catalogo domande) | 08.1 |
 | QST-05, CFG-01..04, WIZ-04 | 09 |
 | RIS-01..04 | 10 |
 
