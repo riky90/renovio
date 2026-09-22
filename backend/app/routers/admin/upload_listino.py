@@ -13,7 +13,11 @@ di estensione per le route di questa sezione (04-02-PLAN.md Task 1).
 
 from __future__ import annotations
 
+import io
+
+import openpyxl
 from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile
+from openpyxl.utils.exceptions import InvalidFileException
 from pydantic import TypeAdapter, ValidationError
 from sqlalchemy.orm import Session
 
@@ -24,13 +28,16 @@ from app.schemas.admin_upload import (
     ImportResultOut,
     UploadTarget,
 )
+from app.services.import_excel.flat import e_formato_piatto
 from app.services.listino_upload_service import (
     UploadValidationError,
     apply_diff_idempotent,
     compute_diff,
     parse_computo,
+    parse_flat_listino,
     resolve_destinazione,
     validate_upload,
+    zip_error_types,
 )
 
 router = APIRouter(prefix="/upload-listino", tags=["admin-upload-listino"])
@@ -63,13 +70,25 @@ async def preview_upload(
     except UploadValidationError as exc:
         raise HTTPException(404, str(exc)) from exc
 
+    # Il workbook si carica UNA sola volta per decidere il formato (D-01):
+    # il computo originale non ha mai il foglio ISTRUZIONI, il formato
+    # piatto di 08-01 lo ha sempre. Nessuna seconda route, nessun parametro
+    # nuovo in richiesta — il client esistente non cambia di una riga.
     try:
-        righe, scarti = parse_computo(content)
+        wb = openpyxl.load_workbook(io.BytesIO(content), data_only=True)
+    except (InvalidFileException, KeyError, OSError, *zip_error_types()) as exc:
+        raise HTTPException(400, f"File .xlsx non leggibile: {exc}") from exc
+
+    try:
+        if e_formato_piatto(wb):
+            righe, scarti = parse_flat_listino(content)
+        else:
+            righe, scarti = parse_computo(content)
     except UploadValidationError as exc:
         raise HTTPException(400, str(exc)) from exc
 
-    nuove, modificate = compute_diff(db, righe, listino)
-    return DiffPreviewOut(nuove=nuove, modificate=modificate, scarti=scarti, target_descr=target_descr)
+    nuove, modificate, scarti_diff = compute_diff(db, righe, listino)
+    return DiffPreviewOut(nuove=nuove, modificate=modificate, scarti=[*scarti, *scarti_diff], target_descr=target_descr)
 
 
 @router.post("/confirm", response_model=ImportResultOut)
