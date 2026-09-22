@@ -21,6 +21,10 @@ export interface DiffPreviewRow {
   label: string;
   valorePrecedente: string;
   valoreNuovo: string;
+  /** D-11: true se la riga e' stata modificata a database DOPO il
+   * timestamp di generazione del file caricato (`generatoIl`). Informativo
+   * — non blocca mai "Conferma import". */
+  staleAfterExport?: boolean;
 }
 
 export interface DiffPreviewScarto {
@@ -32,11 +36,17 @@ interface DiffPreviewTableProps {
   nuove: DiffPreviewRow[];
   modificate: DiffPreviewRow[];
   scarti: DiffPreviewScarto[];
+  /** D-11: timestamp di generazione del file (`DiffPiatto.generato_il` /
+   * `DiffPreview.generato_il`), usato SOLO per il testo del banner —
+   * `null` quando il file non lo porta (nessuna riga risultera' mai stale
+   * in quel caso). */
+  generatoIl?: string | null;
 }
 
-export function DiffPreviewTable({ nuove, modificate, scarti }: DiffPreviewTableProps) {
+export function DiffPreviewTable({ nuove, modificate, scarti, generatoIl = null }: DiffPreviewTableProps) {
   const validRowCount = nuove.length + modificate.length;
   const showScartiAccordion = scarti.length > SCARTI_ACCORDION_THRESHOLD;
+  const righeStale = modificate.filter((row) => row.staleAfterExport);
 
   return (
     <>
@@ -45,6 +55,14 @@ export function DiffPreviewTable({ nuove, modificate, scarti }: DiffPreviewTable
         <Badge className="border-amber-border bg-amber-bg text-amber-fg">{modificate.length} modificate</Badge>
         <Badge variant="destructive">{scarti.length} scartate</Badge>
       </div>
+
+      {righeStale.length > 0 && (
+        <div className="rounded-lg border border-amber-border bg-amber-bg px-4 py-3 text-sm text-amber-fg">
+          {righeStale.length} righe sono cambiate nel database dopo che hai scaricato questo file
+          {generatoIl ? ` (generato il ${new Date(generatoIl).toLocaleDateString("it-IT")})` : ""}.{" "}
+          Controllale prima di confermare.
+        </div>
+      )}
 
       {validRowCount > 0 && (
         <div className="rounded-lg border border-border">
@@ -62,7 +80,14 @@ export function DiffPreviewTable({ nuove, modificate, scarti }: DiffPreviewTable
                 <tr key={`mod-${row.key}`} className="h-10 border-b border-border last:border-0">
                   <td className="px-3 py-2">{row.label}</td>
                   <td className="px-3 py-2">
-                    <Badge className="border-amber-border bg-amber-bg text-amber-fg">Modificata</Badge>
+                    <div className="flex flex-wrap items-center gap-1">
+                      <Badge className="border-amber-border bg-amber-bg text-amber-fg">Modificata</Badge>
+                      {row.staleAfterExport && (
+                        <Badge className="border-amber-border bg-amber-bg text-amber-fg">
+                          Cambiata dopo l'export
+                        </Badge>
+                      )}
+                    </div>
                   </td>
                   <td className="px-3 py-2 tabular-nums">{row.valorePrecedente}</td>
                   <td className="px-3 py-2 tabular-nums">{row.valoreNuovo}</td>

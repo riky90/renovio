@@ -31,6 +31,9 @@ export interface DiffRigaOut {
   campi_modificati: string[];
   valori_precedenti: Record<string, unknown>;
   valori_nuovi: Record<string, unknown>;
+  /** D-11: true se il record a database e' stato modificato DOPO il
+   * timestamp di generazione del file caricato (`DiffPiatto.generato_il`). */
+  riga_modificata_dopo_export: boolean;
 }
 
 export interface ScartoRow {

@@ -62,6 +62,7 @@ function toDiffPreviewRows(rows: DiffRigaOut[]): DiffPreviewRow[] {
     label: `${row.foglio} — ${row.chiave_descr}`,
     valorePrecedente: formatValori(row.valori_precedenti, row.campi_modificati),
     valoreNuovo: formatValori(row.valori_nuovi, row.campi_modificati),
+    staleAfterExport: row.riga_modificata_dopo_export,
   }));
 }
 
@@ -207,6 +208,7 @@ export function FlatImportDialog({ open, onOpenChange, risorsa, titolo, onImport
                   nuove={toDiffPreviewRows(preview.nuove)}
                   modificate={toDiffPreviewRows(preview.modificate)}
                   scarti={preview.scarti}
+                  generatoIl={preview.generato_il}
                 />
 
                 {confirmMutation.isError && <p className="text-sm text-destructive">{IMPORT_ERROR}</p>}
