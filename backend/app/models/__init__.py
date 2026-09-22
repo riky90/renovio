@@ -23,6 +23,7 @@ from app.models.domanda import (
     EffettoOpzione,
     OpzioneDomanda,
 )
+from app.models.export_log import ExportLog
 from app.models.listino import Listino, ListinoCategoria
 from app.models.stima_salvata import StimaSalvata
 from app.models.subscription import Subscription
@@ -41,6 +42,7 @@ __all__ = [
     "DerivazioneRisposta",
     "Domanda",
     "EffettoOpzione",
+    "ExportLog",
     "Extra",
     "ForfaitArredo",
     "Listino",
