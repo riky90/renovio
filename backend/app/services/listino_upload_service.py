@@ -27,6 +27,7 @@ scrivere `coefficiente_impresa`).
 from __future__ import annotations
 
 import io
+from datetime import datetime
 from decimal import Decimal
 
 import openpyxl
@@ -47,6 +48,7 @@ from app.schemas.admin_upload import (
 from app.services.computo_parsing import extract_a_edile, extract_catalogo
 from app.services.export_excel.workbook import TOKEN_CANCELLA
 from app.services.import_excel.flat import foglio_mancante, leggi_foglio_piatto
+from app.services.import_excel.registry import riga_modificata_dopo_export
 
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10MB (D-20)
 CATALOGO_SHEETS = {
@@ -359,7 +361,7 @@ _CAMPI_DIFF_SOTTOCATEGORIA = {
 
 
 def compute_diff(
-    db: Session, righe: list[VoceRigaIn], listino: Listino | None
+    db: Session, righe: list[VoceRigaIn], listino: Listino | None, generato_il: datetime | None = None
 ) -> tuple[list[DiffRowOut], list[DiffRowOut], list[ScartoRowOut]]:
     """Confronta `righe` con lo stato DB del listino destinazione — NIENTE
     scritture qui. Ramo nuova città: `listino` e' None -> stato di
@@ -437,7 +439,12 @@ def compute_diff(
 
         if campi_modificati:
             modificate.append(
-                DiffRowOut(riga=riga, valore_precedente=voce.prezzo_unitario_cliente, campi_modificati=campi_modificati)
+                DiffRowOut(
+                    riga=riga,
+                    valore_precedente=voce.prezzo_unitario_cliente,
+                    campi_modificati=campi_modificati,
+                    riga_modificata_dopo_export=riga_modificata_dopo_export(voce, generato_il),
+                )
             )
         # nessun campo presente e' cambiato: riga non riportata nel diff (nessuna azione da fare)
 

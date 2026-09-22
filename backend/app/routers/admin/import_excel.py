@@ -92,15 +92,16 @@ async def preview_import(
     if not e_formato_piatto(wb):
         raise HTTPException(400, "Il file non e' nel formato piatto di import: sembra il computo originale, che ha il suo endpoint dedicato (/admin/upload-listino)")
 
+    generato_il = leggi_timestamp_export(wb)
     righe, scarti_parse = handler.parse(wb)
-    nuove, modificate, scarti_diff = handler.diff(db, righe)
+    nuove, modificate, scarti_diff = handler.diff(db, righe, generato_il)
 
     return DiffPiattoOut(
         risorsa=risorsa,
         nuove=nuove,
         modificate=modificate,
         scarti=[*scarti_parse, *scarti_diff],
-        generato_il=leggi_timestamp_export(wb),
+        generato_il=generato_il,
     )
 
 
