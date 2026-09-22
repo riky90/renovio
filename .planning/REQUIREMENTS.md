@@ -23,7 +23,7 @@ farci*, senza che aggiungere una domanda costi un deploy.
 - [x] **PAR-01**: Il motore Free applica gli effetti nell'ordine documentato — moltiplicatori di categoria, poi €/m² additivi, poi correzioni per scostamento — così un termine additivo non viene scalato da un moltiplicatore che non lo riguarda
 - [x] **PAR-02**: **Neutralità a riposo**: senza risposte, o con risposte tutte pari agli attesi, il risultato è identico alla v1. L'oracolo primario (85 m² · totale · Reggio Emilia → 47.985–70.575 €) non si muove
 - [x] **PAR-03**: Le correzioni si applicano sullo **scostamento** dall'atteso, mai sul valore assoluto
-- [ ] **PAR-04**: Anteprima admin (`POST /admin/anteprima-stima`) che mostra il breakdown, quali effetti hanno sparato e il delta rispetto alla stima senza risposte — è lo strumento con cui si tara
+- [x] **PAR-04**: Anteprima admin (`POST /admin/anteprima-stima`) che mostra il breakdown, quali effetti hanno sparato e il delta rispetto alla stima senza risposte — è lo strumento con cui si tara
 - [x] **PAR-05**: Nessun layer parametrico porta il coefficiente impresa: le correzioni sono in euro-cliente
 
 ### Wizard (WIZ)
@@ -42,10 +42,10 @@ farci*, senza che aggiungere una domanda costi un deploy.
 
 ### Curatela dei dati (CUR)
 
-- [ ] **CUR-01**: Export/import Excel dal pannello admin in **round-trip**: il file esportato si ricarica senza riformattarlo
-- [ ] **CUR-02**: Colonna assente nel file = campo non toccato (è la regola che protegge la curatela di `voce.livello` dal re-upload)
-- [ ] **CUR-03**: L'export che contiene il coefficiente impresa è riservato al ruolo `admin`, mai al `consulente`, con nome file marcato e foglio di avviso
-- [ ] **CUR-04**: L'export dei lead è dato personale: si traccia chi scarica e quando
+- [x] **CUR-01**: Export/import Excel dal pannello admin in **round-trip**: il file esportato si ricarica senza riformattarlo
+- [x] **CUR-02**: Colonna assente nel file = campo non toccato (è la regola che protegge la curatela di `voce.livello` dal re-upload)
+- [x] **CUR-03**: L'export che contiene il coefficiente impresa è riservato al ruolo `admin`, mai al `consulente`, con nome file marcato e foglio di avviso
+- [x] **CUR-04**: L'export dei lead è dato personale: si traccia chi scarica e quando
 
 ### Configuratore Pro (CFG)
 

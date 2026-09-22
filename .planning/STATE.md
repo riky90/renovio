@@ -2,33 +2,34 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: domande e motore parametrico
-status: executing
-last_updated: "2026-09-22T13:32:30.259Z"
+status: ready_to_plan
+last_updated: 2026-09-22T20:05:35.572Z
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 9
   completed_plans: 9
-  percent: 43
+  percent: 57
+stopped_at: Phase 08 complete (8/8) — ready to discuss Phase 08.1
 ---
 
 # Project State — ristruttura-stima
 
 ## Current Position
 
-Phase: 08 (export-import-excel) — EXECUTING
-Plan: 8 of 8 completi — tutte le wave chiuse, verifica di fase in corso
+Phase: 08 (export-import-excel) — COMPLETE (8/8, verificata 5/5)
+Prossima: 08.1 (catalogo domande) — contesto scritto, nessun piano
 
 - **Milestone:** v2.0 (domande e motore parametrico), fasi **05-10**. La v1.0 (MVP, fasi
   01-04) e' **completa, verificata e in produzione dal 2026-09-09** — backend su Render,
   frontend su Vercel — e archiviata in `.planning/milestones/v1.0-ROADMAP.md`.
 
-- **Phase:** 3 di 7 complete — 05 (catalogo domande + motore Free parametrico), 06 (wizard
-  unico), 07 (arredo). Le prime due eseguite fuori dal ciclo GSD e ricostruite in
+- **Phase:** 4 di 7 complete — 05 (catalogo domande + motore Free parametrico), 06 (wizard
+  unico), 07 (arredo), 08 (export/import Excel). Le prime due eseguite fuori dal ciclo GSD e ricostruite in
   retrospettiva nei rispettivi `NN-RETRO-SUMMARY.md`; la 07 e' la prima pianificata ed
   eseguita dentro la milestone (`07-01-PLAN.md` -> `07-01-SUMMARY.md`).
 
-- **Status:** Executing Phase 08 — 8 piani su 8 completi. Wave 1: 08-01 export listino +
+- **Status:** Ready to plan — Fase 08 chiusa. Wave 1: 08-01 export listino +
   audit `export_log`, 08-02 tab Anteprima. Wave 2: 08-03 round-trip del listino (D-12),
   08-04 export parametri col margine opt-in (CUR-03), 08-05 export lead tracciato (CUR-04).
   Wave 3: 08-06 import parametri, il registro `HANDLER` su cui poggiano i due piani
@@ -38,6 +39,12 @@ Plan: 8 of 8 completi — tutte le wave chiuse, verifica di fase in corso
   i percorsi di import. Gate post-merge verde dopo ogni wave; dopo la quinta: 517 passed /
   5 skipped, build frontend pulita.
   Contratto UI verificato in `08-UI-SPEC.md`, mappa dei pattern in `08-PATTERNS.md`.
+  Verifica di fase `passed` 5/5 (`08-VERIFICATION.md`). La code review (`08-REVIEW.md`)
+  ha lasciato **due critici aperti sul codice della wave 2**, entrambi confermati a mano:
+  `_upsert_voce` in `listino_upload_service.py` ignora `campi_presenti` sul percorso per
+  chiave naturale (viola il criterio 2 della fase), e `FlatImportDialog.tsx:75` cabla
+  `campi_da_cancellare: []`, per cui `#CANCELLA#` scrive la stringa `"None"` invece di NULL.
+  Da chiudere in una 08.2 di gap closure o dentro la 09.
   **Split del 2026-09-22:** il catalogo domande (D-05/06/07, D-21..D-25) e' uscito dalla
   Fase 08 ed e' diventato la **Fase 08.1**, con il suo `08.1-CONTEXT.md` gia' scritto e
   nessun piano ancora. Nessuno degli 8 piani della 08 ne dipende.
