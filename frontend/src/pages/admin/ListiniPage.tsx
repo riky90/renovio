@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Pencil, Trash2, List as ListIcon } from "lucide-react";
+import { Pencil, Trash2, List as ListIcon, Download, UploadCloud } from "lucide-react";
 import { AdminLayout } from "@/pages/admin/AdminLayout";
 import { AdminTable } from "@/components/admin/AdminTable";
 import { AdminCrudDialog } from "@/components/admin/AdminCrudDialog";
@@ -32,6 +32,9 @@ import {
   type ListinoCategoriaOut,
   type VoceOut,
 } from "@/api/admin/listini";
+import { scaricaExcel } from "@/api/admin/exportExcel";
+
+const EXPORT_ERROR = "Non siamo riusciti a generare il file. Riprova.";
 
 /**
  * Listini e prezzi (ADM-01, UI-SPEC §D): CRUD listino/categoria/voce sopra
@@ -66,6 +69,13 @@ export function ListiniPage() {
   const [uploadOpen, setUploadOpen] = useState(false);
 
   const listiniQuery = useQuery<ListinoOut[]>({ queryKey: ["admin-listini"], queryFn: getListini });
+
+  const scaricaListinoMutation = useMutation({
+    mutationFn: () => scaricaExcel(`/admin/listini/${selectedListinoId}/export.xlsx`),
+    onError: () => {
+      toast.error(EXPORT_ERROR);
+    },
+  });
 
   useEffect(() => {
     if (selectedListinoId === null && listiniQuery.data && listiniQuery.data.length > 0) {
@@ -191,8 +201,10 @@ export function ListiniPage() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-lg font-semibold text-foreground">Listini e prezzi</h1>
           <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" onClick={() => scaricaListinoMutation.mutate()} disabled={selectedListinoId === null || scaricaListinoMutation.isPending}><Download className="size-4" />{scaricaListinoMutation.isPending ? "Generazione…" : "Scarica listino"}</Button>
             <Button type="button" variant="outline" onClick={() => setUploadOpen(true)}>
-              Carica listino da Excel
+              <UploadCloud className="size-4" />
+              Carica file
             </Button>
             <Button type="button" onClick={() => setListinoDialogOpen(true)}>
               Aggiungi listino
