@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Download } from "lucide-react";
 import { AdminLayout } from "@/pages/admin/AdminLayout";
 import { AdminTable } from "@/components/admin/AdminTable";
 import { AdminCrudDialog } from "@/components/admin/AdminCrudDialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -18,6 +20,8 @@ import { formatEurRange } from "@/lib/currency";
 import { TIPO_LABELS } from "@/lib/tipoRistrutturazione";
 import { getAdminLeads, getAdminLead, updateAdminLead, type LeadOut } from "@/api/admin/lead";
 import { listListiniForSelect } from "@/api/admin/referenti";
+import { scaricaExcel } from "@/api/admin/exportExcel";
+import { getExportLog, type ExportLogRow } from "@/api/admin/exportLog";
 import { useAuth } from "@/hooks/useAuth";
 
 const PREFERENZA_LABELS: Record<string, string> = {
@@ -30,6 +34,15 @@ const FASCIA_LABELS: Record<string, string> = {
   pomeriggio: "Pomeriggio",
   sera: "Sera",
 };
+
+const RISORSA_LABELS: Record<string, string> = {
+  listino: "Listino",
+  domande: "Catalogo domande",
+  parametri: "Parametri",
+  lead: "Lead",
+};
+
+const EXPORT_ERROR = "Non siamo riusciti a generare il file. Riprova.";
 
 const ALL_VALUE = "__tutte__";
 
@@ -95,6 +108,19 @@ function LeadDashboardContent() {
     enabled: isStaff && selectedId !== null,
   });
 
+  const exportLogQuery = useQuery<ExportLogRow[]>({
+    queryKey: ["admin-export-log"],
+    queryFn: getExportLog,
+    enabled: isStaff,
+  });
+
+  const scaricaLeadMutation = useMutation({
+    mutationFn: () => scaricaExcel("/admin/lead/export.xlsx"),
+    onError: () => {
+      toast.error(EXPORT_ERROR);
+    },
+  });
+
   useEffect(() => {
     if (detailQuery.data) {
       setNotaValue(detailQuery.data.nota ?? "");
@@ -153,9 +179,42 @@ function LeadDashboardContent() {
     </div>,
   ]);
 
+  const exportLogRows = (exportLogQuery.data ?? []).map((item) => [
+    <div key="data" className="text-sm">
+      {formatData(item.created_at)}
+    </div>,
+    <div key="utente" className="text-sm">
+      {item.user_label}
+    </div>,
+    <div key="risorsa" className="text-sm">
+      {RISORSA_LABELS[item.risorsa] ?? item.risorsa}
+    </div>,
+    <div key="righe" className="text-right text-sm tabular-nums">
+      {item.righe}
+    </div>,
+    <div key="margine">
+      {item.include_margine ? (
+        <Badge className="bg-amber-bg text-amber-fg">Sì</Badge>
+      ) : (
+        <span className="text-sm text-muted-foreground">—</span>
+      )}
+    </div>,
+  ]);
+
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-lg font-semibold text-foreground">Lead</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-lg font-semibold text-foreground">Lead</h1>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => scaricaLeadMutation.mutate()}
+          disabled={scaricaLeadMutation.isPending}
+        >
+          <Download className="size-4" />
+          {scaricaLeadMutation.isPending ? "Generazione…" : "Scarica lead"}
+        </Button>
+      </div>
 
       <div className="flex flex-wrap items-center gap-2">
         <Select
@@ -312,6 +371,18 @@ function LeadDashboardContent() {
           </div>
         )}
       </AdminCrudDialog>
+
+      <div className="flex flex-col gap-3">
+        <h2 className="text-base font-semibold text-foreground">Download registrati</h2>
+        <AdminTable
+          columns={["Data", "Utente", "Risorsa", "Righe", "Margine"]}
+          isLoading={exportLogQuery.isLoading}
+          rows={exportLogRows}
+          isEmpty={!exportLogQuery.isLoading && (exportLogQuery.data?.length ?? 0) === 0}
+          emptyHeading="Nessun download registrato"
+          emptyBody="I download di questa pagina compariranno qui."
+        />
+      </div>
     </div>
   );
 }
