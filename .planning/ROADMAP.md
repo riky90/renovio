@@ -99,7 +99,7 @@ Requisiti archiviati: [`.planning/milestones/v1.0-REQUIREMENTS.md`](milestones/v
 4. L'export dei lead traccia chi scarica e quando
 5. L'anteprima admin della stima mostra il breakdown e **quali effetti hanno sparato**
 
-**Plans:** 7/8 plans executed
+**Plans:** 8/8 plans complete
 
 Plans:
 **Wave 1**
@@ -126,7 +126,7 @@ Plans:
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 08-08-PLAN.md — `updated_at` sulla curatela e avviso "cambiata dopo l'export" (D-11)
+- [x] 08-08-PLAN.md — `updated_at` sulla curatela e avviso "cambiata dopo l'export" (D-11)
 
 **Non pianificato in questa fase — in attesa di decisione:** il gruppo *catalogo domande*
 (pagina CRUD D-21..D-25 + export/import dei cinque fogli D-05/D-06/D-07). Vedi la
