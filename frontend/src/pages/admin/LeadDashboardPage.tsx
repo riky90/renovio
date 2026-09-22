@@ -15,15 +15,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatEurRange } from "@/lib/currency";
+import { TIPO_LABELS } from "@/lib/tipoRistrutturazione";
 import { getAdminLeads, getAdminLead, updateAdminLead, type LeadOut } from "@/api/admin/lead";
 import { listListiniForSelect } from "@/api/admin/referenti";
 import { useAuth } from "@/hooks/useAuth";
-
-const TIPO_LABELS: Record<string, string> = {
-  leggera: "Leggera",
-  moderata: "Moderata",
-  totale: "Totale",
-};
 
 const PREFERENZA_LABELS: Record<string, string> = {
   email: "Email",
