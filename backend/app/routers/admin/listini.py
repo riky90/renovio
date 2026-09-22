@@ -23,6 +23,7 @@ limite noto v1 risolto lato prodotto — non un oversight).
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from slugify import slugify
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -30,6 +31,7 @@ from sqlalchemy.orm import Session
 from app.dependencies.auth import get_db, require_admin
 from app.models.catalogo import ComuneListino
 from app.models.dettaglio_pro import Voce
+from app.models.export_log import ExportLog
 from app.models.listino import Listino, ListinoCategoria
 from app.schemas.admin_listino import (
     ListinoAdminIn,
@@ -41,6 +43,8 @@ from app.schemas.admin_listino import (
     VoceAdminIn,
     VoceAdminOut,
 )
+from app.services.export_excel.listino import build_workbook_listino
+from app.services.export_excel.workbook import MIME_XLSX, build_filename
 
 router = APIRouter(prefix="/listini", tags=["admin-listini"])
 
@@ -140,6 +144,35 @@ def modifica_listino(
     db.commit()
     db.refresh(listino)
     return _to_listino_out(listino)
+
+
+@router.get("/{listino_id}/export.xlsx")
+def esporta_listino(
+    listino_id: int,
+    user=Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> StreamingResponse:
+    """Export piatto del listino (D-01/D-03/D-09/D-11/D-12/D-15): un
+    workbook con foglio `ISTRUZIONI` + foglio `voci`, una riga per `Voce`,
+    nessuna colonna di margine. Ogni download riuscito scrive una riga in
+    `export_log` PRIMA di restituire la risposta — se la scrittura del log
+    fallisce l'eccezione propaga (nessun try/except che lasci passare il
+    file senza traccia, CUR-04)."""
+    listino = db.get(Listino, listino_id)
+    if listino is None:
+        raise HTTPException(404, "Listino non trovato")
+
+    file_bytes, righe = build_workbook_listino(db, listino_id)
+    filename = build_filename("listino")
+
+    db.add(ExportLog(user_id=user.id, risorsa="listino", righe=righe, include_margine=False))
+    db.commit()
+
+    return StreamingResponse(
+        iter([file_bytes]),
+        media_type=MIME_XLSX,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.get("/{listino_id}/categorie", response_model=list[ListinoCategoriaAdminOut])

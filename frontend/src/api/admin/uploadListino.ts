@@ -67,14 +67,21 @@ function normalizeDiffRow(raw: RawDiffRow): DiffRow {
   return { riga: raw.riga, valore_precedente: toNumberOrNull(raw.valore_precedente) };
 }
 
-async function extractErrorDetail(response: Response, path: string): Promise<string> {
+/**
+ * Estrae il `detail` del corpo JSON di errore, con fallback generico —
+ * esportata perche' riusata anche da `exportExcel.ts` (blob download, GET),
+ * non solo dalle POST multipart di questo modulo: il messaggio di fallback
+ * non nomina piu' un verbo HTTP specifico per restare corretto in entrambi
+ * i casi.
+ */
+export async function extractErrorDetail(response: Response, path: string): Promise<string> {
   try {
     const body = (await response.json()) as { detail?: unknown };
     if (typeof body?.detail === "string") return body.detail;
   } catch {
     // corpo non-JSON o vuoto: fallback al messaggio generico
   }
-  return `POST ${path} fallita con status ${response.status}`;
+  return `Richiesta a ${path} fallita con status ${response.status}`;
 }
 
 /**
