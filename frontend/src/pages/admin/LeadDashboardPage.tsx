@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Download } from "lucide-react";
+import { Download, UploadCloud } from "lucide-react";
 import { AdminLayout } from "@/pages/admin/AdminLayout";
 import { AdminTable } from "@/components/admin/AdminTable";
 import { AdminCrudDialog } from "@/components/admin/AdminCrudDialog";
+import { FlatImportDialog } from "@/components/admin/FlatImportDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -85,6 +86,7 @@ function LeadDashboardContent() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [notaValue, setNotaValue] = useState("");
   const [statoValue, setStatoValue] = useState("nuovo");
+  const [importOpen, setImportOpen] = useState(false);
 
   const leadsQuery = useQuery<LeadOut[]>({
     queryKey: ["admin-leads", cittaFilter, statoFilter],
@@ -205,16 +207,33 @@ function LeadDashboardContent() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-lg font-semibold text-foreground">Lead</h1>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => scaricaLeadMutation.mutate()}
-          disabled={scaricaLeadMutation.isPending}
-        >
-          <Download className="size-4" />
-          {scaricaLeadMutation.isPending ? "Generazione…" : "Scarica lead"}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => scaricaLeadMutation.mutate()}
+            disabled={scaricaLeadMutation.isPending}
+          >
+            <Download className="size-4" />
+            {scaricaLeadMutation.isPending ? "Generazione…" : "Scarica lead"}
+          </Button>
+          <Button type="button" variant="outline" onClick={() => setImportOpen(true)}>
+            <UploadCloud className="size-4" />
+            Carica file
+          </Button>
+        </div>
       </div>
+
+      <FlatImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        risorsa="lead"
+        titolo="Carica lead"
+        onImported={() => {
+          void queryClient.invalidateQueries({ queryKey: ["admin-leads"] });
+          void queryClient.invalidateQueries({ queryKey: ["admin-export-log"] });
+        }}
+      />
 
       <div className="flex flex-wrap items-center gap-2">
         <Select
