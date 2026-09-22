@@ -23,7 +23,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -33,19 +32,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { previewUpload, confirmUpload, type DiffPreview, type UploadTarget } from "@/api/admin/uploadListino";
+import { previewUpload, confirmUpload, type DiffPreview, type DiffRow, type UploadTarget } from "@/api/admin/uploadListino";
 import type { ListinoOut } from "@/api/admin/listini";
+import { DiffPreviewTable, type DiffPreviewRow } from "@/components/admin/DiffPreviewTable";
 
 const MAX_SIZE_BYTES = 10 * 1024 * 1024;
 const INVALID_FILE_MESSAGE = "Il file non è valido. Controlla che sia un .xlsx e non superi i 10 MB.";
 const IMPORT_ERROR = "Import non riuscito. Riprova o contatta l'assistenza tecnica.";
-const SCARTI_ACCORDION_THRESHOLD = 10;
 
 interface ExcelUploadDialogProps {
   open: boolean;
@@ -54,6 +47,18 @@ interface ExcelUploadDialogProps {
   defaultListinoId: number | null;
   /** Invocato dopo un import riuscito, con l'id del listino destinazione (nuovo o esistente). */
   onImported: (listinoId: number) => void;
+}
+
+function toDiffPreviewRows(rows: DiffRow[]): DiffPreviewRow[] {
+  return rows.map((row, i) => ({
+    key: String(i),
+    label: row.riga.descrizione,
+    valorePrecedente:
+      row.valore_precedente !== null
+        ? row.valore_precedente.toLocaleString("it-IT", { style: "currency", currency: "EUR" })
+        : "—",
+    valoreNuovo: row.riga.prezzo_unitario_cliente.toLocaleString("it-IT", { style: "currency", currency: "EUR" }),
+  }));
 }
 
 function validateFile(file: File): string | null {
@@ -156,7 +161,6 @@ export function ExcelUploadDialog({
 
   const preview = previewMutation.data ?? null;
   const validRowCount = preview ? preview.nuove.length + preview.modificate.length : 0;
-  const showScartiAccordion = (preview?.scarti.length ?? 0) > SCARTI_ACCORDION_THRESHOLD;
 
   return (
     <>
@@ -297,105 +301,13 @@ export function ExcelUploadDialog({
 
             {preview && (
               <>
-                <div className="flex flex-wrap gap-2">
-                  <Badge className="bg-primary/10 text-primary">{preview.nuove.length} nuove</Badge>
-                  <Badge className="border-[#FCD34D] bg-[#FFFBEB] text-[#B45309]">
-                    {preview.modificate.length} modificate
-                  </Badge>
-                  <Badge variant="destructive">{preview.scarti.length} scartate</Badge>
-                </div>
-
                 <p className="text-sm text-muted-foreground">Destinazione: {preview.target_descr}</p>
 
-                {(preview.nuove.length > 0 || preview.modificate.length > 0) && (
-                  <div className="rounded-lg border border-border">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-border text-left text-muted-foreground">
-                          <th className="px-3 py-2 font-semibold">Voce</th>
-                          <th className="px-3 py-2 font-semibold">Stato</th>
-                          <th className="px-3 py-2 font-semibold">Valore precedente</th>
-                          <th className="px-3 py-2 font-semibold">Nuovo valore</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {preview.modificate.map((row, i) => (
-                          <tr key={`mod-${i}`} className="h-10 border-b border-border last:border-0">
-                            <td className="px-3 py-2">{row.riga.descrizione}</td>
-                            <td className="px-3 py-2">
-                              <Badge className="border-[#FCD34D] bg-[#FFFBEB] text-[#B45309]">Modificata</Badge>
-                            </td>
-                            <td className="px-3 py-2 tabular-nums">
-                              {row.valore_precedente !== null
-                                ? row.valore_precedente.toLocaleString("it-IT", {
-                                    style: "currency",
-                                    currency: "EUR",
-                                  })
-                                : "—"}
-                            </td>
-                            <td className="px-3 py-2 tabular-nums">
-                              {row.riga.prezzo_unitario_cliente.toLocaleString("it-IT", {
-                                style: "currency",
-                                currency: "EUR",
-                              })}
-                            </td>
-                          </tr>
-                        ))}
-                        {preview.nuove.map((row, i) => (
-                          <tr key={`new-${i}`} className="h-10 border-b border-border last:border-0">
-                            <td className="px-3 py-2">{row.riga.descrizione}</td>
-                            <td className="px-3 py-2">
-                              <Badge className="bg-primary/10 text-primary">Nuova</Badge>
-                            </td>
-                            <td className="px-3 py-2 tabular-nums">—</td>
-                            <td className="px-3 py-2 tabular-nums">
-                              {row.riga.prezzo_unitario_cliente.toLocaleString("it-IT", {
-                                style: "currency",
-                                currency: "EUR",
-                              })}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                <div>
-                  <h3 className="mb-2 text-sm font-semibold text-foreground">Righe scartate</h3>
-                  {preview.scarti.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Nessuna riga scartata.</p>
-                  ) : showScartiAccordion ? (
-                    <Accordion type="single" collapsible>
-                      <AccordionItem value="scarti">
-                        <AccordionTrigger>{preview.scarti.length} righe scartate</AccordionTrigger>
-                        <AccordionContent>
-                          <ul className="flex flex-col gap-1">
-                            {preview.scarti.map((s, i) => (
-                              <li key={i} className="text-sm text-destructive">
-                                Riga {s.riga}: {s.motivo}
-                              </li>
-                            ))}
-                          </ul>
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-                  ) : (
-                    <ul className="flex flex-col gap-1">
-                      {preview.scarti.map((s, i) => (
-                        <li key={i} className="text-sm text-destructive">
-                          Riga {s.riga}: {s.motivo}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-
-                {validRowCount === 0 && (
-                  <p className="text-sm text-muted-foreground">
-                    Nessuna riga verrà importata: tutte le righe sono state scartate.
-                  </p>
-                )}
+                <DiffPreviewTable
+                  nuove={toDiffPreviewRows(preview.nuove)}
+                  modificate={toDiffPreviewRows(preview.modificate)}
+                  scarti={preview.scarti}
+                />
 
                 {confirmMutation.isError && <p className="text-sm text-destructive">{IMPORT_ERROR}</p>}
               </>

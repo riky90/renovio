@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Pencil, Trash2, Download, Lock } from "lucide-react";
+import { Pencil, Trash2, Download, Lock, UploadCloud } from "lucide-react";
 import { AdminLayout } from "@/pages/admin/AdminLayout";
+import { FlatImportDialog } from "@/components/admin/FlatImportDialog";
 import { AdminTable } from "@/components/admin/AdminTable";
 import { AdminCrudDialog } from "@/components/admin/AdminCrudDialog";
 import { AdminDeleteConfirm } from "@/components/admin/AdminDeleteConfirm";
@@ -62,8 +63,18 @@ function pct(value: number): string {
  * `AdminTable` + edit `AdminCrudDialog` di §D. `base_eur_mq` è in sola
  * lettura qui (la scrittura resta nel CRUD categoria di Listini e prezzi).
  */
+const PARAMETRI_QUERY_KEYS = [
+  "admin-moltiplicatori",
+  "admin-base-eur-mq",
+  "admin-iva",
+  "admin-extra",
+  "admin-coeff-pro",
+] as const;
+
 export function CoefficientiPage() {
+  const queryClient = useQueryClient();
   const [margineDialogOpen, setMargineDialogOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const scaricaMutation = useMutation({
     mutationFn: () => scaricaExcel("/admin/coefficienti/export.xlsx"),
@@ -109,8 +120,24 @@ export function CoefficientiPage() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            <Button type="button" variant="outline" onClick={() => setImportOpen(true)}>
+              <UploadCloud className="size-4" />
+              Carica file
+            </Button>
           </div>
         </div>
+
+        <FlatImportDialog
+          open={importOpen}
+          onOpenChange={setImportOpen}
+          risorsa="parametri"
+          titolo="Carica parametri del motore"
+          onImported={() => {
+            for (const queryKey of PARAMETRI_QUERY_KEYS) {
+              queryClient.invalidateQueries({ queryKey: [queryKey] });
+            }
+          }}
+        />
 
         <AlertDialog open={margineDialogOpen} onOpenChange={setMargineDialogOpen}>
           <AlertDialogContent>
