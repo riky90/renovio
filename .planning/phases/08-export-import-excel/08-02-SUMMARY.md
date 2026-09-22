@@ -122,3 +122,7 @@ None - nessuna configurazione di servizio esterno richiesta.
 ---
 *Phase: 08-export-import-excel*
 *Completed: 2026-09-22*
+
+## Self-Check: PASSED
+
+Tutti i 7 file dichiarati (6 di codice + questo SUMMARY) trovati sul filesystem. Tutti e 4 i commit (`74882cc`, `49284b0`, `0430673`, `1c2869a`) trovati in `git log --oneline --all`.
