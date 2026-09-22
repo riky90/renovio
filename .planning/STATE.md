@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: domande e motore parametrico
 status: executing
-last_updated: "2026-09-22T12:09:33.243Z"
+last_updated: "2026-09-22T13:32:30.259Z"
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 1
   total_plans: 9
-  completed_plans: 6
-  percent: 43
+  completed_plans: 8
+  percent: 14
 ---
 
 # Project State — ristruttura-stima
@@ -17,7 +17,7 @@ progress:
 ## Current Position
 
 Phase: 08 (export-import-excel) — EXECUTING
-Plan: 5 of 8 completi — wave 1 e 2 chiuse, wave 3 (08-06) da eseguire
+Plan: 1 of 8
 
 - **Milestone:** v2.0 (domande e motore parametrico), fasi **05-10**. La v1.0 (MVP, fasi
   01-04) e' **completa, verificata e in produzione dal 2026-09-09** — backend su Render,
@@ -28,7 +28,7 @@ Plan: 5 of 8 completi — wave 1 e 2 chiuse, wave 3 (08-06) da eseguire
   retrospettiva nei rispettivi `NN-RETRO-SUMMARY.md`; la 07 e' la prima pianificata ed
   eseguita dentro la milestone (`07-01-PLAN.md` -> `07-01-SUMMARY.md`).
 
-- **Status:** Executing Phase 08 — 5 piani su 8 completi. Wave 1: 08-01 export listino +
+- **Status:** Executing Phase 08
   audit `export_log`, 08-02 tab Anteprima. Wave 2: 08-03 round-trip del listino (D-12),
   08-04 export parametri col margine opt-in (CUR-03), 08-05 export lead tracciato (CUR-04).
   Gate post-merge verde dopo entrambe le wave: 497 passed / 5 skipped, build frontend pulita.
