@@ -68,7 +68,15 @@ class VoceRigaIn(BaseModel):
     codice: str | None = None
     descrizione: str = Field(min_length=1, max_length=300)
     um: str = Field(min_length=1, max_length=16)
-    prezzo_unitario_cliente: Decimal = Field(gt=0)
+    # ge=0, non gt=0: il DB contiene legittimamente voci a prezzo 0 ("non
+    # ancora quotate", vedi listino_upload_service._sotto_dict_to_righe) e
+    # il round-trip export->import (D-12) deve poterle rileggere senza
+    # scartarle. La regola di business "un prezzo caricato da file deve
+    # essere > 0" resta applicata dove il file e' input umano non ancora
+    # convalidato: in parse_computo (_sotto_dict_to_righe) per OGNI riga, e
+    # in parse_flat_listino per le sole righe NUOVE (senza id) — una riga
+    # esistente re-importata a 0 e' semplicemente il suo stato reale.
+    prezzo_unitario_cliente: Decimal = Field(ge=0)
     ordine: int = 0
     livello: str | None = None
     campi_presenti: set[str] | None = None

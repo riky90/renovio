@@ -236,6 +236,18 @@ def parse_flat_listino(file_bytes: bytes) -> tuple[list[VoceRigaIn], list[Scarto
             scarti.append(ScartoRowOut(riga=rp.numero_riga, motivo=f"prezzo non numerico: {prezzo_raw!r}"))
             continue
 
+        # Regola di business (D-19/D-20), preservata identica a
+        # `_sotto_dict_to_righe`: SOLO per una riga nuova (senza id) il
+        # prezzo deve essere > 0. Una riga esistente re-importata a 0 e' il
+        # suo stato reale a database (voce non ancora quotata) — bloccarla
+        # romperebbe il round-trip a vuoto (D-12) per ogni listino che ne
+        # contiene una.
+        if rp.id is None and prezzo <= 0:
+            scarti.append(
+                ScartoRowOut(riga=rp.numero_riga, motivo="riga nuova con prezzo non superiore a zero")
+            )
+            continue
+
         try:
             righe.append(
                 VoceRigaIn(
@@ -283,6 +295,14 @@ def _sotto_dict_to_righe(sotto: dict, raw_scarti: list[dict]) -> list[VoceRigaIn
     righe: list[VoceRigaIn] = []
     for voce in sotto["voci"]:
         try:
+            prezzo = Decimal(str(voce["prezzo_unitario_cliente"]))
+            # VoceRigaIn accetta prezzo=0 per il round-trip del formato
+            # piatto (08-03, D-12): la regola di business "un prezzo
+            # caricato da un computo va scartato se non e' > 0" va quindi
+            # applicata qui esplicitamente, non piu' delegata al vincolo
+            # pydantic (che ora e' ge=0, condiviso con il formato piatto).
+            if prezzo <= 0:
+                raise ValueError("prezzo deve essere maggiore di zero")
             righe.append(
                 VoceRigaIn(
                     categoria_code=sotto["categoria_code"],
@@ -293,7 +313,7 @@ def _sotto_dict_to_righe(sotto: dict, raw_scarti: list[dict]) -> list[VoceRigaIn
                     codice=voce.get("codice"),
                     descrizione=voce["descrizione"],
                     um=voce["um"],
-                    prezzo_unitario_cliente=Decimal(str(voce["prezzo_unitario_cliente"])),
+                    prezzo_unitario_cliente=prezzo,
                     ordine=voce.get("ordine", 0),
                 )
             )
