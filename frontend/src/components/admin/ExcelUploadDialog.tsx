@@ -58,6 +58,7 @@ function toDiffPreviewRows(rows: DiffRow[]): DiffPreviewRow[] {
         ? row.valore_precedente.toLocaleString("it-IT", { style: "currency", currency: "EUR" })
         : "—",
     valoreNuovo: row.riga.prezzo_unitario_cliente.toLocaleString("it-IT", { style: "currency", currency: "EUR" }),
+    staleAfterExport: row.riga_modificata_dopo_export,
   }));
 }
 
@@ -307,6 +308,7 @@ export function ExcelUploadDialog({
                   nuove={toDiffPreviewRows(preview.nuove)}
                   modificate={toDiffPreviewRows(preview.modificate)}
                   scarti={preview.scarti}
+                  generatoIl={preview.generato_il}
                 />
 
                 {confirmMutation.isError && <p className="text-sm text-destructive">{IMPORT_ERROR}</p>}

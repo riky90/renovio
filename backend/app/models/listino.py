@@ -36,3 +36,10 @@ class ListinoCategoria(Base):
     base_eur_mq: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     # SEGRETO: margine interno (0.65/0.6/0.55/0.5). Mai serializzato in nessuna risposta.
     coefficiente_impresa: Mapped[Decimal] = mapped_column(Numeric(4, 3), nullable=False)
+
+    # D-11: data dell'ultima modifica, aggiornata da sola a ogni scrittura ORM
+    # (onupdate) — dice se questa riga e' cambiata dopo che un export e' stato
+    # scaricato, per la guardia di staleness dell'import.
+    updated_at: Mapped[datetime] = mapped_column(
+        nullable=False, server_default=func.now(), onupdate=func.now()
+    )

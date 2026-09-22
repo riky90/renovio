@@ -36,6 +36,7 @@ l'export normale non azzera mai il margine.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime
 from decimal import Decimal, InvalidOperation
 
 from openpyxl.workbook import Workbook
@@ -49,7 +50,7 @@ from app.models.listino import Listino, ListinoCategoria
 from app.schemas.admin_import import DiffRigaOut, RigaPiattaIn
 from app.schemas.admin_upload import ScartoRowOut
 from app.services.import_excel.flat import foglio_mancante, leggi_foglio_piatto
-from app.services.import_excel.registry import registra
+from app.services.import_excel.registry import registra, riga_modificata_dopo_export
 
 RISORSA = "parametri"
 
@@ -490,7 +491,7 @@ def _campi_modificati_da(esistente: object, validati: dict[str, object]) -> dict
 
 
 def diff(
-    db: Session, righe: list[RigaPiattaIn]
+    db: Session, righe: list[RigaPiattaIn], generato_il: datetime | None = None
 ) -> tuple[list[DiffRigaOut], list[DiffRigaOut], list[ScartoRowOut]]:
     nuove: list[DiffRigaOut] = []
     modificate: list[DiffRigaOut] = []
@@ -565,6 +566,7 @@ def diff(
                 # Valori nativi, stesso motivo del ramo "nuova" sopra.
                 valori_precedenti={k: v[0] for k, v in cambiati.items()},
                 valori_nuovi={k: v[1] for k, v in cambiati.items()},
+                riga_modificata_dopo_export=riga_modificata_dopo_export(ris.esistente, generato_il),
             )
         )
 

@@ -44,7 +44,7 @@ from app.models.lead import Lead
 from app.schemas.admin_import import DiffRigaOut, RigaPiattaIn
 from app.schemas.admin_upload import ScartoRowOut
 from app.services.import_excel.flat import foglio_mancante, leggi_foglio_piatto
-from app.services.import_excel.registry import registra
+from app.services.import_excel.registry import registra, riga_modificata_dopo_export
 
 RISORSA = "lead"
 FOGLIO_LEAD = "lead"
@@ -233,7 +233,7 @@ def _campi_modificati_da(esistente: Lead, validati: dict[str, object]) -> dict[s
 
 
 def diff(
-    db: Session, righe: list[RigaPiattaIn]
+    db: Session, righe: list[RigaPiattaIn], generato_il: datetime | None = None
 ) -> tuple[list[DiffRigaOut], list[DiffRigaOut], list[ScartoRowOut]]:
     modificate: list[DiffRigaOut] = []
     scarti: list[ScartoRowOut] = []
@@ -265,6 +265,7 @@ def diff(
                 campi_modificati=list(cambiati.keys()),
                 valori_precedenti={k: v[0] for k, v in cambiati.items()},
                 valori_nuovi={k: v[1] for k, v in cambiati.items()},
+                riga_modificata_dopo_export=riga_modificata_dopo_export(ris.esistente, generato_il),
             )
         )
 

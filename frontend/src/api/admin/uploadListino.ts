@@ -33,6 +33,9 @@ export interface VoceRiga {
 export interface DiffRow {
   riga: VoceRiga;
   valore_precedente: number | null;
+  /** D-11: true se il record a database e' stato modificato DOPO il
+   * timestamp di generazione del file caricato (`DiffPreview.generato_il`). */
+  riga_modificata_dopo_export: boolean;
 }
 
 export interface ScartoRow {
@@ -45,11 +48,13 @@ export interface DiffPreview {
   modificate: DiffRow[];
   scarti: ScartoRow[];
   target_descr: string;
+  generato_il: string | null;
 }
 
 interface RawDiffRow {
   riga: VoceRiga;
   valore_precedente: unknown;
+  riga_modificata_dopo_export: boolean;
 }
 
 interface RawDiffPreview {
@@ -57,6 +62,7 @@ interface RawDiffPreview {
   modificate: RawDiffRow[];
   scarti: ScartoRow[];
   target_descr: string;
+  generato_il: string | null;
 }
 
 function toNumberOrNull(value: unknown): number | null {
@@ -64,7 +70,11 @@ function toNumberOrNull(value: unknown): number | null {
 }
 
 function normalizeDiffRow(raw: RawDiffRow): DiffRow {
-  return { riga: raw.riga, valore_precedente: toNumberOrNull(raw.valore_precedente) };
+  return {
+    riga: raw.riga,
+    valore_precedente: toNumberOrNull(raw.valore_precedente),
+    riga_modificata_dopo_export: raw.riga_modificata_dopo_export,
+  };
 }
 
 /**
@@ -114,6 +124,7 @@ export async function previewUpload(file: File, target: UploadTarget): Promise<D
     modificate: raw.modificate.map(normalizeDiffRow),
     scarti: raw.scarti,
     target_descr: raw.target_descr,
+    generato_il: raw.generato_il,
   };
 }
 

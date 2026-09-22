@@ -49,6 +49,10 @@ class DiffRigaOut(BaseModel):
     campi_modificati: list[str] = Field(default_factory=list)
     valori_precedenti: dict[str, Any] = Field(default_factory=dict)
     valori_nuovi: dict[str, Any] = Field(default_factory=dict)
+    # D-11: True se il record a database e' stato modificato DOPO il
+    # timestamp di generazione del file caricato — informativo, non
+    # blocca ne' /confirm ne' l'apply (vedi services/import_excel/registry.py).
+    riga_modificata_dopo_export: bool = False
 
 
 class DiffPiattoOut(BaseModel):

@@ -28,7 +28,7 @@ from app.schemas.admin_upload import (
     ImportResultOut,
     UploadTarget,
 )
-from app.services.import_excel.flat import e_formato_piatto
+from app.services.import_excel.flat import e_formato_piatto, leggi_timestamp_export
 from app.services.listino_upload_service import (
     UploadValidationError,
     apply_diff_idempotent,
@@ -79,6 +79,7 @@ async def preview_upload(
     except (InvalidFileException, KeyError, OSError, *zip_error_types()) as exc:
         raise HTTPException(400, f"File .xlsx non leggibile: {exc}") from exc
 
+    generato_il = leggi_timestamp_export(wb)
     try:
         if e_formato_piatto(wb):
             righe, scarti = parse_flat_listino(content)
@@ -87,8 +88,11 @@ async def preview_upload(
     except UploadValidationError as exc:
         raise HTTPException(400, str(exc)) from exc
 
-    nuove, modificate, scarti_diff = compute_diff(db, righe, listino)
-    return DiffPreviewOut(nuove=nuove, modificate=modificate, scarti=[*scarti, *scarti_diff], target_descr=target_descr)
+    nuove, modificate, scarti_diff = compute_diff(db, righe, listino, generato_il)
+    return DiffPreviewOut(
+        nuove=nuove, modificate=modificate, scarti=[*scarti, *scarti_diff],
+        target_descr=target_descr, generato_il=generato_il,
+    )
 
 
 @router.post("/confirm", response_model=ImportResultOut)

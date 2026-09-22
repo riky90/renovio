@@ -8,6 +8,7 @@ solo le chiavi presenti in `HANDLER`)."""
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Protocol
 
 from openpyxl.workbook import Workbook
@@ -34,7 +35,7 @@ class ImportHandler(Protocol):
     def parse(self, wb: Workbook) -> tuple[list[RigaPiattaIn], list[ScartoRowOut]]: ...
 
     def diff(
-        self, db: Session, righe: list[RigaPiattaIn]
+        self, db: Session, righe: list[RigaPiattaIn], generato_il: datetime | None = None
     ) -> tuple[list[DiffRigaOut], list[DiffRigaOut], list[ScartoRowOut]]: ...
 
     def apply(
@@ -45,6 +46,31 @@ class ImportHandler(Protocol):
         *,
         is_admin: bool,
     ) -> int: ...
+
+
+def riga_modificata_dopo_export(esistente: object | None, generato_il: datetime | None) -> bool:
+    """D-11: True se `esistente.updated_at` e' successivo a `generato_il`.
+
+    T-08-71: nessuna eccezione su timestamp assente o malformato — `None`
+    (da `esistente` o `generato_il`) produce sempre `False`, mai un 500;
+    l'assenza di informazione non si trasforma in un allarme.
+    T-08-72: legge `updated_at` dall'oggetto ORM gia' caricato dal resolver
+    per il diff — nessuna query aggiuntiva per riga.
+
+    Confronto naive->aware (stesso pattern di `dependencies/auth.py`):
+    SQLite puo' restituire `updated_at` come naive anche se scritto da
+    `server_default=func.now()`/`onupdate=func.now()`; qui si assume UTC,
+    coerente con `leggi_timestamp_export` che scrive sempre in UTC-aware.
+    """
+    if esistente is None or generato_il is None:
+        return False
+    upd = getattr(esistente, "updated_at", None)
+    if upd is None:
+        return False
+    if upd.tzinfo is None:
+        upd = upd.replace(tzinfo=timezone.utc)
+    gen = generato_il if generato_il.tzinfo is not None else generato_il.replace(tzinfo=timezone.utc)
+    return upd > gen
 
 
 class RisorsaImportSconosciuta(ValueError):

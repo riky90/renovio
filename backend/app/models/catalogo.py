@@ -4,9 +4,10 @@ extra, comune_listino, referente.
 See 01-RESEARCH.md "Data Model (prescrittivo)" - implemented verbatim.
 """
 
+from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import Boolean, ForeignKey, Numeric, String, UniqueConstraint
+from sqlalchemy import Boolean, ForeignKey, Numeric, String, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -41,6 +42,13 @@ class Categoria(Base):
     # totale dal pannello admin, senza deploy e senza migrazione (ENG-02).
     nel_totale_lavori: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=True, server_default="1"
+    )
+
+    # D-11: data dell'ultima modifica, aggiornata da sola a ogni scrittura ORM
+    # (onupdate) — dice se questa riga e' cambiata dopo che un export e' stato
+    # scaricato, per la guardia di staleness dell'import.
+    updated_at: Mapped[datetime] = mapped_column(
+        nullable=False, server_default=func.now(), onupdate=func.now()
     )
 
 
@@ -91,6 +99,11 @@ class Moltiplicatore(Base):
     categoria_code: Mapped[str] = mapped_column(ForeignKey("categoria.code"), nullable=False)
     valore: Mapped[Decimal] = mapped_column(Numeric(4, 3), nullable=False)
 
+    # D-11: vedi Categoria.updated_at.
+    updated_at: Mapped[datetime] = mapped_column(
+        nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
 
 class Extra(Base):
     """Extra fissi (CSE/CSP, pratiche amministrative), sempre inclusi nel totale."""
@@ -103,6 +116,11 @@ class Extra(Base):
     iva_pct: Mapped[Decimal] = mapped_column(Numeric(4, 3), nullable=False)
     tipo_calcolo: Mapped[str] = mapped_column(String(32), nullable=False, default="fisso", server_default="fisso")
     attivo: Mapped[bool] = mapped_column(nullable=False, default=True, server_default="1")
+
+    # D-11: vedi Categoria.updated_at.
+    updated_at: Mapped[datetime] = mapped_column(
+        nullable=False, server_default=func.now(), onupdate=func.now()
+    )
 
 
 class ComuneListino(Base):

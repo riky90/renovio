@@ -31,6 +31,7 @@ e dagli applicatori id-based di `apply_diff_idempotent`.
 
 from __future__ import annotations
 
+from datetime import datetime
 from decimal import Decimal
 from typing import Annotated, Literal, Union
 
@@ -86,6 +87,10 @@ class DiffRowOut(BaseModel):
     riga: VoceRigaIn
     valore_precedente: Decimal | None = None
     campi_modificati: list[str] = Field(default_factory=list)
+    # D-11: True se il record a database e' stato modificato DOPO il
+    # timestamp di generazione del file caricato — informativo, non blocca
+    # ne' /confirm ne' l'apply (vedi services/import_excel/registry.py).
+    riga_modificata_dopo_export: bool = False
 
 
 class ScartoRowOut(BaseModel):
@@ -98,6 +103,11 @@ class DiffPreviewOut(BaseModel):
     modificate: list[DiffRowOut]
     scarti: list[ScartoRowOut]
     target_descr: str
+    # D-11: timestamp letto dal foglio ISTRUZIONI del file caricato — None
+    # se il file non lo porta (es. computo originale). Equivalente di
+    # `DiffPiattoOut.generato_il` (schemas/admin_import.py) per questo
+    # percorso separato.
+    generato_il: datetime | None = None
 
 
 class DiffConfirmIn(BaseModel):
