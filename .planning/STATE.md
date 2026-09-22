@@ -8,7 +8,7 @@ progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 9
-  completed_plans: 3
+  completed_plans: 6
   percent: 43
 ---
 
@@ -17,7 +17,7 @@ progress:
 ## Current Position
 
 Phase: 08 (export-import-excel) — EXECUTING
-Plan: 2 of 8 completi — wave 1/5 chiusa, wave 2 (08-03, 08-04, 08-05) da eseguire
+Plan: 5 of 8 completi — wave 1 e 2 chiuse, wave 3 (08-06) da eseguire
 
 - **Milestone:** v2.0 (domande e motore parametrico), fasi **05-10**. La v1.0 (MVP, fasi
   01-04) e' **completa, verificata e in produzione dal 2026-09-09** — backend su Render,
@@ -28,8 +28,11 @@ Plan: 2 of 8 completi — wave 1/5 chiusa, wave 2 (08-03, 08-04, 08-05) da esegu
   retrospettiva nei rispettivi `NN-RETRO-SUMMARY.md`; la 07 e' la prima pianificata ed
   eseguita dentro la milestone (`07-01-PLAN.md` -> `07-01-SUMMARY.md`).
 
-- **Status:** Executing Phase 08 — 2 piani su 8 completi (wave 1 chiusa: 08-01 export
-  listino + audit, 08-02 tab Anteprima). Il plan-checker era PASSED senza blocker.
+- **Status:** Executing Phase 08 — 5 piani su 8 completi. Wave 1: 08-01 export listino +
+  audit `export_log`, 08-02 tab Anteprima. Wave 2: 08-03 round-trip del listino (D-12),
+  08-04 export parametri col margine opt-in (CUR-03), 08-05 export lead tracciato (CUR-04).
+  Gate post-merge verde dopo entrambe le wave: 497 passed / 5 skipped, build frontend pulita.
+  Restano 08-06 (import parametri), 08-07 (import lead), 08-08 (guardia stale su `updated_at`).
   Contratto UI verificato in `08-UI-SPEC.md`, mappa dei pattern in `08-PATTERNS.md`.
   **Split del 2026-09-22:** il catalogo domande (D-05/06/07, D-21..D-25) e' uscito dalla
   Fase 08 ed e' diventato la **Fase 08.1**, con il suo `08.1-CONTEXT.md` gia' scritto e

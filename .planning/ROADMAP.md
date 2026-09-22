@@ -99,7 +99,7 @@ Requisiti archiviati: [`.planning/milestones/v1.0-REQUIREMENTS.md`](milestones/v
 4. L'export dei lead traccia chi scarica e quando
 5. L'anteprima admin della stima mostra il breakdown e **quali effetti hanno sparato**
 
-**Plans:** 2/8 plans executed
+**Plans:** 5/8 plans executed
 
 Plans:
 **Wave 1**
@@ -109,12 +109,12 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 08-03-PLAN.md — Ricarica listino: formato piatto, chiave per id, round-trip a zero
-- [ ] 08-04-PLAN.md — Scarica parametri del motore, con il margine come variante opt-in (CUR-03)
+- [x] 08-03-PLAN.md — Ricarica listino: formato piatto, chiave per id, round-trip a zero
+- [x] 08-04-PLAN.md — Scarica parametri del motore, con il margine come variante opt-in (CUR-03)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 08-05-PLAN.md — Export lead tracciato + log dei download in fondo alla dashboard (CUR-04)
+- [x] 08-05-PLAN.md — Export lead tracciato + log dei download in fondo alla dashboard (CUR-04)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
