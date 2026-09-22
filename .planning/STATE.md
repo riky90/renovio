@@ -8,7 +8,7 @@ progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 9
-  completed_plans: 7
+  completed_plans: 8
   percent: 43
 ---
 
@@ -17,7 +17,7 @@ progress:
 ## Current Position
 
 Phase: 08 (export-import-excel) — EXECUTING
-Plan: 6 of 8 completi — wave 1, 2 e 3 chiuse, restano 08-07 e 08-08
+Plan: 7 of 8 completi — wave 1-4 chiuse, resta 08-08
 
 - **Milestone:** v2.0 (domande e motore parametrico), fasi **05-10**. La v1.0 (MVP, fasi
   01-04) e' **completa, verificata e in produzione dal 2026-09-09** — backend su Render,
@@ -28,18 +28,19 @@ Plan: 6 of 8 completi — wave 1, 2 e 3 chiuse, restano 08-07 e 08-08
   retrospettiva nei rispettivi `NN-RETRO-SUMMARY.md`; la 07 e' la prima pianificata ed
   eseguita dentro la milestone (`07-01-PLAN.md` -> `07-01-SUMMARY.md`).
 
-- **Status:** Executing Phase 08 — 6 piani su 8 completi. Wave 1: 08-01 export listino +
+- **Status:** Executing Phase 08 — 7 piani su 8 completi. Wave 1: 08-01 export listino +
   audit `export_log`, 08-02 tab Anteprima. Wave 2: 08-03 round-trip del listino (D-12),
   08-04 export parametri col margine opt-in (CUR-03), 08-05 export lead tracciato (CUR-04).
   Wave 3: 08-06 import parametri, il registro `HANDLER` su cui poggiano i due piani
-  rimasti. Gate post-merge verde dopo ogni wave; dopo la terza: 505 passed / 5 skipped,
-  build frontend pulita.
-  Restano 08-07 (import lead) e 08-08 (guardia stale su `updated_at`).
+  rimasti. Wave 4: 08-07 import lead, con il permesso che diventa per risorsa
+  (`ImportHandler.ruolo_richiesto`) invece che globale. Gate post-merge verde dopo ogni
+  wave; dopo la quarta: 513 passed / 5 skipped, build frontend pulita.
+  Resta 08-08 (guardia stale su `updated_at`).
   Contratto UI verificato in `08-UI-SPEC.md`, mappa dei pattern in `08-PATTERNS.md`.
   **Split del 2026-09-22:** il catalogo domande (D-05/06/07, D-21..D-25) e' uscito dalla
   Fase 08 ed e' diventato la **Fase 08.1**, con il suo `08.1-CONTEXT.md` gia' scritto e
   nessun piano ancora. Nessuno degli 8 piani della 08 ne dipende.
-  **Ventidue commit in attesa di push**: il push deploya su Render e si fa a fine
+  **Ventotto commit in attesa di push**: il push deploya su Render e si fa a fine
   milestone (`git push origin master:main`), e prima serve `BACKEND_PUBLIC_URL`
   configurata su Render, o l'upload avatar torna 503.
 

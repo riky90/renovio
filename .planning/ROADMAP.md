@@ -99,7 +99,7 @@ Requisiti archiviati: [`.planning/milestones/v1.0-REQUIREMENTS.md`](milestones/v
 4. L'export dei lead traccia chi scarica e quando
 5. L'anteprima admin della stima mostra il breakdown e **quali effetti hanno sparato**
 
-**Plans:** 6/8 plans executed
+**Plans:** 7/8 plans executed
 
 Plans:
 **Wave 1**
@@ -122,7 +122,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 08-07-PLAN.md — Ricarica lead, limitata ai campi di lavorazione
+- [x] 08-07-PLAN.md — Ricarica lead, limitata ai campi di lavorazione
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
