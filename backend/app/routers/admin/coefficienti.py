@@ -20,12 +20,14 @@ aggregazione dei subrouter admin (04-02-PLAN.md Task 1).
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.dependencies.auth import get_db, require_admin
 from app.models.catalogo import Categoria, Extra, Moltiplicatore
 from app.models.dettaglio_pro import CoefficienteQuantitaVoce
+from app.models.export_log import ExportLog
 from app.models.listino import ListinoCategoria
 from app.schemas.admin_coefficienti import (
     BaseEurMqAdminOut,
@@ -39,6 +41,8 @@ from app.schemas.admin_coefficienti import (
     MoltiplicatoreAdminIn,
     MoltiplicatoreAdminOut,
 )
+from app.services.export_excel.parametri import build_workbook_parametri
+from app.services.export_excel.workbook import MIME_XLSX, build_filename
 
 router = APIRouter(prefix="/coefficienti", tags=["admin-coefficienti"])
 
@@ -78,6 +82,43 @@ def _to_coeff_pro_out(row: CoefficienteQuantitaVoce) -> CoeffProAdminOut:
 def _to_base_out(row: ListinoCategoria) -> BaseEurMqAdminOut:
     return BaseEurMqAdminOut(
         id=row.id, listino_id=row.listino_id, categoria_code=row.categoria_code, base_eur_mq=row.base_eur_mq
+    )
+
+
+# --- Export parametri motore (CUR-03, D-08, D-13) --------------------------
+
+
+@router.get("/export.xlsx")
+def esporta_parametri(
+    margine: bool = False,
+    user=Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> StreamingResponse:
+    """Workbook a cinque fogli dei parametri del motore. Di default
+    (`margine=False`) il file NON contiene `coefficiente_impresa`: nessun
+    foglio AVVISO, nome file senza marcatore. `?margine=true` produce la
+    variante opt-in — marcata nel nome (`build_filename(con_margine=True)`),
+    con foglio `AVVISO` in prima posizione — riservata comunque al ruolo
+    admin (stesso `require_admin` di entrambe le varianti, T-08-31): il
+    consulente non scarica nemmeno quella senza margine, perché
+    `/admin/coefficienti` è già una pagina da cui è escluso (D-26).
+
+    Ogni download riuscito scrive una riga in `export_log` PRIMA di
+    restituire la risposta, distinguendo la variante presa
+    (`include_margine`) — CUR-04, T-08-33."""
+    file_bytes, righe = build_workbook_parametri(db, con_margine=margine)
+    filename = build_filename("parametri-motore", con_margine=margine)
+
+    db.add(ExportLog(user_id=user.id, risorsa="parametri", righe=righe, include_margine=margine))
+    db.commit()
+
+    return StreamingResponse(
+        iter([file_bytes]),
+        media_type=MIME_XLSX,
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Cache-Control": "no-store",
+        },
     )
 
 
