@@ -99,7 +99,7 @@ Requisiti archiviati: [`.planning/milestones/v1.0-REQUIREMENTS.md`](milestones/v
 4. L'export dei lead traccia chi scarica e quando
 5. L'anteprima admin della stima mostra il breakdown e **quali effetti hanno sparato**
 
-**Plans:** 5/8 plans executed
+**Plans:** 6/8 plans executed
 
 Plans:
 **Wave 1**
@@ -118,7 +118,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 08-06-PLAN.md — Ricarica parametri: endpoint di import generico per risorsa
+- [x] 08-06-PLAN.md — Ricarica parametri: endpoint di import generico per risorsa
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
