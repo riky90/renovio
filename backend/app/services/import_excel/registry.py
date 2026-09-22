@@ -21,7 +21,15 @@ class ImportHandler(Protocol):
     """Le tre operazioni che ogni risorsa importabile implementa. `diff` e
     `apply` risolvono autonomamente contro il database (nessuno stato
     condiviso fra le due chiamate, round-trip stateless): `apply` non si
-    fida del diff calcolato in precedenza, ririsolve ogni riga."""
+    fida del diff calcolato in precedenza, ririsolve ogni riga.
+
+    `ruolo_richiesto` (piano 08-07, T-08-62): `"admin"` o `"staff"`. Il
+    router generico lo legge DOPO aver risolto la risorsa e PRIMA di
+    leggere il file caricato — il permesso dell'import segue quello della
+    pagina da cui si carica il file (D-26), mai un ruolo dichiarato dal
+    client."""
+
+    ruolo_richiesto: str
 
     def parse(self, wb: Workbook) -> tuple[list[RigaPiattaIn], list[ScartoRowOut]]: ...
 
