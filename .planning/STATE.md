@@ -44,7 +44,9 @@ Prossima: 08.1 (catalogo domande) — contesto scritto, nessun piano
   `_upsert_voce` in `listino_upload_service.py` ignora `campi_presenti` sul percorso per
   chiave naturale (viola il criterio 2 della fase), e `FlatImportDialog.tsx:75` cabla
   `campi_da_cancellare: []`, per cui `#CANCELLA#` scrive la stringa `"None"` invece di NULL.
-  Da chiudere in una 08.2 di gap closure o dentro la 09.
+  **Decisione di Riccardo del 2026-09-22: si chiudono in gap closure**, non dentro la 09.
+  Il comando e' `/gsd:plan-phase 08 --gaps`, che legge `08-REVIEW.md` e crea piani con
+  `gap_closure: true`, poi `/gsd:execute-phase 08 --gaps-only`. Da fare in sessione nuova.
   **Split del 2026-09-22:** il catalogo domande (D-05/06/07, D-21..D-25) e' uscito dalla
   Fase 08 ed e' diventato la **Fase 08.1**, con il suo `08.1-CONTEXT.md` gia' scritto e
   nessun piano ancora. Nessuno degli 8 piani della 08 ne dipende.
