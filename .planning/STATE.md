@@ -48,7 +48,7 @@ Prossima: 08.1 (catalogo domande) — contesto scritto, nessun piano
   **Split del 2026-09-22:** il catalogo domande (D-05/06/07, D-21..D-25) e' uscito dalla
   Fase 08 ed e' diventato la **Fase 08.1**, con il suo `08.1-CONTEXT.md` gia' scritto e
   nessun piano ancora. Nessuno degli 8 piani della 08 ne dipende.
-  **Trentacinque commit in attesa di push**: il push deploya su Render e si fa a fine
+  **Sessantanove commit in attesa di push**: il push deploya su Render e si fa a fine
   milestone (`git push origin master:main`), e prima serve `BACKEND_PUBLIC_URL`
   configurata su Render, o l'upload avatar torna 503.
 
