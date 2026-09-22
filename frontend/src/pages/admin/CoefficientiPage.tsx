@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { AnteprimaTab } from "@/components/admin/AnteprimaTab";
+import { EMPTY_HEADING, EMPTY_BODY } from "@/lib/adminCopy";
 import {
   getMoltiplicatori,
   updateMoltiplicatore,
@@ -31,8 +33,6 @@ import {
 } from "@/api/admin/coefficienti";
 
 const SAVE_ERROR = "Non siamo riusciti a salvare la modifica. Riprova.";
-const EMPTY_HEADING = "Nessun elemento presente";
-const EMPTY_BODY = "Aggiungi il primo elemento con il pulsante qui sopra, oppure carica un file.";
 
 function pct(value: number): string {
   return (value * 100).toLocaleString("it-IT", { maximumFractionDigits: 1 }) + "%";
@@ -57,6 +57,7 @@ export function CoefficientiPage() {
             <TabsTrigger value="iva">IVA</TabsTrigger>
             <TabsTrigger value="extra">Extra</TabsTrigger>
             <TabsTrigger value="coeff-pro">Coefficienti Pro</TabsTrigger>
+            <TabsTrigger value="anteprima">Anteprima</TabsTrigger>
           </TabsList>
 
           <TabsContent value="moltiplicatori">
@@ -73,6 +74,9 @@ export function CoefficientiPage() {
           </TabsContent>
           <TabsContent value="coeff-pro">
             <CoeffProTab />
+          </TabsContent>
+          <TabsContent value="anteprima">
+            <AnteprimaTab />
           </TabsContent>
         </Tabs>
       </div>
