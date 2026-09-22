@@ -25,6 +25,7 @@ from app.routers.admin import (
     dettaglio_pro,
     domande,
     export_log,
+    import_excel,
     lead,
     listini,
     ping,
@@ -45,6 +46,7 @@ router.include_router(testi.router)
 router.include_router(referenti.router)
 router.include_router(lead.router)
 router.include_router(upload_listino.router)
+router.include_router(import_excel.router)
 router.include_router(utenti.router)
 router.include_router(dettaglio_pro.router)
 router.include_router(domande.router)

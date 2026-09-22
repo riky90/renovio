@@ -36,10 +36,15 @@ _COLONNA_ID = "id"
 @dataclass
 class RigaPiatta:
     """Una riga dati del foglio piatto. `valori` contiene SOLO le colonne
-    che questa riga porta con se': assenza = campo non toccato (D-09)."""
+    che questa riga porta con se': assenza = campo non toccato (D-09).
+
+    `id` e' intero per le risorse a PK intera (comportamento storico, 08-03).
+    Il piano 08-06 introduce `id_numerico=False` in `leggi_foglio_piatto`
+    per le risorse a PK testuale (es. `Extra.code`): in quel caso `id` resta
+    la stringa grezza, mai forzata a `int`."""
 
     numero_riga: int
-    id: int | None
+    id: int | str | None
     valori: dict[str, object] = field(default_factory=dict)
 
 
@@ -88,7 +93,7 @@ def foglio_mancante(wb: Workbook, nome: str) -> ScartoRowOut | None:
 
 
 def leggi_foglio_piatto(
-    wb: Workbook, nome_foglio: str, *, colonne_ammesse: set[str]
+    wb: Workbook, nome_foglio: str, *, colonne_ammesse: set[str], id_numerico: bool = True
 ) -> tuple[list[RigaPiatta], list[ScartoRowOut]]:
     """Legge l'header dalla prima riga del foglio `nome_foglio` e produce
     una `RigaPiatta` per ogni riga dati non completamente vuota.
@@ -99,8 +104,12 @@ def leggi_foglio_piatto(
     assente dall'header semplicemente non compare mai in nessuna
     `RigaPiatta.valori`: non e' un errore, e' esattamente il caso di CUR-02.
 
+    `id_numerico=False` (piano 08-06): l'`id` resta la stringa grezza,
+    senza tentare `int(...)` — necessario per le risorse a PK testuale
+    (`Extra.code`), dove forzare un intero scarterebbe SEMPRE la riga.
+
     Scarti (con motivo esplicito, mai un'eccezione): riga completamente
-    vuota, riga il cui `id` non e' un intero.
+    vuota, riga il cui `id` non e' un intero (solo quando `id_numerico`).
     """
     scarti: list[ScartoRowOut] = []
     ws = wb[nome_foglio]
@@ -126,13 +135,19 @@ def leggi_foglio_piatto(
             continue
 
         id_raw = grezzo.get(_COLONNA_ID)
-        riga_id: int | None = None
+        riga_id: int | str | None = None
         if not _cella_vuota(id_raw):
-            try:
-                riga_id = int(id_raw)  # type: ignore[arg-type]
-            except (TypeError, ValueError):
-                scarti.append(ScartoRowOut(riga=numero_riga, motivo=f"id non numerico: {id_raw!r}"))
-                continue
+            if id_numerico:
+                try:
+                    riga_id = int(id_raw)  # type: ignore[arg-type]
+                except (TypeError, ValueError):
+                    scarti.append(ScartoRowOut(riga=numero_riga, motivo=f"id non numerico: {id_raw!r}"))
+                    continue
+            else:
+                riga_id = str(id_raw).strip()
+                if not riga_id:
+                    scarti.append(ScartoRowOut(riga=numero_riga, motivo="id vuoto"))
+                    continue
 
         valori: dict[str, object] = {}
         for nome_colonna, valore in grezzo.items():
