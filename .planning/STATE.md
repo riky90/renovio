@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: domande e motore parametrico
 status: executing
-last_updated: "2026-09-22T09:25:47.670Z"
+last_updated: "2026-09-22T12:09:33.243Z"
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 9
-  completed_plans: 1
+  completed_plans: 3
   percent: 43
 ---
 
@@ -16,8 +16,8 @@ progress:
 
 ## Current Position
 
-Phase: 08 (export/import Excel dal pannello admin) — PIANIFICATA, pronta per l'esecuzione
-Plan: `.planning/phases/08-export-import-excel/08-01-PLAN.md` .. `08-08-PLAN.md` (8 piani, 6 wave)
+Phase: 08 (export-import-excel) — EXECUTING
+Plan: 2 of 8 completi — wave 1/5 chiusa, wave 2 (08-03, 08-04, 08-05) da eseguire
 
 - **Milestone:** v2.0 (domande e motore parametrico), fasi **05-10**. La v1.0 (MVP, fasi
   01-04) e' **completa, verificata e in produzione dal 2026-09-09** — backend su Render,
@@ -28,9 +28,9 @@ Plan: `.planning/phases/08-export-import-excel/08-01-PLAN.md` .. `08-08-PLAN.md`
   retrospettiva nei rispettivi `NN-RETRO-SUMMARY.md`; la 07 e' la prima pianificata ed
   eseguita dentro la milestone (`07-01-PLAN.md` -> `07-01-SUMMARY.md`).
 
-- **Status:** Ready to execute — la Fase 08 e' pianificata (8 piani in 6 wave, checker
-  PASSED senza blocker) e aspetta `/gsd:execute-phase 08`. Contratto UI verificato in
-  `08-UI-SPEC.md`, mappa dei pattern in `08-PATTERNS.md`.
+- **Status:** Executing Phase 08 — 2 piani su 8 completi (wave 1 chiusa: 08-01 export
+  listino + audit, 08-02 tab Anteprima). Il plan-checker era PASSED senza blocker.
+  Contratto UI verificato in `08-UI-SPEC.md`, mappa dei pattern in `08-PATTERNS.md`.
   **Split del 2026-09-22:** il catalogo domande (D-05/06/07, D-21..D-25) e' uscito dalla
   Fase 08 ed e' diventato la **Fase 08.1**, con il suo `08.1-CONTEXT.md` gia' scritto e
   nessun piano ancora. Nessuno degli 8 piani della 08 ne dipende.

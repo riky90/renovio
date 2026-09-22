@@ -99,13 +99,13 @@ Requisiti archiviati: [`.planning/milestones/v1.0-REQUIREMENTS.md`](milestones/v
 4. L'export dei lead traccia chi scarica e quando
 5. L'anteprima admin della stima mostra il breakdown e **quali effetti hanno sparato**
 
-**Plans:** 8 plans
+**Plans:** 2/8 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 08-01-PLAN.md — Fondazione export + "Scarica listino" tracciato (tabella `export_log`, shell del workbook, client blob)
-- [ ] 08-02-PLAN.md — Tab Anteprima della stima, sesta tab di /admin/coefficienti (PAR-04, solo frontend)
+- [x] 08-01-PLAN.md — Fondazione export + "Scarica listino" tracciato (tabella `export_log`, shell del workbook, client blob)
+- [x] 08-02-PLAN.md — Tab Anteprima della stima, sesta tab di /admin/coefficienti (PAR-04, solo frontend)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
