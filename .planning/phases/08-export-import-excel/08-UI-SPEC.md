@@ -169,6 +169,9 @@ La variante marcata è un'azione distinta, mai il default di un checkbox lasciat
   - Bottoni: "Annulla" (`AlertDialogCancel`, bare) · "Scarica con margine" (bottone con
     `className="border border-amber-border bg-amber-bg text-amber-fg hover:bg-amber-border/40"`,
     icona `Lock`).
+  - **Focus di default su "Annulla"**, non sull'azione: `autoFocus` sull'`AlertDialogCancel`.
+    È l'unico dialog del pannello dove un Invio distratto fa uscire il coefficiente impresa
+    dal server (regola di dominio #1), quindi il tasto Invio non deve mai confermarlo.
 - Nome file marcato per riconoscibilità anche fuori dall'app: aggiunge il segmento
   `con-margine` prima della data, es. `parametri-motore_con-margine_2026-09-22.xlsx` contro
   `parametri-motore_2026-09-22.xlsx` per il default.
@@ -367,8 +370,11 @@ Questa è l'unica pagina CRUD del pannello che **non** usa `AdminDeleteConfirm`.
   corretta perché "disattivato" *è* uno stato secondario voluto, non un dato da non
   nascondere.
 - Azione di riga: **un solo bottone icona** (`Power` o `EyeOff`/`Eye` da lucide a seconda
-  dello stato corrente), `variant="ghost" size="icon-sm"`, che alterna `attiva`
-  direttamente — **nessun `AlertDialog` di conferma**: è un'azione reversibile (si
+  dello stato corrente), `variant="ghost" size="icon-sm"`, con `aria-label="Disattiva"`
+  quando la riga è attiva e `aria-label="Riattiva"` quando è disattivata — esplicito nel
+  contratto perché il pannello è incoerente sul punto (`CoefficientiPage.tsx:367` lo ha,
+  `BonusPage.tsx:95` no) e un bottone icon-only senza etichetta è muto per uno screen
+  reader. Alterna `attiva` direttamente — **nessun `AlertDialog` di conferma**: è un'azione reversibile (si
   riattiva con lo stesso bottone), coerente con D-25 e con il fatto che le stime salvate che
   citano la domanda restano leggibili comunque. Al successo: toast "Modifica salvata"
   (pattern esistente), nessuna copy di conferma distruttiva da scrivere perché non è
