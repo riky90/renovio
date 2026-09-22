@@ -2,39 +2,48 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: domande e motore parametrico
-status: Phase 08 context gathered
-last_updated: "2026-09-21T20:30:00.000Z"
+status: executing
+last_updated: "2026-09-22T09:25:47.670Z"
 progress:
-  total_phases: 6
+  total_phases: 7
   completed_phases: 3
-  total_plans: 7
-  completed_plans: 3
-  percent: 50
+  total_plans: 9
+  completed_plans: 1
+  percent: 43
 ---
 
 # Project State — ristruttura-stima
 
 ## Current Position
 
-Phase: 08 (export/import Excel dal pannello admin) — CONTEXT GATHERED, da pianificare
-Plan: `.planning/phases/08-export-import-excel/08-CONTEXT.md`
+Phase: 08 (export/import Excel dal pannello admin) — PIANIFICATA, pronta per l'esecuzione
+Plan: `.planning/phases/08-export-import-excel/08-01-PLAN.md` .. `08-08-PLAN.md` (8 piani, 6 wave)
 
 - **Milestone:** v2.0 (domande e motore parametrico), fasi **05-10**. La v1.0 (MVP, fasi
   01-04) e' **completa, verificata e in produzione dal 2026-09-09** — backend su Render,
   frontend su Vercel — e archiviata in `.planning/milestones/v1.0-ROADMAP.md`.
-- **Phase:** 3 di 6 complete — 05 (catalogo domande + motore Free parametrico), 06 (wizard
+
+- **Phase:** 3 di 7 complete — 05 (catalogo domande + motore Free parametrico), 06 (wizard
   unico), 07 (arredo). Le prime due eseguite fuori dal ciclo GSD e ricostruite in
   retrospettiva nei rispettivi `NN-RETRO-SUMMARY.md`; la 07 e' la prima pianificata ed
   eseguita dentro la milestone (`07-01-PLAN.md` -> `07-01-SUMMARY.md`).
-- **Status:** Phase 07 complete e committata (`6158eef`). Phase 08 ha il suo `08-CONTEXT.md`
-  (26 decisioni, commit `19dfa66`) e aspetta `/gsd:plan-phase 08`.
-  **Dodici commit in attesa di push**: il push deploya su Render e si fa a fine milestone
-  (`git push origin master:main`), e prima serve `BACKEND_PUBLIC_URL` configurata su Render.
+
+- **Status:** Ready to execute — la Fase 08 e' pianificata (8 piani in 6 wave, checker
+  PASSED senza blocker) e aspetta `/gsd:execute-phase 08`. Contratto UI verificato in
+  `08-UI-SPEC.md`, mappa dei pattern in `08-PATTERNS.md`.
+  **Split del 2026-09-22:** il catalogo domande (D-05/06/07, D-21..D-25) e' uscito dalla
+  Fase 08 ed e' diventato la **Fase 08.1**, con il suo `08.1-CONTEXT.md` gia' scritto e
+  nessun piano ancora. Nessuno degli 8 piani della 08 ne dipende.
+  **Diciassette commit in attesa di push**: il push deploya su Render e si fa a fine
+  milestone (`git push origin master:main`), e prima serve `BACKEND_PUBLIC_URL`
+  configurata su Render, o l'upload avatar torna 503.
+
 - **Numerazione:** le fasi non ripartono da 01 a ogni milestone (regola GSD). Il piano
   originale chiamava queste fasi 1-6; qui sono **05-10**. La corrispondenza e':
   `piano Fase 1 -> 05` · `2 -> 06` · `3 -> 07` · `4 -> 08` · `5 -> 09` · `6 -> 10`.
   Il piano sorgente resta `~/.claude/plans/il-punto-1-come-steady-comet.md`, ora tradotto in
   `.planning/ROADMAP.md` + `.planning/REQUIREMENTS.md` (27 requisiti v2).
+
 - **Regola range (locked):** ±% solo sui lavori (4 categorie); extra fissi (€2.806 lordo); totale = Σ card + extra. Oracolo primario: 85 mq · totale = €47.985–€70.575.
 - **Stack (da RESEARCH):** FastAPI + SQLAlchemy 2.0 + Pydantic v2 + Postgres/Alembic · React 19 + Vite + TS 5.9 + react-query + Tailwind/shadcn · autocomplete comuni ISTAT bundlato offline.
 
@@ -59,7 +68,6 @@ Plan: `.planning/phases/08-export-import-excel/08-CONTEXT.md`
   `state.record-session` risponde `"recorded": false` **ma scrive lo stesso**, avendo
   riscritto questo frontmatter con `completed_phases: 1`, `total_plans: 1` e `percent: 17`
   contro `completed_plans: 3`. Valori ripristinati a mano.
-
 
 - **2026-09-21 (4)** — **Fase 07 committata + igiene, niente push.** Tre commit nuovi sopra
   i tre in attesa: `feat(arredo)` (Fase 07, 33 file), `fix(footer)` (chiave React duplicata
@@ -105,6 +113,7 @@ Plan: `.planning/phases/08-export-import-excel/08-CONTEXT.md`
   e risposte sui default coincidono (109.110-162.262) e +2 bagni sposta di 5.808 euro.
   Corretto in corsa un errore di validazione mostrato prima che il campo fosse compilabile.
   **Non ancora pushato in produzione.** Prossimo: Fase 3 (arredo). Prima:
+
 - **2026-09-21** — **Fase 1 v2 completa: catalogo domande in database + motore Free
   parametrico.** Migrazione `0014`, tutta additiva. Nuove tabelle `domanda` /
   `opzione_domanda` / `effetto_opzione` / `attesa_immobile`; `app/services/effetti.py` come
@@ -123,6 +132,7 @@ Plan: `.planning/phases/08-export-import-excel/08-CONTEXT.md`
   spento, layer acceso senza risposte, risposte esplicite pari agli attesi). **I 52
   coefficienti sono una bozza, non una taratura** — vanno confermati su preventivi reali
   prima che aggiungano accuratezza e non solo risoluzione. Prossimo: Fase 2. Prima:
+
 - **2026-08-27** — **Fase 3 COMPLETA e verificata + rifiniture flusso Pro post-piani.** Eseguiti tutti e 6 i piani (03-01..03-06). Poi, su feedback utente in verifica manuale, implementate e committate rifiniture (commit `146cdcb` backend, `31c1371` frontend): (P3) totali a range calcolati dal backend a livello sottocategoria/categoria/generale (service+schema+router+template PDF, fonte unica → schermata e PDF identici); (P2) in home un Pro vede il **dettaglio inline** al posto del riepilogo a card; (P4) in "Le mie stime" un Pro apre la **stima di dettaglio**, non lo snapshot base (auto-save invariato); (P1) AccountMenu Free→"Passa a Pro" / Pro→"Contatta un consulente"; (P5) fix bug teaser "Passa a Pro" mostrato erroneamente ai Pro. Rifattorizzato tutto il dettaglio in `DettaglioProView` condiviso da home/pagina dedicata/le-mie-stime (non possono divergere). Verifica goal-backward `03-VERIFICATION.md`: 9/9 must-have a livello codice, backend 107 passed/4 skip, `tsc` pulito, anti-leak a zero hit. **Checkpoint human-verify (03-06 Task 3) APPROVATO dall'utente** ("ho provato il flusso e funziona, come MVP funziona"). **Override PDF concesso** dall'utente (stesso della Fase 2/02-08): il render byte WeasyPrint non gira su questa macchina Windows senza GTK3 — logica coperta dai test, byte verificabili in ambiente con GTK3 (Debian/Railway), non blocca. **Known issue (deferred su decisione utente):** da anonimo, fatta una prima stima, poi "Accedi" → l'utente NON torna alla sua stima ma finisce su pagina bianca; da sistemare in una fase/patch successiva (non blocca l'MVP). Prima:
 - **2026-08-27** — **Eseguito Plan 03-04 (PDF Pro dettagliato)**: `app/services/pdf_service.py` esteso con `render_pro()` (import WeasyPrint lazy invariato, docstring di modulo che documenta l'asimmetria deliberata recompute-live/Pro vs snapshot-frozen/Free, Pitfall 2) e `build_filename_pro()`; `app/templates/pdf_stima_pro.html` (multi-pagina Jinja2/WeasyPrint, branding Slate/blue-600 con badge PRO, disclaimer di non-riconciliazione D-01, iterazione categoria→sottocategoria→voci a range `€ min – € max`, paginazione `@page`/`break-inside: avoid`, mai dati impresa); `app/routers/dettaglio_pro.py` con `_compute_dettaglio()` estratto come unico punto di calcolo condiviso da GET dettaglio-pro, POST risposte e il nuovo `GET /me/stime/{id}/pdf-pro` (dietro `require_pro`, ownership 404 anti-IDOR, `StreamingResponse` application/pdf) — parità schermata/PDF garantita by-construction, non da un test a posteriori. `test_pdf_pro.py`: matrice 401/403/404 sempre attiva (non richiede GTK3), test di parità numerica esplicito (`_compute_dettaglio()` vs risposta HTTP del GET JSON), byte-generating skip-graceful anti-leak, guard statico anti-`EstimationService`. Deviazione (Rule 1): commento HTML del template riformulato per non contenere letteralmente le stringhe impresa vietate, stesso precedente 02/03-03 per il criterio grep meccanico. Suite backend completa 106/106 passed + 4 skip invariati (GTK3). Vedi `03-04-SUMMARY.md`. Prima:
 - **2026-08-27** — **Eseguito Plan 03-03 (Motore Pro bottom-up + endpoint dettaglio dietro paywall)**: `app/services/dettaglio_pro.py` (`DettaglioProService.compute()`, Decimal puro, sibling di `EstimationService`: itera Categoria→Sottocategoria→Voce, quantita da coefficiente-per-mq o da domanda-mirata/default-conteggio, range per-voce riusando `TipoRistrutturazione.range_pct`, nessun campo impresa, nessun import del motore Free/D-01) + oracolo pinnato su `A.1.1.1`/`A.0.3` dal seed reale; `app/schemas/dettaglio_pro.py` (DTO chiusi anti-leak + `RisposteDomandeRequest` bounded ASVS V5); `app/routers/dettaglio_pro.py` con `GET /me/stime/{id}/dettaglio-pro` + `POST .../dettaglio-pro/risposte` dietro `require_pro`, ownership 404 anti-IDOR, risposte persistite in `risposte_pro_json` cosi' schermata e futuro PDF non divergono (Pitfall 3); wiring in `main.py`. TDD: `test_dettaglio_pro.py` + `test_dettaglio_pro_paywall.py` (oracolo, domanda mirata, matrice 401/403/200, anti-IDOR, anti-leak ricorsivo, integrazione POST-risposte→GET), suite backend completa 101/101 passed + 2 skip invariati (GTK3). Deviazione (Rule 1/2): strategia di calcolo quantita estesa oltre il testo letterale del piano per coprire le righe seedate con `default_conteggio` senza `domanda_mirata_key` (150/300 righe, voci a conteggio non mirate). Vedi `03-03-SUMMARY.md`. Prima:

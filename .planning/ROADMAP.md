@@ -102,13 +102,30 @@ Requisiti archiviati: [`.planning/milestones/v1.0-REQUIREMENTS.md`](milestones/v
 **Plans:** 8 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 08-01-PLAN.md — Fondazione export + "Scarica listino" tracciato (tabella `export_log`, shell del workbook, client blob)
 - [ ] 08-02-PLAN.md — Tab Anteprima della stima, sesta tab di /admin/coefficienti (PAR-04, solo frontend)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 08-03-PLAN.md — Ricarica listino: formato piatto, chiave per id, round-trip a zero
 - [ ] 08-04-PLAN.md — Scarica parametri del motore, con il margine come variante opt-in (CUR-03)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 08-05-PLAN.md — Export lead tracciato + log dei download in fondo alla dashboard (CUR-04)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 08-06-PLAN.md — Ricarica parametri: endpoint di import generico per risorsa
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 08-07-PLAN.md — Ricarica lead, limitata ai campi di lavorazione
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
 - [ ] 08-08-PLAN.md — `updated_at` sulla curatela e avviso "cambiata dopo l'export" (D-11)
 
 **Non pianificato in questa fase — in attesa di decisione:** il gruppo *catalogo domande*
@@ -135,6 +152,7 @@ raccomandazione di split in `.planning/phases/08-export-import-excel/08-CONTEXT.
 **Nota:** il backend CRUD di domande/opzioni/effetti **esiste già per intero** (`backend/app/routers/admin/domande.py:144-413`). La fase è in gran parte frontend più una voce nel registro export/import costruito in Fase 08. Chiude il chip `task_9da38ee9` e la violazione della regola #3 di `CLAUDE.md`.
 
 Plans:
+
 - [ ] TBD (run /gsd:plan-phase 08.1 to break down)
 
 ### Phase 09: Configuratore Pro e chiusura del bug dei cataloghi
