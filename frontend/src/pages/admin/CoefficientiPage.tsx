@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Download, Lock } from "lucide-react";
 import { AdminLayout } from "@/pages/admin/AdminLayout";
 import { AdminTable } from "@/components/admin/AdminTable";
 import { AdminCrudDialog } from "@/components/admin/AdminCrudDialog";
@@ -12,8 +12,25 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { AnteprimaTab } from "@/components/admin/AnteprimaTab";
 import { EMPTY_HEADING, EMPTY_BODY } from "@/lib/adminCopy";
+import { scaricaExcel } from "@/api/admin/exportExcel";
 import {
   getMoltiplicatori,
   updateMoltiplicatore,
@@ -33,6 +50,7 @@ import {
 } from "@/api/admin/coefficienti";
 
 const SAVE_ERROR = "Non siamo riusciti a salvare la modifica. Riprova.";
+const EXPORT_ERROR = "Non siamo riusciti a generare il file. Riprova.";
 
 function pct(value: number): string {
   return (value * 100).toLocaleString("it-IT", { maximumFractionDigits: 1 }) + "%";
@@ -45,10 +63,81 @@ function pct(value: number): string {
  * lettura qui (la scrittura resta nel CRUD categoria di Listini e prezzi).
  */
 export function CoefficientiPage() {
+  const [margineDialogOpen, setMargineDialogOpen] = useState(false);
+
+  const scaricaMutation = useMutation({
+    mutationFn: () => scaricaExcel("/admin/coefficienti/export.xlsx"),
+    onError: () => {
+      toast.error(EXPORT_ERROR);
+    },
+  });
+
+  const scaricaMargineMutation = useMutation({
+    mutationFn: () => scaricaExcel("/admin/coefficienti/export.xlsx?margine=true"),
+    onSuccess: () => {
+      setMargineDialogOpen(false);
+    },
+    onError: () => {
+      toast.error(EXPORT_ERROR);
+    },
+  });
+
   return (
     <AdminLayout>
       <div className="flex flex-col gap-6">
-        <h1 className="text-lg font-semibold text-foreground">Coefficienti</h1>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1 className="text-lg font-semibold text-foreground">Coefficienti</h1>
+          <div className="flex flex-wrap gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={scaricaMutation.isPending}
+                >
+                  <Download className="size-4" />
+                  {scaricaMutation.isPending ? "Generazione…" : "Scarica parametri"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem onSelect={() => scaricaMutation.mutate()}>
+                  Scarica
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setMargineDialogOpen(true)}>
+                  <Lock className="size-3.5" />
+                  <span className="text-muted-foreground">Scarica con margine (riservato)</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        <AlertDialog open={margineDialogOpen} onOpenChange={setMargineDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Scaricare il file con il margine?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Questo file contiene il coefficiente impresa: non condividerlo con clienti o
+                consulenti esterni. Il download viene registrato con il tuo nome.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel autoFocus>Annulla</AlertDialogCancel>
+              <AlertDialogAction
+                variant="outline"
+                className="border border-amber-border bg-amber-bg text-amber-fg hover:bg-amber-border/40"
+                disabled={scaricaMargineMutation.isPending}
+                onClick={(event) => {
+                  event.preventDefault();
+                  scaricaMargineMutation.mutate();
+                }}
+              >
+                <Lock className="size-4" />
+                {scaricaMargineMutation.isPending ? "Generazione…" : "Scarica con margine"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <Tabs defaultValue="moltiplicatori">
           <TabsList className="w-full">
