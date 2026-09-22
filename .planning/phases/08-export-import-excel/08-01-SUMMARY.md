@@ -141,3 +141,8 @@ None - no external service configuration required.
 ---
 *Phase: 08-export-import-excel*
 *Completed: 2026-09-22*
+
+## Self-Check: PASSED
+
+Tutti i file dichiarati creati/modificati esistono su disco; tutti e quattro i commit
+(`be8bdb6`, `4a98e62`, `38bb8b3`, `a96d6bd`) presenti in `git log --oneline`.
