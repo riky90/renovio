@@ -99,6 +99,22 @@ Requisiti archiviati: [`.planning/milestones/v1.0-REQUIREMENTS.md`](milestones/v
 4. L'export dei lead traccia chi scarica e quando
 5. L'anteprima admin della stima mostra il breakdown e **quali effetti hanno sparato**
 
+**Plans:** 8 plans
+
+Plans:
+- [ ] 08-01-PLAN.md — Fondazione export + "Scarica listino" tracciato (tabella `export_log`, shell del workbook, client blob)
+- [ ] 08-02-PLAN.md — Tab Anteprima della stima, sesta tab di /admin/coefficienti (PAR-04, solo frontend)
+- [ ] 08-03-PLAN.md — Ricarica listino: formato piatto, chiave per id, round-trip a zero
+- [ ] 08-04-PLAN.md — Scarica parametri del motore, con il margine come variante opt-in (CUR-03)
+- [ ] 08-05-PLAN.md — Export lead tracciato + log dei download in fondo alla dashboard (CUR-04)
+- [ ] 08-06-PLAN.md — Ricarica parametri: endpoint di import generico per risorsa
+- [ ] 08-07-PLAN.md — Ricarica lead, limitata ai campi di lavorazione
+- [ ] 08-08-PLAN.md — `updated_at` sulla curatela e avviso "cambiata dopo l'export" (D-11)
+
+**Non pianificato in questa fase — in attesa di decisione:** il gruppo *catalogo domande*
+(pagina CRUD D-21..D-25 + export/import dei cinque fogli D-05/D-06/D-07). Vedi la
+raccomandazione di split in `.planning/phases/08-export-import-excel/08-CONTEXT.md` D-21.
+
 ### Phase 09: Configuratore Pro e chiusura del bug dei cataloghi
 
 **Status:** pending
