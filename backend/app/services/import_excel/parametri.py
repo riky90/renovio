@@ -655,6 +655,8 @@ class _ParametriHandler:
     attributi — soddisfa `ImportHandler` per struttura (Protocol), senza
     bisogno di una classe con logica propria."""
 
+    ruolo_richiesto = "admin"
+
     parse = staticmethod(parse)
     diff = staticmethod(diff)
     apply = staticmethod(apply)
