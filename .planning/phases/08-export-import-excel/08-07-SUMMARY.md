@@ -140,3 +140,10 @@ None - nessuna configurazione di servizio esterno richiesta.
 ---
 *Phase: 08-export-import-excel*
 *Completed: 2026-09-22*
+
+## Self-Check: PASSED
+
+Tutti i 3 file dichiarati (`backend/app/services/import_excel/lead.py`,
+`backend/tests/test_import_lead.py`, questo SUMMARY) trovati sul filesystem.
+Tutti e tre i commit (`982a494`, `6ac5cbe`, `66e1b3f`) trovati in
+`git log --oneline --all`.
