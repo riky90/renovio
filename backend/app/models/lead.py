@@ -51,3 +51,10 @@ class Lead(Base):
     nota: Mapped[str | None] = mapped_column(String(2000), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.now())
+
+    # D-11: data dell'ultima modifica, aggiornata da sola a ogni scrittura ORM
+    # (onupdate) — dice se questa riga e' cambiata dopo che un export e' stato
+    # scaricato, per la guardia di staleness dell'import.
+    updated_at: Mapped[datetime] = mapped_column(
+        nullable=False, server_default=func.now(), onupdate=func.now()
+    )

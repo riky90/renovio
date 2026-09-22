@@ -19,9 +19,10 @@ disallineamento schema-risposta.
 
 from __future__ import annotations
 
+from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import ForeignKey, Numeric, String, UniqueConstraint
+from sqlalchemy import ForeignKey, Numeric, String, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -41,6 +42,13 @@ class Sottocategoria(Base):
     nome: Mapped[str] = mapped_column(String(200), nullable=False)
     famiglia: Mapped[str] = mapped_column(String(16), nullable=False)  # 'gerarchica' | 'catalogo'
     ordine: Mapped[int] = mapped_column(nullable=False, default=0, server_default="0")
+
+    # D-11: data dell'ultima modifica, aggiornata da sola a ogni scrittura ORM
+    # (onupdate) — dice se questa riga e' cambiata dopo che un export e' stato
+    # scaricato, per la guardia di staleness dell'import.
+    updated_at: Mapped[datetime] = mapped_column(
+        nullable=False, server_default=func.now(), onupdate=func.now()
+    )
 
 
 class Voce(Base):
@@ -72,6 +80,11 @@ class Voce(Base):
     # cura nulla, il motore Pro produce esattamente il risultato di prima.
     livello: Mapped[str | None] = mapped_column(String(16), nullable=True)
 
+    # D-11: vedi Sottocategoria.updated_at.
+    updated_at: Mapped[datetime] = mapped_column(
+        nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
 
 class CoefficienteQuantitaVoce(Base):
     """Coefficiente quantita-per-m2 (o domanda mirata) per voce, per tipo di
@@ -87,3 +100,8 @@ class CoefficienteQuantitaVoce(Base):
     coefficiente_qta_per_mq: Mapped[Decimal | None] = mapped_column(Numeric(8, 4), nullable=True)
     domanda_mirata_key: Mapped[str | None] = mapped_column(String(32), nullable=True)
     default_conteggio: Mapped[int | None] = mapped_column(nullable=True)
+
+    # D-11: vedi Sottocategoria.updated_at.
+    updated_at: Mapped[datetime] = mapped_column(
+        nullable=False, server_default=func.now(), onupdate=func.now()
+    )
