@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: domande e motore parametrico
 status: ready_to_plan
-last_updated: 2026-09-22T20:05:35.572Z
+last_updated: 2026-09-23T12:00:00.000Z
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 9
   completed_plans: 9
   percent: 57
-stopped_at: Phase 08 complete (8/8) + gap closure chiusa (13 findings) — ready to discuss Phase 08.1
+stopped_at: Phase 08.1 context gathered (D-27..D-40) — ready to plan Phase 08.1
 ---
 
 # Project State — ristruttura-stima
@@ -18,7 +18,7 @@ stopped_at: Phase 08 complete (8/8) + gap closure chiusa (13 findings) — ready
 ## Current Position
 
 Phase: 08 (export-import-excel) — COMPLETE (8/8, verificata 5/5)
-Prossima: 08.1 (catalogo domande) — contesto scritto, nessun piano
+Prossima: 08.1 (catalogo domande) — contesto aggiornato il 2026-09-23 (D-27..D-40), nessun piano. Resume: `.planning/phases/08.1-catalogo-domande-pagina-crud-e-file-excel/08.1-CONTEXT.md`
 
 - **Milestone:** v2.0 (domande e motore parametrico), fasi **05-10**. La v1.0 (MVP, fasi
   01-04) e' **completa, verificata e in produzione dal 2026-09-09** — backend su Render,
