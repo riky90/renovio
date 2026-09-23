@@ -49,15 +49,19 @@ interface ExcelUploadDialogProps {
   onImported: (listinoId: number) => void;
 }
 
+const EURO = { style: "currency", currency: "EUR" } as const;
+
 function toDiffPreviewRows(rows: DiffRow[]): DiffPreviewRow[] {
   return rows.map((row, i) => ({
     key: String(i),
     label: row.riga.descrizione,
     valorePrecedente:
-      row.valore_precedente !== null
-        ? row.valore_precedente.toLocaleString("it-IT", { style: "currency", currency: "EUR" })
-        : "—",
-    valoreNuovo: row.riga.prezzo_unitario_cliente.toLocaleString("it-IT", { style: "currency", currency: "EUR" }),
+      row.valore_precedente !== null ? row.valore_precedente.toLocaleString("it-IT", EURO) : "—",
+    // `row.prezzoNuovo`, non `row.riga.prezzo_unitario_cliente`: quello e'
+    // una stringa (pydantic serializza Decimal come stringa JSON) e
+    // `String.prototype.toLocaleString` ignora gli argomenti, restituendo
+    // `12.50` invece di `12,50 €`.
+    valoreNuovo: row.prezzoNuovo !== null ? row.prezzoNuovo.toLocaleString("it-IT", EURO) : "—",
     staleAfterExport: row.riga_modificata_dopo_export,
   }));
 }

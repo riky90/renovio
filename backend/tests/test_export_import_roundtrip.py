@@ -14,6 +14,7 @@ import io
 import re
 from decimal import Decimal
 from pathlib import Path
+from typing import get_args, get_origin
 
 import openpyxl
 import pytest
@@ -897,9 +898,50 @@ class TestContrattoDiffRowSulFilo:
             )
             assert r["riga"]["campi_presenti"] is not None
             assert "prezzo_unitario_cliente" in r["riga"]["campi_presenti"]
+            # WR-03: Decimal-as-string al confine API. Il valore arriva al
+            # client come STRINGA JSON, non come number — `"12.50"`, non
+            # `12.5`. Vale per il prezzo dentro `riga` e per
+            # `valore_precedente`, che sono entrambi `Decimal` pydantic.
+            assert isinstance(r["riga"]["prezzo_unitario_cliente"], str), (
+                "prezzo_unitario_cliente non e' piu' una stringa sul filo: "
+                "aggiornare il tipo in frontend/src/api/admin/uploadListino.ts"
+            )
+            if r["valore_precedente"] is not None:
+                assert isinstance(r["valore_precedente"], str)
 
         modificata = next(r for r in body["modificate"] if r["riga"]["id"] == voce_id)
         assert modificata["riga"]["id"] == voce_id
+
+
+def _forma_json(annotazione: object) -> str:
+    """Riduce un'annotazione pydantic alla forma che il campo assume in
+    JSON. `Decimal -> "string"` non e' un'approssimazione: e' la convenzione
+    Decimal-as-string del progetto, ed e' esattamente il punto che il
+    confronto sui soli nomi non vedeva."""
+    args = [a for a in get_args(annotazione) if a is not type(None)]
+    if args:
+        annotazione = args[0]
+    if get_origin(annotazione) in (list, set, tuple, frozenset):
+        return "array"
+    if annotazione is bool:  # prima di int: bool e' sottoclasse di int
+        return "boolean"
+    if annotazione is Decimal or annotazione is str:
+        return "string"
+    if annotazione in (int, float):
+        return "number"
+    return str(annotazione)
+
+
+def _forma_ts(tipo: str) -> str:
+    """Stessa riduzione, dal lato TypeScript: `string[] | null` -> "array",
+    `number | null` -> "number"."""
+    tipo = tipo.strip()
+    if "[]" in tipo:
+        return "array"
+    for primitivo in ("string", "number", "boolean"):
+        if re.search(rf"\b{primitivo}\b", tipo):
+            return primitivo
+    return tipo
 
 
 class TestContrattoVoceRigaTypeScript:
@@ -917,11 +959,19 @@ class TestContrattoVoceRigaTypeScript:
 
     Il frontend non ha un test runner: questo confronto e' il solo modo di
     tenere le due dichiarazioni allineate automaticamente.
+
+    Confronta i NOMI e la FORMA JSON dei tipi. La sola verifica dei nomi
+    dava una sicurezza che non aveva: `prezzo_unitario_cliente` era
+    dichiarato `number` mentre sul filo e' una stringa (pydantic serializza
+    `Decimal` come stringa JSON), e il test passava lo stesso — mentre a
+    schermo la colonna "nuovo" della tabella di anteprima mostrava `12.50`
+    grezzo invece di `12,50 €`, perche'
+    `String.prototype.toLocaleString` ignora gli argomenti.
     """
 
     PERCORSO_TS = "frontend/src/api/admin/uploadListino.ts"
 
-    def test_voce_riga_ts_elenca_gli_stessi_campi_di_voce_riga_in(self):
+    def _corpo_interfaccia(self) -> str:
         radice = Path(__file__).resolve().parents[2]
         if not (radice / "frontend").is_dir():
             # Checkout del solo backend (es. immagine Docker): non c'e'
@@ -935,12 +985,45 @@ class TestContrattoVoceRigaTypeScript:
         sorgente = percorso.read_text(encoding="utf-8")
         corpo = re.search(r"export interface VoceRiga \{(.*?)\n\}", sorgente, re.DOTALL)
         assert corpo is not None, "interfaccia VoceRiga non trovata in uploadListino.ts"
+        return corpo.group(1)
 
-        campi_ts = set(re.findall(r"^\s{2}(\w+)\??:", corpo.group(1), re.MULTILINE))
+    def test_voce_riga_ts_elenca_gli_stessi_campi_di_voce_riga_in(self):
+        campi_ts = set(re.findall(r"^\s{2}(\w+)\??:", self._corpo_interfaccia(), re.MULTILINE))
         campi_py = set(VoceRigaIn.model_fields)
 
         assert campi_ts == campi_py, (
             "VoceRiga (TypeScript) e VoceRigaIn (pydantic) sono disallineati.\n"
             f"  solo in TS:     {sorted(campi_ts - campi_py)}\n"
             f"  solo in Python: {sorted(campi_py - campi_ts)}"
+        )
+
+    def test_voce_riga_ts_dichiara_la_forma_json_giusta_per_ogni_campo(self):
+        """WR-03: il confronto sui soli nomi non basta.
+
+        Riduce entrambe le dichiarazioni alla forma JSON che il campo ha
+        davvero sul filo (`string`/`number`/`boolean`/`array`) e le mette a
+        confronto. La riduzione e' volutamente grossolana — non prova a
+        confrontare la nullabilita' — ma intercetta l'errore che conta: un
+        `Decimal` dichiarato `number` in TypeScript.
+        """
+        attesi = {nome: _forma_json(campo.annotation) for nome, campo in VoceRigaIn.model_fields.items()}
+        dichiarati = {
+            nome: _forma_ts(tipo)
+            for nome, tipo in re.findall(r"^\s{2}(\w+)\??:\s*([^;]+);", self._corpo_interfaccia(), re.MULTILINE)
+        }
+
+        disallineati = {
+            nome: (attesi[nome], dichiarati.get(nome))
+            for nome in attesi
+            if dichiarati.get(nome) != attesi[nome]
+        }
+        assert not disallineati, (
+            "VoceRiga (TypeScript) dichiara tipi che non corrispondono alla forma "
+            "JSON di VoceRigaIn. Nota che pydantic serializza `Decimal` come "
+            "STRINGA, non come number (convenzione Decimal-as-string del "
+            "progetto).\n"
+            + "\n".join(
+                f"  {nome}: atteso {atteso!r}, dichiarato {dichiarato!r}"
+                for nome, (atteso, dichiarato) in sorted(disallineati.items())
+            )
         )

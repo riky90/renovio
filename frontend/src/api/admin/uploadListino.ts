@@ -51,7 +51,19 @@ export interface VoceRiga {
   codice: string | null;
   descrizione: string;
   um: string;
-  prezzo_unitario_cliente: number;
+  /**
+   * Decimal-as-string al confine API: pydantic serializza `Decimal` come
+   * stringa JSON, non come number (`"12.50"`, non `12.5`). Dichiararlo
+   * `number` non era solo un tipo sbagliato, era un difetto visibile:
+   * `String.prototype.toLocaleString` ignora gli argomenti, quindi la
+   * colonna "nuovo" della tabella di anteprima mostrava `12.50` grezzo
+   * accanto a una colonna "precedente" formattata `12,50 €`.
+   *
+   * Il campo resta stringa QUI perche' l'oggetto `riga` viene rispedito
+   * verbatim a `/confirm`: il numero normalizzato sta accanto
+   * (`DiffRow.prezzoNuovo`), mai al suo posto.
+   */
+  prezzo_unitario_cliente: string;
   ordine: number;
   livello: string | null;
   campi_presenti: string[] | null;
@@ -59,6 +71,10 @@ export interface VoceRiga {
 
 export interface DiffRow {
   riga: VoceRiga;
+  /** `riga.prezzo_unitario_cliente` normalizzato a numero, per la
+   * formattazione in euro. Accanto al campo grezzo, non al suo posto:
+   * `riga` torna a `/confirm` cosi' com'e' arrivata. */
+  prezzoNuovo: number | null;
   valore_precedente: number | null;
   /** D-11: true se il record a database e' stato modificato DOPO il
    * timestamp di generazione del file caricato (`DiffPreview.generato_il`). */
@@ -99,6 +115,7 @@ function toNumberOrNull(value: unknown): number | null {
 function normalizeDiffRow(raw: RawDiffRow): DiffRow {
   return {
     riga: raw.riga,
+    prezzoNuovo: toNumberOrNull(raw.riga.prezzo_unitario_cliente),
     valore_precedente: toNumberOrNull(raw.valore_precedente),
     riga_modificata_dopo_export: raw.riga_modificata_dopo_export,
   };
