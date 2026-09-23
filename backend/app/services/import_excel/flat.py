@@ -52,6 +52,47 @@ def _cella_vuota(valore: object) -> bool:
     return valore is None or (isinstance(valore, str) and valore.strip() == "")
 
 
+# Testi accettati come booleano in una cella scritta a mano. Excel non
+# impone il tipo booleano a una cella: l'admin che vuole disattivare una
+# riga ci scrive quello che gli viene, in italiano o in inglese.
+_TESTI_VERI = {"true", "vero", "1", "si", "sì", "s", "x", "y", "yes"}
+_TESTI_FALSI = {"false", "falso", "0", "no", "n"}
+
+
+def valore_booleano(valore: object) -> bool | None:
+    """Normalizza una cella in un booleano, o `None` se non e' decidibile.
+
+    `bool(valore)` non basta e non e' innocuo: in Python `bool("FALSE")`,
+    `bool("no")` e `bool("0")` sono tutti `True`. Un admin che scrive
+    `FALSE` a mano in una cella `attivo` — cosa che Excel permette, perche'
+    la cella non ha un tipo booleano imposto — vedrebbe la riga restare
+    attiva, con l'intenzione esattamente opposta e nessun errore da nessuna
+    parte.
+
+    Il round-trip a vuoto non cambia: l'export scrive il booleano nativo e
+    openpyxl lo rilegge come `bool`, che passa per il ramo diretto qui
+    sotto.
+
+    `None` significa "non so", e chi chiama lo traduce in uno scarto
+    descritto — mai in un'ipotesi silenziosa su cosa intendesse l'admin.
+    """
+    if isinstance(valore, bool):
+        return valore
+    if isinstance(valore, (int, float)):
+        if valore == 1:
+            return True
+        if valore == 0:
+            return False
+        return None
+    if isinstance(valore, str):
+        testo = valore.strip().lower()
+        if testo in _TESTI_VERI:
+            return True
+        if testo in _TESTI_FALSI:
+            return False
+    return None
+
+
 def e_formato_piatto(wb: Workbook) -> bool:
     """Discriminatore di D-01: il formato piatto ha SEMPRE il foglio
     `ISTRUZIONI` e almeno un foglio dati la cui prima colonna di header e'

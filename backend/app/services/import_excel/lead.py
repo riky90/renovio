@@ -43,7 +43,7 @@ from sqlalchemy.orm import Session
 from app.models.lead import Lead
 from app.schemas.admin_import import DiffRigaOut, RigaPiattaIn
 from app.schemas.admin_upload import ScartoRowOut
-from app.services.import_excel.flat import foglio_mancante, leggi_foglio_piatto
+from app.services.import_excel.flat import foglio_mancante, leggi_foglio_piatto, valore_booleano
 from app.services.import_excel.registry import (
     campi_nulli_in_valori,
     registra,
@@ -103,7 +103,13 @@ def _valori_uguali(campo: str, valore_db: object, valore_file: object) -> bool:
         except (TypeError, ValueError):
             return False
     if campo == "email_inviata":
-        return bool(valore_db) == bool(valore_file)
+        # WR-01: `bool("FALSE")` e' True, quindi un `FALSE` scritto a mano in
+        # una colonna che l'admin non intendeva nemmeno toccare risulterebbe
+        # diverso dal database e scarterebbe l'intera riga, bloccando un
+        # aggiornamento legittimo di stato/nota. Un valore non interpretabile
+        # resta "diverso", coerente con la regola di questa funzione.
+        a, b = valore_booleano(valore_db), valore_booleano(valore_file)
+        return a is not None and b is not None and a == b
     if campo == "created_at":
         # `Lead.created_at` e' un `datetime`, il file porta la sua
         # `isoformat()` (vedi export_excel/lead.py) — confronto via

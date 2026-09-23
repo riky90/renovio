@@ -49,7 +49,7 @@ from app.models.domanda import OpzioneDomanda
 from app.models.listino import Listino, ListinoCategoria
 from app.schemas.admin_import import DiffRigaOut, RigaPiattaIn
 from app.schemas.admin_upload import ScartoRowOut
-from app.services.import_excel.flat import foglio_mancante, leggi_foglio_piatto
+from app.services.import_excel.flat import foglio_mancante, leggi_foglio_piatto, valore_booleano
 from app.services.import_excel.registry import (
     campi_nulli_in_valori,
     registra,
@@ -283,7 +283,13 @@ def _risolvi_extra(db: Session, r: RigaPiattaIn) -> _Risoluzione:
         validati["tipo_calcolo"] = tipo_calcolo
 
     if "attivo" in r.valori:
-        validati["attivo"] = bool(r.valori["attivo"])
+        # WR-01: mai `bool(...)` su una cella scritta a mano — `bool("FALSE")`
+        # e `bool("0")` sono entrambi True e la riga resterebbe attiva contro
+        # l'intenzione dell'admin. Non decidibile = scarto, non un'ipotesi.
+        attivo = valore_booleano(r.valori["attivo"])
+        if attivo is None:
+            return _Risoluzione(scarto=ScartoRowOut(riga=0, motivo=f"extra: attivo non interpretabile come booleano ({r.valori['attivo']!r})"))
+        validati["attivo"] = attivo
 
     if r.id is None:
         return _Risoluzione(scarto=ScartoRowOut(riga=0, motivo="extra: riga senza id — il codice e' sempre richiesto, non ha una chiave naturale alternativa"))
@@ -389,7 +395,11 @@ def _risolvi_forfait(db: Session, r: RigaPiattaIn) -> _Risoluzione:
         validati["eur_max"] = v
 
     if "attivo" in r.valori:
-        validati["attivo"] = bool(r.valori["attivo"])
+        # WR-01: vedi `_risolvi_extra` — stessa ragione, stesso trattamento.
+        attivo = valore_booleano(r.valori["attivo"])
+        if attivo is None:
+            return _Risoluzione(scarto=ScartoRowOut(riga=0, motivo=f"forfait_arredo: attivo non interpretabile come booleano ({r.valori['attivo']!r})"))
+        validati["attivo"] = attivo
 
     if r.id is not None:
         riga_db = db.get(ForfaitArredo, int(r.id))

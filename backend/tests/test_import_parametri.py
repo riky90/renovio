@@ -449,3 +449,80 @@ class TestCancellazioneRoundTripCoefficientiPro:
         assert len(scarti) == 1
         assert "domanda_mirata_key" in scarti[0].motivo
         assert "campi_da_cancellare" in scarti[0].motivo
+
+
+class TestBooleaniScrittiAMano:
+    """WR-01: una cella booleana compilata a mano non va passata a `bool()`.
+
+    Excel non impone alla cella `attivo` un tipo booleano: l'admin che
+    vuole disattivare una riga ci scrive `FALSE`, `no` o `0` come testo. In
+    Python `bool("FALSE")`, `bool("no")` e `bool("0")` sono tutti `True`, e
+    la riga sarebbe rimasta attiva con l'intenzione opposta e nessun errore
+    da nessuna parte. Nessun test lo copriva perche' il round-trip a vuoto
+    rilegge sempre il booleano nativo scritto dall'export.
+    """
+
+    @pytest.mark.parametrize("testo", ["FALSE", "false", "No", "0", "falso"])
+    def test_falso_scritto_a_mano_disattiva_davvero(self, client, testo):
+        _registra_admin(client)
+        with client._session_local() as db:
+            riga = db.query(ForfaitArredo).filter_by(attivo=True).order_by(ForfaitArredo.id).first()
+            assert riga is not None
+            riga_id = riga.id
+
+        xlsx = _workbook_default(client)
+        xlsx_modificato = _modifica_cella(xlsx, "forfait_arredo", riga_id, "attivo", testo)
+
+        preview = _post_preview(client, xlsx_modificato)
+        assert preview.status_code == 200
+        body = preview.json()
+        righe = [r for r in body["modificate"] if r["foglio"] == "forfait_arredo"]
+        assert len(righe) == 1, f"{testo!r} non e' stato letto come una disattivazione"
+        assert righe[0]["valori_nuovi"]["attivo"] is False
+
+        confirm = _post_confirm(client, body)
+        assert confirm.status_code == 200
+
+        with client._session_local() as db:
+            assert db.get(ForfaitArredo, riga_id).attivo is False
+
+    @pytest.mark.parametrize("testo", ["TRUE", "si", "sì", "1", "x"])
+    def test_vero_scritto_a_mano_riattiva(self, client, testo):
+        _registra_admin(client)
+        with client._session_local() as db:
+            riga = db.query(ForfaitArredo).order_by(ForfaitArredo.id).first()
+            riga.attivo = False
+            db.commit()
+            riga_id = riga.id
+
+        xlsx = _workbook_default(client)
+        xlsx_modificato = _modifica_cella(xlsx, "forfait_arredo", riga_id, "attivo", testo)
+
+        body = _post_preview(client, xlsx_modificato).json()
+        confirm = _post_confirm(client, body)
+        assert confirm.status_code == 200
+
+        with client._session_local() as db:
+            assert db.get(ForfaitArredo, riga_id).attivo is True
+
+    def test_booleano_non_interpretabile_e_uno_scarto_descritto(self, client):
+        """Una parola che non vuol dire ne' vero ne' falso non deve
+        diventare un'ipotesi: la riga si scarta, con un motivo leggibile."""
+        _registra_admin(client)
+        with client._session_local() as db:
+            riga = db.query(ForfaitArredo).filter_by(attivo=True).order_by(ForfaitArredo.id).first()
+            riga_id, attivo_prima = riga.id, riga.attivo
+
+        xlsx = _workbook_default(client)
+        xlsx_modificato = _modifica_cella(xlsx, "forfait_arredo", riga_id, "attivo", "forse")
+
+        body = _post_preview(client, xlsx_modificato).json()
+        assert [r for r in body["modificate"] if r["foglio"] == "forfait_arredo"] == []
+        scarti = [s for s in body["scarti"] if "attivo" in s["motivo"]]
+        assert len(scarti) == 1
+        assert "booleano" in scarti[0]["motivo"]
+
+        confirm = _post_confirm(client, body)
+        assert confirm.status_code == 200
+        with client._session_local() as db:
+            assert db.get(ForfaitArredo, riga_id).attivo == attivo_prima

@@ -409,3 +409,59 @@ class TestCancellazioneRoundTrip:
         assert len(scarti) == 1
         assert "nota" in scarti[0].motivo
         assert "campi_da_cancellare" in scarti[0].motivo
+
+
+class TestEmailInviataScrittaAMano:
+    """WR-01, lato lead: `email_inviata` e' una colonna NON modificabile da
+    file, confrontata col database solo per rilevare un tentativo di
+    riscrittura. Il confronto passava per `bool(...)` su entrambi i lati, e
+    `bool("FALSE") == True`: un `FALSE` scritto a mano in una colonna che
+    l'admin non intendeva nemmeno toccare risultava diverso dal database e
+    scartava l'INTERA riga, bloccando l'aggiornamento legittimo di
+    `stato`/`nota` sulla stessa riga.
+    """
+
+    @pytest.mark.parametrize("testo", ["FALSE", "false", "No", "0"])
+    def test_false_testuale_non_blocca_l_aggiornamento_di_stato(self, client, testo):
+        _registra_admin(client)
+        lead_id = _seed_lead(client._session_local)
+        with client._session_local() as db:
+            assert db.get(Lead, lead_id).email_inviata is False
+
+        xlsx = _workbook_lead(client)
+        xlsx_modificato = _modifica_cella(xlsx, "lead", lead_id, "email_inviata", testo)
+        xlsx_modificato = _modifica_cella(xlsx_modificato, "lead", lead_id, "stato", "gestito")
+
+        preview = _post_preview(client, xlsx_modificato)
+        assert preview.status_code == 200
+        body = preview.json()
+        assert body["scarti"] == [], f"{testo!r} ha scartato la riga invece di leggerla come False"
+        assert len(body["modificate"]) == 1
+        assert body["modificate"][0]["valori_nuovi"]["stato"] == "gestito"
+
+        confirm = _post_confirm(client, body)
+        assert confirm.status_code == 200
+
+        with client._session_local() as db:
+            lead = db.get(Lead, lead_id)
+            assert lead.stato == "gestito"
+            assert lead.email_inviata is False
+
+    def test_una_vera_divergenza_su_email_inviata_scarta_ancora(self, client):
+        """Contro-prova: la guardia non deve diventare permissiva. Un
+        `TRUE` su una riga che a database ha `False` e' un tentativo reale
+        di riscrivere una colonna non modificabile, e va scartato."""
+        _registra_admin(client)
+        lead_id = _seed_lead(client._session_local)
+
+        xlsx = _workbook_lead(client)
+        xlsx_modificato = _modifica_cella(xlsx, "lead", lead_id, "email_inviata", "TRUE")
+        xlsx_modificato = _modifica_cella(xlsx_modificato, "lead", lead_id, "stato", "gestito")
+
+        body = _post_preview(client, xlsx_modificato).json()
+        assert body["modificate"] == []
+        assert len(body["scarti"]) == 1
+        assert "email_inviata" in body["scarti"][0]["motivo"]
+
+        with client._session_local() as db:
+            assert db.get(Lead, lead_id).stato == "nuovo"
