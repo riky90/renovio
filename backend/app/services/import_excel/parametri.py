@@ -129,6 +129,23 @@ def _decimal(valore: object) -> Decimal | None:
         return None
 
 
+def _intero(valore: object) -> int | None:
+    """Conversione a intero che non solleva MAI: `None` significa "non
+    convertibile" e chi chiama lo traduce in uno scarto descritto.
+
+    Esiste perche' un `int(...)` diretto su un valore che viene dal file
+    (o dal payload di `/confirm`) e' sempre un 500 in attesa, e il
+    contratto di questo modulo e' l'opposto: una riga malformata e' uno
+    scarto, mai la caduta dell'intero import. Sostituisce anche il guard
+    `str(x).strip().lstrip("-").isdigit()`, che era sbagliato in modo
+    silenzioso: `lstrip("-")` toglie TUTTI i meno iniziali, quindi `"--5"`
+    lo superava e il successivo `int("--5")` sollevava `ValueError`."""
+    try:
+        return int(str(valore).strip())
+    except (TypeError, ValueError):
+        return None
+
+
 def _campi_non_annullabili(r: RigaPiattaIn) -> list[str]:
     nullable = _CAMPI_NULLABLE_PER_FOGLIO.get(r.foglio, set())
     return sorted(c for c in r.campi_da_cancellare if c not in nullable)
@@ -148,7 +165,10 @@ def _risolvi_moltiplicatore(db: Session, r: RigaPiattaIn) -> _Risoluzione:
         validati["valore"] = valore
 
     if r.id is not None:
-        riga_db = db.get(Moltiplicatore, int(r.id))
+        riga_id = _intero(r.id)
+        if riga_id is None:
+            return _Risoluzione(scarto=ScartoRowOut(riga=0, motivo=f"moltiplicatori: id non numerico ({r.id!r})"))
+        riga_db = db.get(Moltiplicatore, riga_id)
         if riga_db is None:
             return _Risoluzione(scarto=ScartoRowOut(riga=0, motivo=f"moltiplicatori: id {r.id} non trovato"))
         return _Risoluzione(
@@ -208,7 +228,10 @@ def _risolvi_listino_categoria(db: Session, r: RigaPiattaIn) -> _Risoluzione:
         campi_extra["iva_pct"] = v  # su Categoria, non su ListinoCategoria — vedi docstring di modulo
 
     if r.id is not None:
-        riga_db = db.get(ListinoCategoria, int(r.id))
+        riga_id = _intero(r.id)
+        if riga_id is None:
+            return _Risoluzione(scarto=ScartoRowOut(riga=0, motivo=f"listino_categoria: id non numerico ({r.id!r})"))
+        riga_db = db.get(ListinoCategoria, riga_id)
         if riga_db is None:
             return _Risoluzione(scarto=ScartoRowOut(riga=0, motivo=f"listino_categoria: id {r.id} non trovato"))
         return _Risoluzione(
@@ -221,9 +244,9 @@ def _risolvi_listino_categoria(db: Session, r: RigaPiattaIn) -> _Risoluzione:
     categoria_code = r.valori.get("categoria_code")
     if not listino_id_raw or not categoria_code:
         return _Risoluzione(scarto=ScartoRowOut(riga=0, motivo="listino_categoria: riga senza id richiede listino_id e categoria_code"))
-    listino_id = int(listino_id_raw) if str(listino_id_raw).strip().lstrip("-").isdigit() else None
+    listino_id = _intero(listino_id_raw)
     if listino_id is None:
-        return _Risoluzione(scarto=ScartoRowOut(riga=0, motivo="listino_categoria: listino_id non numerico"))
+        return _Risoluzione(scarto=ScartoRowOut(riga=0, motivo=f"listino_categoria: listino_id non numerico ({listino_id_raw!r})"))
     if db.get(Listino, listino_id) is None or db.get(Categoria, categoria_code) is None:
         return _Risoluzione(scarto=ScartoRowOut(riga=0, motivo=f"listino_categoria: listino_id o categoria_code inesistente ({listino_id}/{categoria_code})"))
 
@@ -372,7 +395,10 @@ def _risolvi_coeff_pro(db: Session, r: RigaPiattaIn) -> _Risoluzione:
             validati[campo] = None
 
     if r.id is not None:
-        riga_db = db.get(CoefficienteQuantitaVoce, int(r.id))
+        riga_id = _intero(r.id)
+        if riga_id is None:
+            return _Risoluzione(scarto=ScartoRowOut(riga=0, motivo=f"coefficienti_pro: id non numerico ({r.id!r})"))
+        riga_db = db.get(CoefficienteQuantitaVoce, riga_id)
         if riga_db is None:
             return _Risoluzione(scarto=ScartoRowOut(riga=0, motivo=f"coefficienti_pro: id {r.id} non trovato"))
         return _Risoluzione(
@@ -384,9 +410,9 @@ def _risolvi_coeff_pro(db: Session, r: RigaPiattaIn) -> _Risoluzione:
     tipo_code = r.valori.get("tipo_code")
     if not voce_id_raw or not tipo_code:
         return _Risoluzione(scarto=ScartoRowOut(riga=0, motivo="coefficienti_pro: riga senza id richiede voce_id e tipo_code"))
-    voce_id = int(voce_id_raw) if str(voce_id_raw).strip().lstrip("-").isdigit() else None
+    voce_id = _intero(voce_id_raw)
     if voce_id is None:
-        return _Risoluzione(scarto=ScartoRowOut(riga=0, motivo="coefficienti_pro: voce_id non numerico"))
+        return _Risoluzione(scarto=ScartoRowOut(riga=0, motivo=f"coefficienti_pro: voce_id non numerico ({voce_id_raw!r})"))
     if db.get(Voce, voce_id) is None or db.get(TipoRistrutturazione, tipo_code) is None:
         return _Risoluzione(scarto=ScartoRowOut(riga=0, motivo=f"coefficienti_pro: voce_id o tipo_code inesistente ({voce_id}/{tipo_code})"))
 
@@ -430,7 +456,10 @@ def _risolvi_forfait(db: Session, r: RigaPiattaIn) -> _Risoluzione:
         validati["attivo"] = attivo
 
     if r.id is not None:
-        riga_db = db.get(ForfaitArredo, int(r.id))
+        riga_id = _intero(r.id)
+        if riga_id is None:
+            return _Risoluzione(scarto=ScartoRowOut(riga=0, motivo=f"forfait_arredo: id non numerico ({r.id!r})"))
+        riga_db = db.get(ForfaitArredo, riga_id)
         if riga_db is None:
             return _Risoluzione(scarto=ScartoRowOut(riga=0, motivo=f"forfait_arredo: id {r.id} non trovato"))
         eur_min_finale = validati.get("eur_min", riga_db.eur_min)
@@ -446,9 +475,9 @@ def _risolvi_forfait(db: Session, r: RigaPiattaIn) -> _Risoluzione:
     livello_code = r.valori.get("livello_code")
     if not opzione_id_raw or not livello_code:
         return _Risoluzione(scarto=ScartoRowOut(riga=0, motivo="forfait_arredo: riga senza id richiede opzione_id e livello_code"))
-    opzione_id = int(opzione_id_raw) if str(opzione_id_raw).strip().lstrip("-").isdigit() else None
+    opzione_id = _intero(opzione_id_raw)
     if opzione_id is None:
-        return _Risoluzione(scarto=ScartoRowOut(riga=0, motivo="forfait_arredo: opzione_id non numerico"))
+        return _Risoluzione(scarto=ScartoRowOut(riga=0, motivo=f"forfait_arredo: opzione_id non numerico ({opzione_id_raw!r})"))
     if db.get(OpzioneDomanda, opzione_id) is None or db.get(LivelloFinitura, livello_code) is None:
         return _Risoluzione(scarto=ScartoRowOut(riga=0, motivo=f"forfait_arredo: opzione_id o livello_code inesistente ({opzione_id}/{livello_code})"))
 
@@ -538,6 +567,14 @@ def diff(
     nuove: list[DiffRigaOut] = []
     modificate: list[DiffRigaOut] = []
     scarti: list[ScartoRowOut] = []
+    # Chiavi naturali gia' promesse come CREAZIONE in questo stesso payload.
+    # Duplicare una riga e' l'errore di foglio di calcolo piu' comune che
+    # esista, e due righe con la stessa chiave naturale e senza `id`
+    # risolvono entrambe a "non esiste": senza questo set la seconda
+    # comparirebbe in anteprima come una seconda creazione che il database
+    # non puo' accettare (vincolo unico). Meglio dirlo qui, dove l'admin lo
+    # legge PRIMA di confermare, che lasciarlo scoprire ad `apply()`.
+    chiavi_nuove: set[tuple[str, str]] = set()
 
     for r in righe:
         nulli = campi_nulli_in_valori(r)
@@ -578,6 +615,21 @@ def diff(
             continue
 
         if ris.esistente is None:
+            chiave = (r.foglio, ris.chiave_descr)
+            if chiave in chiavi_nuove:
+                scarti.append(
+                    ScartoRowOut(
+                        riga=0,
+                        motivo=(
+                            f"{r.foglio}: il file contiene piu' di una riga nuova per "
+                            f"{ris.chiave_descr} — la chiave naturale e' unica a database, "
+                            "tieni una sola riga per quella combinazione"
+                        ),
+                    )
+                )
+                continue
+            chiavi_nuove.add(chiave)
+
             # Valori NATIVI (non stringificati): il client re-invia questo
             # stesso dict come `RigaPiattaIn.valori` in /confirm (round-trip
             # stateless) — un bool stringificato a mano ("False") tornerebbe
@@ -705,6 +757,17 @@ def apply(
                     # sulla regola di dominio #1, non un percorso normale.
                     continue
             db.add(_MODEL[r.foglio](**valori_creazione))
+            # Flush ESPLICITO, non decorativo: `SessionLocal` di produzione e'
+            # `autoflush=False` (app/db.py), quindi senza questa riga
+            # l'oggetto appena aggiunto resta pendente e la query di
+            # risoluzione della riga SUCCESSIVA non lo vede. Due righe con la
+            # stessa chiave naturale e senza `id` risolvevano entrambe a "non
+            # esiste", producevano due INSERT, e il vincolo unico scattava al
+            # `db.commit()` del router: 500, e l'intero file perduto, comprese
+            # le altre centinaia di righe valide. Con il flush la seconda riga
+            # trova la prima e diventa un aggiornamento.
+            # Stesso pattern di `listino_upload_service._upsert_voce`.
+            db.flush()
         else:
             for campo, valore in ris.campi_aggiornati.items():
                 setattr(ris.esistente, campo, valore)

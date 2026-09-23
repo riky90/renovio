@@ -12,13 +12,13 @@ from __future__ import annotations
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 import app.db as db_module
 from app.db import Base
 from app.limiter import limiter
 from app.main import app
 from scripts.seed import load_seed_data, seed
+from tests.session_factory import sessione_di_test
 
 REGISTRAZIONE_URL = "/api/v1/auth/registrati"
 LOGOUT_URL = "/api/v1/auth/logout"
@@ -90,7 +90,7 @@ def client(monkeypatch, tmp_path):
     db_path = tmp_path / "test_dettaglio_pro_paywall.db"
     engine = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
-    testing_session_local = sessionmaker(bind=engine)
+    testing_session_local = sessione_di_test(engine)
 
     with testing_session_local() as s:
         seed(s, load_seed_data())

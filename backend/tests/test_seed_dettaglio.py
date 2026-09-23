@@ -7,19 +7,20 @@ fixture pattern as `test_seed.py`.
 
 import pytest
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import Session
 
 from app.db import Base
 from app.models.catalogo import Categoria, TipoRistrutturazione
 from app.models.dettaglio_pro import CoefficienteQuantitaVoce, Sottocategoria, Voce
 from scripts.seed import load_seed_data, seed
+from tests.session_factory import sessione_di_test
 
 
 @pytest.fixture()
 def session():
     engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
-    testing_session_local = sessionmaker(bind=engine)
+    testing_session_local = sessione_di_test(engine)
     with testing_session_local() as s:
         yield s
 

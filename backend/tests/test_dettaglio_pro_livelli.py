@@ -17,7 +17,6 @@ from decimal import Decimal
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 import app.db as db_module
 from app.db import Base
@@ -29,6 +28,7 @@ from app.models.stima_salvata import StimaSalvata
 from app.services.city_resolver import resolve_listino
 from app.services.dettaglio_pro import DettaglioProService
 from scripts.seed import load_seed_data, seed
+from tests.session_factory import sessione_di_test
 
 REGISTRAZIONE_URL = "/api/v1/auth/registrati"
 STIME_URL = "/api/v1/me/stime"
@@ -41,7 +41,7 @@ GRES = "PAVIMENTI E RIVESTIMENTI GRES"
 def session():
     engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
-    testing_session_local = sessionmaker(bind=engine)
+    testing_session_local = sessione_di_test(engine)
     with testing_session_local() as s:
         seed(s, load_seed_data())
         yield s
@@ -299,7 +299,7 @@ def client(monkeypatch, tmp_path):
     db_path = tmp_path / "test_livelli.db"
     engine = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
-    testing_session_local = sessionmaker(bind=engine)
+    testing_session_local = sessione_di_test(engine)
 
     with testing_session_local() as s:
         seed(s, load_seed_data())

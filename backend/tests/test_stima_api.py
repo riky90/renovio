@@ -14,12 +14,12 @@ from decimal import Decimal
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 import app.db as db_module
 from app.db import Base
 from app.main import app
 from scripts.seed import load_seed_data, seed
+from tests.session_factory import sessione_di_test
 
 
 @pytest.fixture(autouse=True, scope="module")
@@ -27,7 +27,7 @@ def _seeded_db(tmp_path_factory):
     db_path = tmp_path_factory.mktemp("db") / "test_stima_api.db"
     engine = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
-    testing_session_local = sessionmaker(bind=engine)
+    testing_session_local = sessione_di_test(engine)
 
     with testing_session_local() as s:
         seed(s, load_seed_data())

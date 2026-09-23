@@ -379,7 +379,11 @@ def compute_diff(
     (righe di `parse_computo`) equivale a "tutti i campi sono presenti" —
     il comportamento storico.
     """
-    per_chiave: dict[tuple, Voce] = {}
+    # Entrambe le mappe portano la coppia (Voce, Sottocategoria), non la sola
+    # Voce: il diff confronta anche i campi di sottocategoria, e prima
+    # `per_chiave` ne perdeva meta'. Vedi il commento sul ramo per chiave
+    # naturale piu' sotto.
+    per_chiave: dict[tuple, tuple[Voce, Sottocategoria]] = {}
     per_id: dict[int, tuple[Voce, Sottocategoria]] = {}
     if listino is not None:
         rows = (
@@ -395,7 +399,7 @@ def compute_diff(
                 None if sotto.codice is not None else sotto.nome,
             )
             key = (*sotto_key, voce.codice if voce.codice is not None else voce.descrizione)
-            per_chiave[key] = voce
+            per_chiave[key] = (voce, sotto)
             per_id[voce.id] = (voce, sotto)
 
     nuove: list[DiffRowOut] = []
@@ -415,7 +419,21 @@ def compute_diff(
                 continue
             voce, sotto = match
         else:
-            voce = per_chiave.get(_voce_key(riga))
+            # WR-01: anche qui la sottocategoria, non la sola voce. Finche'
+            # `sotto` restava None su questo ramo, i campi di
+            # `_CAMPI_DIFF_SOTTOCATEGORIA` non venivano MAI confrontati per
+            # una riga senza id — e `apply_diff_idempotent` invece li scrive,
+            # via `_upsert_sottocategoria`. Due conseguenze, entrambe
+            # sbagliate: una riga che cambiava solo la sottocategoria non
+            # compariva affatto nel diff (modifica persa in silenzio), e una
+            # riga che cambiava anche un campo di voce finiva in `modificate`
+            # facendo scrivere alla conferma campi che l'anteprima non aveva
+            # mostrato. Il valore di questa fase e' "guardi il diff, poi
+            # confermi": un diff che sotto-dichiara cio' che verra' scritto
+            # rompe quella promessa.
+            match = per_chiave.get(_voce_key(riga))
+            if match is not None:
+                voce, sotto = match
 
         if voce is None:
             nuove.append(DiffRowOut(riga=riga, valore_precedente=None))
@@ -430,12 +448,15 @@ def compute_diff(
                 continue
             if getattr(riga, campo_riga) != getattr(voce, campo_voce):
                 campi_modificati.append(campo_riga)
-        if sotto is not None:
-            for campo_riga, campo_sotto in _CAMPI_DIFF_SOTTOCATEGORIA.items():
-                if campo_riga not in campi_confrontabili:
-                    continue
-                if getattr(riga, campo_riga) != getattr(sotto, campo_sotto):
-                    campi_modificati.append(campo_riga)
+        # Nessun `if sotto is not None` qui: da WR-01 entrambi i rami di
+        # risoluzione valorizzano la coppia (voce, sotto) o nessuno dei due,
+        # quindi una voce risolta ha sempre la sua sottocategoria. La guardia
+        # che c'era prima non proteggeva da niente — nascondeva il buco.
+        for campo_riga, campo_sotto in _CAMPI_DIFF_SOTTOCATEGORIA.items():
+            if campo_riga not in campi_confrontabili:
+                continue
+            if getattr(riga, campo_riga) != getattr(sotto, campo_sotto):
+                campi_modificati.append(campo_riga)
 
         if campi_modificati:
             modificate.append(
@@ -463,6 +484,21 @@ def _campo_presente(riga: VoceRigaIn, campo: str) -> bool:
     `_PLACEHOLDER_PREZZO`, `0` per gli interi) che non va mai scritto a
     database."""
     return riga.campi_presenti is None or campo in riga.campi_presenti
+
+
+def _livello_dichiarato(riga: VoceRigaIn) -> bool:
+    """`livello` e' l'unico campo per cui "campi_presenti is None" NON vale
+    come dichiarazione (WR-02).
+
+    `_campo_presente` tratta `None` come "tutti i campi presenti", che e'
+    corretto per ogni altro campo: le righe di `parse_computo` li portano
+    davvero tutti. La colonna livello pero' nel computo non esiste, quindi
+    per quelle righe `riga.livello` e' sempre `None` e scriverlo azzererebbe
+    la curatela fatta a mano. Solo `parse_flat_listino` valorizza
+    `campi_presenti`, ed e' li' — nel file piatto — che il livello si cura
+    in blocco: la dichiarazione esplicita e' l'unica prova di intenzione
+    che abbiamo."""
+    return riga.campi_presenti is not None and "livello" in riga.campi_presenti
 
 
 def _upsert_sottocategoria(db: Session, listino_id: int, riga: VoceRigaIn) -> Sottocategoria:
@@ -522,16 +558,25 @@ def _upsert_voce(db: Session, sotto: Sottocategoria, riga: VoceRigaIn) -> Voce:
     la cella `id`, facendola ricadere qui invece che sul percorso per id)
     non deve azzerare l'ordinamento reale della voce.
 
-    `voce.livello` NON compare qui, ed e' deliberato. Le righe di
-    `parse_computo` hanno `campi_presenti is None`, cioe' "tutti i campi
-    presenti", ma il file del computo non ha una colonna livello e non
-    l'avra': farlo entrare nel giro significherebbe scrivere `None` su ogni
-    voce a ogni ri-caricamento del computo, azzerando la curatela dei
-    livelli fatta a mano dall'admin — e con tutti i livelli a NULL il motore
-    Pro torna a sommare i cataloghi di alternative. Il livello si cura solo
-    da `routers/admin/dettaglio_pro.py` e, per il formato piatto, dal
-    percorso per id (`_applica_voce`). Test di regressione:
-    `tests/test_dettaglio_pro_livelli.py::test_upload_excel_non_azzera_livello`.
+    `voce.livello` ha una condizione tutta sua, ed e' deliberato (WR-02). Non
+    basta `_campo_presente`, perche' quella funzione tratta
+    `campi_presenti is None` come "tutti i campi presenti": e' il caso delle
+    righe di `parse_computo`, che si dichiarano complete ma vengono da un
+    file che la colonna livello non ce l'ha e non ce l'avra'. Scriverla da
+    li' significherebbe mettere `None` su ogni voce a ogni ri-caricamento del
+    computo, azzerando la curatela dei livelli fatta a mano — e con tutti i
+    livelli a NULL il motore Pro torna a sommare i cataloghi di alternative
+    (`tests/test_dettaglio_pro_livelli.py::test_upload_excel_non_azzera_livello`).
+
+    La condizione giusta non e' pero' "ramo per id si, per chiave naturale
+    no", che e' come era scritta prima: e' "il file dichiara ESPLICITAMENTE
+    il campo", cioe' `campi_presenti is not None and "livello" in
+    campi_presenti`. Solo `parse_flat_listino` valorizza `campi_presenti`, e
+    il file piatto e' l'unico modo di curare i livelli in blocco. Con la
+    vecchia condizione `livello` era fra i campi diffati
+    (`_CAMPI_DIFF_VOCE`) ma non fra quelli scritti su questo ramo:
+    l'anteprima annunciava una modifica che la conferma non applicava, e
+    `righe_importate` contava comunque la riga come importata.
     """
     query = db.query(Voce).filter_by(sottocategoria_id=sotto.id)
     query = query.filter_by(codice=riga.codice) if riga.codice is not None else query.filter_by(
@@ -548,6 +593,8 @@ def _upsert_voce(db: Session, sotto: Sottocategoria, riga: VoceRigaIn) -> Voce:
         }
         if _campo_presente(riga, "ordine"):
             campi_nuova["ordine"] = riga.ordine
+        if _livello_dichiarato(riga):
+            campi_nuova["livello"] = riga.livello
         voce = Voce(**campi_nuova)
         db.add(voce)
         db.flush()
@@ -555,6 +602,8 @@ def _upsert_voce(db: Session, sotto: Sottocategoria, riga: VoceRigaIn) -> Voce:
         for campo in ("descrizione", "um", "prezzo_unitario_cliente", "ordine"):
             if _campo_presente(riga, campo):
                 setattr(voce, campo, getattr(riga, campo))
+        if _livello_dichiarato(riga):
+            voce.livello = riga.livello
     return voce
 
 

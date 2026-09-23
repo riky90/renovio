@@ -16,7 +16,6 @@ import openpyxl
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 import app.db as db_module
 from app.config import settings
@@ -32,6 +31,7 @@ from app.services.export_excel.workbook import TOKEN_CANCELLA
 from app.services.import_excel.parametri import diff as diff_parametri
 from app.schemas.admin_import import RigaPiattaIn
 from scripts.seed import load_seed_data, seed
+from tests.session_factory import sessione_di_test
 
 REGISTRAZIONE_URL = "/api/v1/auth/registrati"
 IMPORT_URL = "/api/v1/admin/import-excel/parametri"
@@ -49,7 +49,7 @@ def client(monkeypatch, tmp_path):
     db_path = tmp_path / "test_import_parametri.db"
     engine = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
-    testing_session_local = sessionmaker(bind=engine)
+    testing_session_local = sessione_di_test(engine)
 
     with testing_session_local() as s:
         seed(s, load_seed_data())
@@ -646,3 +646,291 @@ class TestListinoCategoriaNuovaSenzaMargine:
 
         with client._session_local() as db:
             assert db.query(ListinoCategoria).filter_by(categoria_code="E-ARREDO").count() == 0
+
+
+def _prima_riga(xlsx_bytes: bytes, foglio: str) -> dict:
+    """La prima riga dati del foglio come dict colonna -> valore. Serve per
+    riusare codici padre realmente esistenti (tipo_code, livello_code…)
+    senza cablare nel test valori che dipendono dal seed."""
+    wb = openpyxl.load_workbook(io.BytesIO(xlsx_bytes))
+    ws = wb[foglio]
+    header = [c.value for c in next(ws.iter_rows(min_row=1, max_row=1))]
+    valori = next(ws.iter_rows(min_row=2, max_row=2, values_only=True))
+    return dict(zip(header, valori))
+
+
+class TestIdNonNumericoNonFa500:
+    """CR-01: nessuna conversione a intero puo' far cadere l'import.
+
+    Il guard che proteggeva le tre chiavi naturali numeriche era
+    `str(x).strip().lstrip("-").isdigit()`, e `lstrip("-")` toglie TUTTI i
+    meno iniziali: `"--5"` lo superava e il successivo `int("--5")`
+    sollevava `ValueError`. Nessuno lo catturava — non il resolver, non
+    `diff()`, non il router, non un exception handler globale — quindi un
+    refuso di battitura in una cella bastava a restituire 500 e a far
+    perdere l'intero file, contro la regola dichiarata nella docstring del
+    modulo ("un valore fuori bound e' uno scarto, non un update").
+
+    I quattro `int(r.id)` avevano lo stesso problema per un'altra via:
+    `RigaPiattaIn.id` e' una stringa libera e in `/confirm` arriva dal
+    client senza alcuna validazione numerica.
+    """
+
+    def test_intero_non_solleva_mai(self):
+        from app.services.import_excel.parametri import _intero
+
+        # Il caso che passava il vecchio guard e poi esplodeva.
+        assert _intero("--5") is None
+        assert _intero("abc") is None
+        assert _intero("") is None
+        assert _intero(None) is None
+        assert _intero("3.5") is None
+        # I casi legittimi continuano a funzionare, spazi compresi.
+        assert _intero(" 7 ") == 7
+        assert _intero(7) == 7
+        assert _intero("-7") == -7
+
+    def test_listino_id_a_doppio_meno_e_uno_scarto_non_un_500(self, client):
+        _registra_admin(client)
+        xlsx = _workbook_con_margine(client)
+        xlsx_modificato = _aggiungi_riga(
+            xlsx,
+            "listino_categoria",
+            {
+                "listino_id": "--5",
+                "categoria_code": "E-ARREDO",
+                "base_eur_mq": 50.0,
+                "coefficiente_impresa": 0.7,
+            },
+        )
+
+        response = _post_preview(client, xlsx_modificato)
+        assert response.status_code == 200
+        body = response.json()
+
+        scarti = [s for s in body["scarti"] if "listino_id non numerico" in s["motivo"]]
+        assert len(scarti) == 1
+        assert "--5" in scarti[0]["motivo"]
+        assert [r for r in body["nuove"] if r["foglio"] == "listino_categoria"] == []
+
+    def test_voce_id_a_doppio_meno_e_uno_scarto_non_un_500(self, client):
+        _registra_admin(client)
+        xlsx = _workbook_default(client)
+        tipo_code = _prima_riga(xlsx, "coefficienti_pro")["tipo_code"]
+        xlsx_modificato = _aggiungi_riga(
+            xlsx,
+            "coefficienti_pro",
+            {"voce_id": "--7", "tipo_code": tipo_code, "coefficiente_qta_per_mq": 1.0},
+        )
+
+        response = _post_preview(client, xlsx_modificato)
+        assert response.status_code == 200
+        scarti = [s for s in response.json()["scarti"] if "voce_id non numerico" in s["motivo"]]
+        assert len(scarti) == 1
+        assert "--7" in scarti[0]["motivo"]
+
+    def test_opzione_id_a_doppio_meno_e_uno_scarto_non_un_500(self, client):
+        _registra_admin(client)
+        xlsx = _workbook_default(client)
+        livello_code = _prima_riga(xlsx, "forfait_arredo")["livello_code"]
+        xlsx_modificato = _aggiungi_riga(
+            xlsx,
+            "forfait_arredo",
+            {"opzione_id": "--3", "livello_code": livello_code, "eur_min": 100.0, "eur_max": 200.0},
+        )
+
+        response = _post_preview(client, xlsx_modificato)
+        assert response.status_code == 200
+        scarti = [s for s in response.json()["scarti"] if "opzione_id non numerico" in s["motivo"]]
+        assert len(scarti) == 1
+        assert "--3" in scarti[0]["motivo"]
+
+    def test_confirm_con_id_non_numerico_non_fa_500(self, client):
+        """`/confirm` riceve gli id dal client, non dal file: il parser non
+        li ha mai visti e non puo' averli filtrati. Un id non numerico deve
+        essere una riga non applicata, non la caduta dell'intera richiesta
+        (che porterebbe con se' tutte le altre righe valide del file)."""
+        _registra_admin(client)
+
+        response = client.post(
+            f"{IMPORT_URL}/confirm",
+            json={
+                "risorsa": "parametri",
+                "nuove": [],
+                "modificate": [
+                    {"foglio": "moltiplicatori", "id": "abc", "valori": {"valore": 1.5}, "campi_da_cancellare": []},
+                    {"foglio": "listino_categoria", "id": "--5", "valori": {"base_eur_mq": 1.0}, "campi_da_cancellare": []},
+                    {"foglio": "coefficienti_pro", "id": "x1", "valori": {"coefficiente_qta_per_mq": 1.0}, "campi_da_cancellare": []},
+                    {"foglio": "forfait_arredo", "id": "--3", "valori": {"eur_min": 1.0}, "campi_da_cancellare": []},
+                ],
+            },
+        )
+
+        assert response.status_code == 200
+        assert response.json()["righe_applicate"] == 0
+
+    def test_una_eccezione_imprevista_in_diff_diventa_400_non_500(self, client, monkeypatch):
+        """La rete di sicurezza del router, indipendente dai resolver: il
+        contratto "mai un 500" non deve dipendere dal fatto che nessuno
+        dimentichi mai un `int()` non protetto.
+
+        Verifica anche che il messaggio restituito NON riporti il testo
+        dell'eccezione: su questa risorsa una riga porta
+        `coefficiente_impresa`, che non esce mai verso il client (regola di
+        dominio #1).
+        """
+        from app.services.import_excel.registry import risolvi_handler
+
+        _registra_admin(client)
+        xlsx = _workbook_default(client)
+
+        def _esplode(*args, **kwargs):
+            raise RuntimeError("coefficiente_impresa=0.65 su listino 1")
+
+        monkeypatch.setattr(risolvi_handler("parametri"), "diff", _esplode)
+
+        response = _post_preview(client, xlsx)
+        assert response.status_code == 400
+        detail = response.json()["detail"]
+        assert "coefficiente_impresa" not in detail
+        assert "0.65" not in detail
+        assert "non e' riuscito a elaborare" in detail
+
+
+class TestChiaveNaturaleDuplicataNelFile:
+    """CR-02: due righe con la stessa chiave naturale e senza `id` nello
+    stesso file non devono far cadere l'intero import.
+
+    `apply()` risolveva ogni riga con una query e, non trovando nulla,
+    faceva `db.add(...)` senza flush. La sessione di produzione e'
+    `autoflush=False` (`app/db.py`), quindi l'oggetto aggiunto per la prima
+    riga non veniva scritto prima della query della seconda: due INSERT, e
+    il vincolo unico scattava al `db.commit()` del router — 500, e nessuna
+    riga importata, nemmeno le altre valide del file.
+
+    QUESTA CLASSE DIPENDE DALLA CONFIGURAZIONE DELLA SESSIONE. Con
+    `autoflush=True` (il default di `sessionmaker`, che tutte le fixture
+    usavano prima di WR-04) il difetto e' invisibile: la query della
+    seconda riga innescherebbe da sola il flush della prima. La fixture di
+    questo file costruisce ora la sessione con `tests/session_factory.py`,
+    cioe' con gli stessi kwargs della produzione — senza quello, questi
+    test passerebbero anche sul codice rotto.
+    """
+
+    def test_la_sessione_di_test_e_configurata_come_la_produzione(self, client):
+        """Guardia esplicita: se qualcuno riporta la fixture al
+        `sessionmaker` nudo con i default di SQLAlchemy, e' questo test a
+        dirlo, non un 500 in produzione sei mesi dopo."""
+        from app.db import SessionLocal
+
+        assert client._session_local.kw["autoflush"] is False
+        assert client._session_local.kw["autoflush"] == SessionLocal.kw["autoflush"]
+        assert client._session_local.kw["autocommit"] == SessionLocal.kw["autocommit"]
+
+    def test_apply_con_due_righe_stessa_chiave_naturale_non_esplode_al_commit(self, client):
+        """Il difetto nudo, senza passare da `diff()`: `apply()` riceve due
+        righe identiche per chiave naturale (e' cio' che accade se il
+        client re-invia un payload costruito altrove) e il commit deve
+        riuscire, creando UNA riga."""
+        from app.services.import_excel.parametri import apply as apply_parametri
+
+        riga = RigaPiattaIn(
+            foglio="listino_categoria",
+            id=None,
+            valori={
+                "listino_id": 1,
+                "categoria_code": "E-ARREDO",
+                "base_eur_mq": 50.0,
+                "coefficiente_impresa": 0.7,
+            },
+            campi_da_cancellare=[],
+        )
+
+        with client._session_local() as db:
+            assert db.query(ListinoCategoria).filter_by(categoria_code="E-ARREDO").count() == 0
+            applicate = apply_parametri(db, [riga, riga.model_copy(deep=True)], [], is_admin=True)
+            db.commit()
+
+        assert applicate == 2  # entrambe le righe sono state elaborate...
+        with client._session_local() as db:
+            # ...ma la seconda ha trovato la prima e l'ha aggiornata.
+            assert db.query(ListinoCategoria).filter_by(listino_id=1, categoria_code="E-ARREDO").count() == 1
+
+    def test_la_preview_segnala_il_duplicato_prima_della_conferma(self, client):
+        """Il secondo intervento: l'admin deve vedere il duplicato in
+        anteprima, non scoprirlo a conferma fatta."""
+        _registra_admin(client)
+        xlsx = _workbook_con_margine(client)
+        nuova = {
+            "listino_id": 1,
+            "categoria_code": "E-ARREDO",
+            "base_eur_mq": 50.0,
+            "coefficiente_impresa": 0.7,
+        }
+        xlsx_modificato = _aggiungi_riga(_aggiungi_riga(xlsx, "listino_categoria", nuova), "listino_categoria", nuova)
+
+        body = _post_preview(client, xlsx_modificato).json()
+
+        nuove_lc = [r for r in body["nuove"] if r["foglio"] == "listino_categoria"]
+        assert len(nuove_lc) == 1
+        scarti = [s for s in body["scarti"] if "piu' di una riga nuova" in s["motivo"]]
+        assert len(scarti) == 1
+        assert "E-ARREDO" in scarti[0]["motivo"]
+
+    def test_confirm_con_duplicato_nel_payload_crea_una_sola_riga(self, client):
+        """Round-trip completo con il duplicato forzato nel payload di
+        `/confirm` (il client potrebbe non aver rispettato lo scarto della
+        preview): 200, nessun 500, e una sola riga a database."""
+        _registra_admin(client)
+
+        riga = {
+            "foglio": "listino_categoria",
+            "id": None,
+            "valori": {
+                "listino_id": 1,
+                "categoria_code": "E-ARREDO",
+                "base_eur_mq": 50.0,
+                "coefficiente_impresa": 0.7,
+            },
+            "campi_da_cancellare": [],
+        }
+        response = client.post(
+            f"{IMPORT_URL}/confirm",
+            json={"risorsa": "parametri", "nuove": [riga, dict(riga)], "modificate": []},
+        )
+
+        assert response.status_code == 200
+        with client._session_local() as db:
+            assert db.query(ListinoCategoria).filter_by(listino_id=1, categoria_code="E-ARREDO").count() == 1
+
+    def test_un_vincolo_violato_al_commit_e_un_400_non_un_500(self, client, monkeypatch):
+        """Rete di sicurezza indipendente dal fix: se un vincolo venisse
+        comunque violato (un'altra chiave, una rotta futura), il router
+        deve tradurlo in 400 con rollback, mai in un 500. Il messaggio non
+        riporta `str(exc)`: un `IntegrityError` stampa query e parametri, e
+        fra quei parametri puo' esserci `coefficiente_impresa`."""
+        from sqlalchemy.exc import IntegrityError
+
+        from app.services.import_excel.registry import risolvi_handler
+
+        _registra_admin(client)
+
+        def _viola(db, *args, **kwargs):
+            raise IntegrityError(
+                "INSERT INTO listino_categoria (coefficiente_impresa) VALUES (?)",
+                {"coefficiente_impresa": "0.65"},
+                Exception("UNIQUE constraint failed"),
+            )
+
+        monkeypatch.setattr(risolvi_handler("parametri"), "apply", _viola)
+
+        response = client.post(
+            f"{IMPORT_URL}/confirm",
+            json={"risorsa": "parametri", "nuove": [], "modificate": []},
+        )
+
+        assert response.status_code == 400
+        detail = response.json()["detail"]
+        assert "coefficiente_impresa" not in detail
+        assert "0.65" not in detail
+        assert "vincolo di unicita'" in detail

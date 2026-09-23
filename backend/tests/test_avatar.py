@@ -31,7 +31,6 @@ import pytest
 from fastapi.testclient import TestClient
 from PIL import Image
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 import app.db as db_module
 import app.services.storage_service as storage_module
@@ -41,6 +40,7 @@ from app.limiter import limiter
 from app.main import app
 from app.models.avatar import AvatarBlob
 from app.models.user import User
+from tests.session_factory import sessione_di_test
 
 REGISTRAZIONE_URL = "/api/v1/auth/registrati"
 ME_URL = "/api/v1/auth/me"
@@ -109,7 +109,7 @@ def client(monkeypatch, tmp_path):
     db_path = tmp_path / "test_avatar.db"
     engine = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
-    testing_session_local = sessionmaker(bind=engine)
+    testing_session_local = sessione_di_test(engine)
 
     import app.dependencies.auth as deps_auth_module
     import app.routers.auth as auth_router_module

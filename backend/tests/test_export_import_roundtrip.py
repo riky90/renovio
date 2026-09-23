@@ -14,12 +14,12 @@ import io
 import re
 from decimal import Decimal
 from pathlib import Path
+from typing import get_args, get_origin
 
 import openpyxl
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 import app.db as db_module
 from app.config import settings
@@ -37,6 +37,7 @@ from app.services.listino_upload_service import (
     parse_flat_listino,
 )
 from scripts.seed import load_seed_data, seed
+from tests.session_factory import sessione_di_test
 
 REGISTRAZIONE_URL = "/api/v1/auth/registrati"
 LISTINI_URL = "/api/v1/admin/listini"
@@ -50,7 +51,7 @@ def session():
     direttamente `parse_flat_listino` -> `compute_diff` -> `apply_diff_idempotent`."""
     engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
-    testing_session_local = sessionmaker(bind=engine)
+    testing_session_local = sessione_di_test(engine)
     with testing_session_local() as s:
         seed(s, load_seed_data())
         s.commit()
@@ -467,6 +468,241 @@ class TestRigaSenzaIdNonAzzeraCampiAssenti:
         assert session.get(Sottocategoria, sotto0.id).ordine == 99
 
 
+class TestDiffDichiaraICampiDiSottocategoria:
+    """WR-01: sul percorso per CHIAVE NATURALE il diff deve confrontare
+    anche i campi di sottocategoria, perche' la conferma li scrive.
+
+    `compute_diff` valorizzava `sotto` solo sul ramo per id; sul ramo per
+    chiave naturale restava None e il confronto su
+    `_CAMPI_DIFF_SOTTOCATEGORIA` non veniva mai eseguito. Intanto
+    `apply_diff_idempotent` chiama `_upsert_sottocategoria`, che quei campi
+    li scrive eccome. Il risultato erano due difetti speculari: una modifica
+    di sola sottocategoria spariva dal diff (e dall'import), e una modifica
+    mista faceva confermare all'admin una scrittura che non gli era stata
+    mostrata.
+    """
+
+    def test_modifica_di_sola_sottocategoria_non_sparisce_dal_diff(self, session):
+        """Nessun campo di voce cambia: prima la riga non compariva affatto
+        nel diff e la modifica era persa in silenzio — nessuno scarto,
+        nessun avviso."""
+        listino = _listino(session)
+        voce0, sotto0 = _voci_con_sotto(session, listino)[0]
+        sotto0.ordine = 42
+        session.commit()
+
+        xlsx_bytes = _xlsx_piatto([_riga_completa(voce0, sotto0, id=None, sottocategoria_ordine=99)])
+
+        righe, scarti = parse_flat_listino(xlsx_bytes)
+        assert scarti == []
+        assert righe[0].id is None
+
+        nuove, modificate, scarti_diff = compute_diff(session, righe, listino)
+        assert scarti_diff == []
+        assert len(nuove) == 0
+        assert len(modificate) == 1, "la modifica alla sottocategoria non compare nel diff"
+        assert modificate[0].campi_modificati == ["sottocategoria_ordine"]
+
+        apply_diff_idempotent(
+            session, UploadTargetEsistente(listino_id=listino.id), [], [r.riga for r in modificate]
+        )
+        session.commit()
+        session.expire_all()
+
+        assert session.get(Sottocategoria, sotto0.id).ordine == 99
+
+    def test_il_diff_dichiara_ogni_campo_di_sottocategoria_che_la_conferma_scrivera(self, session):
+        """Il caso che conta: cambiano insieme un campo di voce e due di
+        sottocategoria. La riga finiva in `modificate` per il solo campo di
+        voce, e la conferma scriveva anche gli altri due — mai mostrati."""
+        listino = _listino(session)
+        voce0, sotto0 = _voci_con_sotto(session, listino)[0]
+        sotto0.ordine = 42
+        sotto0.famiglia = "fam-prima"
+        session.commit()
+        nuovo_prezzo = voce0.prezzo_unitario_cliente + Decimal("5.00")
+
+        xlsx_bytes = _xlsx_piatto(
+            [
+                _riga_completa(
+                    voce0,
+                    sotto0,
+                    id=None,
+                    prezzo_unitario_cliente=nuovo_prezzo,
+                    sottocategoria_ordine=99,
+                    sottocategoria_famiglia="fam-curata",
+                )
+            ]
+        )
+
+        righe, scarti = parse_flat_listino(xlsx_bytes)
+        assert scarti == []
+        nuove, modificate, scarti_diff = compute_diff(session, righe, listino)
+        assert scarti_diff == []
+        assert len(modificate) == 1
+
+        annunciati = set(modificate[0].campi_modificati)
+        assert annunciati == {
+            "prezzo_unitario_cliente",
+            "sottocategoria_ordine",
+            "sottocategoria_famiglia",
+        }
+
+        apply_diff_idempotent(
+            session, UploadTargetEsistente(listino_id=listino.id), [], [r.riga for r in modificate]
+        )
+        session.commit()
+        session.expire_all()
+
+        # Cio' che e' stato scritto e' esattamente cio' che era stato annunciato.
+        sotto_dopo = session.get(Sottocategoria, sotto0.id)
+        assert session.get(Voce, voce0.id).prezzo_unitario_cliente == nuovo_prezzo
+        assert sotto_dopo.ordine == 99
+        assert sotto_dopo.famiglia == "fam-curata"
+
+
+class TestLivelloSulPercorsoPerChiaveNaturale:
+    """WR-02: l'anteprima annunciava una modifica a `livello` che la
+    conferma non applicava mai.
+
+    `livello` e' fra i campi diffati (`_CAMPI_DIFF_VOCE`) ma `_upsert_voce`
+    lo escludeva dal ciclo di scrittura, per la ragione — corretta — che le
+    righe di `parse_computo` si dichiarano complete e scriverebbero `None`
+    su ogni voce. La condizione giusta non e' pero' "ramo per id si, per
+    chiave naturale no", ma "il file dichiara esplicitamente il campo":
+    `campi_presenti is None` (computo) non vale come dichiarazione,
+    `campi_presenti` valorizzato (file piatto) si'.
+
+    L'admin che cura i livelli a mano dal file piatto vedeva il diff giusto,
+    confermava, e non trovava la modifica applicata — senza nessun
+    messaggio, e con la riga contata comunque fra le `righe_importate`.
+    """
+
+    def test_il_livello_annunciato_nel_diff_viene_davvero_scritto(self, session):
+        listino = _listino(session)
+        voce0, sotto0 = _voci_con_sotto(session, listino)[0]
+        voce0.livello = "alto"
+        session.commit()
+
+        xlsx_bytes = _xlsx_piatto([_riga_completa(voce0, sotto0, id=None, livello="medio")])
+
+        righe, scarti = parse_flat_listino(xlsx_bytes)
+        assert scarti == []
+        assert righe[0].id is None
+        assert "livello" in righe[0].campi_presenti
+
+        nuove, modificate, scarti_diff = compute_diff(session, righe, listino)
+        assert scarti_diff == []
+        assert len(modificate) == 1
+        assert modificate[0].campi_modificati == ["livello"]
+
+        apply_diff_idempotent(
+            session, UploadTargetEsistente(listino_id=listino.id), [], [r.riga for r in modificate]
+        )
+        session.commit()
+        session.expire_all()
+
+        assert session.get(Voce, voce0.id).livello == "medio", (
+            "l'anteprima aveva annunciato la modifica a livello, la conferma non l'ha applicata"
+        )
+
+    def test_il_computo_continua_a_non_azzerare_il_livello(self, session):
+        """Contro-prova, e la ragione per cui `livello` era escluso: una
+        riga che si dichiara completa ma viene da `parse_computo`
+        (`campi_presenti is None`) non deve scrivere il `None` che porta
+        addosso. Senza questa distinzione il fix azzererebbe la curatela a
+        ogni ri-caricamento del computo."""
+        listino = _listino(session)
+        voce0, sotto0 = _voci_con_sotto(session, listino)[0]
+        voce0.livello = "alto"
+        session.commit()
+
+        riga_da_computo = VoceRigaIn(
+            id=None,
+            categoria_code=sotto0.categoria_code,
+            sottocategoria_codice=sotto0.codice,
+            sottocategoria_nome=sotto0.nome,
+            sottocategoria_famiglia=sotto0.famiglia,
+            sottocategoria_ordine=sotto0.ordine,
+            codice=voce0.codice,
+            descrizione=voce0.descrizione,
+            um=voce0.um,
+            prezzo_unitario_cliente=voce0.prezzo_unitario_cliente,
+            ordine=voce0.ordine,
+            livello=None,
+            campi_presenti=None,
+        )
+
+        apply_diff_idempotent(
+            session, UploadTargetEsistente(listino_id=listino.id), [], [riga_da_computo]
+        )
+        session.commit()
+        session.expire_all()
+
+        assert session.get(Voce, voce0.id).livello == "alto"
+
+    def test_una_voce_nuova_dal_file_piatto_conserva_il_livello_dichiarato(self, session):
+        """Stesso principio sul ramo "voce nuova": il livello dichiarato nel
+        file non deve perdersi fra la riga letta e la riga creata."""
+        listino = _listino(session)
+        voce0, sotto0 = _voci_con_sotto(session, listino)[0]
+
+        xlsx_bytes = _xlsx_piatto(
+            [
+                _riga_completa(
+                    voce0,
+                    sotto0,
+                    id=None,
+                    codice=None,
+                    descrizione="Voce nuova con livello curato",
+                    livello="medio",
+                )
+            ]
+        )
+
+        righe, scarti = parse_flat_listino(xlsx_bytes)
+        assert scarti == []
+        nuove, modificate, scarti_diff = compute_diff(session, righe, listino)
+        assert scarti_diff == []
+        assert len(nuove) == 1
+
+        apply_diff_idempotent(
+            session, UploadTargetEsistente(listino_id=listino.id), [r.riga for r in nuove], []
+        )
+        session.commit()
+        session.expire_all()
+
+        creata = session.query(Voce).filter_by(descrizione="Voce nuova con livello curato").one()
+        assert creata.livello == "medio"
+
+    def test_il_token_cancella_azzera_il_livello_anche_senza_id(self, session):
+        """`livello` e' fra le colonne nullable, quindi `#CANCELLA#` e' una
+        dichiarazione esplicita a tutti gli effetti: il campo compare in
+        `campi_presenti` con valore `None` e la scrittura deve avvenire."""
+        listino = _listino(session)
+        voce0, sotto0 = _voci_con_sotto(session, listino)[0]
+        voce0.livello = "alto"
+        session.commit()
+
+        xlsx_bytes = _xlsx_piatto([_riga_completa(voce0, sotto0, id=None, livello=TOKEN_CANCELLA)])
+
+        righe, scarti = parse_flat_listino(xlsx_bytes)
+        assert scarti == []
+        assert righe[0].livello is None
+        assert "livello" in righe[0].campi_presenti
+
+        nuove, modificate, scarti_diff = compute_diff(session, righe, listino)
+        assert len(modificate) == 1
+
+        apply_diff_idempotent(
+            session, UploadTargetEsistente(listino_id=listino.id), [], [r.riga for r in modificate]
+        )
+        session.commit()
+        session.expire_all()
+
+        assert session.get(Voce, voce0.id).livello is None
+
+
 class TestIdInesistente:
     def test_id_inesistente_finisce_negli_scarti(self, session):
         """T-08-23: un id che non esiste nel listino di destinazione
@@ -527,7 +763,7 @@ def client(monkeypatch, tmp_path):
     db_path = tmp_path / "test_export_import_roundtrip.db"
     engine = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
-    testing_session_local = sessionmaker(bind=engine)
+    testing_session_local = sessione_di_test(engine)
 
     with testing_session_local() as s:
         seed(s, load_seed_data())
@@ -662,9 +898,50 @@ class TestContrattoDiffRowSulFilo:
             )
             assert r["riga"]["campi_presenti"] is not None
             assert "prezzo_unitario_cliente" in r["riga"]["campi_presenti"]
+            # WR-03: Decimal-as-string al confine API. Il valore arriva al
+            # client come STRINGA JSON, non come number — `"12.50"`, non
+            # `12.5`. Vale per il prezzo dentro `riga` e per
+            # `valore_precedente`, che sono entrambi `Decimal` pydantic.
+            assert isinstance(r["riga"]["prezzo_unitario_cliente"], str), (
+                "prezzo_unitario_cliente non e' piu' una stringa sul filo: "
+                "aggiornare il tipo in frontend/src/api/admin/uploadListino.ts"
+            )
+            if r["valore_precedente"] is not None:
+                assert isinstance(r["valore_precedente"], str)
 
         modificata = next(r for r in body["modificate"] if r["riga"]["id"] == voce_id)
         assert modificata["riga"]["id"] == voce_id
+
+
+def _forma_json(annotazione: object) -> str:
+    """Riduce un'annotazione pydantic alla forma che il campo assume in
+    JSON. `Decimal -> "string"` non e' un'approssimazione: e' la convenzione
+    Decimal-as-string del progetto, ed e' esattamente il punto che il
+    confronto sui soli nomi non vedeva."""
+    args = [a for a in get_args(annotazione) if a is not type(None)]
+    if args:
+        annotazione = args[0]
+    if get_origin(annotazione) in (list, set, tuple, frozenset):
+        return "array"
+    if annotazione is bool:  # prima di int: bool e' sottoclasse di int
+        return "boolean"
+    if annotazione is Decimal or annotazione is str:
+        return "string"
+    if annotazione in (int, float):
+        return "number"
+    return str(annotazione)
+
+
+def _forma_ts(tipo: str) -> str:
+    """Stessa riduzione, dal lato TypeScript: `string[] | null` -> "array",
+    `number | null` -> "number"."""
+    tipo = tipo.strip()
+    if "[]" in tipo:
+        return "array"
+    for primitivo in ("string", "number", "boolean"):
+        if re.search(rf"\b{primitivo}\b", tipo):
+            return primitivo
+    return tipo
 
 
 class TestContrattoVoceRigaTypeScript:
@@ -682,11 +959,19 @@ class TestContrattoVoceRigaTypeScript:
 
     Il frontend non ha un test runner: questo confronto e' il solo modo di
     tenere le due dichiarazioni allineate automaticamente.
+
+    Confronta i NOMI e la FORMA JSON dei tipi. La sola verifica dei nomi
+    dava una sicurezza che non aveva: `prezzo_unitario_cliente` era
+    dichiarato `number` mentre sul filo e' una stringa (pydantic serializza
+    `Decimal` come stringa JSON), e il test passava lo stesso — mentre a
+    schermo la colonna "nuovo" della tabella di anteprima mostrava `12.50`
+    grezzo invece di `12,50 €`, perche'
+    `String.prototype.toLocaleString` ignora gli argomenti.
     """
 
     PERCORSO_TS = "frontend/src/api/admin/uploadListino.ts"
 
-    def test_voce_riga_ts_elenca_gli_stessi_campi_di_voce_riga_in(self):
+    def _corpo_interfaccia(self) -> str:
         radice = Path(__file__).resolve().parents[2]
         if not (radice / "frontend").is_dir():
             # Checkout del solo backend (es. immagine Docker): non c'e'
@@ -700,12 +985,45 @@ class TestContrattoVoceRigaTypeScript:
         sorgente = percorso.read_text(encoding="utf-8")
         corpo = re.search(r"export interface VoceRiga \{(.*?)\n\}", sorgente, re.DOTALL)
         assert corpo is not None, "interfaccia VoceRiga non trovata in uploadListino.ts"
+        return corpo.group(1)
 
-        campi_ts = set(re.findall(r"^\s{2}(\w+)\??:", corpo.group(1), re.MULTILINE))
+    def test_voce_riga_ts_elenca_gli_stessi_campi_di_voce_riga_in(self):
+        campi_ts = set(re.findall(r"^\s{2}(\w+)\??:", self._corpo_interfaccia(), re.MULTILINE))
         campi_py = set(VoceRigaIn.model_fields)
 
         assert campi_ts == campi_py, (
             "VoceRiga (TypeScript) e VoceRigaIn (pydantic) sono disallineati.\n"
             f"  solo in TS:     {sorted(campi_ts - campi_py)}\n"
             f"  solo in Python: {sorted(campi_py - campi_ts)}"
+        )
+
+    def test_voce_riga_ts_dichiara_la_forma_json_giusta_per_ogni_campo(self):
+        """WR-03: il confronto sui soli nomi non basta.
+
+        Riduce entrambe le dichiarazioni alla forma JSON che il campo ha
+        davvero sul filo (`string`/`number`/`boolean`/`array`) e le mette a
+        confronto. La riduzione e' volutamente grossolana — non prova a
+        confrontare la nullabilita' — ma intercetta l'errore che conta: un
+        `Decimal` dichiarato `number` in TypeScript.
+        """
+        attesi = {nome: _forma_json(campo.annotation) for nome, campo in VoceRigaIn.model_fields.items()}
+        dichiarati = {
+            nome: _forma_ts(tipo)
+            for nome, tipo in re.findall(r"^\s{2}(\w+)\??:\s*([^;]+);", self._corpo_interfaccia(), re.MULTILINE)
+        }
+
+        disallineati = {
+            nome: (attesi[nome], dichiarati.get(nome))
+            for nome in attesi
+            if dichiarati.get(nome) != attesi[nome]
+        }
+        assert not disallineati, (
+            "VoceRiga (TypeScript) dichiara tipi che non corrispondono alla forma "
+            "JSON di VoceRigaIn. Nota che pydantic serializza `Decimal` come "
+            "STRINGA, non come number (convenzione Decimal-as-string del "
+            "progetto).\n"
+            + "\n".join(
+                f"  {nome}: atteso {atteso!r}, dichiarato {dichiarato!r}"
+                for nome, (atteso, dichiarato) in sorted(disallineati.items())
+            )
         )
