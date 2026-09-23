@@ -10,7 +10,7 @@ progress:
   total_plans: 9
   completed_plans: 9
   percent: 57
-stopped_at: Phase 08 complete (8/8) — ready to discuss Phase 08.1
+stopped_at: Phase 08 complete (8/8) + gap closure chiusa (13 findings) — ready to discuss Phase 08.1
 ---
 
 # Project State — ristruttura-stima
@@ -45,8 +45,40 @@ Prossima: 08.1 (catalogo domande) — contesto scritto, nessun piano
   chiave naturale (viola il criterio 2 della fase), e `FlatImportDialog.tsx:75` cabla
   `campi_da_cancellare: []`, per cui `#CANCELLA#` scrive la stringa `"None"` invece di NULL.
   **Decisione di Riccardo del 2026-09-22: si chiudono in gap closure**, non dentro la 09.
-  Il comando e' `/gsd:plan-phase 08 --gaps`, che legge `08-REVIEW.md` e crea piani con
-  `gap_closure: true`, poi `/gsd:execute-phase 08 --gaps-only`. Da fare in sessione nuova.
+  **Fatto il 2026-09-23.** Non con `/gsd:plan-phase 08 --gaps`: quel flag fa leggere al
+  planner `VERIFICATION.md` e `UAT.md`, non `REVIEW.md`, e la verifica era `passed` 5/5,
+  quindi il planner avrebbe ricevuto zero gap. Il percorso giusto per i findings di una
+  review e' `/gsd:code-review 08 --fix`, che spawna `gsd-code-fixer` su `08-REVIEW.md`.
+  **Tredici findings chiuse in due iterazioni**, tutte con la loro regressione:
+  - *Iterazione 1* — i due critici noti (`_upsert_voce` che ignorava `campi_presenti`,
+    `#CANCELLA#` che scriveva la stringa `"None"`), i tre warning, e un **terzo critico
+    trovato il 2026-09-23**: la migrazione `0019` non si applicava su SQLite
+    (`Cannot add a column with non-constant default`), quindi `dev.db` non poteva salire e
+    le nove colonne `updated_at` esistevano solo nello schema costruito da `create_all` nei
+    test. Il `dev.db` locale e' ora a `0019 (head)`.
+  - *Iterazione 2* — la re-review ha confermato chiuse le sei e ne ha trovate sette nuove,
+    due BLOCKER: il guard sugli id accettava `"--5"` (`lstrip("-")` toglie tutti i meno) e
+    `int()` sollevava sulla `/preview`; due righe con la stessa chiave naturale senza `id`
+    nello stesso file facevano saltare il commit del router con `IntegrityError`, perdendo
+    l'import intero. La piu' istruttiva e' **WR-04**: le fixture usavano
+    `sessionmaker(bind=engine)` (`autoflush=True`) mentre la produzione usa
+    `autoflush=False`, ed e' il motivo per cui 555 test non vedevano il secondo BLOCKER.
+    Ora c'e' una fabbrica condivisa e un test che analizza l'AST di ogni file per impedire
+    che un test nuovo si ricostruisca la sessione per conto suo.
+  - Fuori dalle findings, `e131c20`: `test_token_manomesso_ritorna_none` non poteva fallire
+    in modo affidabile. Manometteva l'ultimo carattere del token, che porta 2 bit di
+    riempimento della firma HMAC-SHA1: quando la firma finiva in `Y` i 20 byte decodificati
+    restavano identici e il token era ancora valido. Misurato: falliva nel 6,6% dei run,
+    1 valore su 16. Non e' un difetto di `read_reset_token`. Stessa famiglia dell'acceptance
+    criterion di `08-05` soddisfacibile cambiando un commento.
+  Suite dopo tutto: **579 passed, 5 skipped**. `tsc -b` e `oxlint` a 0.
+  Report in `08-REVIEW-FIX.md`, re-review in `08-REVIEW.md` (`status: issues_found` si
+  riferisce alle due Info lasciate fuori scope di proposito).
+  **Nota operativa:** il fixer della seconda iterazione e' stato tagliato da un limite di
+  sessione esattamente al confine `Write` -> `commit`, con sei commit su un worktree branch
+  e il lavoro di WR-04 scritto su disco ma non committato. Recuperato a mano e mergiato con
+  `--no-ff`. Secondo giorno di fila che quel confine perde lavoro.
+
   **Split del 2026-09-22:** il catalogo domande (D-05/06/07, D-21..D-25) e' uscito dalla
   Fase 08 ed e' diventato la **Fase 08.1**, con il suo `08.1-CONTEXT.md` gia' scritto e
   nessun piano ancora. Nessuno degli 8 piani della 08 ne dipende.
