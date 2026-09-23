@@ -29,6 +29,7 @@ il suo endpoint dedicato (`/admin/upload-listino`), non questo generico
 from __future__ import annotations
 
 import io
+import logging
 
 import openpyxl
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
@@ -49,6 +50,19 @@ import app.services.import_excel.lead  # noqa: F401
 import app.services.import_excel.parametri  # noqa: F401
 
 router = APIRouter(prefix="/import-excel", tags=["admin-import-excel"])
+
+logger = logging.getLogger(__name__)
+
+# Messaggio unico della rete di sicurezza sotto. Deliberatamente NON riporta
+# `str(exc)` all'utente: il testo di un'eccezione puo' contenere un frammento
+# di query o di riga, e su questa risorsa una riga di `listino_categoria`
+# porta `coefficiente_impresa` (regola di dominio #1, mai verso il client).
+# Il dettaglio completo va nel log del server, con traceback.
+ERRORE_IMPREVISTO = (
+    "Il file contiene una riga che il server non e' riuscito a elaborare. "
+    "Nessuna modifica e' stata applicata. Controlla il file e riprova; se il "
+    "problema persiste, segnala il caso all'assistenza tecnica."
+)
 
 
 def _verifica_permesso(handler: ImportHandler, user: User) -> None:
@@ -93,8 +107,20 @@ async def preview_import(
         raise HTTPException(400, "Il file non e' nel formato piatto di import: sembra il computo originale, che ha il suo endpoint dedicato (/admin/upload-listino)")
 
     generato_il = leggi_timestamp_export(wb)
-    righe, scarti_parse = handler.parse(wb)
-    nuove, modificate, scarti_diff = handler.diff(db, righe, generato_il)
+    # Rete di sicurezza indipendente dai singoli resolver (CR-01): il
+    # contratto dichiarato dagli handler e' che una riga malformata sia uno
+    # scarto descritto, mai un 500 — ma quel contratto vale finche' ogni
+    # conversione e' protetta, e basta dimenticarne una perche' un refuso in
+    # una cella (`--5`) faccia cadere l'intero import con un 500 muto.
+    # Qui la caduta diventa un 400 leggibile, e il traceback resta nel log.
+    try:
+        righe, scarti_parse = handler.parse(wb)
+        nuove, modificate, scarti_diff = handler.diff(db, righe, generato_il)
+    except HTTPException:
+        raise
+    except Exception as exc:  # noqa: BLE001 — rete di sicurezza deliberata
+        logger.exception("preview import fallita per la risorsa %s", risorsa)
+        raise HTTPException(400, ERRORE_IMPREVISTO) from exc
 
     return DiffPiattoOut(
         risorsa=risorsa,
@@ -125,8 +151,21 @@ def confirm_import(
     # dove ruolo_richiesto="admin" impedisce comunque al consulente di
     # arrivarci) deve riflettere il ruolo vero dell'utente, non l'assunzione
     # implicita del vecchio gate globale.
-    righe_applicate = handler.apply(
-        db, payload.nuove, payload.modificate, is_admin=(user.role == ROLE_ADMIN)
-    )
-    db.commit()
+    # Stessa rete di sicurezza della preview (CR-01), con in piu' il
+    # `rollback()`: `/confirm` scrive davvero, e una sessione lasciata in
+    # stato sporco dopo un'eccezione contaminerebbe la richiesta successiva
+    # che riusa la stessa connessione.
+    try:
+        righe_applicate = handler.apply(
+            db, payload.nuove, payload.modificate, is_admin=(user.role == ROLE_ADMIN)
+        )
+        db.commit()
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception as exc:  # noqa: BLE001 — rete di sicurezza deliberata
+        db.rollback()
+        logger.exception("confirm import fallita per la risorsa %s", risorsa)
+        raise HTTPException(400, ERRORE_IMPREVISTO) from exc
+
     return {"righe_applicate": righe_applicate}

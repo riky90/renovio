@@ -646,3 +646,152 @@ class TestListinoCategoriaNuovaSenzaMargine:
 
         with client._session_local() as db:
             assert db.query(ListinoCategoria).filter_by(categoria_code="E-ARREDO").count() == 0
+
+
+def _prima_riga(xlsx_bytes: bytes, foglio: str) -> dict:
+    """La prima riga dati del foglio come dict colonna -> valore. Serve per
+    riusare codici padre realmente esistenti (tipo_code, livello_code…)
+    senza cablare nel test valori che dipendono dal seed."""
+    wb = openpyxl.load_workbook(io.BytesIO(xlsx_bytes))
+    ws = wb[foglio]
+    header = [c.value for c in next(ws.iter_rows(min_row=1, max_row=1))]
+    valori = next(ws.iter_rows(min_row=2, max_row=2, values_only=True))
+    return dict(zip(header, valori))
+
+
+class TestIdNonNumericoNonFa500:
+    """CR-01: nessuna conversione a intero puo' far cadere l'import.
+
+    Il guard che proteggeva le tre chiavi naturali numeriche era
+    `str(x).strip().lstrip("-").isdigit()`, e `lstrip("-")` toglie TUTTI i
+    meno iniziali: `"--5"` lo superava e il successivo `int("--5")`
+    sollevava `ValueError`. Nessuno lo catturava — non il resolver, non
+    `diff()`, non il router, non un exception handler globale — quindi un
+    refuso di battitura in una cella bastava a restituire 500 e a far
+    perdere l'intero file, contro la regola dichiarata nella docstring del
+    modulo ("un valore fuori bound e' uno scarto, non un update").
+
+    I quattro `int(r.id)` avevano lo stesso problema per un'altra via:
+    `RigaPiattaIn.id` e' una stringa libera e in `/confirm` arriva dal
+    client senza alcuna validazione numerica.
+    """
+
+    def test_intero_non_solleva_mai(self):
+        from app.services.import_excel.parametri import _intero
+
+        # Il caso che passava il vecchio guard e poi esplodeva.
+        assert _intero("--5") is None
+        assert _intero("abc") is None
+        assert _intero("") is None
+        assert _intero(None) is None
+        assert _intero("3.5") is None
+        # I casi legittimi continuano a funzionare, spazi compresi.
+        assert _intero(" 7 ") == 7
+        assert _intero(7) == 7
+        assert _intero("-7") == -7
+
+    def test_listino_id_a_doppio_meno_e_uno_scarto_non_un_500(self, client):
+        _registra_admin(client)
+        xlsx = _workbook_con_margine(client)
+        xlsx_modificato = _aggiungi_riga(
+            xlsx,
+            "listino_categoria",
+            {
+                "listino_id": "--5",
+                "categoria_code": "E-ARREDO",
+                "base_eur_mq": 50.0,
+                "coefficiente_impresa": 0.7,
+            },
+        )
+
+        response = _post_preview(client, xlsx_modificato)
+        assert response.status_code == 200
+        body = response.json()
+
+        scarti = [s for s in body["scarti"] if "listino_id non numerico" in s["motivo"]]
+        assert len(scarti) == 1
+        assert "--5" in scarti[0]["motivo"]
+        assert [r for r in body["nuove"] if r["foglio"] == "listino_categoria"] == []
+
+    def test_voce_id_a_doppio_meno_e_uno_scarto_non_un_500(self, client):
+        _registra_admin(client)
+        xlsx = _workbook_default(client)
+        tipo_code = _prima_riga(xlsx, "coefficienti_pro")["tipo_code"]
+        xlsx_modificato = _aggiungi_riga(
+            xlsx,
+            "coefficienti_pro",
+            {"voce_id": "--7", "tipo_code": tipo_code, "coefficiente_qta_per_mq": 1.0},
+        )
+
+        response = _post_preview(client, xlsx_modificato)
+        assert response.status_code == 200
+        scarti = [s for s in response.json()["scarti"] if "voce_id non numerico" in s["motivo"]]
+        assert len(scarti) == 1
+        assert "--7" in scarti[0]["motivo"]
+
+    def test_opzione_id_a_doppio_meno_e_uno_scarto_non_un_500(self, client):
+        _registra_admin(client)
+        xlsx = _workbook_default(client)
+        livello_code = _prima_riga(xlsx, "forfait_arredo")["livello_code"]
+        xlsx_modificato = _aggiungi_riga(
+            xlsx,
+            "forfait_arredo",
+            {"opzione_id": "--3", "livello_code": livello_code, "eur_min": 100.0, "eur_max": 200.0},
+        )
+
+        response = _post_preview(client, xlsx_modificato)
+        assert response.status_code == 200
+        scarti = [s for s in response.json()["scarti"] if "opzione_id non numerico" in s["motivo"]]
+        assert len(scarti) == 1
+        assert "--3" in scarti[0]["motivo"]
+
+    def test_confirm_con_id_non_numerico_non_fa_500(self, client):
+        """`/confirm` riceve gli id dal client, non dal file: il parser non
+        li ha mai visti e non puo' averli filtrati. Un id non numerico deve
+        essere una riga non applicata, non la caduta dell'intera richiesta
+        (che porterebbe con se' tutte le altre righe valide del file)."""
+        _registra_admin(client)
+
+        response = client.post(
+            f"{IMPORT_URL}/confirm",
+            json={
+                "risorsa": "parametri",
+                "nuove": [],
+                "modificate": [
+                    {"foglio": "moltiplicatori", "id": "abc", "valori": {"valore": 1.5}, "campi_da_cancellare": []},
+                    {"foglio": "listino_categoria", "id": "--5", "valori": {"base_eur_mq": 1.0}, "campi_da_cancellare": []},
+                    {"foglio": "coefficienti_pro", "id": "x1", "valori": {"coefficiente_qta_per_mq": 1.0}, "campi_da_cancellare": []},
+                    {"foglio": "forfait_arredo", "id": "--3", "valori": {"eur_min": 1.0}, "campi_da_cancellare": []},
+                ],
+            },
+        )
+
+        assert response.status_code == 200
+        assert response.json()["righe_applicate"] == 0
+
+    def test_una_eccezione_imprevista_in_diff_diventa_400_non_500(self, client, monkeypatch):
+        """La rete di sicurezza del router, indipendente dai resolver: il
+        contratto "mai un 500" non deve dipendere dal fatto che nessuno
+        dimentichi mai un `int()` non protetto.
+
+        Verifica anche che il messaggio restituito NON riporti il testo
+        dell'eccezione: su questa risorsa una riga porta
+        `coefficiente_impresa`, che non esce mai verso il client (regola di
+        dominio #1).
+        """
+        from app.services.import_excel.registry import risolvi_handler
+
+        _registra_admin(client)
+        xlsx = _workbook_default(client)
+
+        def _esplode(*args, **kwargs):
+            raise RuntimeError("coefficiente_impresa=0.65 su listino 1")
+
+        monkeypatch.setattr(risolvi_handler("parametri"), "diff", _esplode)
+
+        response = _post_preview(client, xlsx)
+        assert response.status_code == 400
+        detail = response.json()["detail"]
+        assert "coefficiente_impresa" not in detail
+        assert "0.65" not in detail
+        assert "non e' riuscito a elaborare" in detail
