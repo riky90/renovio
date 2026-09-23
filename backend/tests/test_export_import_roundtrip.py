@@ -467,6 +467,99 @@ class TestRigaSenzaIdNonAzzeraCampiAssenti:
         assert session.get(Sottocategoria, sotto0.id).ordine == 99
 
 
+class TestDiffDichiaraICampiDiSottocategoria:
+    """WR-01: sul percorso per CHIAVE NATURALE il diff deve confrontare
+    anche i campi di sottocategoria, perche' la conferma li scrive.
+
+    `compute_diff` valorizzava `sotto` solo sul ramo per id; sul ramo per
+    chiave naturale restava None e il confronto su
+    `_CAMPI_DIFF_SOTTOCATEGORIA` non veniva mai eseguito. Intanto
+    `apply_diff_idempotent` chiama `_upsert_sottocategoria`, che quei campi
+    li scrive eccome. Il risultato erano due difetti speculari: una modifica
+    di sola sottocategoria spariva dal diff (e dall'import), e una modifica
+    mista faceva confermare all'admin una scrittura che non gli era stata
+    mostrata.
+    """
+
+    def test_modifica_di_sola_sottocategoria_non_sparisce_dal_diff(self, session):
+        """Nessun campo di voce cambia: prima la riga non compariva affatto
+        nel diff e la modifica era persa in silenzio — nessuno scarto,
+        nessun avviso."""
+        listino = _listino(session)
+        voce0, sotto0 = _voci_con_sotto(session, listino)[0]
+        sotto0.ordine = 42
+        session.commit()
+
+        xlsx_bytes = _xlsx_piatto([_riga_completa(voce0, sotto0, id=None, sottocategoria_ordine=99)])
+
+        righe, scarti = parse_flat_listino(xlsx_bytes)
+        assert scarti == []
+        assert righe[0].id is None
+
+        nuove, modificate, scarti_diff = compute_diff(session, righe, listino)
+        assert scarti_diff == []
+        assert len(nuove) == 0
+        assert len(modificate) == 1, "la modifica alla sottocategoria non compare nel diff"
+        assert modificate[0].campi_modificati == ["sottocategoria_ordine"]
+
+        apply_diff_idempotent(
+            session, UploadTargetEsistente(listino_id=listino.id), [], [r.riga for r in modificate]
+        )
+        session.commit()
+        session.expire_all()
+
+        assert session.get(Sottocategoria, sotto0.id).ordine == 99
+
+    def test_il_diff_dichiara_ogni_campo_di_sottocategoria_che_la_conferma_scrivera(self, session):
+        """Il caso che conta: cambiano insieme un campo di voce e due di
+        sottocategoria. La riga finiva in `modificate` per il solo campo di
+        voce, e la conferma scriveva anche gli altri due — mai mostrati."""
+        listino = _listino(session)
+        voce0, sotto0 = _voci_con_sotto(session, listino)[0]
+        sotto0.ordine = 42
+        sotto0.famiglia = "fam-prima"
+        session.commit()
+        nuovo_prezzo = voce0.prezzo_unitario_cliente + Decimal("5.00")
+
+        xlsx_bytes = _xlsx_piatto(
+            [
+                _riga_completa(
+                    voce0,
+                    sotto0,
+                    id=None,
+                    prezzo_unitario_cliente=nuovo_prezzo,
+                    sottocategoria_ordine=99,
+                    sottocategoria_famiglia="fam-curata",
+                )
+            ]
+        )
+
+        righe, scarti = parse_flat_listino(xlsx_bytes)
+        assert scarti == []
+        nuove, modificate, scarti_diff = compute_diff(session, righe, listino)
+        assert scarti_diff == []
+        assert len(modificate) == 1
+
+        annunciati = set(modificate[0].campi_modificati)
+        assert annunciati == {
+            "prezzo_unitario_cliente",
+            "sottocategoria_ordine",
+            "sottocategoria_famiglia",
+        }
+
+        apply_diff_idempotent(
+            session, UploadTargetEsistente(listino_id=listino.id), [], [r.riga for r in modificate]
+        )
+        session.commit()
+        session.expire_all()
+
+        # Cio' che e' stato scritto e' esattamente cio' che era stato annunciato.
+        sotto_dopo = session.get(Sottocategoria, sotto0.id)
+        assert session.get(Voce, voce0.id).prezzo_unitario_cliente == nuovo_prezzo
+        assert sotto_dopo.ordine == 99
+        assert sotto_dopo.famiglia == "fam-curata"
+
+
 class TestIdInesistente:
     def test_id_inesistente_finisce_negli_scarti(self, session):
         """T-08-23: un id che non esiste nel listino di destinazione

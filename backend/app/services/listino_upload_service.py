@@ -379,7 +379,11 @@ def compute_diff(
     (righe di `parse_computo`) equivale a "tutti i campi sono presenti" —
     il comportamento storico.
     """
-    per_chiave: dict[tuple, Voce] = {}
+    # Entrambe le mappe portano la coppia (Voce, Sottocategoria), non la sola
+    # Voce: il diff confronta anche i campi di sottocategoria, e prima
+    # `per_chiave` ne perdeva meta'. Vedi il commento sul ramo per chiave
+    # naturale piu' sotto.
+    per_chiave: dict[tuple, tuple[Voce, Sottocategoria]] = {}
     per_id: dict[int, tuple[Voce, Sottocategoria]] = {}
     if listino is not None:
         rows = (
@@ -395,7 +399,7 @@ def compute_diff(
                 None if sotto.codice is not None else sotto.nome,
             )
             key = (*sotto_key, voce.codice if voce.codice is not None else voce.descrizione)
-            per_chiave[key] = voce
+            per_chiave[key] = (voce, sotto)
             per_id[voce.id] = (voce, sotto)
 
     nuove: list[DiffRowOut] = []
@@ -415,7 +419,21 @@ def compute_diff(
                 continue
             voce, sotto = match
         else:
-            voce = per_chiave.get(_voce_key(riga))
+            # WR-01: anche qui la sottocategoria, non la sola voce. Finche'
+            # `sotto` restava None su questo ramo, i campi di
+            # `_CAMPI_DIFF_SOTTOCATEGORIA` non venivano MAI confrontati per
+            # una riga senza id — e `apply_diff_idempotent` invece li scrive,
+            # via `_upsert_sottocategoria`. Due conseguenze, entrambe
+            # sbagliate: una riga che cambiava solo la sottocategoria non
+            # compariva affatto nel diff (modifica persa in silenzio), e una
+            # riga che cambiava anche un campo di voce finiva in `modificate`
+            # facendo scrivere alla conferma campi che l'anteprima non aveva
+            # mostrato. Il valore di questa fase e' "guardi il diff, poi
+            # confermi": un diff che sotto-dichiara cio' che verra' scritto
+            # rompe quella promessa.
+            match = per_chiave.get(_voce_key(riga))
+            if match is not None:
+                voce, sotto = match
 
         if voce is None:
             nuove.append(DiffRowOut(riga=riga, valore_precedente=None))
@@ -430,12 +448,15 @@ def compute_diff(
                 continue
             if getattr(riga, campo_riga) != getattr(voce, campo_voce):
                 campi_modificati.append(campo_riga)
-        if sotto is not None:
-            for campo_riga, campo_sotto in _CAMPI_DIFF_SOTTOCATEGORIA.items():
-                if campo_riga not in campi_confrontabili:
-                    continue
-                if getattr(riga, campo_riga) != getattr(sotto, campo_sotto):
-                    campi_modificati.append(campo_riga)
+        # Nessun `if sotto is not None` qui: da WR-01 entrambi i rami di
+        # risoluzione valorizzano la coppia (voce, sotto) o nessuno dei due,
+        # quindi una voce risolta ha sempre la sua sottocategoria. La guardia
+        # che c'era prima non proteggeva da niente — nascondeva il buco.
+        for campo_riga, campo_sotto in _CAMPI_DIFF_SOTTOCATEGORIA.items():
+            if campo_riga not in campi_confrontabili:
+                continue
+            if getattr(riga, campo_riga) != getattr(sotto, campo_sotto):
+                campi_modificati.append(campo_riga)
 
         if campi_modificati:
             modificate.append(
