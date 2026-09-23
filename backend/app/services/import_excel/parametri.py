@@ -567,6 +567,14 @@ def diff(
     nuove: list[DiffRigaOut] = []
     modificate: list[DiffRigaOut] = []
     scarti: list[ScartoRowOut] = []
+    # Chiavi naturali gia' promesse come CREAZIONE in questo stesso payload.
+    # Duplicare una riga e' l'errore di foglio di calcolo piu' comune che
+    # esista, e due righe con la stessa chiave naturale e senza `id`
+    # risolvono entrambe a "non esiste": senza questo set la seconda
+    # comparirebbe in anteprima come una seconda creazione che il database
+    # non puo' accettare (vincolo unico). Meglio dirlo qui, dove l'admin lo
+    # legge PRIMA di confermare, che lasciarlo scoprire ad `apply()`.
+    chiavi_nuove: set[tuple[str, str]] = set()
 
     for r in righe:
         nulli = campi_nulli_in_valori(r)
@@ -607,6 +615,21 @@ def diff(
             continue
 
         if ris.esistente is None:
+            chiave = (r.foglio, ris.chiave_descr)
+            if chiave in chiavi_nuove:
+                scarti.append(
+                    ScartoRowOut(
+                        riga=0,
+                        motivo=(
+                            f"{r.foglio}: il file contiene piu' di una riga nuova per "
+                            f"{ris.chiave_descr} — la chiave naturale e' unica a database, "
+                            "tieni una sola riga per quella combinazione"
+                        ),
+                    )
+                )
+                continue
+            chiavi_nuove.add(chiave)
+
             # Valori NATIVI (non stringificati): il client re-invia questo
             # stesso dict come `RigaPiattaIn.valori` in /confirm (round-trip
             # stateless) — un bool stringificato a mano ("False") tornerebbe
@@ -734,6 +757,17 @@ def apply(
                     # sulla regola di dominio #1, non un percorso normale.
                     continue
             db.add(_MODEL[r.foglio](**valori_creazione))
+            # Flush ESPLICITO, non decorativo: `SessionLocal` di produzione e'
+            # `autoflush=False` (app/db.py), quindi senza questa riga
+            # l'oggetto appena aggiunto resta pendente e la query di
+            # risoluzione della riga SUCCESSIVA non lo vede. Due righe con la
+            # stessa chiave naturale e senza `id` risolvevano entrambe a "non
+            # esiste", producevano due INSERT, e il vincolo unico scattava al
+            # `db.commit()` del router: 500, e l'intero file perduto, comprese
+            # le altre centinaia di righe valide. Con il flush la seconda riga
+            # trova la prima e diventa un aggiornamento.
+            # Stesso pattern di `listino_upload_service._upsert_voce`.
+            db.flush()
         else:
             for campo, valore in ris.campi_aggiornati.items():
                 setattr(ris.esistente, campo, valore)

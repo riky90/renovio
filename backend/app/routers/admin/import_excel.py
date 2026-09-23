@@ -34,6 +34,7 @@ import logging
 import openpyxl
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from openpyxl.utils.exceptions import InvalidFileException
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.dependencies.auth import ROLE_ADMIN, STAFF_ROLES, get_current_user, get_db
@@ -62,6 +63,17 @@ ERRORE_IMPREVISTO = (
     "Il file contiene una riga che il server non e' riuscito a elaborare. "
     "Nessuna modifica e' stata applicata. Controlla il file e riprova; se il "
     "problema persiste, segnala il caso all'assistenza tecnica."
+)
+
+# Un vincolo di database violato al commit e' un caso diverso e piu'
+# diagnosticabile: quasi sempre due righe del file che insistono sullo
+# stesso record. Anche qui niente `str(exc)`: il messaggio di un
+# `IntegrityError` riporta la query e i parametri, e sulla risorsa
+# `parametri` fra quei parametri puo' esserci `coefficiente_impresa`.
+ERRORE_VINCOLO = (
+    "Il file viola un vincolo di unicita' del database: probabilmente contiene "
+    "due righe che descrivono lo stesso record. Nessuna modifica e' stata "
+    "applicata. Correggi il file e ricarica."
 )
 
 
@@ -163,6 +175,10 @@ def confirm_import(
     except HTTPException:
         db.rollback()
         raise
+    except IntegrityError as exc:
+        db.rollback()
+        logger.exception("confirm import ha violato un vincolo per la risorsa %s", risorsa)
+        raise HTTPException(400, ERRORE_VINCOLO) from exc
     except Exception as exc:  # noqa: BLE001 — rete di sicurezza deliberata
         db.rollback()
         logger.exception("confirm import fallita per la risorsa %s", risorsa)
