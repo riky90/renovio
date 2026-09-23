@@ -101,12 +101,34 @@ class TestResetTokenUnit:
         # max_age negativo forza la scadenza immediata, senza sleep.
         assert read_reset_token(token, max_age_seconds=-1) is None
 
-    def test_token_manomesso_ritorna_none(self):
+    @pytest.mark.parametrize("segmento", [0, 1, 2], ids=["payload", "timestamp", "firma"])
+    def test_token_manomesso_ritorna_none(self, segmento):
+        """Un token di reset manomesso in QUALUNQUE dei suoi tre segmenti
+        (`payload.timestamp.firma`) deve essere rifiutato.
+
+        La manomissione non puo' toccare l'ULTIMO carattere del segmento.
+        La firma e' un HMAC-SHA1 di 20 byte, che in base64url occupa 27
+        caratteri da 6 bit: 162 bit per 160 di firma. I 2 bit finali sono
+        riempimento e non appartengono alla firma, quindi scambiare
+        l'ultimo carattere fra due valori che differiscono solo li' — `a` e
+        `b`, cioe' 011010 e 011011 — lascia i 20 byte decodificati
+        IDENTICI e il token resta legittimamente valido.
+
+        E' quello che faceva la versione precedente di questo test, che
+        passava solo quando il carattere finale capitava di differire anche
+        in un bit significativo: verde o rosso a seconda del token
+        generato, e verde per la ragione sbagliata. Si manomette invece il
+        PRIMO carattere, che porta solo bit significativi.
+        """
         from app.services.reset_token import make_reset_token
 
-        token = make_reset_token(user_id=42)
-        tampered = token[:-1] + ("a" if token[-1] != "a" else "b")
-        assert read_reset_token(tampered) is None
+        parti = make_reset_token(user_id=42).split(".")
+        assert len(parti) == 3, f"formato token inatteso: {parti}"
+
+        bersaglio = parti[segmento]
+        parti[segmento] = ("a" if bersaglio[0] != "a" else "b") + bersaglio[1:]
+
+        assert read_reset_token(".".join(parti)) is None
 
 
 class TestPasswordDimenticataAntiEnumeration:
