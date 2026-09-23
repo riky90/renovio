@@ -17,7 +17,32 @@ export type UploadTarget =
   | { kind: "esistente"; listino_id: number }
   | { kind: "nuova_citta"; citta: string; is_default?: boolean };
 
+/**
+ * Rispecchia `VoceRigaIn` (`backend/app/schemas/admin_upload.py`) campo per
+ * campo, `id` e `campi_presenti` compresi.
+ *
+ * Quei due non sono decorativi e non vanno mai persi nel giro
+ * preview -> confirm:
+ *
+ * - `id` sceglie il percorso di scrittura lato server. Con un id la riga si
+ *   risolve per id e si applicano SOLO i campi presenti; senza, si cade
+ *   sull'upsert per chiave naturale.
+ * - `campi_presenti` elenca le colonne che il file portava davvero. I campi
+ *   assenti hanno sull'istanza un placeholder (`"-"`, `0.01`, `0`) che non
+ *   va mai scritto a database: e' questa lista a dire al server quali
+ *   ignorare (D-09/CUR-02, "campo assente dal file = campo non toccato").
+ *
+ * Finora il tipo li taceva e funzionava per caso: `normalizeDiffRow` passa
+ * `raw.riga` cosi' com'e' e `ExcelUploadDialog` rispedisce lo stesso
+ * oggetto, quindi i campi sopravvivevano pur non essendo dichiarati. Il
+ * giorno in cui un pezzo di codice ricostruisse una `VoceRiga` campo per
+ * campo — per esempio per far correggere una riga a mano prima di
+ * confermare — li perderebbe in silenzio, e la riga finirebbe sull'upsert
+ * per chiave naturale con i placeholder addosso. Dichiararli fa fallire
+ * quel codice a compile-time invece che a runtime.
+ */
 export interface VoceRiga {
+  id: number | null;
   categoria_code: string;
   sottocategoria_codice: string | null;
   sottocategoria_nome: string;
@@ -28,6 +53,8 @@ export interface VoceRiga {
   um: string;
   prezzo_unitario_cliente: number;
   ordine: number;
+  livello: string | null;
+  campi_presenti: string[] | null;
 }
 
 export interface DiffRow {

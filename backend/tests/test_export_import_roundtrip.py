@@ -11,7 +11,9 @@ del payload.
 from __future__ import annotations
 
 import io
+import re
 from decimal import Decimal
+from pathlib import Path
 
 import openpyxl
 import pytest
@@ -25,7 +27,7 @@ from app.db import Base
 from app.limiter import limiter
 from app.main import app
 from app.models.dettaglio_pro import Sottocategoria, Voce
-from app.schemas.admin_upload import UploadTargetEsistente
+from app.schemas.admin_upload import UploadTargetEsistente, VoceRigaIn
 from app.services.city_resolver import resolve_listino
 from app.services.export_excel.listino import COLONNE_VOCI, build_workbook_listino
 from app.services.export_excel.workbook import TOKEN_CANCELLA, nuovo_workbook, scrivi_foglio_dati, serializza
@@ -569,3 +571,141 @@ class TestComputoOriginaleAccettato:
         assert response.status_code == 200
         body = response.json()
         assert any(r["riga"]["descrizione"] == "Demolizione muratura" for r in body["nuove"])
+
+
+class TestContrattoDiffRowSulFilo:
+    """WR-03: `id` e `campi_presenti` devono essere SUL FILO in ogni riga di
+    `/preview`.
+
+    Il tipo TypeScript `VoceRiga` (`frontend/src/api/admin/uploadListino.ts`)
+    li dichiara, e la correttezza del percorso per id dipende dal fatto che
+    sopravvivano al giro preview -> confirm: senza `id` la riga cade
+    sull'upsert per chiave naturale, senza `campi_presenti` i placeholder
+    delle colonne assenti verrebbero scritti a database come se fossero
+    dati veri (CR-01).
+
+    Questo test e' il presidio lato server di quel contratto: se un domani
+    la risposta smettesse di portarli, il tipo TS tornerebbe a mentire e
+    qui si vedrebbe subito.
+    """
+
+    CAMPI_ATTESI = {
+        "id",
+        "categoria_code",
+        "sottocategoria_codice",
+        "sottocategoria_nome",
+        "sottocategoria_famiglia",
+        "sottocategoria_ordine",
+        "codice",
+        "descrizione",
+        "um",
+        "prezzo_unitario_cliente",
+        "ordine",
+        "livello",
+        "campi_presenti",
+    }
+
+    def test_preview_del_formato_piatto_porta_id_e_campi_presenti(self, client, session):
+        client.post(
+            REGISTRAZIONE_URL,
+            json={"email": "admin.roundtrip@example.com", "password": "Password123", "nome": "Admin Roundtrip"},
+        )
+        listino_id = next(
+            r["id"] for r in client.get(LISTINI_URL).json() if r["citta_riferimento"] == "Reggio Emilia"
+        )
+
+        # export reale del listino, con una voce ritoccata perche' il diff
+        # non sia vuoto e ci sia almeno una riga da ispezionare
+        with db_module.SessionLocal() as db:
+            xlsx_bytes, _ = build_workbook_listino(db, listino_id)
+            voce = (
+                db.query(Voce)
+                .join(Sottocategoria, Voce.sottocategoria_id == Sottocategoria.id)
+                .filter(Sottocategoria.listino_id == listino_id)
+                .order_by(Voce.id)
+                .first()
+            )
+            voce_id = voce.id
+            nuovo_prezzo = float(voce.prezzo_unitario_cliente) + 9
+
+        wb = openpyxl.load_workbook(io.BytesIO(xlsx_bytes))
+        ws = wb["voci"]
+        header = [c.value for c in next(ws.iter_rows(min_row=1, max_row=1))]
+        for row in ws.iter_rows(min_row=2):
+            if str(row[header.index("id")].value) == str(voce_id):
+                row[header.index("prezzo_unitario_cliente")].value = nuovo_prezzo
+                break
+        buf = io.BytesIO()
+        wb.save(buf)
+
+        response = client.post(
+            f"{UPLOAD_URL}/preview",
+            files={
+                "file": (
+                    "listino.xlsx",
+                    buf.getvalue(),
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                )
+            },
+            data={"target": f'{{"kind": "esistente", "listino_id": {listino_id}}}'},
+        )
+
+        assert response.status_code == 200
+        body = response.json()
+        righe = [*body["nuove"], *body["modificate"]]
+        assert righe, "il file ritoccato deve produrre almeno una riga nel diff"
+
+        for r in righe:
+            assert set(r["riga"].keys()) == self.CAMPI_ATTESI, (
+                "il contratto di VoceRigaIn sul filo e' cambiato: aggiornare "
+                "anche l'interfaccia VoceRiga in frontend/src/api/admin/uploadListino.ts"
+            )
+            assert r["riga"]["campi_presenti"] is not None
+            assert "prezzo_unitario_cliente" in r["riga"]["campi_presenti"]
+
+        modificata = next(r for r in body["modificate"] if r["riga"]["id"] == voce_id)
+        assert modificata["riga"]["id"] == voce_id
+
+
+class TestContrattoVoceRigaTypeScript:
+    """WR-03: l'interfaccia TS `VoceRiga` deve elencare gli STESSI campi di
+    `VoceRigaIn`.
+
+    Il tipo TypeScript e' l'unica descrizione del contratto dal lato client,
+    e finche' taceva `id` e `campi_presenti` funzionava solo per caso:
+    `normalizeDiffRow` passa `raw.riga` cosi' com'e' e `ExcelUploadDialog`
+    rispedisce lo stesso oggetto, quindi i campi sopravvivevano pur non
+    essendo dichiarati. Il primo pezzo di codice che ricostruisse una
+    `VoceRiga` campo per campo li perderebbe in silenzio, e ogni riga
+    cadrebbe sull'upsert per chiave naturale con i placeholder addosso
+    (CR-01).
+
+    Il frontend non ha un test runner: questo confronto e' il solo modo di
+    tenere le due dichiarazioni allineate automaticamente.
+    """
+
+    PERCORSO_TS = "frontend/src/api/admin/uploadListino.ts"
+
+    def test_voce_riga_ts_elenca_gli_stessi_campi_di_voce_riga_in(self):
+        radice = Path(__file__).resolve().parents[2]
+        if not (radice / "frontend").is_dir():
+            # Checkout del solo backend (es. immagine Docker): non c'e'
+            # niente da confrontare. Lo skip vale SOLO per l'assenza
+            # dell'intera cartella — se c'e' ma il file manca, e' un errore.
+            pytest.skip("cartella frontend assente: checkout di solo backend")
+
+        percorso = radice / self.PERCORSO_TS
+        assert percorso.exists(), f"atteso {self.PERCORSO_TS} (il file e' stato spostato?)"
+
+        sorgente = percorso.read_text(encoding="utf-8")
+        corpo = re.search(r"export interface VoceRiga \{(.*?)\n\}", sorgente, re.DOTALL)
+        assert corpo is not None, "interfaccia VoceRiga non trovata in uploadListino.ts"
+
+        campi_ts = set(re.findall(r"^\s{2}(\w+)\??:", corpo.group(1), re.MULTILINE))
+        campi_py = set(VoceRigaIn.model_fields)
+
+        assert campi_ts == campi_py, (
+            "VoceRiga (TypeScript) e VoceRigaIn (pydantic) sono disallineati.\n"
+            f"  solo in TS:     {sorted(campi_ts - campi_py)}\n"
+            f"  solo in Python: {sorted(campi_py - campi_ts)}"
+        )
