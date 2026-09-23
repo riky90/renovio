@@ -14,16 +14,16 @@ from datetime import datetime, timedelta, timezone
 import pytest
 from fastapi import HTTPException
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 from app.db import Base
+from tests.session_factory import sessione_di_test
 
 
 @pytest.fixture()
 def session():
     engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
-    testing_session_local = sessionmaker(bind=engine)
+    testing_session_local = sessione_di_test(engine)
     with testing_session_local() as s:
         yield s
 

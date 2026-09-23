@@ -25,7 +25,6 @@ from decimal import Decimal
 
 import pytest
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 from app.db import Base
 from app.models.domanda import AttesaImmobile, Domanda, EffettoOpzione, OpzioneDomanda
@@ -38,13 +37,14 @@ from app.services.effetti import (
 )
 from app.services.estimation import EstimationService
 from scripts.seed import load_seed_data, seed
+from tests.session_factory import sessione_di_test
 
 
 @pytest.fixture()
 def session():
     engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
-    testing_session_local = sessionmaker(bind=engine)
+    testing_session_local = sessione_di_test(engine)
     with testing_session_local() as s:
         seed(s, load_seed_data())
         yield s

@@ -5,13 +5,14 @@ Uses an isolated in-memory SQLite DB per test — never touches dev.db.
 
 import pytest
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import Session
 
 from app.db import Base
 from app.models.catalogo import Categoria, ComuneListino, Extra, Moltiplicatore, TipoRistrutturazione
 from app.models.listino import Listino, ListinoCategoria
 from app.models.testo import Testo as TestoRow  # alias: evita la collection di pytest
 from scripts.seed import TESTI_INIZIALI, load_seed_data, seed
+from tests.session_factory import sessione_di_test
 
 EXPECTED_COUNTS = {
     "listino": 1,
@@ -31,7 +32,7 @@ EXPECTED_COUNTS = {
 def session():
     engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
-    testing_session_local = sessionmaker(bind=engine)
+    testing_session_local = sessione_di_test(engine)
     with testing_session_local() as s:
         yield s
 

@@ -16,7 +16,6 @@ from decimal import Decimal
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 import app.db as db_module
 from app.db import Base
@@ -26,6 +25,7 @@ from app.dependencies.auth import require_pro, subscription_is_active
 from app.models.subscription import Subscription
 from app.models.user import User
 from scripts.seed import load_seed_data, seed
+from tests.session_factory import sessione_di_test
 
 REGISTRAZIONE_URL = "/api/v1/auth/registrati"
 ME_URL = "/api/v1/auth/me"
@@ -45,7 +45,7 @@ def session():
     """SQLite in-memory + seed idempotente, come test_estimation.py."""
     engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
-    testing_session_local = sessionmaker(bind=engine)
+    testing_session_local = sessione_di_test(engine)
     with testing_session_local() as s:
         seed(s, load_seed_data())
         yield s
@@ -60,7 +60,7 @@ def client(monkeypatch, tmp_path):
     db_path = tmp_path / "test_subscription.db"
     engine = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
-    testing_session_local = sessionmaker(bind=engine)
+    testing_session_local = sessione_di_test(engine)
 
     monkeypatch.setattr(db_module, "SessionLocal", testing_session_local)
 

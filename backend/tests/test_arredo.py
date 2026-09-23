@@ -23,7 +23,6 @@ from decimal import Decimal
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 import app.db as db_module
 from app.db import Base
@@ -38,6 +37,7 @@ from app.services.bonus_service import BonusService
 from app.services.city_resolver import resolve_listino
 from app.services.estimation import EstimationService
 from scripts.seed import load_seed_data, seed
+from tests.session_factory import sessione_di_test
 
 STIMA_URL = "/api/v1/stima"
 DAL_2026 = date(2026, 6, 1)
@@ -47,7 +47,7 @@ DAL_2026 = date(2026, 6, 1)
 def session():
     engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
-    testing_session_local = sessionmaker(bind=engine)
+    testing_session_local = sessione_di_test(engine)
     with testing_session_local() as s:
         seed(s, load_seed_data())
         yield s
@@ -284,7 +284,7 @@ def client(monkeypatch, tmp_path):
     db_path = tmp_path / "test_arredo.db"
     engine = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
-    testing_session_local = sessionmaker(bind=engine)
+    testing_session_local = sessione_di_test(engine)
     with testing_session_local() as s:
         seed(s, load_seed_data())
         s.commit()

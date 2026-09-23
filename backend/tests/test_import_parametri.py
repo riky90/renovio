@@ -818,9 +818,9 @@ class TestChiaveNaturaleDuplicataNelFile:
     """
 
     def test_la_sessione_di_test_e_configurata_come_la_produzione(self, client):
-        """Guardia esplicita: se qualcuno riporta la fixture a
-        `sessionmaker(bind=engine)`, e' questo test a dirlo, non un 500 in
-        produzione sei mesi dopo."""
+        """Guardia esplicita: se qualcuno riporta la fixture al
+        `sessionmaker` nudo con i default di SQLAlchemy, e' questo test a
+        dirlo, non un 500 in produzione sei mesi dopo."""
         from app.db import SessionLocal
 
         assert client._session_local.kw["autoflush"] is False

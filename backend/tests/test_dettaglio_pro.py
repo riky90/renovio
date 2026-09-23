@@ -16,7 +16,6 @@ from decimal import Decimal
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 import app.db as db_module
 from app.db import Base
@@ -25,13 +24,14 @@ from app.main import app
 from app.services.city_resolver import resolve_listino
 from app.services.dettaglio_pro import DettaglioProService
 from scripts.seed import load_seed_data, seed
+from tests.session_factory import sessione_di_test
 
 
 @pytest.fixture()
 def session():
     engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
-    testing_session_local = sessionmaker(bind=engine)
+    testing_session_local = sessione_di_test(engine)
     with testing_session_local() as s:
         seed(s, load_seed_data())
         yield s
@@ -180,7 +180,7 @@ def http_client(monkeypatch, tmp_path):
     db_path = tmp_path / "test_dettaglio_pro_integration.db"
     engine = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
-    testing_session_local = sessionmaker(bind=engine)
+    testing_session_local = sessione_di_test(engine)
 
     with testing_session_local() as s:
         seed(s, load_seed_data())

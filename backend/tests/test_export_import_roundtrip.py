@@ -20,7 +20,6 @@ import openpyxl
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 import app.db as db_module
 from app.config import settings
@@ -38,6 +37,7 @@ from app.services.listino_upload_service import (
     parse_flat_listino,
 )
 from scripts.seed import load_seed_data, seed
+from tests.session_factory import sessione_di_test
 
 REGISTRAZIONE_URL = "/api/v1/auth/registrati"
 LISTINI_URL = "/api/v1/admin/listini"
@@ -51,7 +51,7 @@ def session():
     direttamente `parse_flat_listino` -> `compute_diff` -> `apply_diff_idempotent`."""
     engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
-    testing_session_local = sessionmaker(bind=engine)
+    testing_session_local = sessione_di_test(engine)
     with testing_session_local() as s:
         seed(s, load_seed_data())
         s.commit()
@@ -763,7 +763,7 @@ def client(monkeypatch, tmp_path):
     db_path = tmp_path / "test_export_import_roundtrip.db"
     engine = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
-    testing_session_local = sessionmaker(bind=engine)
+    testing_session_local = sessione_di_test(engine)
 
     with testing_session_local() as s:
         seed(s, load_seed_data())
