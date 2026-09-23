@@ -37,14 +37,13 @@ from sqlalchemy import create_engine, inspect
 from app.config import settings
 from app.db import Base
 
-# Importare `app.models` registra la maggior parte delle entita' su
-# `Base.metadata`, ma `Lead` e `Testo` non sono riesportati da
-# `app/models/__init__.py`: senza questi due import espliciti la tabella
-# `lead` — una delle nove toccate dalla 0019 — mancherebbe dal metadata e il
-# confronto con lo schema migrato sarebbe cieco proprio dove serve.
+# Importare `app.models` registra TUTTE le entita' su `Base.metadata` — da
+# WR-05 anche `Lead` e `Testo`, che il package prima taceva e che questo
+# file doveva quindi importare a mano (`lead` e' una delle nove tabelle
+# toccate dalla 0019, il confronto con lo schema migrato sarebbe stato
+# cieco proprio li'). Che il package resti completo lo presidia
+# `tests/test_modelli_registrati.py`.
 import app.models  # noqa: F401
-import app.models.lead  # noqa: F401
-import app.models.testo  # noqa: F401
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 
