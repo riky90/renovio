@@ -236,6 +236,34 @@ def _risolvi_listino_categoria(db: Session, r: RigaPiattaIn) -> _Risoluzione:
         )
     if "base_eur_mq" not in validati:
         return _Risoluzione(scarto=ScartoRowOut(riga=0, motivo="listino_categoria: riga nuova senza base_eur_mq"))
+    # WR-02: `coefficiente_impresa` e' NOT NULL a database, quindi una riga
+    # NUOVA senza un margine valido non e' creabile. Il posto giusto per
+    # dirlo e' qui, nel diff: prima la riga compariva in anteprima fra le
+    # `nuove`, l'admin confermava, e `apply()` la saltava con un `continue`
+    # muto — il conteggio "N righe applicate" tornava piu' basso di quanto
+    # mostrato, senza che niente dicesse quale riga fosse saltata e perche'.
+    # Un scarto la mette davanti all'admin PRIMA della conferma.
+    if CAMPO_MARGINE not in r.valori:
+        return _Risoluzione(
+            scarto=ScartoRowOut(
+                riga=0,
+                motivo=(
+                    f"listino_categoria: riga nuova ({chiave_descr}) senza {CAMPO_MARGINE}, "
+                    "che e' obbligatorio a database — l'export di default non porta quella "
+                    "colonna, serve l'export con margine"
+                ),
+            )
+        )
+    if margine_preview is None:
+        return _Risoluzione(
+            scarto=ScartoRowOut(
+                riga=0,
+                motivo=(
+                    f"listino_categoria: riga nuova ({chiave_descr}) con {CAMPO_MARGINE} "
+                    f"non valido ({r.valori[CAMPO_MARGINE]!r}): atteso un numero in (0, 1]"
+                ),
+            )
+        )
     return _Risoluzione(
         valori_creazione={"listino_id": listino_id, "categoria_code": categoria_code, **validati},
         campi_extra=campi_extra,
@@ -667,9 +695,14 @@ def apply(
             if r.foglio == FOGLIO_LISTINO_CATEGORIA:
                 _forse_aggiungi_margine(r, valori_creazione, is_admin=is_admin)
                 if CAMPO_MARGINE not in valori_creazione:
-                    # colonna NOT NULL: senza margine non si puo' creare una
-                    # riga nuova (limite noto, non esercitato dai test di
-                    # questo piano — vedi SUMMARY).
+                    # Colonna NOT NULL: senza margine non si puo' creare la
+                    # riga. Dopo WR-02 il caso "il file non porta il margine"
+                    # non arriva piu' fin qui — `_risolvi_listino_categoria`
+                    # lo scarta gia' in preview, dove l'admin lo vede. Resta
+                    # l'unico caso ancora possibile, `is_admin=False`, che
+                    # per questa risorsa e' irraggiungibile
+                    # (`ruolo_richiesto = "admin"`): e' difesa in profondita'
+                    # sulla regola di dominio #1, non un percorso normale.
                     continue
             db.add(_MODEL[r.foglio](**valori_creazione))
         else:

@@ -10,6 +10,7 @@ messaggio leggibile invece di un 500.
 from __future__ import annotations
 
 import io
+from decimal import Decimal
 
 import openpyxl
 import pytest
@@ -526,3 +527,122 @@ class TestBooleaniScrittiAMano:
         assert confirm.status_code == 200
         with client._session_local() as db:
             assert db.get(ForfaitArredo, riga_id).attivo == attivo_prima
+
+
+def _aggiungi_riga(xlsx_bytes: bytes, foglio: str, valori: dict) -> bytes:
+    """Appende una riga al foglio, riempiendo le celle per nome di colonna.
+
+    Le colonne non citate restano vuote — che nel formato piatto significa
+    "campo non toccato" (D-09), esattamente come una riga compilata a mano
+    da un admin che ne valorizza solo alcune.
+    """
+    wb = openpyxl.load_workbook(io.BytesIO(xlsx_bytes))
+    ws = wb[foglio]
+    header = [c.value for c in next(ws.iter_rows(min_row=1, max_row=1))]
+    riga = ws.max_row + 1
+    for colonna, valore in valori.items():
+        ws.cell(row=riga, column=header.index(colonna) + 1, value=valore)
+    buf = io.BytesIO()
+    wb.save(buf)
+    return buf.getvalue()
+
+
+class TestListinoCategoriaNuovaSenzaMargine:
+    """WR-02: una riga `listino_categoria` NUOVA senza `coefficiente_impresa`
+    va scartata in anteprima, non saltata in silenzio in `apply()`.
+
+    `coefficiente_impresa` e' NOT NULL a database e non compare nell'export
+    di default (regola di dominio #1: il margine esce solo dalla variante
+    esplicita). Prima la riga compariva fra le `nuove` dell'anteprima,
+    l'admin confermava, e `apply()` faceva un `continue` muto: il conteggio
+    "N righe applicate" tornava piu' basso di quanto mostrato, senza che
+    niente dicesse quale riga era saltata ne' perche'.
+    """
+
+    def test_riga_nuova_senza_margine_e_uno_scarto_visibile_in_anteprima(self, client):
+        _registra_admin(client)
+        with client._session_local() as db:
+            conteggio_prima = db.query(ListinoCategoria).count()
+
+        xlsx = _workbook_default(client)
+        xlsx_modificato = _aggiungi_riga(
+            xlsx,
+            "listino_categoria",
+            {"listino_id": 1, "categoria_code": "E-ARREDO", "base_eur_mq": 50.0, "iva_pct": 0.10},
+        )
+
+        preview = _post_preview(client, xlsx_modificato)
+        assert preview.status_code == 200
+        body = preview.json()
+
+        assert [r for r in body["nuove"] if r["foglio"] == "listino_categoria"] == [], (
+            "la riga non creabile non deve comparire fra le nuove"
+        )
+        scarti = [s for s in body["scarti"] if "listino_categoria" in s["motivo"]]
+        assert len(scarti) == 1
+        assert "coefficiente_impresa" in scarti[0]["motivo"]
+        assert "E-ARREDO" in scarti[0]["motivo"]
+
+        # il conteggio di /confirm e' coerente con quanto mostrato: zero righe
+        confirm = _post_confirm(client, body)
+        assert confirm.status_code == 200
+        assert confirm.json()["righe_applicate"] == 0
+
+        with client._session_local() as db:
+            assert db.query(ListinoCategoria).count() == conteggio_prima
+
+    def test_riga_nuova_con_margine_valido_viene_creata(self, client):
+        """Contro-prova: con la variante export-con-margine e un valore
+        valido, la riga nuova si crea e il conteggio la include."""
+        _registra_admin(client)
+        with client._session_local() as db:
+            conteggio_prima = db.query(ListinoCategoria).count()
+
+        xlsx = _workbook_con_margine(client)
+        xlsx_modificato = _aggiungi_riga(
+            xlsx,
+            "listino_categoria",
+            {
+                "listino_id": 1,
+                "categoria_code": "E-ARREDO",
+                "base_eur_mq": 50.0,
+                "iva_pct": 0.10,
+                "coefficiente_impresa": 0.7,
+            },
+        )
+
+        body = _post_preview(client, xlsx_modificato).json()
+        nuove = [r for r in body["nuove"] if r["foglio"] == "listino_categoria"]
+        assert len(nuove) == 1
+        assert [s for s in body["scarti"] if "listino_categoria" in s["motivo"]] == []
+
+        confirm = _post_confirm(client, body)
+        assert confirm.status_code == 200
+
+        with client._session_local() as db:
+            assert db.query(ListinoCategoria).count() == conteggio_prima + 1
+            creata = db.query(ListinoCategoria).filter_by(listino_id=1, categoria_code="E-ARREDO").one()
+            assert creata.coefficiente_impresa == Decimal("0.700")
+
+    def test_riga_nuova_con_margine_fuori_bound_e_uno_scarto_descritto(self, client):
+        _registra_admin(client)
+        xlsx = _workbook_con_margine(client)
+        xlsx_modificato = _aggiungi_riga(
+            xlsx,
+            "listino_categoria",
+            {
+                "listino_id": 1,
+                "categoria_code": "E-ARREDO",
+                "base_eur_mq": 50.0,
+                "coefficiente_impresa": 1.5,
+            },
+        )
+
+        body = _post_preview(client, xlsx_modificato).json()
+        assert [r for r in body["nuove"] if r["foglio"] == "listino_categoria"] == []
+        scarti = [s for s in body["scarti"] if "listino_categoria" in s["motivo"]]
+        assert len(scarti) == 1
+        assert "non valido" in scarti[0]["motivo"]
+
+        with client._session_local() as db:
+            assert db.query(ListinoCategoria).filter_by(categoria_code="E-ARREDO").count() == 0
