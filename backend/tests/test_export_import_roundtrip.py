@@ -322,6 +322,149 @@ class TestRigaSenzaId:
         assert nuova.prezzo_unitario_cliente == Decimal("12.34")
 
 
+class TestRigaSenzaIdNonAzzeraCampiAssenti:
+    """CR-01: anche il percorso per CHIAVE NATURALE deve rispettare
+    `campi_presenti`.
+
+    Le classi qui sopra (`TestPreservazioneCampi`, `TestColonnaAssenteNonAzzera`,
+    `TestTokenCancella`) lavorano tutte su righe con un `id` vero, cioe' sul
+    percorso `_resolve_per_id` + `_applica_voce`, che la disciplina "campo
+    assente = campo non toccato" la rispettava gia'. `TestRigaSenzaId` copre
+    il percorso per chiave naturale, ma solo creando una sottocategoria e una
+    voce entrambe nuove: li' non c'e' niente da sovrascrivere e il difetto non
+    si vede. Restava scoperto — e rotto — il caso normale: aggiungere una voce
+    a una sottocategoria che esiste gia'.
+    """
+
+    def test_voce_nuova_non_riscrive_l_ordine_della_sottocategoria_esistente(self, session):
+        """Il modo documentato di aggiungere una voce dal file piatto e'
+        lasciare vuota la cella `id`. `sottocategoria_ordine` non e' fra i
+        campi richiesti per una riga nuova, quindi la cella puo' restare
+        vuota: in quel caso l'ordine della sottocategoria ESISTENTE deve
+        restare quello che era, non lo `0` di placeholder."""
+        listino = _listino(session)
+        voce0, sotto0 = _voci_con_sotto(session, listino)[0]
+        sotto0.ordine = 42
+        session.commit()
+
+        xlsx_bytes = _xlsx_piatto(
+            [
+                _riga_completa(
+                    voce0,
+                    sotto0,
+                    id=None,
+                    codice=None,
+                    descrizione="Voce nuova sotto una sottocategoria esistente",
+                    prezzo_unitario_cliente=Decimal("77.00"),
+                    # celle lasciate vuote dall'admin: non devono toccare nulla
+                    sottocategoria_ordine=None,
+                    ordine=None,
+                )
+            ]
+        )
+
+        righe, scarti = parse_flat_listino(xlsx_bytes)
+        assert scarti == []
+        assert righe[0].id is None
+        assert righe[0].campi_presenti is not None
+        assert "sottocategoria_ordine" not in righe[0].campi_presenti
+
+        nuove, modificate, scarti_diff = compute_diff(session, righe, listino)
+        assert scarti_diff == []
+        assert len(nuove) == 1
+
+        apply_diff_idempotent(
+            session, UploadTargetEsistente(listino_id=listino.id), [r.riga for r in nuove], []
+        )
+        session.commit()
+        session.expire_all()
+
+        sotto_dopo = session.get(Sottocategoria, sotto0.id)
+        assert sotto_dopo.ordine == 42, "l'ordine della sottocategoria esistente e' stato azzerato"
+        # la voce nuova e' stata comunque creata, agganciata alla stessa sottocategoria
+        nuova = (
+            session.query(Voce)
+            .filter_by(descrizione="Voce nuova sotto una sottocategoria esistente")
+            .one()
+        )
+        assert nuova.sottocategoria_id == sotto0.id
+
+    def test_voce_esistente_risolta_per_chiave_naturale_non_perde_l_ordine(self, session):
+        """Se l'admin cancella per sbaglio la cella `id` di una riga che sta
+        modificando, la riga ricade sul percorso per chiave naturale. Deve
+        aggiornare il campo che ha toccato (il prezzo) e lasciare stare
+        quello che ha lasciato vuoto (`ordine`)."""
+        listino = _listino(session)
+        voce0, sotto0 = _voci_con_sotto(session, listino)[0]
+        voce0.ordine = 7
+        sotto0.ordine = 42
+        session.commit()
+        nuovo_prezzo = voce0.prezzo_unitario_cliente + Decimal("3.00")
+
+        xlsx_bytes = _xlsx_piatto(
+            [
+                _riga_completa(
+                    voce0,
+                    sotto0,
+                    id=None,
+                    prezzo_unitario_cliente=nuovo_prezzo,
+                    sottocategoria_ordine=None,
+                    ordine=None,
+                )
+            ]
+        )
+
+        righe, scarti = parse_flat_listino(xlsx_bytes)
+        assert scarti == []
+        assert righe[0].id is None
+        assert "ordine" not in righe[0].campi_presenti
+
+        nuove, modificate, scarti_diff = compute_diff(session, righe, listino)
+        assert scarti_diff == []
+        assert len(nuove) == 0
+        assert len(modificate) == 1
+
+        apply_diff_idempotent(
+            session, UploadTargetEsistente(listino_id=listino.id), [], [r.riga for r in modificate]
+        )
+        session.commit()
+        session.expire_all()
+
+        voce_dopo = session.get(Voce, voce0.id)
+        assert voce_dopo.prezzo_unitario_cliente == nuovo_prezzo
+        assert voce_dopo.ordine == 7, "l'ordine della voce esistente e' stato azzerato"
+        assert session.get(Sottocategoria, sotto0.id).ordine == 42
+
+    def test_i_campi_presenti_vengono_comunque_scritti(self, session):
+        """Contro-prova: la guardia non deve diventare "non scrivere mai
+        niente". Quando le celle ci sono, il percorso per chiave naturale
+        aggiorna sia la voce sia la sottocategoria."""
+        listino = _listino(session)
+        voce0, sotto0 = _voci_con_sotto(session, listino)[0]
+        voce0.ordine = 7
+        sotto0.ordine = 42
+        session.commit()
+
+        xlsx_bytes = _xlsx_piatto(
+            [_riga_completa(voce0, sotto0, id=None, sottocategoria_ordine=99, ordine=11)]
+        )
+
+        righe, scarti = parse_flat_listino(xlsx_bytes)
+        assert scarti == []
+        nuove, modificate, scarti_diff = compute_diff(session, righe, listino)
+        assert scarti_diff == []
+        assert len(modificate) == 1
+
+        apply_diff_idempotent(
+            session, UploadTargetEsistente(listino_id=listino.id), [], [r.riga for r in modificate]
+        )
+        session.commit()
+        session.expire_all()
+
+        assert session.get(Voce, voce0.id).ordine == 11
+        assert session.get(Sottocategoria, sotto0.id).ordine == 99
+
+
 class TestIdInesistente:
     def test_id_inesistente_finisce_negli_scarti(self, session):
         """T-08-23: un id che non esiste nel listino di destinazione

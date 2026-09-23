@@ -451,9 +451,36 @@ def compute_diff(
     return nuove, modificate, scarti
 
 
+def _campo_presente(riga: VoceRigaIn, campo: str) -> bool:
+    """Dice se `campo` era davvero nel file, per la disciplina D-09/CUR-02
+    "campo assente dal file = campo non toccato".
+
+    `campi_presenti is None` significa "tutti presenti" ed e' il caso di
+    `parse_computo`, dove ogni riga porta per costruzione l'intero set di
+    campi. `parse_flat_listino` invece valorizza sempre `campi_presenti` con
+    le sole celle realmente compilate: i campi mancanti sull'istanza
+    `VoceRigaIn` portano un placeholder (`_PLACEHOLDER_TESTO`,
+    `_PLACEHOLDER_PREZZO`, `0` per gli interi) che non va mai scritto a
+    database."""
+    return riga.campi_presenti is None or campo in riga.campi_presenti
+
+
 def _upsert_sottocategoria(db: Session, listino_id: int, riga: VoceRigaIn) -> Sottocategoria:
     """Upsert idempotente per chiave naturale (listino_id, categoria_code,
-    codice-o-nome) — stessa regola di `scripts/seed.py`."""
+    codice-o-nome) — stessa regola di `scripts/seed.py`.
+
+    Sulla sottocategoria GIA' ESISTENTE scrive solo i campi presenti nella
+    riga, esattamente come fa `_applica_sottocategoria` sul percorso per id.
+    Senza questa guardia bastava aggiungere una voce nuova a una
+    sottocategoria esistente — il modo documentato di farlo dal file piatto,
+    che non richiede `sottocategoria_ordine` fra i campi obbligatori — per
+    riscrivere `ordine` con lo `0` di placeholder e perdere l'ordinamento
+    reale di una sottocategoria che il file non intendeva toccare.
+
+    Sulla sottocategoria NUOVA i campi assenti restano ai default del
+    modello (`ordine=0`), che e' il loro valore corretto per una riga che
+    non esisteva.
+    """
     query = db.query(Sottocategoria).filter_by(listino_id=listino_id, categoria_code=riga.categoria_code)
     query = (
         query.filter_by(codice=riga.sottocategoria_codice)
@@ -462,20 +489,26 @@ def _upsert_sottocategoria(db: Session, listino_id: int, riga: VoceRigaIn) -> So
     )
     sotto = query.one_or_none()
     if sotto is None:
-        sotto = Sottocategoria(
-            listino_id=listino_id,
-            categoria_code=riga.categoria_code,
-            codice=riga.sottocategoria_codice,
-            nome=riga.sottocategoria_nome,
-            famiglia=riga.sottocategoria_famiglia,
-            ordine=riga.sottocategoria_ordine,
-        )
+        campi_nuova: dict[str, object] = {
+            "listino_id": listino_id,
+            "categoria_code": riga.categoria_code,
+            "codice": riga.sottocategoria_codice,
+            "nome": riga.sottocategoria_nome,
+            "famiglia": riga.sottocategoria_famiglia,
+        }
+        if _campo_presente(riga, "sottocategoria_ordine"):
+            campi_nuova["ordine"] = riga.sottocategoria_ordine
+        sotto = Sottocategoria(**campi_nuova)
         db.add(sotto)
         db.flush()
     else:
-        sotto.nome = riga.sottocategoria_nome
-        sotto.famiglia = riga.sottocategoria_famiglia
-        sotto.ordine = riga.sottocategoria_ordine
+        for campo_riga, campo_sotto in (
+            ("sottocategoria_nome", "nome"),
+            ("sottocategoria_famiglia", "famiglia"),
+            ("sottocategoria_ordine", "ordine"),
+        ):
+            if _campo_presente(riga, campo_riga):
+                setattr(sotto, campo_sotto, getattr(riga, campo_riga))
     return sotto
 
 
@@ -483,13 +516,21 @@ def _upsert_voce(db: Session, sotto: Sottocategoria, riga: VoceRigaIn) -> Voce:
     """Upsert per chiave naturale (sottocategoria_id, codice-o-descrizione)
     — MAI un DELETE di righe assenti dal file (D-24).
 
-    `voce.livello` NON compare qui, ed e' deliberato. Questa funzione
-    sovrascrive incondizionatamente i campi che tocca; il file Excel del
-    computo non ha una colonna livello e non l'avra', quindi se `livello`
-    entrasse nel giro ogni ri-caricamento del listino azzererebbe la curatela
-    dei livelli fatta a mano dall'admin — e con tutti i livelli a NULL il
-    motore Pro torna a sommare i cataloghi di alternative. Il livello si cura
-    solo da `routers/admin/dettaglio_pro.py`. Test di regressione:
+    Sulla voce GIA' ESISTENTE scrive solo i campi presenti nella riga, come
+    `_applica_voce` sul percorso per id: una riga del file piatto a cui
+    manchi la cella `ordine` (o a cui l'admin abbia cancellato per sbaglio
+    la cella `id`, facendola ricadere qui invece che sul percorso per id)
+    non deve azzerare l'ordinamento reale della voce.
+
+    `voce.livello` NON compare qui, ed e' deliberato. Le righe di
+    `parse_computo` hanno `campi_presenti is None`, cioe' "tutti i campi
+    presenti", ma il file del computo non ha una colonna livello e non
+    l'avra': farlo entrare nel giro significherebbe scrivere `None` su ogni
+    voce a ogni ri-caricamento del computo, azzerando la curatela dei
+    livelli fatta a mano dall'admin — e con tutti i livelli a NULL il motore
+    Pro torna a sommare i cataloghi di alternative. Il livello si cura solo
+    da `routers/admin/dettaglio_pro.py` e, per il formato piatto, dal
+    percorso per id (`_applica_voce`). Test di regressione:
     `tests/test_dettaglio_pro_livelli.py::test_upload_excel_non_azzera_livello`.
     """
     query = db.query(Voce).filter_by(sottocategoria_id=sotto.id)
@@ -498,21 +539,22 @@ def _upsert_voce(db: Session, sotto: Sottocategoria, riga: VoceRigaIn) -> Voce:
     )
     voce = query.one_or_none()
     if voce is None:
-        voce = Voce(
-            sottocategoria_id=sotto.id,
-            codice=riga.codice,
-            descrizione=riga.descrizione,
-            um=riga.um,
-            prezzo_unitario_cliente=riga.prezzo_unitario_cliente,
-            ordine=riga.ordine,
-        )
+        campi_nuova: dict[str, object] = {
+            "sottocategoria_id": sotto.id,
+            "codice": riga.codice,
+            "descrizione": riga.descrizione,
+            "um": riga.um,
+            "prezzo_unitario_cliente": riga.prezzo_unitario_cliente,
+        }
+        if _campo_presente(riga, "ordine"):
+            campi_nuova["ordine"] = riga.ordine
+        voce = Voce(**campi_nuova)
         db.add(voce)
         db.flush()
     else:
-        voce.descrizione = riga.descrizione
-        voce.um = riga.um
-        voce.prezzo_unitario_cliente = riga.prezzo_unitario_cliente
-        voce.ordine = riga.ordine
+        for campo in ("descrizione", "um", "prezzo_unitario_cliente", "ordine"):
+            if _campo_presente(riga, campo):
+                setattr(voce, campo, getattr(riga, campo))
     return voce
 
 
