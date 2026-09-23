@@ -27,6 +27,9 @@ from app.models.dettaglio_pro import CoefficienteQuantitaVoce
 from app.models.listino import ListinoCategoria
 from app.models.user import User
 from app.services.export_excel.parametri import build_workbook_parametri
+from app.services.export_excel.workbook import TOKEN_CANCELLA
+from app.services.import_excel.parametri import diff as diff_parametri
+from app.schemas.admin_import import RigaPiattaIn
 from scripts.seed import load_seed_data, seed
 
 REGISTRAZIONE_URL = "/api/v1/auth/registrati"
@@ -96,16 +99,28 @@ def _post_preview(client, xlsx_bytes: bytes):
 
 
 def _a_riga_piatta_in(diff_riga: dict) -> dict:
-    """Il client ricostruisce `RigaPiattaIn` da `DiffRigaOut` (round-trip
-    stateless): `valori_nuovi` contiene gia' SOLO i campi che cambiano
-    (D-09/CUR-02), pronti per essere re-inviati a `/confirm` cosi' come
-    sono — nessuna cancellazione proposta da una preview (quella arriva
-    solo da un file che porta `#CANCELLA#`)."""
+    """Ricostruisce `RigaPiattaIn` da `DiffRigaOut` esattamente come fa il
+    client (round-trip stateless, `FlatImportDialog.tsx::toRigaPiattaIn`).
+
+    Questo helper E' il sostituto del frontend in questa suite: se diverge
+    dalla funzione TypeScript, i test smettono di dire qualcosa sul flusso
+    reale. Come quella, separa i `null`: un campo il cui valore nuovo e'
+    `null` e' una CANCELLAZIONE e va dichiarato in `campi_da_cancellare`,
+    non lasciato dentro `valori` — dove il resolver lo stringificherebbe
+    (`str(None) == "None"`, CR-02).
+    """
+    valori = {}
+    campi_da_cancellare = []
+    for campo, valore in diff_riga["valori_nuovi"].items():
+        if valore is None:
+            campi_da_cancellare.append(campo)
+        else:
+            valori[campo] = valore
     return {
         "foglio": diff_riga["foglio"],
         "id": diff_riga["id"],
-        "valori": diff_riga["valori_nuovi"],
-        "campi_da_cancellare": [],
+        "valori": valori,
+        "campi_da_cancellare": campi_da_cancellare,
     }
 
 
@@ -334,3 +349,103 @@ class TestFileDelComputoRifiutatoConMessaggio:
         response = _post_preview(client, buf.getvalue())
         assert response.status_code == 400
         assert response.json()["detail"]
+
+
+class TestCancellazioneRoundTripCoefficientiPro:
+    """CR-02, lato `parametri`: `#CANCELLA#` su `domanda_mirata_key` deve
+    scrivere NULL, non la stringa letterale `"None"`.
+
+    Stessa meccanica del lead (vedi `test_import_lead.py`): la preview
+    rappresenta la cancellazione con `valori_nuovi[campo] = None`, e se il
+    client la rimanda dentro `valori` invece che in `campi_da_cancellare`
+    il resolver fa `str(None).strip()` — una stringa non vuota, che passa
+    la validazione e finisce a database.
+    """
+
+    def test_cancella_domanda_mirata_key_scrive_null(self, client):
+        _registra_admin(client)
+        with client._session_local() as db:
+            coeff = (
+                db.query(CoefficienteQuantitaVoce)
+                .filter(CoefficienteQuantitaVoce.domanda_mirata_key.isnot(None))
+                .order_by(CoefficienteQuantitaVoce.id)
+                .first()
+            )
+            assert coeff is not None
+            coeff_id = coeff.id
+
+        xlsx = _workbook_default(client)
+        xlsx_modificato = _modifica_cella(
+            xlsx, "coefficienti_pro", coeff_id, "domanda_mirata_key", TOKEN_CANCELLA
+        )
+
+        preview = _post_preview(client, xlsx_modificato)
+        assert preview.status_code == 200
+        body = preview.json()
+        modificate = [r for r in body["modificate"] if r["foglio"] == "coefficienti_pro"]
+        assert len(modificate) == 1
+        assert modificate[0]["valori_nuovi"]["domanda_mirata_key"] is None
+
+        confirm = _post_confirm(client, body)
+        assert confirm.status_code == 200
+
+        with client._session_local() as db:
+            dopo = db.get(CoefficienteQuantitaVoce, coeff_id)
+            assert dopo.domanda_mirata_key != "None", "scritta la stringa 'None' invece di NULL"
+            assert dopo.domanda_mirata_key is None
+
+    def test_un_null_dentro_valori_e_uno_scarto_non_una_stringa(self, client):
+        """Difesa in profondita': un client che sbaglia a ricostruire il
+        payload non deve poter corrompere il campo."""
+        _registra_admin(client)
+        with client._session_local() as db:
+            coeff = (
+                db.query(CoefficienteQuantitaVoce)
+                .filter(CoefficienteQuantitaVoce.domanda_mirata_key.isnot(None))
+                .order_by(CoefficienteQuantitaVoce.id)
+                .first()
+            )
+            coeff_id, chiave_prima = coeff.id, coeff.domanda_mirata_key
+
+        payload_sbagliato = {
+            "risorsa": "parametri",
+            "nuove": [],
+            "modificate": [
+                {
+                    "foglio": "coefficienti_pro",
+                    "id": str(coeff_id),
+                    "valori": {"domanda_mirata_key": None},
+                    "campi_da_cancellare": [],
+                }
+            ],
+        }
+        confirm = client.post(f"{IMPORT_URL}/confirm", json=payload_sbagliato)
+        assert confirm.status_code == 200
+        assert confirm.json()["righe_applicate"] == 0
+
+        with client._session_local() as db:
+            assert db.get(CoefficienteQuantitaVoce, coeff_id).domanda_mirata_key == chiave_prima
+
+    def test_la_preview_segnala_lo_scarto_su_un_null_dentro_valori(self, client):
+        _registra_admin(client)
+        with client._session_local() as db:
+            coeff = (
+                db.query(CoefficienteQuantitaVoce)
+                .filter(CoefficienteQuantitaVoce.domanda_mirata_key.isnot(None))
+                .order_by(CoefficienteQuantitaVoce.id)
+                .first()
+            )
+            righe = [
+                RigaPiattaIn(
+                    foglio="coefficienti_pro",
+                    id=str(coeff.id),
+                    valori={"domanda_mirata_key": None},
+                    campi_da_cancellare=[],
+                )
+            ]
+            nuove, modificate, scarti = diff_parametri(db, righe)
+
+        assert nuove == [] and modificate == []
+        assert len(scarti) == 1
+        assert "domanda_mirata_key" in scarti[0].motivo
+        assert "campi_da_cancellare" in scarti[0].motivo

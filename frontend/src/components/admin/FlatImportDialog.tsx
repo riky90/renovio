@@ -70,9 +70,28 @@ function toDiffPreviewRows(rows: DiffRigaOut[]): DiffPreviewRow[] {
  * Round-trip stateless (Fase 4/08-03): il client ricostruisce
  * `RigaPiattaIn` da `DiffRigaOut` — `valori_nuovi` contiene gia' SOLO i
  * campi che cambiano (D-09/CUR-02), pronti per `/confirm`.
+ *
+ * I `null` vanno separati. Quando la preview rappresenta una cancellazione
+ * (`#CANCELLA#` su una colonna nullable), il nuovo valore di quel campo in
+ * `valori_nuovi` e' `null`. Il contratto di `RigaPiattaIn` (vedi
+ * `schemas/admin_import.py`) vuole che la cancellazione viaggi su
+ * `campi_da_cancellare` e che `valori` porti solo valori reali: e' li' che
+ * il backend distingue "cancella il campo" da "scrivi questo valore".
+ * Rimandando indietro il `null` dentro `valori`, il resolver finiva per
+ * fare `str(None)` e scrivere a database la stringa letterale `"None"`
+ * invece di NULL (`lead.nota`, `coefficienti_pro.domanda_mirata_key`).
  */
 function toRigaPiattaIn(row: DiffRigaOut): RigaPiattaIn {
-  return { foglio: row.foglio, id: row.id, valori: row.valori_nuovi, campi_da_cancellare: [] };
+  const valori: Record<string, unknown> = {};
+  const campiDaCancellare: string[] = [];
+  for (const [campo, valore] of Object.entries(row.valori_nuovi)) {
+    if (valore === null) {
+      campiDaCancellare.push(campo);
+    } else {
+      valori[campo] = valore;
+    }
+  }
+  return { foglio: row.foglio, id: row.id, valori, campi_da_cancellare: campiDaCancellare };
 }
 
 /**

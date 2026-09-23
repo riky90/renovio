@@ -44,7 +44,11 @@ from app.models.lead import Lead
 from app.schemas.admin_import import DiffRigaOut, RigaPiattaIn
 from app.schemas.admin_upload import ScartoRowOut
 from app.services.import_excel.flat import foglio_mancante, leggi_foglio_piatto
-from app.services.import_excel.registry import registra, riga_modificata_dopo_export
+from app.services.import_excel.registry import (
+    campi_nulli_in_valori,
+    registra,
+    riga_modificata_dopo_export,
+)
 
 RISORSA = "lead"
 FOGLIO_LEAD = "lead"
@@ -239,6 +243,23 @@ def diff(
     scarti: list[ScartoRowOut] = []
 
     for r in righe:
+        nulli = campi_nulli_in_valori(r)
+        if nulli:
+            # CR-02: `valori` per contratto non contiene mai `None` — una
+            # cancellazione viaggia su `campi_da_cancellare`. Uno scarto
+            # esplicito invece di `str(None)`, che scriverebbe la stringa
+            # letterale "None" al posto di NULL.
+            scarti.append(
+                ScartoRowOut(
+                    riga=0,
+                    motivo=(
+                        f"lead: valore nullo in 'valori' per {', '.join(nulli)} — "
+                        "una cancellazione va dichiarata in 'campi_da_cancellare'"
+                    ),
+                )
+            )
+            continue
+
         non_annullabili = _campi_non_annullabili(r)
         if non_annullabili:
             scarti.append(
@@ -292,7 +313,7 @@ def apply(
     applicate = 0
 
     for r in modificate:
-        if _campi_non_annullabili(r):
+        if campi_nulli_in_valori(r) or _campi_non_annullabili(r):
             continue
 
         # Ririsolve sempre (round-trip stateless): non si fida del diff

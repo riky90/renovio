@@ -48,6 +48,26 @@ class ImportHandler(Protocol):
     ) -> int: ...
 
 
+def campi_nulli_in_valori(r: RigaPiattaIn) -> list[str]:
+    """I nomi-campo che arrivano con valore `None` dentro `valori`.
+
+    Per contratto (vedi docstring di `schemas/admin_import.py`) `valori`
+    porta SOLO valori reali: una cancellazione viaggia su
+    `campi_da_cancellare`, ed e' quella la struttura su cui i resolver
+    distinguono "cancella il campo" da "scrivi questo valore". Un `None`
+    dentro `valori` non puo' quindi venire da `parse()` — che i `None` li
+    sposta sempre su `campi_da_cancellare` — ma solo da un client che
+    ricostruisce male il payload di `/confirm`.
+
+    Difesa in profondita' (CR-02): finche' nessuno controllava, un `None`
+    che raggiungeva un ramo a stringa dei resolver veniva stringificato
+    (`str(None) == "None"`) e la stringa letterale `"None"` finiva a
+    database al posto di NULL. Meglio uno scarto descritto: un bug del
+    client non deve mai poter corrompere un campo in silenzio.
+    """
+    return sorted(campo for campo, valore in r.valori.items() if valore is None)
+
+
 def riga_modificata_dopo_export(esistente: object | None, generato_il: datetime | None) -> bool:
     """D-11: True se `esistente.updated_at` e' successivo a `generato_il`.
 

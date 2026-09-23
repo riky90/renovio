@@ -25,6 +25,9 @@ from app.models.lead import Lead
 from app.models.user import User
 from app.services.export_excel.lead import build_workbook_lead
 from app.services.export_excel.parametri import build_workbook_parametri
+from app.services.export_excel.workbook import TOKEN_CANCELLA
+from app.services.import_excel.lead import diff as diff_lead
+from app.schemas.admin_import import RigaPiattaIn
 from scripts.seed import load_seed_data, seed
 
 REGISTRAZIONE_URL = "/api/v1/auth/registrati"
@@ -112,11 +115,28 @@ def _post_preview(client, xlsx_bytes: bytes):
 
 
 def _a_riga_piatta_in(diff_riga: dict) -> dict:
+    """Ricostruisce `RigaPiattaIn` da `DiffRigaOut` esattamente come fa il
+    client (round-trip stateless, `FlatImportDialog.tsx::toRigaPiattaIn`).
+
+    Questo helper E' il sostituto del frontend in questa suite: se diverge
+    dalla funzione TypeScript, i test smettono di dire qualcosa sul flusso
+    reale. Come quella, separa i `null`: un campo il cui valore nuovo e'
+    `null` e' una CANCELLAZIONE e va dichiarato in `campi_da_cancellare`,
+    non lasciato dentro `valori` — dove il resolver lo stringificherebbe
+    (`str(None) == "None"`, CR-02).
+    """
+    valori = {}
+    campi_da_cancellare = []
+    for campo, valore in diff_riga["valori_nuovi"].items():
+        if valore is None:
+            campi_da_cancellare.append(campo)
+        else:
+            valori[campo] = valore
     return {
         "foglio": diff_riga["foglio"],
         "id": diff_riga["id"],
-        "valori": diff_riga["valori_nuovi"],
-        "campi_da_cancellare": [],
+        "valori": valori,
+        "campi_da_cancellare": campi_da_cancellare,
     }
 
 
@@ -301,3 +321,91 @@ class TestImportNonEliminaMaiLead:
         with client._session_local() as db:
             conteggio_dopo = db.query(Lead).count()
         assert conteggio_dopo == conteggio_prima
+
+
+class TestCancellazioneRoundTrip:
+    """CR-02: il segnale `#CANCELLA#` deve sopravvivere al giro
+    preview -> client -> confirm.
+
+    `diff()` rappresenta una cancellazione con `valori_nuovi[campo] = None`.
+    Il client ricostruisce il payload di `/confirm` da quel dict: se
+    rimanda indietro il `None` dentro `valori` invece che in
+    `campi_da_cancellare`, il resolver fa `str(None)` e scrive a database
+    la stringa letterale `"None"` — il campo non viene cancellato, viene
+    corrotto. Nessun test lo copriva perche' l'helper `_a_riga_piatta_in`
+    ricostruiva il payload con lo stesso errore del frontend.
+    """
+
+    def test_cancella_nota_scrive_null_non_la_stringa_none(self, client):
+        _registra_admin(client)
+        lead_id = _seed_lead(client._session_local)
+        with client._session_local() as db:
+            db.query(Lead).filter_by(id=lead_id).update({"nota": "Da richiamare"})
+            db.commit()
+
+        xlsx = _workbook_lead(client)
+        xlsx_modificato = _modifica_cella(xlsx, "lead", lead_id, "nota", TOKEN_CANCELLA)
+
+        preview = _post_preview(client, xlsx_modificato)
+        assert preview.status_code == 200
+        body = preview.json()
+        assert body["scarti"] == []
+        assert len(body["modificate"]) == 1
+        # la preview propone davvero una cancellazione
+        assert body["modificate"][0]["valori_nuovi"]["nota"] is None
+
+        confirm = _post_confirm(client, body)
+        assert confirm.status_code == 200
+        assert confirm.json()["righe_applicate"] == 1
+
+        with client._session_local() as db:
+            lead = db.get(Lead, lead_id)
+            assert lead.nota != "None", "scritta la stringa letterale 'None' invece di NULL"
+            assert lead.nota is None
+
+    def test_un_null_dentro_valori_e_uno_scarto_non_una_stringa(self, client):
+        """Difesa in profondita': anche con un client che sbaglia a
+        ricostruire il payload, il backend non deve stringificare il
+        `None`. La riga diventa uno scarto e il database resta com'era."""
+        _registra_admin(client)
+        lead_id = _seed_lead(client._session_local)
+        with client._session_local() as db:
+            db.query(Lead).filter_by(id=lead_id).update({"nota": "Da richiamare"})
+            db.commit()
+
+        # payload ricostruito male, come faceva il frontend prima di CR-02
+        payload_sbagliato = {
+            "risorsa": "lead",
+            "nuove": [],
+            "modificate": [
+                {
+                    "foglio": "lead",
+                    "id": str(lead_id),
+                    "valori": {"nota": None},
+                    "campi_da_cancellare": [],
+                }
+            ],
+        }
+        confirm = client.post(f"{LEAD_IMPORT_URL}/confirm", json=payload_sbagliato)
+        assert confirm.status_code == 200
+        assert confirm.json()["righe_applicate"] == 0
+
+        with client._session_local() as db:
+            assert db.get(Lead, lead_id).nota == "Da richiamare"
+
+    def test_la_preview_segnala_lo_scarto_su_un_null_dentro_valori(self, client):
+        """Lo stesso payload malformato, visto da `diff()`: deve produrre
+        uno scarto descritto, cosi' l'errore e' visibile e non silenzioso."""
+        _registra_admin(client)
+        lead_id = _seed_lead(client._session_local)
+
+        with client._session_local() as db:
+            righe = [
+                RigaPiattaIn(foglio="lead", id=str(lead_id), valori={"nota": None}, campi_da_cancellare=[])
+            ]
+            _, modificate, scarti = diff_lead(db, righe)
+
+        assert modificate == []
+        assert len(scarti) == 1
+        assert "nota" in scarti[0].motivo
+        assert "campi_da_cancellare" in scarti[0].motivo
