@@ -560,6 +560,148 @@ class TestDiffDichiaraICampiDiSottocategoria:
         assert sotto_dopo.famiglia == "fam-curata"
 
 
+class TestLivelloSulPercorsoPerChiaveNaturale:
+    """WR-02: l'anteprima annunciava una modifica a `livello` che la
+    conferma non applicava mai.
+
+    `livello` e' fra i campi diffati (`_CAMPI_DIFF_VOCE`) ma `_upsert_voce`
+    lo escludeva dal ciclo di scrittura, per la ragione — corretta — che le
+    righe di `parse_computo` si dichiarano complete e scriverebbero `None`
+    su ogni voce. La condizione giusta non e' pero' "ramo per id si, per
+    chiave naturale no", ma "il file dichiara esplicitamente il campo":
+    `campi_presenti is None` (computo) non vale come dichiarazione,
+    `campi_presenti` valorizzato (file piatto) si'.
+
+    L'admin che cura i livelli a mano dal file piatto vedeva il diff giusto,
+    confermava, e non trovava la modifica applicata — senza nessun
+    messaggio, e con la riga contata comunque fra le `righe_importate`.
+    """
+
+    def test_il_livello_annunciato_nel_diff_viene_davvero_scritto(self, session):
+        listino = _listino(session)
+        voce0, sotto0 = _voci_con_sotto(session, listino)[0]
+        voce0.livello = "alto"
+        session.commit()
+
+        xlsx_bytes = _xlsx_piatto([_riga_completa(voce0, sotto0, id=None, livello="medio")])
+
+        righe, scarti = parse_flat_listino(xlsx_bytes)
+        assert scarti == []
+        assert righe[0].id is None
+        assert "livello" in righe[0].campi_presenti
+
+        nuove, modificate, scarti_diff = compute_diff(session, righe, listino)
+        assert scarti_diff == []
+        assert len(modificate) == 1
+        assert modificate[0].campi_modificati == ["livello"]
+
+        apply_diff_idempotent(
+            session, UploadTargetEsistente(listino_id=listino.id), [], [r.riga for r in modificate]
+        )
+        session.commit()
+        session.expire_all()
+
+        assert session.get(Voce, voce0.id).livello == "medio", (
+            "l'anteprima aveva annunciato la modifica a livello, la conferma non l'ha applicata"
+        )
+
+    def test_il_computo_continua_a_non_azzerare_il_livello(self, session):
+        """Contro-prova, e la ragione per cui `livello` era escluso: una
+        riga che si dichiara completa ma viene da `parse_computo`
+        (`campi_presenti is None`) non deve scrivere il `None` che porta
+        addosso. Senza questa distinzione il fix azzererebbe la curatela a
+        ogni ri-caricamento del computo."""
+        listino = _listino(session)
+        voce0, sotto0 = _voci_con_sotto(session, listino)[0]
+        voce0.livello = "alto"
+        session.commit()
+
+        riga_da_computo = VoceRigaIn(
+            id=None,
+            categoria_code=sotto0.categoria_code,
+            sottocategoria_codice=sotto0.codice,
+            sottocategoria_nome=sotto0.nome,
+            sottocategoria_famiglia=sotto0.famiglia,
+            sottocategoria_ordine=sotto0.ordine,
+            codice=voce0.codice,
+            descrizione=voce0.descrizione,
+            um=voce0.um,
+            prezzo_unitario_cliente=voce0.prezzo_unitario_cliente,
+            ordine=voce0.ordine,
+            livello=None,
+            campi_presenti=None,
+        )
+
+        apply_diff_idempotent(
+            session, UploadTargetEsistente(listino_id=listino.id), [], [riga_da_computo]
+        )
+        session.commit()
+        session.expire_all()
+
+        assert session.get(Voce, voce0.id).livello == "alto"
+
+    def test_una_voce_nuova_dal_file_piatto_conserva_il_livello_dichiarato(self, session):
+        """Stesso principio sul ramo "voce nuova": il livello dichiarato nel
+        file non deve perdersi fra la riga letta e la riga creata."""
+        listino = _listino(session)
+        voce0, sotto0 = _voci_con_sotto(session, listino)[0]
+
+        xlsx_bytes = _xlsx_piatto(
+            [
+                _riga_completa(
+                    voce0,
+                    sotto0,
+                    id=None,
+                    codice=None,
+                    descrizione="Voce nuova con livello curato",
+                    livello="medio",
+                )
+            ]
+        )
+
+        righe, scarti = parse_flat_listino(xlsx_bytes)
+        assert scarti == []
+        nuove, modificate, scarti_diff = compute_diff(session, righe, listino)
+        assert scarti_diff == []
+        assert len(nuove) == 1
+
+        apply_diff_idempotent(
+            session, UploadTargetEsistente(listino_id=listino.id), [r.riga for r in nuove], []
+        )
+        session.commit()
+        session.expire_all()
+
+        creata = session.query(Voce).filter_by(descrizione="Voce nuova con livello curato").one()
+        assert creata.livello == "medio"
+
+    def test_il_token_cancella_azzera_il_livello_anche_senza_id(self, session):
+        """`livello` e' fra le colonne nullable, quindi `#CANCELLA#` e' una
+        dichiarazione esplicita a tutti gli effetti: il campo compare in
+        `campi_presenti` con valore `None` e la scrittura deve avvenire."""
+        listino = _listino(session)
+        voce0, sotto0 = _voci_con_sotto(session, listino)[0]
+        voce0.livello = "alto"
+        session.commit()
+
+        xlsx_bytes = _xlsx_piatto([_riga_completa(voce0, sotto0, id=None, livello=TOKEN_CANCELLA)])
+
+        righe, scarti = parse_flat_listino(xlsx_bytes)
+        assert scarti == []
+        assert righe[0].livello is None
+        assert "livello" in righe[0].campi_presenti
+
+        nuove, modificate, scarti_diff = compute_diff(session, righe, listino)
+        assert len(modificate) == 1
+
+        apply_diff_idempotent(
+            session, UploadTargetEsistente(listino_id=listino.id), [], [r.riga for r in modificate]
+        )
+        session.commit()
+        session.expire_all()
+
+        assert session.get(Voce, voce0.id).livello is None
+
+
 class TestIdInesistente:
     def test_id_inesistente_finisce_negli_scarti(self, session):
         """T-08-23: un id che non esiste nel listino di destinazione
