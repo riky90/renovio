@@ -56,10 +56,10 @@ files_reviewed_list:
   - frontend/src/pages/admin/LeadDashboardPage.tsx
   - frontend/src/pages/admin/ListiniPage.tsx
 findings:
-  critical: 2
+  critical: 3
   warning: 3
   info: 1
-  total: 6
+  total: 7
 status: issues_found
 ---
 
@@ -80,8 +80,8 @@ margin columns. That part is solid and well tested (`test_export_margine.py`,
 `test_import_parametri.py`).
 
 The second priority — data loss / silent overwrite from import — is where this
-phase has real gaps. Two confirmed bugs, both provable by tracing the code (not
-covered by any existing test):
+phase has real gaps. Three confirmed bugs, none covered by any existing test — the first two
+provable by tracing the code, the third reproduced by running the migration:
 
 1. `listino_upload_service.py`'s natural-key upsert path (`_upsert_sottocategoria`/
    `_upsert_voce`) ignores `VoceRigaIn.campi_presenti` and unconditionally
@@ -96,6 +96,12 @@ covered by any existing test):
    sends `campi_da_cancellare: []`. Backend string-field resolvers then do
    `str(None)` and write the literal text `"None"` to the database instead of
    NULL — for `lead.nota` and `coefficienti_pro.domanda_mirata_key`.
+3. Migration `0019` uses `server_default=sa.func.now()` on nine `add_column`
+   calls, which SQLite rejects (`Cannot add a column with non-constant
+   default`). `DATABASE_URL` defaults to SQLite, so `alembic upgrade head`
+   fails and the `updated_at` columns exist only in the metadata-built test
+   schema, never in a migrated database. Found on 2026-09-23 while bringing the
+   local database up to head.
 
 ## Critical Issues
 
@@ -183,6 +189,38 @@ function toRigaPiattaIn(row: DiffRigaOut): RigaPiattaIn {
 }
 ```
 As defense in depth, the backend resolvers should also treat an explicit `None` reaching a string-typed branch as invalid input (scarto) rather than stringifying it, so a similar client bug can never silently corrupt data again.
+
+### CR-03: Migration `0019` cannot be applied on SQLite, so the phase's own schema change never reaches a dev database
+
+**File:** `backend/alembic/versions/0019_updated_at_curatela.py:31-39` (all nine `add_column` calls)
+
+**Issue:**
+Every column is added as `sa.Column("updated_at", sa.DateTime(), server_default=sa.func.now(), nullable=False)`. On SQLite, `ALTER TABLE ... ADD COLUMN` only accepts a *constant* default, so `DEFAULT CURRENT_TIMESTAMP` is rejected outright:
+
+```
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) Cannot add a column with non-constant default
+[SQL: ALTER TABLE sottocategoria ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL]
+```
+
+`alembic upgrade head` therefore fails on the very first statement and the whole migration is a no-op. `backend/.env` and the `DATABASE_URL` default in `backend/app/config.py:19` are both `sqlite:///./dev.db`, so this is the configuration every developer actually runs: the local database is stuck at revision `0018` and the nine `updated_at` columns simply do not exist there.
+
+The test suite does not catch this because the tests build their schema from the SQLAlchemy metadata (`create_all`), not by running the migration chain — so the columns are present in tests and absent in any database that was migrated. That divergence is the real defect: the staleness guard (D-11) that plan `08-08` delivers is untestable and unusable against a migrated database, and anything reading `updated_at` raises `OperationalError: no such column` there.
+
+**Fix:** Add the column as nullable with no server default, backfill the existing rows with an explicit timestamp, then tighten the constraint in a way SQLite supports (`batch_alter_table`, which rebuilds the table):
+
+```python
+def upgrade() -> None:
+    for tabella in _TABELLE:
+        op.add_column(tabella, sa.Column("updated_at", sa.DateTime(), nullable=True))
+        op.execute(sa.text(f"UPDATE {tabella} SET updated_at = :adesso").bindparams(adesso=datetime.now(timezone.utc)))
+        with op.batch_alter_table(tabella) as batch:
+            batch.alter_column("updated_at", existing_type=sa.DateTime(), nullable=False,
+                               server_default=sa.func.now())
+```
+
+The backfilled instant stays earlier than any export generated afterwards, so the property the original docstring relies on — the first re-import does not mark every row as stale — is preserved.
+
+As a guard against the next migration that passes tests and fails on a real database, the gap-closure work should add a check that runs the full `alembic upgrade head` chain against a throwaway SQLite file.
 
 ## Warnings
 
