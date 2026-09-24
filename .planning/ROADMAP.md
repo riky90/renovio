@@ -151,7 +151,7 @@ raccomandazione di split in `.planning/phases/08-export-import-excel/08-CONTEXT.
 
 **Nota:** il backend CRUD di domande/opzioni/effetti **esiste già per intero** (`backend/app/routers/admin/domande.py:144-413`). La fase è in gran parte frontend più una voce nel registro export/import costruito in Fase 08. Chiude il chip `task_9da38ee9` e la violazione della regola #3 di `CLAUDE.md`.
 
-**Plans:** 4/6 plans executed
+**Plans:** 6/6 plans complete
 
 Plans:
 **Wave 1**
@@ -166,8 +166,8 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 08.1-05-PLAN.md — Carica catalogo domande: handler `domande` nel registro di import, round-trip a zero che conta, D-28 anche da file
-- [ ] 08.1-06-PLAN.md — Livello effetti: otto tipi, bersaglio a cascata, stepper senza livello opzioni
+- [x] 08.1-05-PLAN.md — Carica catalogo domande: handler `domande` nel registro di import, round-trip a zero che conta, D-28 anche da file
+- [x] 08.1-06-PLAN.md — Livello effetti: otto tipi, bersaglio a cascata, stepper senza livello opzioni
 
 ### Phase 09: Configuratore Pro e chiusura del bug dei cataloghi
 
