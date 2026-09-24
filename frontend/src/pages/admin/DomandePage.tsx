@@ -22,7 +22,8 @@ import {
 } from "@/components/ui/select";
 import { ApiError } from "@/api/admin/client";
 import { EMPTY_HEADING } from "@/lib/adminCopy";
-import type { TipoControllo } from "@/api/domande";
+import { isNumerico, type TipoControllo } from "@/api/domande";
+import { OpzioniSezione } from "@/pages/admin/domande/OpzioniSezione";
 import {
   DOMANDE_QUERY_KEY,
   chiaveOpzioni,
@@ -104,6 +105,9 @@ export function DomandePage() {
   const [editing, setEditing] = useState<DomandaOut | null>(null);
   const [form, setForm] = useState<FormState>(FORM_VUOTO);
 
+  const [selectedDomandaCode, setSelectedDomandaCode] = useState<string | null>(null);
+  const [selectedOpzioneId, setSelectedOpzioneId] = useState<number | null>(null);
+
   const domandeQuery = useQuery<DomandaOut[]>({
     queryKey: DOMANDE_QUERY_KEY,
     queryFn: getDomande,
@@ -175,6 +179,16 @@ export function DomandePage() {
     setEditing(null);
   }
 
+  function onSelectDomanda(code: string) {
+    setSelectedDomandaCode((prev) => (prev === code ? null : code));
+    setSelectedOpzioneId(null);
+  }
+
+  function chiudiOpzioni() {
+    setSelectedDomandaCode(null);
+    setSelectedOpzioneId(null);
+  }
+
   function onDomandaGateChange(value: string) {
     setForm((prev) => ({
       ...prev,
@@ -215,6 +229,9 @@ export function DomandePage() {
   );
   const opzioniAttiveGate = (opzioniGateQuery.data ?? []).filter((o) => o.attiva);
 
+  const domandaSelezionata =
+    (domandeQuery.data ?? []).find((d) => d.code === selectedDomandaCode) ?? null;
+
   return (
     <AdminLayout>
       <div className="flex flex-col gap-6">
@@ -229,37 +246,66 @@ export function DomandePage() {
           isEmpty={(domandeQuery.data ?? []).length === 0}
           emptyHeading={EMPTY_HEADING}
           emptyBody={EMPTY_BODY_DOMANDE}
-          rows={(domandeQuery.data ?? []).map((row) => [
-            row.code,
-            row.testo,
-            row.attributo_code ?? "—",
-            TIPO_CONTROLLO_LABELS[row.tipo_controllo],
-            row.tier_minimo === "pro" ? "Pro" : "Free",
-            <Badge key="attiva" variant={row.attiva ? "default" : "secondary"}>
-              {row.attiva ? "Attiva" : "Non attiva"}
-            </Badge>,
-            <div className="flex gap-1" key="azioni">
-              <Button
+          rows={(domandeQuery.data ?? []).map((row) => {
+            const selected = row.code === selectedDomandaCode;
+            const selezionaRiga = () => onSelectDomanda(row.code);
+            return [
+              <button
                 type="button"
-                variant="ghost"
-                size="icon-sm"
-                aria-label="Modifica"
-                onClick={() => openEdit(row)}
+                key="codice"
+                onClick={selezionaRiga}
+                aria-expanded={selected}
+                className="block w-full text-left"
               >
-                <Pencil className="size-4" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                aria-label={row.attiva ? "Disattiva domanda" : "Riattiva domanda"}
-                onClick={() => toggleMutation.mutate(row)}
-              >
-                <Power className="size-4" />
-              </Button>
-            </div>,
-          ])}
+                {row.code}
+              </button>,
+              <button type="button" key="testo" onClick={selezionaRiga} className="block w-full text-left">
+                {row.testo}
+              </button>,
+              <button type="button" key="attributo" onClick={selezionaRiga} className="block w-full text-left">
+                {row.attributo_code ?? "—"}
+              </button>,
+              <button type="button" key="tipo" onClick={selezionaRiga} className="block w-full text-left">
+                {TIPO_CONTROLLO_LABELS[row.tipo_controllo]}
+              </button>,
+              <button type="button" key="tier" onClick={selezionaRiga} className="block w-full text-left">
+                {row.tier_minimo === "pro" ? "Pro" : "Free"}
+              </button>,
+              <Badge key="attiva" variant={row.attiva ? "default" : "secondary"}>
+                {row.attiva ? "Attiva" : "Non attiva"}
+              </Badge>,
+              <div className="flex gap-1" key="azioni">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Modifica"
+                  onClick={() => openEdit(row)}
+                >
+                  <Pencil className="size-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label={row.attiva ? "Disattiva domanda" : "Riattiva domanda"}
+                  onClick={() => toggleMutation.mutate(row)}
+                >
+                  <Power className="size-4" />
+                </Button>
+              </div>,
+            ];
+          })}
         />
+
+        {domandaSelezionata && !isNumerico(domandaSelezionata.tipo_controllo) && (
+          <OpzioniSezione
+            domanda={domandaSelezionata}
+            selectedOpzioneId={selectedOpzioneId}
+            onSelectOpzione={(id) => setSelectedOpzioneId((prev) => (prev === id ? null : id))}
+            onChiudi={chiudiOpzioni}
+          />
+        )}
       </div>
 
       <AdminCrudDialog
