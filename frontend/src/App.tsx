@@ -13,6 +13,7 @@ import { NuovaStimaProPage } from "@/pages/NuovaStimaProPage";
 import { LeadDashboardPage } from "@/pages/admin/LeadDashboardPage";
 import { ReferentiPage } from "@/pages/admin/ReferentiPage";
 import { ListiniPage } from "@/pages/admin/ListiniPage";
+import { DomandePage } from "@/pages/admin/DomandePage";
 import { CoefficientiPage } from "@/pages/admin/CoefficientiPage";
 import { CittaTestiPage } from "@/pages/admin/CittaTestiPage";
 import { UtentiPage } from "@/pages/admin/UtentiPage";
@@ -38,6 +39,7 @@ const router = createBrowserRouter([
   { path: "/admin/lead", element: <LeadDashboardPage /> },
   { path: "/admin/listini", element: <ListiniPage /> },
   { path: "/admin/dettaglio-pro", element: <DettaglioProAdminPage /> },
+  { path: "/admin/domande", element: <DomandePage /> },
   { path: "/admin/coefficienti", element: <CoefficientiPage /> },
   { path: "/admin/bonus", element: <BonusPage /> },
   { path: "/admin/citta-testi", element: <CittaTestiPage /> },
