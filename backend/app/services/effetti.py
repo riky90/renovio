@@ -5,8 +5,8 @@ Free (`estimation.py`) e, dalla Fase 5, il motore Pro (`dettaglio_pro.py`) lo
 importano e applicano cio' che torna: nessun `if` sul codice di una domanda vive
 dentro i motori.
 
-I SETTE TIPI DI EFFETTO — insieme chiuso, deliberatamente piccolo
------------------------------------------------------------------
+GLI OTTO TIPI DI EFFETTO — insieme chiuso, deliberatamente piccolo
+--------------------------------------------------------------------
 Niente espressioni, niente formule in tabella. Un motore a regole marcisce
 quando in una cella si puo' scrivere qualunque cosa; qui ogni tipo ha
 un'aritmetica nota, e aggiungerne uno e' una decisione di design, non una riga
@@ -270,7 +270,11 @@ def attese_per_mq(session: Session, mq: int) -> dict[str, Decimal]:
     """
     righe = (
         session.query(AttesaImmobile)
-        .filter(AttesaImmobile.fascia_mq_min <= mq, AttesaImmobile.fascia_mq_max >= mq)
+        .filter(
+            AttesaImmobile.fascia_mq_min <= mq,
+            AttesaImmobile.fascia_mq_max >= mq,
+            AttesaImmobile.attiva.is_(True),
+        )
         .order_by(AttesaImmobile.attributo_code, AttesaImmobile.fascia_mq_min)
         .all()
     )
@@ -450,7 +454,7 @@ def risolvi_scelte(
     opzioni_per_domanda: dict[str, list[OpzioneDomanda]] = {c: [] for c in codici}
     for o in (
         session.query(OpzioneDomanda)
-        .filter(OpzioneDomanda.domanda_code.in_(codici))
+        .filter(OpzioneDomanda.domanda_code.in_(codici), OpzioneDomanda.attiva.is_(True))
         .order_by(OpzioneDomanda.domanda_code, OpzioneDomanda.ordine, OpzioneDomanda.id)
         .all()
     ):

@@ -148,6 +148,53 @@ def test_ogni_scelta_singola_ha_esattamente_un_default(session):
         assert n == 1, f"{d.code}: {n} opzioni di default"
 
 
+def test_opzione_disattivata_non_applica_i_suoi_effetti(session):
+    """D-27: spegnere un'opzione deve spegnere anche i suoi effetti, non solo
+    nasconderla dal wizard — altrimenti una risposta che il client non mostra
+    piu' continuerebbe silenziosamente a correggere il prezzo."""
+    accesa = risolvi_effetti_free(
+        session, mq=85, tipo="totale", risposte={"anno_costruzione": "pre_1980"}
+    )
+    assert any(
+        a.opzione_code == "pre_1980" and a.applicato for a in accesa.applicati
+    ), "l'opzione accesa deve avere almeno un effetto applicato"
+
+    opzione = (
+        session.query(OpzioneDomanda)
+        .filter_by(domanda_code="anno_costruzione", code="pre_1980")
+        .one()
+    )
+    opzione.attiva = False
+    session.flush()
+
+    spenta = risolvi_effetti_free(
+        session, mq=85, tipo="totale", risposte={"anno_costruzione": "pre_1980"}
+    )
+    assert not any(a.opzione_code == "pre_1980" for a in spenta.applicati)
+
+
+def test_attesa_disattivata_non_fa_piu_da_baseline(session):
+    """D-40: un'attesa spenta smette di coprire la fascia, sia come default del
+    wizard sia come baseline dello scostamento nel motore."""
+    prima = attese_per_mq(session, 85)
+    assert "bagni" in prima
+
+    riga = (
+        session.query(AttesaImmobile)
+        .filter(
+            AttesaImmobile.attributo_code == "bagni",
+            AttesaImmobile.fascia_mq_min <= 85,
+            AttesaImmobile.fascia_mq_max >= 85,
+        )
+        .one()
+    )
+    riga.attiva = False
+    session.flush()
+
+    dopo = attese_per_mq(session, 85)
+    assert "bagni" not in dopo
+
+
 def test_nessuna_tabella_del_catalogo_espone_il_coefficiente_impresa():
     """Regola non negoziabile #1, verificata sullo schema e non sulla fiducia."""
     vietate = {"coefficiente_impresa", "prezzo_impresa", "margine"}
@@ -481,18 +528,60 @@ def test_seed_non_azzera_una_taratura_fatta_da_admin(session):
     assert attesa.valore_atteso == Decimal("2.00")
 
 
-def test_seed_riscrive_invece_il_testo_di_una_domanda(session):
-    """Il contrario del test precedente: testo e struttura sono del prodotto,
-    non dell'admin, quindi il seed li riporta al valore dichiarato."""
+def test_seed_non_riscrive_una_domanda_curata_dal_pannello(session):
+    """D-41: il catalogo domande e' del pannello, non del seed. Un testo
+    corretto a mano, una domanda disattivata e un'opzione disattivata devono
+    restare come li ha lasciati l'admin dopo un riavvio del container —
+    altrimenti ogni deploy su Render annulla la curatela fatta da
+    `/admin/domande` o dall'Excel di questa fase."""
     domanda = session.get(Domanda, "anno_costruzione")
-    originale = domanda.testo
     domanda.testo = "Testo modificato a mano"
+    domanda.attiva = False
+    opzione = (
+        session.query(OpzioneDomanda)
+        .filter_by(domanda_code="anno_costruzione", code="pre_1980")
+        .one()
+    )
+    opzione.attiva = False
     session.flush()
 
     seed(session, load_seed_data())
 
     session.refresh(domanda)
-    assert domanda.testo == originale
+    session.refresh(opzione)
+    assert domanda.testo == "Testo modificato a mano"
+    assert domanda.attiva is False
+    assert opzione.attiva is False
+
+
+def test_seed_crea_ancora_domande_e_opzioni_mancanti(session):
+    """Create-if-missing non vuol dire "mai piu' creato": un'opzione del JSON
+    assente dal database (cancellata a mano in sessione, come potrebbe
+    succedere in un ambiente di sviluppo) torna al prossimo boot."""
+    opzione = (
+        session.query(OpzioneDomanda)
+        .filter_by(domanda_code="anno_costruzione", code="pre_1980")
+        .one()
+    )
+    session.query(EffettoOpzione).filter_by(opzione_id=opzione.id).delete()
+    session.delete(opzione)
+    session.flush()
+
+    assert (
+        session.query(OpzioneDomanda)
+        .filter_by(domanda_code="anno_costruzione", code="pre_1980")
+        .one_or_none()
+        is None
+    )
+
+    seed(session, load_seed_data())
+
+    ricreata = (
+        session.query(OpzioneDomanda)
+        .filter_by(domanda_code="anno_costruzione", code="pre_1980")
+        .one_or_none()
+    )
+    assert ricreata is not None
 
 
 # --- derivazione fra risposte (0017) ----------------------------------------
