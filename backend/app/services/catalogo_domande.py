@@ -15,7 +15,8 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
-from app.models.domanda import DerivazioneRisposta, Domanda, OpzioneDomanda
+from app.models.dettaglio_pro import Sottocategoria, Voce
+from app.models.domanda import DerivazioneRisposta, Domanda, EffettoOpzione, OpzioneDomanda
 from app.services.effetti import CONTROLLI_NUMERICI, OPZIONE_VALORE
 
 
@@ -148,6 +149,87 @@ def assicura_opzione_valore(db: Session, domanda: Domanda) -> None:
         )
     )
     db.flush()
+
+
+def _etichetta_sottocategoria(s: Sottocategoria) -> str:
+    parte_codice = f"{s.codice} " if s.codice else ""
+    return f"{s.categoria_code} › {parte_codice}{s.nome}"
+
+
+def etichette_bersaglio(db: Session, effetti: list[EffettoOpzione]) -> dict[int, str]:
+    """Etichetta leggibile del bersaglio di ciascun effetto (D-33, UI-SPEC
+    §D.5): il `categoria_code` grezzo per un bersaglio categoria,
+    `"{categoria_code} › {codice} {nome}"` per una sottocategoria (senza il
+    codice se nullo), `"{categoria_code} › {codice} {nome} › {descrizione}"`
+    per una voce. Chiave del dict = id dell'effetto.
+
+    Due query batch (sottocategorie, voci referenziate), MAI una per riga
+    (T-08.1-23, N+1 su una lista di effetti): serve sia alla tabella Effetti
+    del pannello sia alla colonna `bersaglio` dell'export.
+
+    Un id che punta a una riga sparita produce un'etichetta descritta (es.
+    "voce 9999 non trovata"), mai un'eccezione: un bersaglio rotto resta
+    visibile invece di far fallire l'intera lista.
+    """
+    sottocategoria_ids = {
+        e.target_sottocategoria_id for e in effetti if e.target_sottocategoria_id is not None
+    }
+    voce_ids = {e.target_voce_id for e in effetti if e.target_voce_id is not None}
+
+    sottocategorie = (
+        {
+            s.id: s
+            for s in db.query(Sottocategoria)
+            .filter(Sottocategoria.id.in_(sottocategoria_ids))
+            .all()
+        }
+        if sottocategoria_ids
+        else {}
+    )
+    voci = (
+        {v.id: v for v in db.query(Voce).filter(Voce.id.in_(voce_ids)).all()} if voce_ids else {}
+    )
+
+    # Le voci portano a loro volta a una sottocategoria (per il prefisso
+    # "categoria › sottocategoria"), non necessariamente gia' caricata sopra
+    # se nessun effetto la bersaglia direttamente.
+    sottocategoria_ids_da_voci = {v.sottocategoria_id for v in voci.values()} - set(
+        sottocategorie
+    )
+    if sottocategoria_ids_da_voci:
+        for s in (
+            db.query(Sottocategoria)
+            .filter(Sottocategoria.id.in_(sottocategoria_ids_da_voci))
+            .all()
+        ):
+            sottocategorie[s.id] = s
+
+    etichette: dict[int, str] = {}
+    for e in effetti:
+        if e.target_categoria_code is not None:
+            etichette[e.id] = e.target_categoria_code
+        elif e.target_sottocategoria_id is not None:
+            s = sottocategorie.get(e.target_sottocategoria_id)
+            etichette[e.id] = (
+                _etichetta_sottocategoria(s)
+                if s is not None
+                else f"sottocategoria {e.target_sottocategoria_id} non trovata"
+            )
+        elif e.target_voce_id is not None:
+            v = voci.get(e.target_voce_id)
+            if v is None:
+                etichette[e.id] = f"voce {e.target_voce_id} non trovata"
+            else:
+                s = sottocategorie.get(v.sottocategoria_id)
+                base = (
+                    _etichetta_sottocategoria(s)
+                    if s is not None
+                    else f"sottocategoria {v.sottocategoria_id} non trovata"
+                )
+                etichette[e.id] = f"{base} › {v.descrizione}"
+        else:
+            etichette[e.id] = "nessun bersaglio"
+    return etichette
 
 
 def azzera_altri_default(db: Session, opzione: OpzioneDomanda) -> None:
