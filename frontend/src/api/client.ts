@@ -10,12 +10,31 @@ const API_BASE = import.meta.env.VITE_API_BASE as string | undefined;
 
 export class ApiError extends Error {
   status: number;
+  /** Testo del backend (`{detail}`), quando la risposta di errore lo porta. */
+  detail: string | undefined;
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, detail?: string) {
     super(message);
     this.name = "ApiError";
     this.status = status;
+    this.detail = detail;
   }
+}
+
+/**
+ * Legge `{detail}` dal corpo di errore JSON, se presente — stesso schema di
+ * `apiPostFile` (righe piu' sotto). Non lancia mai: una risposta senza corpo
+ * JSON o senza `detail` stringa torna `undefined`, e il chiamante ricade sul
+ * suo messaggio generico.
+ */
+export async function leggiDetail(response: Response): Promise<string | undefined> {
+  try {
+    const payload = (await response.json()) as { detail?: unknown };
+    if (typeof payload?.detail === "string") return payload.detail;
+  } catch {
+    // Risposta senza corpo JSON: nessun detail da propagare.
+  }
+  return undefined;
 }
 
 export async function apiGet<T>(path: string): Promise<T> {
@@ -28,7 +47,8 @@ export async function apiGet<T>(path: string): Promise<T> {
   });
 
   if (!response.ok) {
-    throw new ApiError(response.status, `GET ${path} fallita con status ${response.status}`);
+    const detail = await leggiDetail(response);
+    throw new ApiError(response.status, detail ?? `GET ${path} fallita con status ${response.status}`, detail);
   }
 
   return (await response.json()) as T;
@@ -47,7 +67,8 @@ export async function apiPost<T>(path: string, body: unknown): Promise<T> {
   });
 
   if (!response.ok) {
-    throw new ApiError(response.status, `POST ${path} fallita con status ${response.status}`);
+    const detail = await leggiDetail(response);
+    throw new ApiError(response.status, detail ?? `POST ${path} fallita con status ${response.status}`, detail);
   }
 
   if (response.status === 204) {
@@ -70,7 +91,8 @@ export async function apiPatch<T>(path: string, body: unknown): Promise<T> {
   });
 
   if (!response.ok) {
-    throw new ApiError(response.status, `PATCH ${path} fallita con status ${response.status}`);
+    const detail = await leggiDetail(response);
+    throw new ApiError(response.status, detail ?? `PATCH ${path} fallita con status ${response.status}`, detail);
   }
 
   if (response.status === 204) {
@@ -91,7 +113,8 @@ export async function apiDelete<T>(path: string): Promise<T> {
   });
 
   if (!response.ok) {
-    throw new ApiError(response.status, `DELETE ${path} fallita con status ${response.status}`);
+    const detail = await leggiDetail(response);
+    throw new ApiError(response.status, detail ?? `DELETE ${path} fallita con status ${response.status}`, detail);
   }
 
   if (response.status === 204) {

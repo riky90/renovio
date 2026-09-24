@@ -5,7 +5,7 @@
  */
 
 export { apiGet, apiPost, ApiError, type ApiError as ApiErrorType } from "@/api/client";
-import { ApiError } from "@/api/client";
+import { ApiError, leggiDetail } from "@/api/client";
 
 const API_BASE = import.meta.env.VITE_API_BASE as string | undefined;
 
@@ -22,7 +22,8 @@ export async function apiPatch<T>(path: string, body: unknown): Promise<T> {
   });
 
   if (!response.ok) {
-    throw new ApiError(response.status, `PATCH ${path} fallita con status ${response.status}`);
+    const detail = await leggiDetail(response);
+    throw new ApiError(response.status, detail ?? `PATCH ${path} fallita con status ${response.status}`, detail);
   }
 
   if (response.status === 204) {
@@ -45,7 +46,8 @@ export async function apiPut<T>(path: string, body: unknown): Promise<T> {
   });
 
   if (!response.ok) {
-    throw new ApiError(response.status, `PUT ${path} fallita con status ${response.status}`);
+    const detail = await leggiDetail(response);
+    throw new ApiError(response.status, detail ?? `PUT ${path} fallita con status ${response.status}`, detail);
   }
 
   if (response.status === 204) {
@@ -66,6 +68,7 @@ export async function apiDelete(path: string): Promise<void> {
   });
 
   if (!response.ok) {
-    throw new ApiError(response.status, `DELETE ${path} fallita con status ${response.status}`);
+    const detail = await leggiDetail(response);
+    throw new ApiError(response.status, detail ?? `DELETE ${path} fallita con status ${response.status}`, detail);
   }
 }
