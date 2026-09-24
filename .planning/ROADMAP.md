@@ -151,7 +151,7 @@ raccomandazione di split in `.planning/phases/08-export-import-excel/08-CONTEXT.
 
 **Nota:** il backend CRUD di domande/opzioni/effetti **esiste già per intero** (`backend/app/routers/admin/domande.py:144-413`). La fase è in gran parte frontend più una voce nel registro export/import costruito in Fase 08. Chiude il chip `task_9da38ee9` e la violazione della regola #3 di `CLAUDE.md`.
 
-**Plans:** 2/6 plans executed
+**Plans:** 4/6 plans executed
 
 Plans:
 **Wave 1**
@@ -161,8 +161,8 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 08.1-03-PLAN.md — Scarica catalogo domande: file a cinque fogli tracciato in `export_log`, bersaglio leggibile degli effetti
-- [ ] 08.1-04-PLAN.md — Livello opzioni: tabella, form con immagine, toggle con il rifiuto D-28 nel toast
+- [x] 08.1-03-PLAN.md — Scarica catalogo domande: file a cinque fogli tracciato in `export_log`, bersaglio leggibile degli effetti
+- [x] 08.1-04-PLAN.md — Livello opzioni: tabella, form con immagine, toggle con il rifiuto D-28 nel toast
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
