@@ -47,6 +47,7 @@ from app.services.listino_upload_service import UploadValidationError, validate_
 # Import per side-effect: registra le risorse in HANDLER (piano 08-06/08-07).
 # Ogni risorsa futura (08-08) aggiunge qui la sua riga — mai una route
 # nuova (T-08-52).
+import app.services.import_excel.domande  # noqa: F401
 import app.services.import_excel.lead  # noqa: F401
 import app.services.import_excel.parametri  # noqa: F401
 
