@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   Layers,
   Percent,
+  HelpCircle,
   type LucideIcon,
 } from "lucide-react";
 import { AccountMenu } from "@/components/AccountMenu";
@@ -36,6 +37,7 @@ const NAV_ITEMS: AdminNavItem[] = [
   { path: "/admin/lead", label: "Lead", icon: Inbox, roles: ["admin", "consulente"] },
   { path: "/admin/listini", label: "Listini e prezzi", icon: Tags, roles: ["admin"] },
   { path: "/admin/dettaglio-pro", label: "Voci dettaglio Pro", icon: Layers, roles: ["admin"] },
+  { path: "/admin/domande", label: "Domande", icon: HelpCircle, roles: ["admin"] },
   { path: "/admin/coefficienti", label: "Coefficienti", icon: SlidersHorizontal, roles: ["admin"] },
   { path: "/admin/bonus", label: "Bonus fiscali", icon: Percent, roles: ["admin"] },
   { path: "/admin/citta-testi", label: "Città e testi", icon: MapPin, roles: ["admin"] },
