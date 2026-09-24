@@ -128,6 +128,8 @@ export interface EffettoOut {
   tipo_code: "leggera" | "moderata" | "totale" | null;
   valore: number | null;
   attivo: boolean;
+  /** Etichetta leggibile del bersaglio, calcolata dal server (D-33), es. "A-EDILE › a.1 Demolizioni › Rimozione pavimento". Mai un id. */
+  bersaglio: string;
 }
 
 interface RawEffettoOut extends Omit<EffettoOut, "valore"> {

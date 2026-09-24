@@ -24,6 +24,7 @@ import { ApiError } from "@/api/admin/client";
 import { EMPTY_HEADING } from "@/lib/adminCopy";
 import { isNumerico, type TipoControllo } from "@/api/domande";
 import { OpzioniSezione } from "@/pages/admin/domande/OpzioniSezione";
+import { EffettiSezione } from "@/pages/admin/domande/EffettiSezione";
 import {
   DOMANDE_QUERY_KEY,
   chiaveOpzioni,
@@ -34,6 +35,7 @@ import {
   type DomandaOut,
   type DomandaCreateInput,
   type DomandaPatchInput,
+  type OpzioneOut,
 } from "@/api/admin/domande";
 
 const SAVE_ERROR = "Non siamo riusciti a salvare la modifica. Riprova.";
@@ -232,6 +234,24 @@ export function DomandePage() {
   const domandaSelezionata =
     (domandeQuery.data ?? []).find((d) => d.code === selectedDomandaCode) ?? null;
 
+  const domandaSelezionataNumerica =
+    domandaSelezionata !== null && isNumerico(domandaSelezionata.tipo_controllo);
+
+  // Stessa chiave di OpzioniSezione (chiaveOpzioni(domanda.code)): cache
+  // condivisa, un solo fetch anche quando entrambe le sezioni la usano.
+  const opzioniSelezionataQuery = useQuery<OpzioneOut[]>({
+    queryKey: domandaSelezionata ? chiaveOpzioni(domandaSelezionata.code) : chiaveOpzioni("__none__"),
+    queryFn: () => getOpzioni((domandaSelezionata as DomandaOut).code),
+    enabled: domandaSelezionata !== null,
+  });
+
+  // Percorso normale: l'opzione scelta in OpzioniSezione. Percorso numerico
+  // (D-35): l'opzione implicita `code === "valore"`, creata dal backend alla
+  // creazione della domanda (piano 01).
+  const opzionePerEffetti = domandaSelezionataNumerica
+    ? (opzioniSelezionataQuery.data ?? []).find((o) => o.code === "valore") ?? null
+    : (opzioniSelezionataQuery.data ?? []).find((o) => o.id === selectedOpzioneId) ?? null;
+
   return (
     <AdminLayout>
       <div className="flex flex-col gap-6">
@@ -298,13 +318,34 @@ export function DomandePage() {
           })}
         />
 
-        {domandaSelezionata && !isNumerico(domandaSelezionata.tipo_controllo) && (
+        {domandaSelezionata && !domandaSelezionataNumerica && (
           <OpzioniSezione
             domanda={domandaSelezionata}
             selectedOpzioneId={selectedOpzioneId}
             onSelectOpzione={(id) => setSelectedOpzioneId((prev) => (prev === id ? null : id))}
             onChiudi={chiudiOpzioni}
           />
+        )}
+
+        {domandaSelezionata && !domandaSelezionataNumerica && opzionePerEffetti && (
+          <EffettiSezione
+            domanda={domandaSelezionata}
+            opzione={opzionePerEffetti}
+            onChiudi={() => setSelectedOpzioneId(null)}
+          />
+        )}
+
+        {domandaSelezionata && domandaSelezionataNumerica && (
+          opzionePerEffetti ? (
+            <EffettiSezione domanda={domandaSelezionata} opzione={opzionePerEffetti} onChiudi={chiudiOpzioni} />
+          ) : (
+            !opzioniSelezionataQuery.isLoading && (
+              <p className="text-sm text-muted-foreground">
+                Questa domanda non ha l'opzione implicita "valore": salvala una volta dal dialog
+                per crearla.
+              </p>
+            )
+          )
         )}
       </div>
 
