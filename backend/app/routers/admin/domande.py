@@ -56,6 +56,7 @@ from app.schemas.admin_domande import (
 from app.services.catalogo_domande import (
     assicura_opzione_valore,
     azzera_altri_default,
+    etichette_bersaglio,
     valida_visibilita,
     verifica_dipendenze_opzione,
 )
@@ -107,12 +108,13 @@ def _to_opzione_out(row: OpzioneDomanda) -> OpzioneAdminOut:
     )
 
 
-def _to_effetto_out(row: EffettoOpzione, opzione: OpzioneDomanda) -> EffettoAdminOut:
+def _to_effetto_out(row: EffettoOpzione, opzione: OpzioneDomanda, bersaglio: str) -> EffettoAdminOut:
     return EffettoAdminOut(
         id=row.id,
         opzione_id=row.opzione_id,
         domanda_code=opzione.domanda_code,
         opzione_code=opzione.code,
+        bersaglio=bersaglio,
         tipo_effetto=row.tipo_effetto,
         target_categoria_code=row.target_categoria_code,
         target_sottocategoria_id=row.target_sottocategoria_id,
@@ -359,7 +361,8 @@ def lista_effetti(
     righe = db.execute(
         stmt.order_by(OpzioneDomanda.domanda_code, OpzioneDomanda.ordine, EffettoOpzione.id)
     ).all()
-    return [_to_effetto_out(effetto, opzione) for effetto, opzione in righe]
+    bersagli = etichette_bersaglio(db, [effetto for effetto, _ in righe])
+    return [_to_effetto_out(effetto, opzione, bersagli[effetto.id]) for effetto, opzione in righe]
 
 
 @router.post("/effetti", response_model=EffettoAdminOut, status_code=201)
@@ -387,7 +390,8 @@ def crea_effetto(
     db.add(riga)
     db.commit()
     db.refresh(riga)
-    return _to_effetto_out(riga, opzione)
+    bersaglio = etichette_bersaglio(db, [riga])[riga.id]
+    return _to_effetto_out(riga, opzione, bersaglio)
 
 
 @router.patch("/effetti/{effetto_id}", response_model=EffettoAdminOut)
@@ -426,7 +430,8 @@ def modifica_effetto(
 
     db.commit()
     db.refresh(riga)
-    return _to_effetto_out(riga, opzione)
+    bersaglio = etichette_bersaglio(db, [riga])[riga.id]
+    return _to_effetto_out(riga, opzione, bersaglio)
 
 
 # --- Attese -----------------------------------------------------------------

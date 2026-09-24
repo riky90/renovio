@@ -102,6 +102,7 @@ class EffettoAdminOut(BaseModel):
     opzione_id: int
     domanda_code: str
     opzione_code: str
+    bersaglio: str
     tipo_effetto: str
     target_categoria_code: str | None
     target_sottocategoria_id: int | None

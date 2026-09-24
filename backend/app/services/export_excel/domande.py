@@ -10,9 +10,9 @@ frase leggibile che spiega "quando X allora Y" senza dover leggere il codice
 (D-06). E' l'unica volta che quella tabella e' visibile fuori dal seed.
 
 La colonna `bersaglio` del foglio `effetti` (D-33, etichetta leggibile del
-target di un effetto) e' aggiunta dal piano 08.1-03 Task 2, insieme alla
-funzione che la calcola in `services/catalogo_domande.py`: non esiste ancora
-in questo modulo al Task 1.
+target di un effetto) usa `etichette_bersaglio()` di
+`services/catalogo_domande.py` — la stessa funzione che serve
+`GET /admin/domande/effetti`, cosi' pagina e file mostrano lo stesso testo.
 """
 
 from __future__ import annotations
@@ -26,6 +26,7 @@ from app.models.domanda import (
     EffettoOpzione,
     OpzioneDomanda,
 )
+from app.services.catalogo_domande import etichette_bersaglio
 from app.services.export_excel.workbook import nuovo_workbook, scrivi_foglio_dati, serializza
 
 COLONNE_DOMANDE = [
@@ -61,6 +62,7 @@ COLONNE_EFFETTI = [
     "opzione_id",
     "domanda_code",
     "opzione_code",
+    "bersaglio",
     "tipo_effetto",
     "target_categoria_code",
     "target_sottocategoria_id",
@@ -143,12 +145,14 @@ def _righe_effetti(db: Session) -> list[dict]:
         .order_by(EffettoOpzione.id)
         .all()
     )
+    bersagli = etichette_bersaglio(db, [e for e, _ in rows])
     return [
         {
             "id": e.id,
             "opzione_id": e.opzione_id,
             "domanda_code": opzione.domanda_code,
             "opzione_code": opzione.code,
+            "bersaglio": bersagli[e.id],
             "tipo_effetto": e.tipo_effetto,
             "target_categoria_code": e.target_categoria_code,
             "target_sottocategoria_id": e.target_sottocategoria_id,
