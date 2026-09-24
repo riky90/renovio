@@ -4,15 +4,22 @@ Il pezzo che conta di questo modulo non e' il CRUD: e' `POST /anteprima`.
 
 Un motore a regole marcisce quando nessuno puo' vedere cosa fanno le regole
 messe insieme. Le tre mitigazioni decise vanno costruite col motore, non dopo:
-l'insieme chiuso di sette effetti (`services/effetti.py`), l'export Excel, e
+l'insieme chiuso di otto effetti (`services/effetti.py`), l'export Excel, e
 questa anteprima — che date certe risposte dice quali effetti hanno sparato, con
 quali numeri, e quanto si sposta il totale rispetto alla stima standard. Senza,
 tarare ~50 coefficienti e' lavoro a occhio.
 
-Ogni route ha `Depends(require_admin)`. Nessun DELETE implicito (D-24): si
-cancella solo la riga indicata, e per una domanda anche le sue figlie, che e'
-l'unica cascata sensata e viene fatta esplicitamente invece che affidata al
-`ON DELETE` (SQLite non applica le foreign key se non glielo si chiede).
+Ogni route ha `Depends(require_admin)`. NESSUNA CANCELLAZIONE FISICA (D-25,
+D-39): non esiste un `DELETE` di domande, opzioni, effetti o attese in questo
+modulo, ne' oggi ne' in futuro — l'unico modo di togliere una riga e'
+disattivarla con `attiva=false` via `PATCH`. Una stima gia' salvata che cita
+una domanda disattivata resta leggibile identica (D-29), perche' lo snapshot
+vive in `stima_salvata.risultato_json` e non nelle righe del catalogo.
+
+Le regole di integrita' (dipendenze di un'opzione, visibilita' condizionale,
+opzione implicita degli stepper) vivono in `services/catalogo_domande.py`,
+non qui: sono condivise con l'import Excel (piano 08.1-05), cosi' D-28 non e'
+aggirabile ricaricando un file.
 
 Nessuno schema di questo modulo espone il coefficiente impresa.
 """
@@ -43,6 +50,12 @@ from app.schemas.admin_domande import (
     OpzioneAdminCreateIn,
     OpzioneAdminIn,
     OpzioneAdminOut,
+)
+from app.services.catalogo_domande import (
+    assicura_opzione_valore,
+    azzera_altri_default,
+    valida_visibilita,
+    verifica_dipendenze_opzione,
 )
 from app.services.city_resolver import resolve_listino
 from app.services.effetti import (
@@ -86,6 +99,7 @@ def _to_opzione_out(row: OpzioneDomanda) -> OpzioneAdminOut:
         immagine_url=row.immagine_url,
         is_default=row.is_default,
         ordine=row.ordine,
+        attiva=row.attiva,
     )
 
 
@@ -112,6 +126,7 @@ def _to_attesa_out(row: AttesaImmobile) -> AttesaAdminOut:
         fascia_mq_min=row.fascia_mq_min,
         fascia_mq_max=row.fascia_mq_max,
         valore_atteso=row.valore_atteso,
+        attiva=row.attiva,
     )
 
 
@@ -122,20 +137,6 @@ def _valida_domanda(tipo_controllo: str | None, tier_minimo: str | None) -> None
         )
     if tier_minimo is not None and tier_minimo not in (TIER_FREE, TIER_PRO):
         raise HTTPException(400, f"Tier sconosciuto. Ammessi: {TIER_FREE}, {TIER_PRO}.")
-
-
-def _azzera_altri_default(db: Session, opzione: OpzioneDomanda) -> None:
-    """Il default e' un radio button, non una casella.
-
-    Due default sulla stessa domanda renderebbero il risultato dipendente
-    dall'ordine delle righe; zero default farebbero sparire gli effetti di una
-    domanda non risposta. Si impone qui, dove la scrittura avviene, invece di
-    inseguirlo con un vincolo che l'admin non saprebbe leggere.
-    """
-    db.query(OpzioneDomanda).filter(
-        OpzioneDomanda.domanda_code == opzione.domanda_code,
-        OpzioneDomanda.id != opzione.id,
-    ).update({OpzioneDomanda.is_default: False}, synchronize_session=False)
 
 
 # --- Domande ----------------------------------------------------------------
@@ -158,6 +159,11 @@ def crea_domanda(
     """Upsert per chiave naturale `code`, come `crea_extra`: una seconda POST
     con lo stesso code aggiorna invece di duplicare."""
     _valida_domanda(payload.tipo_controllo, payload.tier_minimo)
+    motivo = valida_visibilita(
+        db, payload.code, payload.visibile_se_domanda_code, payload.visibile_se_opzione_code
+    )
+    if motivo is not None:
+        raise HTTPException(400, motivo)
 
     riga = db.get(Domanda, payload.code)
     if riga is None:
@@ -165,6 +171,7 @@ def crea_domanda(
         db.add(riga)
     for campo, valore in payload.model_dump(exclude={"code"}).items():
         setattr(riga, campo, valore)
+    assicura_opzione_valore(db, riga)
 
     db.commit()
     db.refresh(riga)
@@ -184,37 +191,19 @@ def modifica_domanda(
 
     campi = payload.model_dump(exclude_unset=True)
     _valida_domanda(campi.get("tipo_controllo"), campi.get("tier_minimo"))
+    vis_domanda = campi.get("visibile_se_domanda_code", riga.visibile_se_domanda_code)
+    vis_opzione = campi.get("visibile_se_opzione_code", riga.visibile_se_opzione_code)
+    motivo = valida_visibilita(db, domanda_code, vis_domanda, vis_opzione)
+    if motivo is not None:
+        raise HTTPException(400, motivo)
+
     for campo, valore in campi.items():
         setattr(riga, campo, valore)
+    assicura_opzione_valore(db, riga)
 
     db.commit()
     db.refresh(riga)
     return _to_domanda_out(riga)
-
-
-@router.delete("/{domanda_code}", status_code=204)
-def elimina_domanda(
-    domanda_code: str, user=Depends(require_admin), db: Session = Depends(get_db)
-) -> None:
-    riga = db.get(Domanda, domanda_code)
-    if riga is None:
-        raise HTTPException(404, "Domanda non trovata")
-
-    opzione_ids = [
-        o.id
-        for o in db.execute(
-            select(OpzioneDomanda).filter_by(domanda_code=domanda_code)
-        ).scalars()
-    ]
-    if opzione_ids:
-        db.query(EffettoOpzione).filter(
-            EffettoOpzione.opzione_id.in_(opzione_ids)
-        ).delete(synchronize_session=False)
-        db.query(OpzioneDomanda).filter(
-            OpzioneDomanda.id.in_(opzione_ids)
-        ).delete(synchronize_session=False)
-    db.delete(riga)
-    db.commit()
 
 
 # --- Opzioni ----------------------------------------------------------------
@@ -263,10 +252,11 @@ def crea_opzione(
     riga.immagine_url = payload.immagine_url
     riga.is_default = payload.is_default
     riga.ordine = payload.ordine
+    riga.attiva = payload.attiva
     db.flush()
 
     if riga.is_default:
-        _azzera_altri_default(db, riga)
+        azzera_altri_default(db, riga)
 
     db.commit()
     db.refresh(riga)
@@ -280,35 +270,37 @@ def modifica_opzione(
     user=Depends(require_admin),
     db: Session = Depends(get_db),
 ) -> OpzioneAdminOut:
+    """D-27/D-28: disattivare (`attiva: false`) un'opzione in uso e' rifiutato
+    con un messaggio che nomina la dipendenza concreta, verificato PRIMA di
+    scrivere nulla."""
     riga = db.get(OpzioneDomanda, opzione_id)
     if riga is None:
         raise HTTPException(404, "Opzione non trovata")
 
-    for campo, valore in payload.model_dump(exclude_unset=True).items():
+    campi = payload.model_dump(exclude_unset=True)
+    attiva_finale = campi.get("attiva", riga.attiva)
+    is_default_finale = campi.get("is_default", riga.is_default)
+
+    if riga.attiva and not attiva_finale:
+        motivo = verifica_dipendenze_opzione(db, riga, is_default=campi.get("is_default"))
+        if motivo is not None:
+            raise HTTPException(400, motivo)
+
+    if is_default_finale and not attiva_finale:
+        raise HTTPException(
+            400, "Un'opzione non attiva non puo' essere la risposta predefinita."
+        )
+
+    for campo, valore in campi.items():
         setattr(riga, campo, valore)
     db.flush()
 
     if riga.is_default:
-        _azzera_altri_default(db, riga)
+        azzera_altri_default(db, riga)
 
     db.commit()
     db.refresh(riga)
     return _to_opzione_out(riga)
-
-
-@router.delete("/opzioni/{opzione_id}", status_code=204)
-def elimina_opzione(
-    opzione_id: int, user=Depends(require_admin), db: Session = Depends(get_db)
-) -> None:
-    riga = db.get(OpzioneDomanda, opzione_id)
-    if riga is None:
-        raise HTTPException(404, "Opzione non trovata")
-
-    db.query(EffettoOpzione).filter(EffettoOpzione.opzione_id == opzione_id).delete(
-        synchronize_session=False
-    )
-    db.delete(riga)
-    db.commit()
 
 
 # --- Effetti ----------------------------------------------------------------
@@ -398,17 +390,6 @@ def modifica_effetto(
     return _to_effetto_out(riga, opzione)
 
 
-@router.delete("/effetti/{effetto_id}", status_code=204)
-def elimina_effetto(
-    effetto_id: int, user=Depends(require_admin), db: Session = Depends(get_db)
-) -> None:
-    riga = db.get(EffettoOpzione, effetto_id)
-    if riga is None:
-        raise HTTPException(404, "Effetto non trovato")
-    db.delete(riga)
-    db.commit()
-
-
 # --- Attese -----------------------------------------------------------------
 
 
@@ -451,6 +432,7 @@ def crea_attesa(
         db.add(riga)
     riga.fascia_mq_max = payload.fascia_mq_max
     riga.valore_atteso = payload.valore_atteso
+    riga.attiva = payload.attiva
 
     db.commit()
     db.refresh(riga)
@@ -477,17 +459,6 @@ def modifica_attesa(
     db.commit()
     db.refresh(riga)
     return _to_attesa_out(riga)
-
-
-@router.delete("/attese/{attesa_id}", status_code=204)
-def elimina_attesa(
-    attesa_id: int, user=Depends(require_admin), db: Session = Depends(get_db)
-) -> None:
-    riga = db.get(AttesaImmobile, attesa_id)
-    if riga is None:
-        raise HTTPException(404, "Attesa non trovata")
-    db.delete(riga)
-    db.commit()
 
 
 # --- Anteprima --------------------------------------------------------------

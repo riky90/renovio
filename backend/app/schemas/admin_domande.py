@@ -74,6 +74,7 @@ class OpzioneAdminOut(BaseModel):
     immagine_url: str | None
     is_default: bool
     ordine: int
+    attiva: bool
 
 
 class OpzioneAdminCreateIn(BaseModel):
@@ -84,6 +85,7 @@ class OpzioneAdminCreateIn(BaseModel):
     immagine_url: str | None = Field(default=None, max_length=500)
     is_default: bool = False
     ordine: int = Field(default=0, ge=0, le=10_000)
+    attiva: bool = True
 
 
 class OpzioneAdminIn(BaseModel):
@@ -92,6 +94,7 @@ class OpzioneAdminIn(BaseModel):
     immagine_url: str | None = Field(default=None, max_length=500)
     is_default: bool | None = None
     ordine: int | None = Field(default=None, ge=0, le=10_000)
+    attiva: bool | None = None
 
 
 class EffettoAdminOut(BaseModel):
@@ -134,6 +137,7 @@ class AttesaAdminOut(BaseModel):
     fascia_mq_min: int
     fascia_mq_max: int
     valore_atteso: Decimal
+    attiva: bool
 
 
 class AttesaAdminCreateIn(BaseModel):
@@ -141,11 +145,13 @@ class AttesaAdminCreateIn(BaseModel):
     fascia_mq_min: int = Field(ge=0, le=10_000)
     fascia_mq_max: int = Field(ge=0, le=10_000)
     valore_atteso: Decimal = Field(ge=0, le=10_000)
+    attiva: bool = True
 
 
 class AttesaAdminIn(BaseModel):
     fascia_mq_max: int | None = Field(default=None, ge=0, le=10_000)
     valore_atteso: Decimal | None = Field(default=None, ge=0, le=10_000)
+    attiva: bool | None = None
 
 
 # --- anteprima --------------------------------------------------------------
