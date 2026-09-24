@@ -266,6 +266,17 @@ export function EffettiSezione({ domanda, opzione, onChiudi }: EffettiSezionePro
       return;
     }
 
+    if (
+      (form.livello === "categoria" && form.categoriaCode === "") ||
+      (form.livello === "sottocategoria" && form.sottocategoriaId === "") ||
+      (form.livello === "voce" && form.voceId === "")
+    ) {
+      // Difesa in profondita': il pulsante Salva e' gia' disabilitato in
+      // questo stato (vedi `bersaglioMancante`), ma un submit non deve mai
+      // tradurre una selezione vuota in `Number("") === 0`.
+      return;
+    }
+
     const target: Pick<
       EffettoCreateInput,
       "target_categoria_code" | "target_sottocategoria_id" | "target_voce_id"
@@ -297,6 +308,16 @@ export function EffettiSezione({ domanda, opzione, onChiudi }: EffettiSezionePro
   const tipoCorrente = editing ? editing.tipo_effetto : form.tipoEffetto;
   const nascondiValore = TIPI_SENZA_VALORE.includes(tipoCorrente);
   const valoreNonNegativo = TIPI_VALORE_NON_NEGATIVO.includes(tipoCorrente);
+
+  // CR-01: in creazione, il bersaglio (categoria/sottocategoria/voce) e'
+  // obbligatorio ma i tre <Select> di Radix non partecipano alla
+  // validazione HTML5 nativa — senza questa guardia, premere Salva senza
+  // aver scelto nulla invia una stringa vuota o `Number("") === 0`.
+  const bersaglioMancante =
+    !editing &&
+    ((form.livello === "categoria" && form.categoriaCode === "") ||
+      (form.livello === "sottocategoria" && form.sottocategoriaId === "") ||
+      (form.livello === "voce" && form.voceId === ""));
 
   return (
     <div className="flex flex-col gap-3">
@@ -361,6 +382,7 @@ export function EffettiSezione({ domanda, opzione, onChiudi }: EffettiSezionePro
         title={editing ? "Modifica effetto" : "Aggiungi effetto"}
         onSubmit={handleSubmit}
         isSaving={createMutation.isPending || updateMutation.isPending}
+        disableSubmit={bersaglioMancante}
         errorMessage={
           createMutation.isError || updateMutation.isError
             ? (() => {

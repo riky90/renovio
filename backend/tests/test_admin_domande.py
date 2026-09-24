@@ -468,6 +468,51 @@ class TestEffetti:
         assert risposta.status_code == 400
         assert atteso in risposta.json()["detail"]
 
+    @pytest.mark.parametrize(
+        "corpo",
+        [
+            {"tipo_effetto": "eur_mq_categoria", "target_categoria_code": "Z-INESISTENTE", "valore": "1"},
+            {"tipo_effetto": "fattore_quantita", "target_sottocategoria_id": 999999, "valore": "1"},
+            {"tipo_effetto": "quantita_per_unita", "target_voce_id": 999999, "valore": "1"},
+        ],
+    )
+    def test_crea_effetto_con_bersaglio_inesistente_e_400_leggibile(self, client, corpo):
+        """CR-01: un bersaglio che non corrisponde a nessuna riga (categoria,
+        sottocategoria o voce) deve essere un 400 leggibile — mai una riga
+        creata silenziosamente (SQLite non forza le FK) ne' un 500 grezzo
+        (Postgres in produzione, IntegrityError non catturato)."""
+        _admin(client)
+        opzione = client.get(f"{URL}/opzioni", params={"domanda_code": "anno_costruzione"}).json()[0]
+        conteggio_prima = len(client.get(f"{URL}/effetti", params={"domanda_code": "anno_costruzione"}).json())
+
+        risposta = client.post(f"{URL}/effetti", json={"opzione_id": opzione["id"], **corpo})
+
+        assert risposta.status_code == 400
+        assert "inesistente" in risposta.json()["detail"]
+
+        # e non e' stata creata nessuna riga incoerente (SQLite non forza le FK)
+        conteggio_dopo = len(client.get(f"{URL}/effetti", params={"domanda_code": "anno_costruzione"}).json())
+        assert conteggio_dopo == conteggio_prima
+
+    def test_crea_effetto_con_categoria_vuota_e_400_leggibile(self, client):
+        """Riproduce il payload che EffettiSezione.tsx poteva mandare prima
+        della guardia frontend: `target_categoria_code: ""` (form aperto e
+        Salva premuto subito, prima della select nativa React)."""
+        _admin(client)
+        opzione = client.get(f"{URL}/opzioni", params={"domanda_code": "anno_costruzione"}).json()[0]
+
+        risposta = client.post(
+            f"{URL}/effetti",
+            json={
+                "opzione_id": opzione["id"],
+                "tipo_effetto": "moltiplicatore_categoria",
+                "target_categoria_code": "",
+                "valore": "1.1",
+            },
+        )
+
+        assert risposta.status_code == 422
+
     def test_patch_valore_negativo_su_moltiplicatore_rifiutato(self, client):
         _admin(client)
         effetto = next(

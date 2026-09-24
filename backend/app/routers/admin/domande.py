@@ -29,6 +29,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.dependencies.auth import get_db, require_admin
@@ -377,6 +378,7 @@ def crea_effetto(
 
     try:
         valida_effetto(
+            db,
             payload.tipo_effetto,
             categoria_code=payload.target_categoria_code,
             sottocategoria_id=payload.target_sottocategoria_id,
@@ -388,7 +390,11 @@ def crea_effetto(
 
     riga = EffettoOpzione(**payload.model_dump())
     db.add(riga)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(400, "Bersaglio dell'effetto non valido.") from exc
     db.refresh(riga)
     bersaglio = etichette_bersaglio(db, [riga])[riga.id]
     return _to_effetto_out(riga, opzione, bersaglio)
@@ -418,6 +424,7 @@ def modifica_effetto(
 
     try:
         valida_effetto(
+            db,
             riga.tipo_effetto,
             categoria_code=riga.target_categoria_code,
             sottocategoria_id=riga.target_sottocategoria_id,
@@ -428,7 +435,11 @@ def modifica_effetto(
         db.rollback()
         raise HTTPException(400, str(exc)) from exc
 
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(400, "Bersaglio dell'effetto non valido.") from exc
     db.refresh(riga)
     bersaglio = etichette_bersaglio(db, [riga])[riga.id]
     return _to_effetto_out(riga, opzione, bersaglio)

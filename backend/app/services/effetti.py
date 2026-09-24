@@ -65,6 +65,8 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from app.models.catalogo import Categoria
+from app.models.dettaglio_pro import Sottocategoria, Voce
 from app.models.domanda import (
     AttesaImmobile,
     DerivazioneRisposta,
@@ -215,6 +217,7 @@ def target_di(
 
 
 def valida_effetto(
+    db: Session,
     tipo_effetto: str,
     *,
     categoria_code: str | None = None,
@@ -227,6 +230,13 @@ def valida_effetto(
     Sta qui e non in un CHECK di tabella perche' il destinatario e' l'admin che
     sta curando i coefficienti, e un vincolo SQLite gli direbbe solo
     "constraint failed".
+
+    Oltre alla FORMA del bersaglio (esattamente uno fra categoria /
+    sottocategoria / voce, ammesso per quel `tipo_effetto`), verifica anche
+    che il bersaglio ricevuto corrisponda a una riga esistente: SQLite non
+    forza le FK di default (nessuna riga incoerente viene bloccata li'), e
+    un motore che le forza (Postgres in produzione) darebbe solo un
+    `IntegrityError` grezzo al `commit()` invece di questo 400 leggibile.
     """
     if tipo_effetto not in TIPI_EFFETTO:
         raise EffettoNonValido(
@@ -245,6 +255,13 @@ def valida_effetto(
             f"L'effetto {tipo_effetto!r} non puo' puntare a una {target}. "
             f"Ammessi: {', '.join(sorted(TARGET_AMMESSI[tipo_effetto]))}."
         )
+
+    if categoria_code is not None and db.get(Categoria, categoria_code) is None:
+        raise EffettoNonValido(f"Categoria {categoria_code!r} inesistente.")
+    if sottocategoria_id is not None and db.get(Sottocategoria, sottocategoria_id) is None:
+        raise EffettoNonValido(f"Sottocategoria {sottocategoria_id} inesistente.")
+    if voce_id is not None and db.get(Voce, voce_id) is None:
+        raise EffettoNonValido(f"Voce {voce_id} inesistente.")
 
     if tipo_effetto in TIPI_EFFETTO_SENZA_VALORE:
         return

@@ -115,7 +115,7 @@ class EffettoAdminOut(BaseModel):
 class EffettoAdminCreateIn(BaseModel):
     opzione_id: int
     tipo_effetto: str = Field(min_length=1, max_length=32)
-    target_categoria_code: str | None = Field(default=None, max_length=32)
+    target_categoria_code: str | None = Field(default=None, min_length=1, max_length=32)
     target_sottocategoria_id: int | None = None
     target_voce_id: int | None = None
     tipo_code: str | None = Field(default=None, max_length=32)

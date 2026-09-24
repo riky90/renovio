@@ -21,6 +21,10 @@ interface AdminCrudDialogProps {
   children: ReactNode;
   onSubmit: () => void;
   isSaving?: boolean;
+  /** Disabilita il salvataggio anche a `isSaving` false, es. un bersaglio
+   * obbligatorio non ancora scelto: previene un submit con un campo vuoto
+   * che un `<Select>` non intercetta con la validazione HTML5 nativa. */
+  disableSubmit?: boolean;
   errorMessage?: string | null;
 }
 
@@ -39,6 +43,7 @@ export function AdminCrudDialog({
   children,
   onSubmit,
   isSaving = false,
+  disableSubmit = false,
   errorMessage,
 }: AdminCrudDialogProps) {
   return (
@@ -72,7 +77,7 @@ export function AdminCrudDialog({
             </Button>
             <Button
               type="submit"
-              disabled={isSaving}
+              disabled={isSaving || disableSubmit}
               className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               Salva {entityLabel}

@@ -453,6 +453,7 @@ def _risolvi_effetto(db: Session, r: RigaPiattaIn) -> _Risoluzione:
 
     try:
         valida_effetto(
+            db,
             tipo_effetto,
             categoria_code=target_categoria_code,
             sottocategoria_id=target_sottocategoria_id,

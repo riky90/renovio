@@ -451,11 +451,11 @@ def test_domanda_gated_non_spara_se_il_gate_non_e_soddisfatto(session, listino):
 # --- validazione admin ------------------------------------------------------
 
 
-def test_valida_effetto_accetta_una_riga_corretta():
+def test_valida_effetto_accetta_una_riga_corretta(session):
     valida_effetto(
-        "moltiplicatore_categoria", categoria_code="A-EDILE", valore=Decimal("1.1")
+        session, "moltiplicatore_categoria", categoria_code="A-EDILE", valore=Decimal("1.1")
     )
-    valida_effetto("escludi", categoria_code="C-SERRAMENTI")
+    valida_effetto(session, "escludi", categoria_code="C-SERRAMENTI")
 
 
 @pytest.mark.parametrize(
@@ -478,10 +478,10 @@ def test_valida_effetto_accetta_una_riga_corretta():
         ),
     ],
 )
-def test_valida_effetto_rifiuta_le_righe_incoerenti(kwargs, atteso):
+def test_valida_effetto_rifiuta_le_righe_incoerenti(session, kwargs, atteso):
     tipo = kwargs.pop("tipo_effetto")
     with pytest.raises(EffettoNonValido, match=atteso):
-        valida_effetto(tipo, **kwargs)
+        valida_effetto(session, tipo, **kwargs)
 
 
 # --- seed -------------------------------------------------------------------
