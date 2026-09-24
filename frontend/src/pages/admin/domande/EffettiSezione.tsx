@@ -211,6 +211,11 @@ export function EffettiSezione({ domanda, opzione, onChiudi }: EffettiSezionePro
     setEditing(row);
     setForm({
       ...formVuoto(),
+      // WR-03: non renderizzato in modalita' modifica (tipo e bersaglio
+      // sono testo statico, D-31/D-34), ma tenerlo allineato alla riga
+      // aperta evita che un refactoring futuro legga `form.tipoEffetto`
+      // per errore al posto di `tipoCorrente`.
+      tipoEffetto: row.tipo_effetto,
       tipoCode: row.tipo_code ?? NESSUNA,
       valore: row.valore === null ? "" : String(row.valore),
       attivo: row.attivo,
