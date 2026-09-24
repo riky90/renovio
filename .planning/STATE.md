@@ -2,23 +2,24 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: domande e motore parametrico
-status: executing
+status: gaps_found
 last_updated: "2026-09-24T06:02:11.920Z"
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 4
   total_plans: 15
-  completed_plans: 11
-  percent: 29
+  completed_plans: 15
+  percent: 57
+stopped_at: Phase 08.1 executed (6/6), verification gaps_found — 3 BLOCKER della code review da chiudere
 ---
 
 # Project State — ristruttura-stima
 
 ## Current Position
 
-Phase: 08.1 (catalogo-domande-pagina-crud-e-file-excel) — EXECUTING
+Phase: 08.1 (catalogo-domande-pagina-crud-e-file-excel) — ESEGUITA 6/6, verifica `gaps_found`
 Plan: 1 of 6
-Prossima: 08.1 (catalogo domande) — pianificata il 2026-09-23: 6 piani in 3 wave, UI-SPEC e plan checker approvati. Comando: `/gsd:execute-phase 08.1`. Dopo il merge del piano 01 serve `alembic upgrade head` sul `backend/dev.db` principale (con backup).
+Prossima: chiudere i 3 BLOCKER di `08.1-REVIEW.md` (CR-01 bersaglio effetto non validato, CR-02 `crea_opzione` senza guardia default/non attiva, CR-03 PATCH che accettano `null` su colonne NOT NULL) con `/gsd:code-review 08.1 --fix`, poi ri-verifica. Eseguita il 2026-09-24: gate post-merge verde dopo ogni wave (602 → 624 → 640 passed, 5 skipped), build frontend pulita. `backend/dev.db` migrato a `0020` (backup `dev.db.bak-pre-0020-20260924-083119`). Verifica dal vivo (`/gsd:verify-work 08.1`) ancora da fare. `REQUIREMENTS.md` mappa ancora CUR-01/02 alla fase 08 invece della 08.1.
 
 - **Milestone:** v2.0 (domande e motore parametrico), fasi **05-10**. La v1.0 (MVP, fasi
   01-04) e' **completa, verificata e in produzione dal 2026-09-09** — backend su Render,
