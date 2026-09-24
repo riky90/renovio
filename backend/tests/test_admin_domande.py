@@ -295,6 +295,58 @@ class TestGuardiaDipendenze:
 
         assert risposta.status_code == 400
 
+    def test_creare_unopzione_default_e_non_attiva_via_post_e_rifiutata(self, client):
+        """CR-02: `POST /opzioni` fa upsert per chiave naturale, quindi e' un
+        secondo percorso di scrittura sullo stesso vincolo del PATCH — non
+        solo per una riga nuova, ma anche riaprendo una riga gia' esistente."""
+        _admin(client)
+        client.post(URL, json={"code": "prova_post_default", "testo": "Prova", "tipo_controllo": "scelta_singola"})
+
+        risposta = client.post(
+            f"{URL}/opzioni",
+            json={
+                "domanda_code": "prova_post_default",
+                "code": "spenta",
+                "etichetta": "Spenta",
+                "is_default": True,
+                "attiva": False,
+            },
+        )
+
+        assert risposta.status_code == 400
+        assert "non puo' essere la risposta predefinita" in risposta.json()["detail"]
+
+        opzioni = client.get(f"{URL}/opzioni", params={"domanda_code": "prova_post_default"}).json()
+        assert opzioni == []
+
+    def test_riaprire_unopzione_esistente_via_post_verso_default_non_attiva_e_rifiutata(self, client):
+        _admin(client)
+        client.post(URL, json={"code": "prova_post_upsert", "testo": "Prova", "tipo_controllo": "scelta_singola"})
+        creata = client.post(
+            f"{URL}/opzioni",
+            json={"domanda_code": "prova_post_upsert", "code": "opz", "etichetta": "Opz"},
+        ).json()
+        assert creata["is_default"] is False
+
+        risposta = client.post(
+            f"{URL}/opzioni",
+            json={
+                "domanda_code": "prova_post_upsert",
+                "code": "opz",
+                "etichetta": "Opz",
+                "is_default": True,
+                "attiva": False,
+            },
+        )
+
+        assert risposta.status_code == 400
+        dopo = next(
+            o for o in client.get(f"{URL}/opzioni", params={"domanda_code": "prova_post_upsert"}).json()
+            if o["id"] == creata["id"]
+        )
+        assert dopo["is_default"] is False
+        assert dopo["attiva"] is True
+
 
 class TestOpzioneImplicitaStepper:
     """D-35: uno stepper/numero nasce con la sua opzione implicita `valore`."""

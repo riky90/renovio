@@ -121,6 +121,23 @@ def valida_visibilita(
     return None
 
 
+def valida_default_attiva(is_default: bool, attiva: bool) -> str | None:
+    """Il motivo per cui la combinazione `is_default`/`attiva` non e' valida,
+    o `None`. Un'opzione non attiva non puo' essere la risposta predefinita:
+    `risolvi_scelte`/`_opzioni_per_domanda` escludono le opzioni non attive
+    dalla query stessa, quindi una domanda il cui unico default e' spento
+    finirebbe senza alcuna opzione scelta invece della neutralita' a riposo
+    che il layer effetti dichiara come invariante.
+
+    Condivisa fra `crea_opzione` (POST, upsert) e `modifica_opzione` (PATCH):
+    prima viveva solo nel PATCH, e il POST — che opera anche su righe gia'
+    esistenti — poteva scriverla incoerente senza passare da qui.
+    """
+    if is_default and not attiva:
+        return "Un'opzione non attiva non puo' essere la risposta predefinita."
+    return None
+
+
 def assicura_opzione_valore(db: Session, domanda: Domanda) -> None:
     """Crea l'opzione implicita `code='valore'` per uno stepper/numero (D-35).
 

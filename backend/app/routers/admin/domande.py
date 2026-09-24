@@ -58,6 +58,7 @@ from app.services.catalogo_domande import (
     assicura_opzione_valore,
     azzera_altri_default,
     etichette_bersaglio,
+    valida_default_attiva,
     valida_visibilita,
     verifica_dipendenze_opzione,
 )
@@ -306,6 +307,10 @@ def crea_opzione(
     if db.get(Domanda, payload.domanda_code) is None:
         raise HTTPException(404, "Domanda non trovata")
 
+    motivo = valida_default_attiva(payload.is_default, payload.attiva)
+    if motivo is not None:
+        raise HTTPException(400, motivo)
+
     riga = (
         db.query(OpzioneDomanda)
         .filter_by(domanda_code=payload.domanda_code, code=payload.code)
@@ -354,10 +359,9 @@ def modifica_opzione(
         if motivo is not None:
             raise HTTPException(400, motivo)
 
-    if is_default_finale and not attiva_finale:
-        raise HTTPException(
-            400, "Un'opzione non attiva non puo' essere la risposta predefinita."
-        )
+    motivo = valida_default_attiva(is_default_finale, attiva_finale)
+    if motivo is not None:
+        raise HTTPException(400, motivo)
 
     for campo, valore in campi.items():
         setattr(riga, campo, valore)
