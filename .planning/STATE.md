@@ -2,22 +2,22 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: domande e motore parametrico
-status: ready_to_execute
-last_updated: 2026-09-23T18:00:00.000Z
+status: executing
+last_updated: "2026-09-24T06:02:11.920Z"
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 2
   total_plans: 15
-  completed_plans: 9
-  percent: 57
-stopped_at: Phase 08.1 planned (6 plans, 3 waves, checker passed) — ready to execute Phase 08.1
+  completed_plans: 11
+  percent: 29
 ---
 
 # Project State — ristruttura-stima
 
 ## Current Position
 
-Phase: 08 (export-import-excel) — COMPLETE (8/8, verificata 5/5)
+Phase: 08.1 (catalogo-domande-pagina-crud-e-file-excel) — EXECUTING
+Plan: 1 of 6
 Prossima: 08.1 (catalogo domande) — pianificata il 2026-09-23: 6 piani in 3 wave, UI-SPEC e plan checker approvati. Comando: `/gsd:execute-phase 08.1`. Dopo il merge del piano 01 serve `alembic upgrade head` sul `backend/dev.db` principale (con backup).
 
 - **Milestone:** v2.0 (domande e motore parametrico), fasi **05-10**. La v1.0 (MVP, fasi
@@ -29,7 +29,7 @@ Prossima: 08.1 (catalogo domande) — pianificata il 2026-09-23: 6 piani in 3 wa
   retrospettiva nei rispettivi `NN-RETRO-SUMMARY.md`; la 07 e' la prima pianificata ed
   eseguita dentro la milestone (`07-01-PLAN.md` -> `07-01-SUMMARY.md`).
 
-- **Status:** Ready to plan — Fase 08 chiusa. Wave 1: 08-01 export listino +
+- **Status:** Executing Phase 08.1
   audit `export_log`, 08-02 tab Anteprima. Wave 2: 08-03 round-trip del listino (D-12),
   08-04 export parametri col margine opt-in (CUR-03), 08-05 export lead tracciato (CUR-04).
   Wave 3: 08-06 import parametri, il registro `HANDLER` su cui poggiano i due piani
@@ -50,12 +50,14 @@ Prossima: 08.1 (catalogo domande) — pianificata il 2026-09-23: 6 piani in 3 wa
   quindi il planner avrebbe ricevuto zero gap. Il percorso giusto per i findings di una
   review e' `/gsd:code-review 08 --fix`, che spawna `gsd-code-fixer` su `08-REVIEW.md`.
   **Tredici findings chiuse in due iterazioni**, tutte con la loro regressione:
+
   - *Iterazione 1* — i due critici noti (`_upsert_voce` che ignorava `campi_presenti`,
     `#CANCELLA#` che scriveva la stringa `"None"`), i tre warning, e un **terzo critico
     trovato il 2026-09-23**: la migrazione `0019` non si applicava su SQLite
     (`Cannot add a column with non-constant default`), quindi `dev.db` non poteva salire e
     le nove colonne `updated_at` esistevano solo nello schema costruito da `create_all` nei
     test. Il `dev.db` locale e' ora a `0019 (head)`.
+
   - *Iterazione 2* — la re-review ha confermato chiuse le sei e ne ha trovate sette nuove,
     due BLOCKER: il guard sugli id accettava `"--5"` (`lstrip("-")` toglie tutti i meno) e
     `int()` sollevava sulla `/preview`; due righe con la stessa chiave naturale senza `id`
@@ -65,6 +67,7 @@ Prossima: 08.1 (catalogo domande) — pianificata il 2026-09-23: 6 piani in 3 wa
     `autoflush=False`, ed e' il motivo per cui 555 test non vedevano il secondo BLOCKER.
     Ora c'e' una fabbrica condivisa e un test che analizza l'AST di ogni file per impedire
     che un test nuovo si ricostruisca la sessione per conto suo.
+
   - Fuori dalle findings, `e131c20`: `test_token_manomesso_ritorna_none` non poteva fallire
     in modo affidabile. Manometteva l'ultimo carattere del token, che porta 2 bit di
     riempimento della firma HMAC-SHA1: quando la firma finiva in `Y` i 20 byte decodificati
