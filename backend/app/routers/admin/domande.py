@@ -27,12 +27,14 @@ Nessuno schema di questo modulo espone il coefficiente impresa.
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.dependencies.auth import get_db, require_admin
 from app.models.catalogo import Categoria
 from app.models.domanda import AttesaImmobile, Domanda, EffettoOpzione, OpzioneDomanda
+from app.models.export_log import ExportLog
 from app.schemas.admin_domande import (
     AnteprimaCategoriaOut,
     AnteprimaIn,
@@ -68,6 +70,8 @@ from app.services.effetti import (
     valida_effetto,
 )
 from app.services.estimation import EstimationService
+from app.services.export_excel.domande import build_workbook_domande
+from app.services.export_excel.workbook import MIME_XLSX, build_filename
 
 router = APIRouter(prefix="/domande", tags=["admin-domande"])
 
@@ -137,6 +141,41 @@ def _valida_domanda(tipo_controllo: str | None, tier_minimo: str | None) -> None
         )
     if tier_minimo is not None and tier_minimo not in (TIER_FREE, TIER_PRO):
         raise HTTPException(400, f"Tier sconosciuto. Ammessi: {TIER_FREE}, {TIER_PRO}.")
+
+
+# --- Export catalogo (D-05, D-06, D-07, D-15) --------------------------------
+#
+# Dichiarata PRIMA di qualunque route con parametro di path dello stesso
+# router (es. `/{domanda_code}` qui sotto), cosi' `export.xlsx` non rischia
+# mai di essere letto come un `domanda_code` (T-08.1-24).
+
+
+@router.get("/export.xlsx")
+def esporta_domande(
+    user=Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> StreamingResponse:
+    """Workbook a cinque fogli del catalogo domande: `domande`, `opzioni`,
+    `effetti`, `attese`, `derivazioni`. Mai il coefficiente impresa (regola
+    #1 di `CLAUDE.md`): nessun ramo `con_margine`, a differenza dell'export
+    parametri — il catalogo non ha niente da nascondere dietro un flag.
+
+    Ogni download riuscito scrive una riga in `export_log` PRIMA di
+    restituire la risposta (D-15, T-08.1-22)."""
+    file_bytes, righe = build_workbook_domande(db)
+    filename = build_filename("catalogo-domande")
+
+    db.add(ExportLog(user_id=user.id, risorsa="domande", righe=righe, include_margine=False))
+    db.commit()
+
+    return StreamingResponse(
+        iter([file_bytes]),
+        media_type=MIME_XLSX,
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Cache-Control": "no-store",
+        },
+    )
 
 
 # --- Domande ----------------------------------------------------------------
