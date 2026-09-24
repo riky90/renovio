@@ -522,17 +522,18 @@ def seed_domande(session: Session, data: dict | None = None) -> None:
     """Upsert idempotente del catalogo domande (0014). Chiamata da `seed()` —
     mai un secondo script (D-12/Pitfall 5).
 
-    LA REGOLA DI PROPRIETA', che e' il punto delicato di questa funzione:
+    LA REGOLA DI PROPRIETA' (D-41, ribaltata dalla precedente): il catalogo
+    domande e' del PANNELLO, non del seed. `domanda` e `opzione_domanda` sono
+    CREATE-IF-MISSING, come gia' `effetto_opzione`, `attesa_immobile` e
+    `derivazione_risposta`: i campi si scrivono solo quando la riga viene
+    creata, mai su una riga gia' esistente.
 
-      - `domanda` e `opzione_domanda` sono STRUTTURA del prodotto, quindi il
-        seed le possiede e le riscrive a ogni boot. Cambiare il testo di una
-        domanda e' un rilascio, non una configurazione.
-      - `effetto_opzione` e `attesa_immobile` sono CURATELA. Il seed li crea
-        se mancano e poi non li tocca piu'. Un upsert che riscrivesse `valore`
-        riporterebbe ogni coefficiente tarato dal pannello admin alla bozza
-        cablata a ogni deploy — lo stesso incidente che la regola condizionale
-        di `_upsert_voce` evita su `voce.livello`, e la stessa ragione per cui
-        `seed_testi` non aggiorna i testi esistenti.
+    Il `Dockerfile` lancia questo script a ogni boot su Render. Finche' il
+    seed riscriveva `domanda.attiva` e `domanda.testo` ogni disattivazione e
+    ogni correzione fatta da `/admin/domande` o dall'Excel di questa fase
+    tornava indietro al deploy successivo — il contrario del Goal della fase
+    e del criterio 2 di ROADMAP. Da qui in poi cambiare il testo di una
+    domanda esistente e' curatela (pannello o file), non un rilascio.
 
     Nessun DELETE implicito (D-24): un'opzione tolta dal JSON resta in tabella e
     va rimossa esplicitamente da admin. Cancellare in automatico righe a cui
@@ -543,20 +544,23 @@ def seed_domande(session: Session, data: dict | None = None) -> None:
     for d_data in data.get("domande", []):
         domanda = session.get(Domanda, d_data["code"])
         if domanda is None:
-            domanda = Domanda(code=d_data["code"])
+            domanda = Domanda(
+                code=d_data["code"],
+                testo=d_data["testo"],
+                help=d_data.get("help"),
+                tipo_controllo=d_data["tipo_controllo"],
+                gruppo=d_data.get("gruppo", ""),
+                ordine=d_data.get("ordine", 0),
+                tier_minimo=d_data.get("tier_minimo", "free"),
+                attributo_code=d_data.get("attributo_code"),
+                obbligatoria=d_data.get("obbligatoria", False),
+                visibile_se_domanda_code=d_data.get("visibile_se_domanda_code"),
+                visibile_se_opzione_code=d_data.get("visibile_se_opzione_code"),
+                attiva=d_data.get("attiva", True),
+            )
             session.add(domanda)
-        domanda.testo = d_data["testo"]
-        domanda.help = d_data.get("help")
-        domanda.tipo_controllo = d_data["tipo_controllo"]
-        domanda.gruppo = d_data.get("gruppo", "")
-        domanda.ordine = d_data.get("ordine", 0)
-        domanda.tier_minimo = d_data.get("tier_minimo", "free")
-        domanda.attributo_code = d_data.get("attributo_code")
-        domanda.obbligatoria = d_data.get("obbligatoria", False)
-        domanda.visibile_se_domanda_code = d_data.get("visibile_se_domanda_code")
-        domanda.visibile_se_opzione_code = d_data.get("visibile_se_opzione_code")
-        domanda.attiva = d_data.get("attiva", True)
-        session.flush()
+            session.flush()
+        # else: gia' presente -> curatela del pannello, non si tocca.
 
         for o_data in d_data.get("opzioni", []):
             opzione = (
@@ -565,14 +569,18 @@ def seed_domande(session: Session, data: dict | None = None) -> None:
                 .one_or_none()
             )
             if opzione is None:
-                opzione = OpzioneDomanda(domanda_code=domanda.code, code=o_data["code"])
+                opzione = OpzioneDomanda(
+                    domanda_code=domanda.code,
+                    code=o_data["code"],
+                    etichetta=o_data["etichetta"],
+                    descrizione=o_data.get("descrizione"),
+                    immagine_url=o_data.get("immagine_url"),
+                    is_default=o_data.get("is_default", False),
+                    ordine=o_data.get("ordine", 0),
+                )
                 session.add(opzione)
-            opzione.etichetta = o_data["etichetta"]
-            opzione.descrizione = o_data.get("descrizione")
-            opzione.immagine_url = o_data.get("immagine_url")
-            opzione.is_default = o_data.get("is_default", False)
-            opzione.ordine = o_data.get("ordine", 0)
-            session.flush()
+                session.flush()
+            # else: gia' presente -> curatela del pannello, non si tocca.
 
             for e_data in o_data.get("effetti", []):
                 _crea_effetto_se_manca(session, opzione, e_data)

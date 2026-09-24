@@ -29,6 +29,7 @@ from sqlalchemy import create_engine
 import app.db as db_module
 from app.db import Base
 from app.main import app
+from app.models.domanda import OpzioneDomanda
 from app.services.effetti import CONTROLLI_NUMERICI, attese_per_mq
 from scripts.seed import load_seed_data, seed
 from tests.session_factory import sessione_di_test
@@ -154,6 +155,40 @@ def test_tier_sconosciuto_e_422(client):
 def test_mq_fuori_range_e_422(client):
     assert client.get("/api/v1/domande", params={"mq": 0}).status_code == 422
     assert client.get("/api/v1/domande", params={"mq": 99_999}).status_code == 422
+
+
+def test_opzione_disattivata_sparisce_dal_wizard_pubblico(client, _seeded_db):
+    """D-27: il wizard non deve piu' elencare un'opzione spenta fra le opzioni
+    della sua domanda. Il test tocca il database e lo ripristina, perche' il
+    database del modulo e' condiviso con gli altri test."""
+    prima = _get(client, tier="free")
+    domanda_prima = next(d for d in prima["domande"] if d["code"] == "anno_costruzione")
+    assert "pre_1980" in {o["code"] for o in domanda_prima["opzioni"]}, (
+        "precondizione: pre_1980 deve comparire prima della disattivazione"
+    )
+
+    with _seeded_db() as session:
+        opzione = (
+            session.query(OpzioneDomanda)
+            .filter_by(domanda_code="anno_costruzione", code="pre_1980")
+            .one()
+        )
+        opzione.attiva = False
+        session.commit()
+
+    try:
+        dopo = _get(client, tier="free")
+        domanda_dopo = next(d for d in dopo["domande"] if d["code"] == "anno_costruzione")
+        assert "pre_1980" not in {o["code"] for o in domanda_dopo["opzioni"]}
+    finally:
+        with _seeded_db() as session:
+            opzione = (
+                session.query(OpzioneDomanda)
+                .filter_by(domanda_code="anno_costruzione", code="pre_1980")
+                .one()
+            )
+            opzione.attiva = True
+            session.commit()
 
 
 def test_il_catalogo_non_pubblica_gli_effetti(client):

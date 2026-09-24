@@ -1,14 +1,17 @@
-"""E2E per /api/v1/admin/domande (0014): CRUD del catalogo + anteprima.
+"""E2E per /api/v1/admin/domande (0014, 08.1): CRUD del catalogo + anteprima.
 
 Il test che vale piu' degli altri e' `TestAnteprima`: l'anteprima e' una delle
 tre mitigazioni decise contro il marcire di un motore a regole (insieme chiuso
-di sette effetti, anteprima, export Excel), e serve a tarare ~50 coefficienti
+di otto effetti, anteprima, export Excel), e serve a tarare ~50 coefficienti
 guardando cosa fanno invece che sperando. Se si rompe, la curatela torna a
 essere a occhio.
 
 Copre anche: 403 per non-admin su ogni route; la validazione degli effetti
 tradotta in 400 leggibili invece che in un 500; il default come radio button
-(impostarne uno spegne gli altri); e l'assenza di qualunque campo impresa.
+(impostarne uno spegne gli altri); l'assenza di qualunque campo impresa; la
+disattivazione come UNICO modo di togliere una riga (D-25, D-39: nessun
+`DELETE` fisico raggiungibile); la guardia di dipendenza D-28; l'opzione
+implicita degli stepper (D-35); e la visibilita' condizionale D-37.
 """
 
 from __future__ import annotations
@@ -51,10 +54,12 @@ def client(monkeypatch, tmp_path):
     import app.dependencies.auth as deps_auth_module
     import app.routers.auth as auth_router_module
     import app.routers.stima as stima_router_module
+    import app.routers.stime_salvate as stime_salvate_router_module
 
     monkeypatch.setattr(deps_auth_module, "SessionLocal", testing_session_local)
     monkeypatch.setattr(auth_router_module, "SessionLocal", testing_session_local)
     monkeypatch.setattr(stima_router_module, "SessionLocal", testing_session_local)
+    monkeypatch.setattr(stime_salvate_router_module, "SessionLocal", testing_session_local)
 
     return TestClient(app)
 
@@ -151,20 +156,63 @@ class TestCrud:
         assert dopo["testo"] == prima["testo"]
         assert dopo["attributo_code"] == prima["attributo_code"]
 
-    def test_delete_domanda_porta_via_opzioni_ed_effetti(self, client):
+    def test_disattivare_una_domanda_non_tocca_opzioni_ed_effetti(self, client):
+        """Il contrario del vecchio comportamento a cascata: D-29 dice che la
+        disattivazione di una domanda non tocca ne' le sue opzioni ne' i suoi
+        effetti."""
         _admin(client)
         opzioni_prima = client.get(f"{URL}/opzioni", params={"domanda_code": "anno_costruzione"}).json()
         effetti_prima = client.get(f"{URL}/effetti", params={"domanda_code": "anno_costruzione"}).json()
         assert opzioni_prima and effetti_prima
 
-        assert client.delete(f"{URL}/anno_costruzione").status_code == 204
+        risposta = client.patch(f"{URL}/anno_costruzione", json={"attiva": False})
+        assert risposta.status_code == 200
+        assert risposta.json()["attiva"] is False
 
-        assert client.get(f"{URL}/opzioni", params={"domanda_code": "anno_costruzione"}).json() == []
-        assert client.get(f"{URL}/effetti", params={"domanda_code": "anno_costruzione"}).json() == []
+        opzioni_dopo = client.get(f"{URL}/opzioni", params={"domanda_code": "anno_costruzione"}).json()
+        effetti_dopo = client.get(f"{URL}/effetti", params={"domanda_code": "anno_costruzione"}).json()
+        assert len(opzioni_dopo) == len(opzioni_prima)
+        assert len(effetti_dopo) == len(effetti_prima)
 
-    def test_delete_404_su_domanda_inesistente(self, client):
+
+class TestNessunDeleteFisico:
+    """D-25/D-39: non esiste piu' nessuna cancellazione fisica nel catalogo,
+    nemmeno con un token admin."""
+
+    @pytest.mark.parametrize("kind", ["domanda", "opzione", "effetto", "attesa"])
+    def test_nessun_delete_fisico_nel_catalogo(self, client, kind):
         _admin(client)
-        assert client.delete(f"{URL}/non-esiste").status_code == 404
+
+        if kind == "domanda":
+            path = f"{URL}/anno_costruzione"
+
+            def rilegge():
+                return next((d for d in client.get(URL).json() if d["code"] == "anno_costruzione"), None)
+
+        elif kind == "opzione":
+            opzione = client.get(f"{URL}/opzioni", params={"domanda_code": "anno_costruzione"}).json()[0]
+            path = f"{URL}/opzioni/{opzione['id']}"
+
+            def rilegge():
+                return next((o for o in client.get(f"{URL}/opzioni").json() if o["id"] == opzione["id"]), None)
+
+        elif kind == "effetto":
+            effetto = client.get(f"{URL}/effetti", params={"domanda_code": "anno_costruzione"}).json()[0]
+            path = f"{URL}/effetti/{effetto['id']}"
+
+            def rilegge():
+                return next((e for e in client.get(f"{URL}/effetti").json() if e["id"] == effetto["id"]), None)
+
+        else:
+            attesa = next(a for a in client.get(f"{URL}/attese").json() if a["attributo_code"] == "bagni")
+            path = f"{URL}/attese/{attesa['id']}"
+
+            def rilegge():
+                return next((a for a in client.get(f"{URL}/attese").json() if a["id"] == attesa["id"]), None)
+
+        risposta = client.delete(path)
+        assert risposta.status_code == 405
+        assert rilegge() is not None, "la riga deve restare a database dopo il DELETE rifiutato"
 
 
 class TestDefaultComeRadioButton:
@@ -178,6 +226,203 @@ class TestDefaultComeRadioButton:
         dopo = client.get(f"{URL}/opzioni", params={"domanda_code": "anno_costruzione"}).json()
         assert sum(1 for o in dopo if o["is_default"]) == 1
         assert next(o for o in dopo if o["is_default"])["id"] == non_default["id"]
+
+
+class TestGuardiaDipendenze:
+    """D-28: il toggle rifiuta di disattivare un'opzione in uso, nominando la
+    dipendenza concreta."""
+
+    def test_disattivare_lopzione_di_default_e_rifiutata(self, client):
+        _admin(client)
+        domanda = next(d for d in client.get(URL).json() if d["code"] == "anno_costruzione")
+        opzioni = client.get(f"{URL}/opzioni", params={"domanda_code": "anno_costruzione"}).json()
+        default = next(o for o in opzioni if o["is_default"])
+
+        risposta = client.patch(f"{URL}/opzioni/{default['id']}", json={"attiva": False})
+
+        assert risposta.status_code == 400
+        assert domanda["testo"] in risposta.json()["detail"]
+
+    def test_disattivare_lopzione_usata_da_una_derivazione_e_rifiutata(self, client):
+        _admin(client)
+        opzioni = client.get(f"{URL}/opzioni", params={"domanda_code": "classe_energetica_attuale"}).json()
+        non_so = next(o for o in opzioni if o["code"] == "non_so")
+
+        risposta = client.patch(f"{URL}/opzioni/{non_so['id']}", json={"attiva": False})
+
+        assert risposta.status_code == 400
+        assert "derivazione" in risposta.json()["detail"]
+
+    def test_disattivare_lopzione_condizione_di_visibilita_e_rifiutata(self, client):
+        _admin(client)
+        domanda_governata = next(
+            d for d in client.get(URL).json() if d["visibile_se_domanda_code"] == "muri_lavori"
+        )
+        opzioni = client.get(f"{URL}/opzioni", params={"domanda_code": "muri_lavori"}).json()
+        si = next(o for o in opzioni if o["code"] == "si")
+
+        risposta = client.patch(f"{URL}/opzioni/{si['id']}", json={"attiva": False})
+
+        assert risposta.status_code == 400
+        assert domanda_governata["testo"] in risposta.json()["detail"]
+
+    def test_disattivare_unopzione_non_usata_e_permesso_e_reversibile(self, client):
+        _admin(client)
+        client.post(URL, json={"code": "prova_toggle", "testo": "Prova toggle", "tipo_controllo": "scelta_singola"})
+        creata = client.post(
+            f"{URL}/opzioni",
+            json={"domanda_code": "prova_toggle", "code": "libera", "etichetta": "Libera"},
+        ).json()
+
+        spenta = client.patch(f"{URL}/opzioni/{creata['id']}", json={"attiva": False})
+        assert spenta.status_code == 200
+        assert spenta.json()["attiva"] is False
+
+        riaccesa = client.patch(f"{URL}/opzioni/{creata['id']}", json={"attiva": True})
+        assert riaccesa.status_code == 200
+        assert riaccesa.json()["attiva"] is True
+
+    def test_impostare_default_su_unopzione_non_attiva_e_rifiutata(self, client):
+        _admin(client)
+        client.post(URL, json={"code": "prova_default", "testo": "Prova default", "tipo_controllo": "scelta_singola"})
+        creata = client.post(
+            f"{URL}/opzioni",
+            json={"domanda_code": "prova_default", "code": "spenta", "etichetta": "Spenta"},
+        ).json()
+        client.patch(f"{URL}/opzioni/{creata['id']}", json={"attiva": False})
+
+        risposta = client.patch(f"{URL}/opzioni/{creata['id']}", json={"is_default": True})
+
+        assert risposta.status_code == 400
+
+
+class TestOpzioneImplicitaStepper:
+    """D-35: uno stepper/numero nasce con la sua opzione implicita `valore`."""
+
+    def test_creare_uno_stepper_crea_lopzione_valore(self, client):
+        _admin(client)
+        risposta = client.post(
+            URL, json={"code": "prova_stepper", "testo": "Quanti?", "tipo_controllo": "stepper"}
+        )
+        assert risposta.status_code == 201
+
+        opzioni = client.get(f"{URL}/opzioni", params={"domanda_code": "prova_stepper"}).json()
+        assert [o["code"] for o in opzioni] == ["valore"]
+
+    def test_creare_una_scelta_singola_non_crea_nessuna_opzione(self, client):
+        _admin(client)
+        client.post(URL, json={"code": "prova_scelta", "testo": "Quale?", "tipo_controllo": "scelta_singola"})
+
+        opzioni = client.get(f"{URL}/opzioni", params={"domanda_code": "prova_scelta"}).json()
+        assert opzioni == []
+
+    def test_patch_verso_numero_crea_lopzione_valore_se_manca(self, client):
+        _admin(client)
+        client.post(URL, json={"code": "prova_numero", "testo": "Quanti?", "tipo_controllo": "scelta_singola"})
+
+        risposta = client.patch(f"{URL}/prova_numero", json={"tipo_controllo": "numero"})
+
+        assert risposta.status_code == 200
+        opzioni = client.get(f"{URL}/opzioni", params={"domanda_code": "prova_numero"}).json()
+        assert [o["code"] for o in opzioni] == ["valore"]
+
+
+class TestVisibilitaCondizionale:
+    """D-37: niente codici inesistenti o spenti nella visibilita' condizionale,
+    nemmeno via API."""
+
+    def test_post_con_solo_una_meta_della_visibilita_e_400(self, client):
+        _admin(client)
+        risposta = client.post(
+            URL,
+            json={
+                "code": "prova_vis1",
+                "testo": "Prova",
+                "tipo_controllo": "toggle",
+                "visibile_se_domanda_code": "muri_lavori",
+            },
+        )
+        assert risposta.status_code == 400
+
+    def test_post_con_domanda_gate_inesistente_e_400(self, client):
+        _admin(client)
+        risposta = client.post(
+            URL,
+            json={
+                "code": "prova_vis2",
+                "testo": "Prova",
+                "tipo_controllo": "toggle",
+                "visibile_se_domanda_code": "non-esiste",
+                "visibile_se_opzione_code": "si",
+            },
+        )
+        assert risposta.status_code == 400
+
+    def test_post_con_opzione_gate_non_attiva_e_400(self, client):
+        _admin(client)
+        client.post(URL, json={"code": "gate_dom", "testo": "Gate", "tipo_controllo": "toggle"})
+        creata = client.post(
+            f"{URL}/opzioni",
+            json={"domanda_code": "gate_dom", "code": "spenta", "etichetta": "Spenta"},
+        ).json()
+        client.patch(f"{URL}/opzioni/{creata['id']}", json={"attiva": False})
+
+        risposta = client.post(
+            URL,
+            json={
+                "code": "prova_vis3",
+                "testo": "Prova",
+                "tipo_controllo": "toggle",
+                "visibile_se_domanda_code": "gate_dom",
+                "visibile_se_opzione_code": "spenta",
+            },
+        )
+        assert risposta.status_code == 400
+
+    def test_patch_con_visibilita_incoerente_e_400(self, client):
+        _admin(client)
+        client.post(URL, json={"code": "prova_vis4", "testo": "Prova", "tipo_controllo": "toggle"})
+
+        risposta = client.patch(
+            f"{URL}/prova_vis4",
+            json={"visibile_se_domanda_code": "muri_lavori"},
+        )
+        assert risposta.status_code == 400
+
+
+class TestStimaSalvataDopoDisattivazione:
+    """Criterio 2 di ROADMAP: disattivare una domanda non cambia il totale di
+    una stima gia' salvata che la citava."""
+
+    def test_disattivare_la_domanda_non_cambia_il_totale_salvato(self, client):
+        _admin(client)
+
+        calcolata = client.post(
+            "/api/v1/stima",
+            json={
+                "citta": "Reggio Emilia",
+                "mq": 85,
+                "tipo": "totale",
+                "risposte": {"anno_costruzione": "pre_1980"},
+            },
+        )
+        assert calcolata.status_code == 200
+        corpo = calcolata.json()
+        totale_prima = corpo["totale"]
+
+        salvata = client.post("/api/v1/me/stime", json=corpo)
+        assert salvata.status_code == 201
+        stima_id = salvata.json()["id"]
+
+        disattiva = client.patch(f"{URL}/anno_costruzione", json={"attiva": False})
+        assert disattiva.status_code == 200
+
+        rilegge = client.get(f"/api/v1/me/stime/{stima_id}")
+        assert rilegge.status_code == 200
+        totale_dopo = rilegge.json()["totale"]
+
+        assert totale_dopo["totale_min"] == totale_prima["totale_min"]
+        assert totale_dopo["totale_max"] == totale_prima["totale_max"]
 
 
 class TestEffetti:
@@ -354,10 +599,14 @@ class TestAnteprima:
         assert "default" in corpo["avvisi"][0]
 
     def test_segnala_una_baseline_mancante(self, client):
+        """Setup riscritto dal DELETE al PATCH (D-39): la baseline "manca"
+        perche' e' disattivata, non perche' e' cancellata. Il test resta verde
+        solo perche' il filtro `AttesaImmobile.attiva` e' gia' cablato in
+        `attese_per_mq` (Task 2) — e' la sua regressione."""
         _admin(client)
         for attesa in client.get(f"{URL}/attese").json():
             if attesa["attributo_code"] == "bagni":
-                client.delete(f"{URL}/attese/{attesa['id']}")
+                client.patch(f"{URL}/attese/{attesa['id']}", json={"attiva": False})
 
         corpo = client.post(
             f"{URL}/anteprima",

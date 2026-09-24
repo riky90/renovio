@@ -117,12 +117,17 @@ def _domande_attive(session: Session, tiers: tuple[str, ...]) -> list[Domanda]:
 def _opzioni_per_domanda(
     session: Session, codes: list[str]
 ) -> dict[str, list[OpzioneDomanda]]:
-    """Tutte le opzioni in una query sola, raggruppate per domanda."""
+    """Tutte le opzioni ATTIVE in una query sola, raggruppate per domanda.
+
+    D-27: un'opzione disattivata sparisce dal wizard pubblico. Query separata
+    da quella di `services/effetti.py::risolvi_scelte` — stesso filtro, due
+    consumatori diversi (wizard vs motore), non condivisa.
+    """
     if not codes:
         return {}
     righe = (
         session.query(OpzioneDomanda)
-        .filter(OpzioneDomanda.domanda_code.in_(codes))
+        .filter(OpzioneDomanda.domanda_code.in_(codes), OpzioneDomanda.attiva.is_(True))
         .order_by(OpzioneDomanda.domanda_code, OpzioneDomanda.ordine, OpzioneDomanda.code)
         .all()
     )

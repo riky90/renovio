@@ -15,7 +15,7 @@ codice) significa che aggiungere una domanda torna a essere un lavoro da
 pannello admin invece che un deploy di backend e frontend.
 
 Il vincolo che tiene in piedi il tutto e' che `tipo_effetto` e' un INSIEME
-CHIUSO di sette valori, ognuno con una sua aritmetica nota al motore: niente
+CHIUSO di otto valori, ognuno con una sua aritmetica nota al motore: niente
 espressioni, niente formule arbitrarie in tabella. I motori a regole marciscono
 quando si puo' scrivere qualunque cosa in una cella. Vedi
 `app/services/effetti.py` per l'elenco e l'ordine di risoluzione.
@@ -26,9 +26,10 @@ euro-cliente, come `listino_categoria.base_eur_mq` (regola non negoziabile #1).
 
 from __future__ import annotations
 
+from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import Boolean, ForeignKey, Numeric, String, UniqueConstraint
+from sqlalchemy import Boolean, ForeignKey, Numeric, String, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -84,6 +85,13 @@ class Domanda(Base):
         Boolean, nullable=False, default=True, server_default="1"
     )
 
+    # D-11: data dell'ultima modifica, aggiornata da sola a ogni scrittura ORM
+    # (onupdate) — dice se questa riga e' cambiata dopo che un export e' stato
+    # scaricato, per la guardia di staleness dell'import.
+    updated_at: Mapped[datetime] = mapped_column(
+        nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
 
 class OpzioneDomanda(Base):
     """Una risposta possibile.
@@ -116,9 +124,21 @@ class OpzioneDomanda(Base):
     )
     ordine: Mapped[int] = mapped_column(nullable=False, default=0, server_default="0")
 
+    # D-27: un'opzione disattivata sparisce dal wizard pubblico e i suoi
+    # effetti non scattano piu' (filtro in risolvi_scelte e in
+    # _opzioni_per_domanda). Non e' un delete: la riga resta a database.
+    attiva: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default="1"
+    )
+
+    # D-11: vedi Domanda.updated_at.
+    updated_at: Mapped[datetime] = mapped_column(
+        nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
 
 class EffettoOpzione(Base):
-    """Cosa fa una risposta al calcolo. Sette tipi, nessuno di piu'.
+    """Cosa fa una risposta al calcolo. Otto tipi, nessuno di piu'.
 
     Il target e' esattamente uno fra categoria / sottocategoria / voce, scelto
     in base al `tipo_effetto`; la validazione sta in `app/services/effetti.py`
@@ -162,6 +182,11 @@ class EffettoOpzione(Base):
         Boolean, nullable=False, default=True, server_default="1"
     )
 
+    # D-11: vedi Domanda.updated_at.
+    updated_at: Mapped[datetime] = mapped_column(
+        nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
 
 class AttesaImmobile(Base):
     """La baseline: quanti bagni/finestre/porte ha "normalmente" un immobile di
@@ -192,6 +217,17 @@ class AttesaImmobile(Base):
     fascia_mq_min: Mapped[int] = mapped_column(nullable=False)
     fascia_mq_max: Mapped[int] = mapped_column(nullable=False)
     valore_atteso: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+
+    # D-40: un'attesa disattivata non fa piu' da baseline (attese_per_mq) ne'
+    # da default nel wizard. Stessa forma di OpzioneDomanda.attiva.
+    attiva: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default="1"
+    )
+
+    # D-11: vedi Domanda.updated_at.
+    updated_at: Mapped[datetime] = mapped_column(
+        nullable=False, server_default=func.now(), onupdate=func.now()
+    )
 
 
 class DerivazioneRisposta(Base):
@@ -245,4 +281,9 @@ class DerivazioneRisposta(Base):
 
     attiva: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=True, server_default="1"
+    )
+
+    # D-11: vedi Domanda.updated_at.
+    updated_at: Mapped[datetime] = mapped_column(
+        nullable=False, server_default=func.now(), onupdate=func.now()
     )

@@ -60,6 +60,16 @@ TABELLE_CURATE = (
     "lead",
 )
 
+# Le cinque tabelle del catalogo domande a cui la 0020 aggiunge `updated_at`
+# (D-11); le stesse su cui il modello/migrazione devono coincidere.
+TABELLE_CATALOGO = (
+    "domanda",
+    "opzione_domanda",
+    "effetto_opzione",
+    "attesa_immobile",
+    "derivazione_risposta",
+)
+
 
 def _alembic_config(db_path: Path, monkeypatch: pytest.MonkeyPatch) -> Config:
     """Config Alembic puntata a un file SQLite usa-e-getta.
@@ -170,7 +180,7 @@ def test_upgrade_head_gira_su_sqlite_vergine(tmp_path, monkeypatch):
         revisione = connessione.execute("SELECT version_num FROM alembic_version").fetchone()
     finally:
         connessione.close()
-    assert revisione == ("0019",)
+    assert revisione == ("0020",)
 
 
 def test_upgrade_all_ultima_revisione_gira_su_un_database_popolato(tmp_path, monkeypatch):
@@ -409,5 +419,120 @@ def test_la_ricostruzione_batch_non_perde_chiavi_e_vincoli(tmp_path, monkeypatch
         assert connessione.execute(
             "SELECT name FROM sqlite_master WHERE name LIKE '_alembic_tmp%'"
         ).fetchall() == []
+    finally:
+        connessione.close()
+
+
+def test_0020_aggiunge_attiva_e_updated_at(tmp_path, monkeypatch):
+    """`attiva` su opzione_domanda/attesa_immobile e `updated_at` sulle cinque
+    tabelle del catalogo devono esistere dopo `upgrade head` (D-27, D-40, D-11).
+    """
+    db_path = tmp_path / "catalogo_colonne.db"
+    command.upgrade(_alembic_config(db_path, monkeypatch), "head")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        for tabella in TABELLE_CATALOGO:
+            colonne = {
+                riga[1]: {"tipo": riga[2], "notnull": riga[3], "default": riga[4]}
+                for riga in connessione.execute(f"PRAGMA table_info({tabella})")
+            }
+            assert "updated_at" in colonne, f"{tabella} non ha updated_at dopo la 0020"
+            assert colonne["updated_at"]["notnull"] == 1, f"{tabella}.updated_at deve essere NOT NULL"
+            assert "CURRENT_TIMESTAMP" in (colonne["updated_at"]["default"] or ""), (
+                f"{tabella}.updated_at deve avere un server_default"
+            )
+
+        for tabella in ("opzione_domanda", "attesa_immobile"):
+            colonne = {
+                riga[1]: {"notnull": riga[3], "default": riga[4]}
+                for riga in connessione.execute(f"PRAGMA table_info({tabella})")
+            }
+            assert "attiva" in colonne, f"{tabella} non ha attiva dopo la 0020"
+            assert colonne["attiva"]["notnull"] == 1, f"{tabella}.attiva deve essere NOT NULL"
+    finally:
+        connessione.close()
+
+
+def test_0020_backfilla_le_righe_preesistenti(tmp_path, monkeypatch):
+    """Righe gia' presenti a revisione 0019 ricevono `attiva=1` e un
+    `updated_at` non nullo dopo la 0020 (stessa proprieta' di staleness della
+    0019: il backfill precede qualunque export generato dopo la migrazione).
+    """
+    db_path = tmp_path / "catalogo_backfill.db"
+    config = _alembic_config(db_path, monkeypatch)
+    command.upgrade(config, "0019")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        connessione.execute(
+            "INSERT INTO domanda (code, testo, tipo_controllo) VALUES ('anno_costruzione', 'Anno di costruzione', 'stepper')"
+        )
+        connessione.execute(
+            "INSERT INTO opzione_domanda (domanda_code, code, etichetta) VALUES ('anno_costruzione', 'valore', 'Valore')"
+        )
+        connessione.execute(
+            "INSERT INTO attesa_immobile (attributo_code, fascia_mq_min, fascia_mq_max, valore_atteso)"
+            " VALUES ('bagni', 0, 120, 2)"
+        )
+        connessione.commit()
+    finally:
+        connessione.close()
+
+    command.upgrade(config, "0020")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        (attiva_opzione, updated_at_opzione) = connessione.execute(
+            "SELECT attiva, updated_at FROM opzione_domanda WHERE code = 'valore'"
+        ).fetchone()
+        (attiva_attesa, updated_at_attesa) = connessione.execute(
+            "SELECT attiva, updated_at FROM attesa_immobile WHERE attributo_code = 'bagni'"
+        ).fetchone()
+        (updated_at_domanda,) = connessione.execute(
+            "SELECT updated_at FROM domanda WHERE code = 'anno_costruzione'"
+        ).fetchone()
+    finally:
+        connessione.close()
+
+    assert attiva_opzione == 1
+    assert attiva_attesa == 1
+    assert updated_at_opzione is not None
+    assert updated_at_attesa is not None
+    assert updated_at_domanda is not None
+
+
+def test_downgrade_0020_e_poi_upgrade_e_reversibile(tmp_path, monkeypatch):
+    """Il downgrade della 0020 toglie `attiva` e `updated_at` dal catalogo
+    senza rompere lo schema, e l'upgrade successivo le rimette."""
+    db_path = tmp_path / "catalogo_reversibile.db"
+    config = _alembic_config(db_path, monkeypatch)
+    command.upgrade(config, "head")
+    command.downgrade(config, "0019")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        for tabella in TABELLE_CATALOGO:
+            colonne = [riga[1] for riga in connessione.execute(f"PRAGMA table_info({tabella})")]
+            assert "updated_at" not in colonne, f"{tabella}.updated_at sopravvive al downgrade"
+        for tabella in ("opzione_domanda", "attesa_immobile"):
+            colonne = [riga[1] for riga in connessione.execute(f"PRAGMA table_info({tabella})")]
+            assert "attiva" not in colonne, f"{tabella}.attiva sopravvive al downgrade"
+        assert connessione.execute("PRAGMA foreign_key_check").fetchall() == []
+        assert connessione.execute("PRAGMA integrity_check").fetchone() == ("ok",)
+    finally:
+        connessione.close()
+
+    command.upgrade(config, "0020")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        for tabella in TABELLE_CATALOGO:
+            colonne = [riga[1] for riga in connessione.execute(f"PRAGMA table_info({tabella})")]
+            assert "updated_at" in colonne
+        for tabella in ("opzione_domanda", "attesa_immobile"):
+            colonne = [riga[1] for riga in connessione.execute(f"PRAGMA table_info({tabella})")]
+            assert "attiva" in colonne
+        assert connessione.execute("PRAGMA foreign_key_check").fetchall() == []
     finally:
         connessione.close()
