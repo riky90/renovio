@@ -614,6 +614,41 @@ class TestEffettoIdentitaNonSiCambia:
             assert db.get(EffettoOpzione, effetto_id).tipo_effetto == tipo_prima
 
 
+class TestEffettoEsistenteRivalidaIlValore:
+    """WR-01: identita' invariata ma `valore` cambiato dal file — la stessa
+    regola che PATCH /admin/domande/effetti/{id} applica
+    (test_patch_valore_negativo_su_moltiplicatore_rifiutato in
+    test_admin_domande.py) deve valere anche sull'aggiornamento via import,
+    non solo sulla creazione di una riga nuova."""
+
+    def test_valore_negativo_su_moltiplicatore_esistente_e_uno_scarto(self, client):
+        _registra_admin(client)
+        xlsx = _workbook_default(client)
+
+        with client._session_local() as db:
+            effetto = (
+                db.query(EffettoOpzione)
+                .filter_by(tipo_effetto="moltiplicatore_categoria")
+                .order_by(EffettoOpzione.id)
+                .first()
+            )
+            effetto_id = effetto.id
+            valore_prima = effetto.valore
+
+        xlsx_mod = _modifica_cella(xlsx, "effetti", effetto_id, "valore", -1)
+
+        preview = _post_preview(client, xlsx_mod).json()
+        assert [r for r in preview["modificate"] if r["id"] == str(effetto_id)] == []
+        scarti = [s for s in preview["scarti"] if "non puo' essere negativo" in s["motivo"]]
+        assert len(scarti) == 1
+
+        confirm = _post_confirm(client, preview)
+        assert confirm.status_code == 200
+
+        with client._session_local() as db:
+            assert db.get(EffettoOpzione, effetto_id).valore == valore_prima
+
+
 class TestCancellaConToken:
     def test_cancella_su_help_lo_azzera(self, client):
         _registra_admin(client)

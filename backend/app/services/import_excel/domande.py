@@ -415,6 +415,24 @@ def _risolvi_effetto(db: Session, r: RigaPiattaIn) -> _Risoluzione:
         if "tipo_effetto" in r.valori and str(r.valori["tipo_effetto"]).strip() != riga_db.tipo_effetto:
             return _Risoluzione(scarto=ScartoRowOut(riga=0, motivo="effetti: tipo e bersaglio non si cambiano: crea un effetto nuovo"))
 
+        # WR-01: identita' (bersaglio/tipo) invariata, ma il `valore` puo'
+        # essere cambiato dal file. La stessa regola che PATCH applica
+        # (test_patch_valore_negativo_su_moltiplicatore_rifiutato) deve
+        # valere anche qui, non solo sulla creazione: altrimenti un file
+        # Excel bypassa un vincolo che l'API rifiuta.
+        valore_finale = validati.get("valore", riga_db.valore)
+        try:
+            valida_effetto(
+                db,
+                riga_db.tipo_effetto,
+                categoria_code=riga_db.target_categoria_code,
+                sottocategoria_id=riga_db.target_sottocategoria_id,
+                voce_id=riga_db.target_voce_id,
+                valore=valore_finale,
+            )
+        except EffettoNonValido as exc:
+            return _Risoluzione(scarto=ScartoRowOut(riga=0, motivo=f"effetti: {exc}"))
+
         return _Risoluzione(esistente=riga_db, campi_aggiornati=validati, chiave_descr=f"effetto {riga_id}")
 
     opzione = None
