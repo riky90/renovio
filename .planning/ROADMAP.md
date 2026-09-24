@@ -151,13 +151,13 @@ raccomandazione di split in `.planning/phases/08-export-import-excel/08-CONTEXT.
 
 **Nota:** il backend CRUD di domande/opzioni/effetti **esiste già per intero** (`backend/app/routers/admin/domande.py:144-413`). La fase è in gran parte frontend più una voce nel registro export/import costruito in Fase 08. Chiude il chip `task_9da38ee9` e la violazione della regola #3 di `CLAUDE.md`.
 
-**Plans:** 6 plans
+**Plans:** 2/6 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 08.1-01-PLAN.md — Disattivare invece di cancellare: migrazione 0020 (`attiva` su opzioni e attese, `updated_at` sul catalogo), niente DELETE, guardia D-28, opzione implicita degli stepper, filtri nel motore, seed che non riscrive piu' la curatela
-- [ ] 08.1-02-PLAN.md — Pagina /admin/domande, livello domande: nav, route, form a tre sezioni, toggle Attiva, `detail` del backend propagato al client
+- [x] 08.1-01-PLAN.md — Disattivare invece di cancellare: migrazione 0020 (`attiva` su opzioni e attese, `updated_at` sul catalogo), niente DELETE, guardia D-28, opzione implicita degli stepper, filtri nel motore, seed che non riscrive piu' la curatela
+- [x] 08.1-02-PLAN.md — Pagina /admin/domande, livello domande: nav, route, form a tre sezioni, toggle Attiva, `detail` del backend propagato al client
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
