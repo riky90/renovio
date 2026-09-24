@@ -531,6 +531,42 @@ class TestEffetti:
         assert dopo["valore"] == effetto["valore"]
 
 
+class TestNullEspliciteSuCampiNonNullable:
+    """CR-03: un PATCH con `null` esplicito su un campo `NOT NULL` a database
+    e' un 400 leggibile, mai un `IntegrityError` grezzo (500). `{"campo": None}`
+    non e' lo stesso di omettere il campo — `exclude_unset=True` lascia
+    passare entrambi in modo diverso, e solo il primo va rifiutato."""
+
+    def test_patch_domanda_con_testo_nullo_e_400(self, client):
+        _admin(client)
+        risposta = client.patch(f"{URL}/anno_costruzione", json={"testo": None})
+        assert risposta.status_code == 400
+        assert "testo" in risposta.json()["detail"]
+
+    def test_patch_domanda_con_attiva_nulla_e_400(self, client):
+        _admin(client)
+        risposta = client.patch(f"{URL}/anno_costruzione", json={"attiva": None})
+        assert risposta.status_code == 400
+
+    def test_patch_opzione_con_etichetta_nulla_e_400(self, client):
+        _admin(client)
+        opzione = client.get(f"{URL}/opzioni", params={"domanda_code": "anno_costruzione"}).json()[0]
+        risposta = client.patch(f"{URL}/opzioni/{opzione['id']}", json={"etichetta": None})
+        assert risposta.status_code == 400
+
+    def test_patch_effetto_con_attivo_nullo_e_400(self, client):
+        _admin(client)
+        effetto = client.get(f"{URL}/effetti", params={"domanda_code": "anno_costruzione"}).json()[0]
+        risposta = client.patch(f"{URL}/effetti/{effetto['id']}", json={"attivo": None})
+        assert risposta.status_code == 400
+
+    def test_patch_attesa_con_valore_atteso_nullo_e_400(self, client):
+        _admin(client)
+        attesa = client.get(f"{URL}/attese").json()[0]
+        risposta = client.patch(f"{URL}/attese/{attesa['id']}", json={"valore_atteso": None})
+        assert risposta.status_code == 400
+
+
 class TestAttese:
     def test_lista_e_patch(self, client):
         _admin(client)

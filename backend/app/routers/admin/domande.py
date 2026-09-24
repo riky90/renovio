@@ -77,6 +77,17 @@ from app.services.export_excel.workbook import MIME_XLSX, build_filename
 
 router = APIRouter(prefix="/domande", tags=["admin-domande"])
 
+# CR-03: colonne `nullable=False` a database esposte come `Optional` nei
+# quattro schemi PATCH (per il contratto `exclude_unset=True`) — un `null`
+# esplicito su una di queste va rifiutato con un 400, non lasciato arrivare
+# a `db.commit()`.
+_DOMANDA_NON_NULLABLE = {
+    "testo", "tipo_controllo", "gruppo", "ordine", "tier_minimo", "obbligatoria", "attiva",
+}
+_OPZIONE_NON_NULLABLE = {"etichetta", "is_default", "ordine", "attiva"}
+_EFFETTO_NON_NULLABLE = {"attivo"}
+_ATTESA_NON_NULLABLE = {"fascia_mq_max", "valore_atteso", "attiva"}
+
 
 def _to_domanda_out(row: Domanda) -> DomandaAdminOut:
     return DomandaAdminOut(
@@ -144,6 +155,19 @@ def _valida_domanda(tipo_controllo: str | None, tier_minimo: str | None) -> None
         )
     if tier_minimo is not None and tier_minimo not in (TIER_FREE, TIER_PRO):
         raise HTTPException(400, f"Tier sconosciuto. Ammessi: {TIER_FREE}, {TIER_PRO}.")
+
+
+def _rifiuta_null_espliciti(campi: dict[str, object], non_nullable: set[str]) -> None:
+    """CR-03: `model_dump(exclude_unset=True)` distingue "campo omesso" da
+    "campo inviato", ma non da "campo inviato con `null` esplicito". Un PATCH
+    come `{"testo": null}` supera Pydantic (il tipo e' `str | None`, per
+    lasciar passare "campo omesso") e altrimenti scriverebbe `None` su una
+    colonna `NOT NULL`, con un `IntegrityError` mai catturato da nessuna
+    route di questo modulo. Va rifiutato qui, con un 400 leggibile, prima di
+    qualunque `setattr`."""
+    nulli = sorted(c for c in non_nullable if c in campi and campi[c] is None)
+    if nulli:
+        raise HTTPException(400, f"Campi che non possono essere nulli: {', '.join(nulli)}.")
 
 
 # --- Export catalogo (D-05, D-06, D-07, D-15) --------------------------------
@@ -232,6 +256,7 @@ def modifica_domanda(
         raise HTTPException(404, "Domanda non trovata")
 
     campi = payload.model_dump(exclude_unset=True)
+    _rifiuta_null_espliciti(campi, _DOMANDA_NON_NULLABLE)
     _valida_domanda(campi.get("tipo_controllo"), campi.get("tier_minimo"))
     vis_domanda = campi.get("visibile_se_domanda_code", riga.visibile_se_domanda_code)
     vis_opzione = campi.get("visibile_se_opzione_code", riga.visibile_se_opzione_code)
@@ -320,6 +345,7 @@ def modifica_opzione(
         raise HTTPException(404, "Opzione non trovata")
 
     campi = payload.model_dump(exclude_unset=True)
+    _rifiuta_null_espliciti(campi, _OPZIONE_NON_NULLABLE)
     attiva_finale = campi.get("attiva", riga.attiva)
     is_default_finale = campi.get("is_default", riga.is_default)
 
@@ -419,6 +445,7 @@ def modifica_effetto(
     opzione = db.get(OpzioneDomanda, riga.opzione_id)
 
     campi = payload.model_dump(exclude_unset=True)
+    _rifiuta_null_espliciti(campi, _EFFETTO_NON_NULLABLE)
     for campo, valore in campi.items():
         setattr(riga, campo, valore)
 
@@ -505,7 +532,9 @@ def modifica_attesa(
     if riga is None:
         raise HTTPException(404, "Attesa non trovata")
 
-    for campo, valore in payload.model_dump(exclude_unset=True).items():
+    campi = payload.model_dump(exclude_unset=True)
+    _rifiuta_null_espliciti(campi, _ATTESA_NON_NULLABLE)
+    for campo, valore in campi.items():
         setattr(riga, campo, valore)
     if riga.fascia_mq_max < riga.fascia_mq_min:
         db.rollback()
