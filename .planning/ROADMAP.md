@@ -188,6 +188,32 @@ Plans:
 rialzo** su A-EDILE, B-FINITURE (tranne il gres), C-SERRAMENTI e D-PRODOTTI. È una scelta
 consapevole, non una dimenticanza.
 
+**Plans:** 8 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 09-01-PLAN.md — Excel di taratura + elenco dei dati richiesti a Riccardo (D-04, primo deliverable, checkpoint di compilazione)
+- [ ] 09-02-PLAN.md — Assi Pro nel catalogo: domande finitura e tipo_pavimento, quantita' per bagni/porte/condizionatori, seed a chiave naturale, esclusione dal wizard
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 09-03-PLAN.md — Motore Pro sul catalogo: risolvi_effetti_pro, swap di compute(), test di conteggio CFG-02
+- [ ] 09-04-PLAN.md — Migrazione 0021 senza perdita: voce.livello e domanda_mirata_key diventano effetti sui DB esistenti
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 09-05-PLAN.md — Pannello "Qualche dettaglio in piu'" su DomandaField, API generica validata, pavimento nel PDF
+- [ ] 09-07-PLAN.md — Curatela degli assi approvata + CFG-02 per famiglia su tutti i cataloghi + livello admin in sola lettura
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 09-06-PLAN.md — Taratura dei coefficienti approvata: seed, migrazione 0022, bozza dei computi futuri (CFG-04)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 09-08-PLAN.md — dev.db allo stato finale, suite completa, collaudo dal vivo con l'account Pro (WIZ-04)
+
 ### Phase 10: Risultato leggibile e tetto di budget
 
 **Status:** pending
