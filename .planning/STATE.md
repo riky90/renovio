@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: domande e motore parametrico
 status: ready_to_plan
-last_updated: "2026-09-25T09:45:00.000Z"
+last_updated: "2026-09-25T18:00:00.000Z"
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 15
   completed_plans: 15
   percent: 71
-stopped_at: Phase 09 context gathered — prossima /gsd:plan-phase 09
+stopped_at: Phase 09 planned (8 plans, 5 waves), plan-checker not yet run — riprendere con /gsd:plan-phase 09 -> verify existing plans
 ---
 
 # Project State — ristruttura-stima
