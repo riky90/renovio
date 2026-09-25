@@ -2,7 +2,7 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: domande e motore parametrico
-status: ready_to_discuss
+status: ready_to_plan
 last_updated: "2026-09-25T09:45:00.000Z"
 progress:
   total_phases: 7
@@ -10,16 +10,16 @@ progress:
   total_plans: 15
   completed_plans: 15
   percent: 71
-stopped_at: Phase 08.1 complete (6/6, UAT approvato) — prossima /gsd:discuss-phase 09
+stopped_at: Phase 09 context gathered — prossima /gsd:plan-phase 09
 ---
 
 # Project State — ristruttura-stima
 
 ## Current Position
 
-Phase: 09 (configuratore-pro) — da discutere, cartella vuota
+Phase: 09 (configuratore-pro) — contesto raccolto (`09-CONTEXT.md`, D-01..D-09)
 Plan: Not started
-Prossima: `/gsd:discuss-phase 09`, poi plan ed execute.
+Prossima: `/gsd:plan-phase 09`. Primo deliverable: Excel di taratura + elenco dati richiesti a Riccardo (D-04).
 
 - **Milestone:** v2.0 (domande e motore parametrico), fasi **05-10**. La v1.0 (MVP, fasi
   01-04) e' **completa, verificata e in produzione dal 2026-09-09** — backend su Render,
@@ -165,7 +165,7 @@ Prossima: `/gsd:discuss-phase 09`, poi plan ed execute.
 
 ## Next Step
 
-- `/gsd:discuss-phase 09` — Configuratore Pro e chiusura del bug dei cataloghi (QST-05,
+- `/gsd:plan-phase 09` — Configuratore Pro e chiusura del bug dei cataloghi (QST-05,
   CFG-01..04, WIZ-04).
 - Oracolo verificato via API il 2026-09-25: Reggio Emilia, 85 m², tipo **totale** (non moderata),
   47.985-70.575 EUR esatto. Resta da guardare la scheda Anteprima del pannello dal vivo.
