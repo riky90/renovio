@@ -2,93 +2,48 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: domande e motore parametrico
-status: gaps_found
-last_updated: "2026-09-24T06:02:11.920Z"
+status: ready_to_discuss
+last_updated: "2026-09-25T09:45:00.000Z"
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 15
   completed_plans: 15
-  percent: 57
-stopped_at: Phase 08.1 executed (6/6), verification gaps_found — 3 BLOCKER della code review da chiudere
+  percent: 71
+stopped_at: Phase 08.1 complete (6/6, UAT approvato) — prossima /gsd:discuss-phase 09
 ---
 
 # Project State — ristruttura-stima
 
 ## Current Position
 
-Phase: 08.1 (catalogo-domande-pagina-crud-e-file-excel) — ESEGUITA 6/6, verifica `gaps_found`
-Plan: 1 of 6
-Prossima: chiudere i 3 BLOCKER di `08.1-REVIEW.md` (CR-01 bersaglio effetto non validato, CR-02 `crea_opzione` senza guardia default/non attiva, CR-03 PATCH che accettano `null` su colonne NOT NULL) con `/gsd:code-review 08.1 --fix`, poi ri-verifica. Eseguita il 2026-09-24: gate post-merge verde dopo ogni wave (602 → 624 → 640 passed, 5 skipped), build frontend pulita. `backend/dev.db` migrato a `0020` (backup `dev.db.bak-pre-0020-20260924-083119`). Verifica dal vivo (`/gsd:verify-work 08.1`) ancora da fare. `REQUIREMENTS.md` mappa ancora CUR-01/02 alla fase 08 invece della 08.1.
+Phase: 09 (configuratore-pro) — da discutere, cartella vuota
+Plan: Not started
+Prossima: `/gsd:discuss-phase 09`, poi plan ed execute.
 
 - **Milestone:** v2.0 (domande e motore parametrico), fasi **05-10**. La v1.0 (MVP, fasi
   01-04) e' **completa, verificata e in produzione dal 2026-09-09** — backend su Render,
   frontend su Vercel — e archiviata in `.planning/milestones/v1.0-ROADMAP.md`.
 
-- **Phase:** 4 di 7 complete — 05 (catalogo domande + motore Free parametrico), 06 (wizard
-  unico), 07 (arredo), 08 (export/import Excel). Le prime due eseguite fuori dal ciclo GSD e ricostruite in
-  retrospettiva nei rispettivi `NN-RETRO-SUMMARY.md`; la 07 e' la prima pianificata ed
-  eseguita dentro la milestone (`07-01-PLAN.md` -> `07-01-SUMMARY.md`).
+- **Fasi complete (5 di 7):** 05 (catalogo domande + motore Free parametrico), 06 (wizard
+  unico), 07 (arredo), 08 (export/import Excel), 08.1 (catalogo domande: pagina CRUD e file
+  Excel). 05 e 06 eseguite fuori dal ciclo GSD e ricostruite nei `NN-RETRO-SUMMARY.md`.
 
-- **Status:** Executing Phase 08.1
-  audit `export_log`, 08-02 tab Anteprima. Wave 2: 08-03 round-trip del listino (D-12),
-  08-04 export parametri col margine opt-in (CUR-03), 08-05 export lead tracciato (CUR-04).
-  Wave 3: 08-06 import parametri, il registro `HANDLER` su cui poggiano i due piani
-  rimasti. Wave 4: 08-07 import lead, con il permesso che diventa per risorsa
-  (`ImportHandler.ruolo_richiesto`) invece che globale. Wave 5: 08-08, `updated_at` sulle
-  nove tabelle curate (migrazione 0019) e l'avviso "cambiata dopo l'export" su tutti e tre
-  i percorsi di import. Gate post-merge verde dopo ogni wave; dopo la quinta: 517 passed /
-  5 skipped, build frontend pulita.
-  Contratto UI verificato in `08-UI-SPEC.md`, mappa dei pattern in `08-PATTERNS.md`.
-  Verifica di fase `passed` 5/5 (`08-VERIFICATION.md`). La code review (`08-REVIEW.md`)
-  ha lasciato **due critici aperti sul codice della wave 2**, entrambi confermati a mano:
-  `_upsert_voce` in `listino_upload_service.py` ignora `campi_presenti` sul percorso per
-  chiave naturale (viola il criterio 2 della fase), e `FlatImportDialog.tsx:75` cabla
-  `campi_da_cancellare: []`, per cui `#CANCELLA#` scrive la stringa `"None"` invece di NULL.
-  **Decisione di Riccardo del 2026-09-22: si chiudono in gap closure**, non dentro la 09.
-  **Fatto il 2026-09-23.** Non con `/gsd:plan-phase 08 --gaps`: quel flag fa leggere al
-  planner `VERIFICATION.md` e `UAT.md`, non `REVIEW.md`, e la verifica era `passed` 5/5,
-  quindi il planner avrebbe ricevuto zero gap. Il percorso giusto per i findings di una
-  review e' `/gsd:code-review 08 --fix`, che spawna `gsd-code-fixer` su `08-REVIEW.md`.
-  **Tredici findings chiuse in due iterazioni**, tutte con la loro regressione:
+- **08** chiusa il 2026-09-23: 8/8 piani, verifica `passed` 5/5, tredici findings della
+  code review chiuse in due iterazioni di `/gsd:code-review 08 --fix` (report in
+  `08-REVIEW-FIX.md`). Le due Info rimaste (`08-REVIEW.md`, `status: issues_found`) sono
+  fuori scope di proposito.
 
-  - *Iterazione 1* — i due critici noti (`_upsert_voce` che ignorava `campi_presenti`,
-    `#CANCELLA#` che scriveva la stringa `"None"`), i tre warning, e un **terzo critico
-    trovato il 2026-09-23**: la migrazione `0019` non si applicava su SQLite
-    (`Cannot add a column with non-constant default`), quindi `dev.db` non poteva salire e
-    le nove colonne `updated_at` esistevano solo nello schema costruito da `create_all` nei
-    test. Il `dev.db` locale e' ora a `0019 (head)`.
+- **08.1** chiusa il 2026-09-25: 6/6 piani in tre wave, tre BLOCKER della review chiusi con
+  regressioni, collaudo dal vivo (`08.1-HUMAN-UAT.md`) **approvato da Riccardo**. Dal
+  collaudo e' emerso un difetto fuori scope, i dialog admin non scrollabili: corretto in
+  `db15e33`, insieme alla nuova pagina `/admin/documentazione` (manuale del pannello).
+  `backend/dev.db` a `0020 (head)`.
 
-  - *Iterazione 2* — la re-review ha confermato chiuse le sei e ne ha trovate sette nuove,
-    due BLOCKER: il guard sugli id accettava `"--5"` (`lstrip("-")` toglie tutti i meno) e
-    `int()` sollevava sulla `/preview`; due righe con la stessa chiave naturale senza `id`
-    nello stesso file facevano saltare il commit del router con `IntegrityError`, perdendo
-    l'import intero. La piu' istruttiva e' **WR-04**: le fixture usavano
-    `sessionmaker(bind=engine)` (`autoflush=True`) mentre la produzione usa
-    `autoflush=False`, ed e' il motivo per cui 555 test non vedevano il secondo BLOCKER.
-    Ora c'e' una fabbrica condivisa e un test che analizza l'AST di ogni file per impedire
-    che un test nuovo si ricostruisca la sessione per conto suo.
-
-  - Fuori dalle findings, `e131c20`: `test_token_manomesso_ritorna_none` non poteva fallire
-    in modo affidabile. Manometteva l'ultimo carattere del token, che porta 2 bit di
-    riempimento della firma HMAC-SHA1: quando la firma finiva in `Y` i 20 byte decodificati
-    restavano identici e il token era ancora valido. Misurato: falliva nel 6,6% dei run,
-    1 valore su 16. Non e' un difetto di `read_reset_token`. Stessa famiglia dell'acceptance
-    criterion di `08-05` soddisfacibile cambiando un commento.
-  Suite dopo tutto: **579 passed, 5 skipped**. `tsc -b` e `oxlint` a 0.
-  Report in `08-REVIEW-FIX.md`, re-review in `08-REVIEW.md` (`status: issues_found` si
-  riferisce alle due Info lasciate fuori scope di proposito).
-  **Nota operativa:** il fixer della seconda iterazione e' stato tagliato da un limite di
-  sessione esattamente al confine `Write` -> `commit`, con sei commit su un worktree branch
-  e il lavoro di WR-04 scritto su disco ma non committato. Recuperato a mano e mergiato con
-  `--no-ff`. Secondo giorno di fila che quel confine perde lavoro.
-
-  **Split del 2026-09-22:** il catalogo domande (D-05/06/07, D-21..D-25) e' uscito dalla
-  Fase 08 ed e' diventato la **Fase 08.1**, con il suo `08.1-CONTEXT.md` gia' scritto e
-  nessun piano ancora. Nessuno degli 8 piani della 08 ne dipende.
-  **Sessantanove commit in attesa di push**: il push deploya su Render e si fa a fine
-  milestone (`git push origin master:main`), e prima serve `BACKEND_PUBLIC_URL`
-  configurata su Render, o l'upload avatar torna 503.
+- **Push:** nessun push fino alla chiusura dell'**ultima fase della milestone (10)**,
+  decisione di Riccardo ribadita il 2026-09-25. Prima del push va configurata
+  `BACKEND_PUBLIC_URL` su Render, o l'upload avatar torna 503. Col primo deploy entra D-41:
+  il seed non riscrive piu' testi e opzioni esistenti, le correzioni passano dal pannello.
 
 - **Numerazione:** le fasi non ripartono da 01 a ogni milestone (regola GSD). Il piano
   originale chiamava queste fasi 1-6; qui sono **05-10**. La corrispondenza e':
@@ -210,10 +165,11 @@ Prossima: chiudere i 3 BLOCKER di `08.1-REVIEW.md` (CR-01 bersaglio effetto non 
 
 ## Next Step
 
-- **Fase 3 COMPLETA e verificata** (`03-VERIFICATION.md`: 9/9 code-level, human-verify approvato, override PDF concesso). Prossimo passo: avviare la **Fase 4 — Lead & pannello admin** (`/gsd-discuss-phase 4` poi `/gsd-plan-phase 4`).
-- **Backlog (deferred):** fix "ritorno alla stima" — da anonimo, dopo una prima stima, "Accedi" porta a pagina bianca invece di riportare l'utente alla stima appena calcolata. Candidato per una patch a inizio Fase 4 o hotfix.
-- **Verifica opzionale in produzione** (non bloccante): generazione PDF WeasyPrint Pro/Free su Debian/Railway con GTK3 nativo (in dev Windows resta atteso il 500 GTK); login Google dietro rete senza proxy MITM.
-- **Nota dev**: il seed di Fase 1 (`backend/scripts/seed.py`, idempotente) va rieseguito se un ciclo di migrazioni azzera `dev.db`, altrimenti il motore di calcolo risponde con NoResultFound sul listino di default.
+- `/gsd:discuss-phase 09` — Configuratore Pro e chiusura del bug dei cataloghi (QST-05,
+  CFG-01..04, WIZ-04).
+- Oracolo verificato via API il 2026-09-25: Reggio Emilia, 85 m², tipo **totale** (non moderata),
+  47.985-70.575 EUR esatto. Resta da guardare la scheda Anteprima del pannello dal vivo.
+- Backlog invariato: nessun test runner frontend, `tsc -b` non ufficiale.
 
 ## Open Questions / To Decide
 

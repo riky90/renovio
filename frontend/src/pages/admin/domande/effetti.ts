@@ -71,5 +71,12 @@ export function formattaValore(tipo: TipoEffetto, valore: number | null): string
     case "includi":
     case "escludi":
       return "—";
+    default: {
+      // IN-01: un tipo che il backend conosce e il frontend non ancora
+      // (deploy disallineato) mostra il valore grezzo invece di una cella
+      // vuota. `never` tiene l'esaustivita' controllata a compile-time.
+      const sconosciuto: never = tipo;
+      return `${valore} (${String(sconosciuto)})`;
+    }
   }
 }

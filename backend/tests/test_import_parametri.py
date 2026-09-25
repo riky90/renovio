@@ -851,9 +851,10 @@ class TestChiaveNaturaleDuplicataNelFile:
             applicate = apply_parametri(db, [riga, riga.model_copy(deep=True)], [], is_admin=True)
             db.commit()
 
-        assert applicate == 2  # entrambe le righe sono state elaborate...
+        # IN-01: la prima riga crea, la seconda trova la prima e non cambia
+        # nulla, quindi conta una sola riga applicata.
+        assert applicate == 1
         with client._session_local() as db:
-            # ...ma la seconda ha trovato la prima e l'ha aggiornata.
             assert db.query(ListinoCategoria).filter_by(listino_id=1, categoria_code="E-ARREDO").count() == 1
 
     def test_la_preview_segnala_il_duplicato_prima_della_conferma(self, client):
@@ -934,3 +935,29 @@ class TestChiaveNaturaleDuplicataNelFile:
         assert "coefficiente_impresa" not in detail
         assert "0.65" not in detail
         assert "vincolo di unicita'" in detail
+
+
+class TestConteggioERisorsaDelConfirm:
+    """IN-01 e IN-02 della review della Fase 08."""
+
+    def test_riga_esistente_senza_cambi_non_conta_come_applicata(self, client):
+        from app.models.catalogo import Moltiplicatore
+        from app.services.import_excel.parametri import apply as apply_parametri
+
+        with client._session_local() as db:
+            m = db.query(Moltiplicatore).order_by(Moltiplicatore.id).first()
+            riga = RigaPiattaIn(
+                foglio="moltiplicatori", id=str(m.id),
+                valori={"valore": float(m.valore)}, campi_da_cancellare=[],
+            )
+            assert apply_parametri(db, [], [riga], is_admin=True) == 0
+            cambiata = riga.model_copy(update={"valori": {"valore": float(m.valore) + 0.01}})
+            assert apply_parametri(db, [], [cambiata], is_admin=True) == 1
+            db.rollback()
+
+    def test_confirm_rifiuta_risorsa_del_corpo_diversa_dal_path(self, client):
+        _registra_admin(client)
+        payload = {"risorsa": "lead", "nuove": [], "modificate": []}
+        confirm = client.post(f"{IMPORT_URL}/confirm", json=payload)
+        assert confirm.status_code == 400
+        assert "non corrisponde" in confirm.json()["detail"]

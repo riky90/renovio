@@ -158,6 +158,15 @@ def confirm_import(
 
     _verifica_permesso(handler, user)
 
+    # IN-02: il body ripete la risorsa del path. Un disallineamento e' un
+    # client confuso, e deve diventare un errore leggibile, non un import
+    # silenzioso sulla risorsa del path.
+    if payload.risorsa != risorsa:
+        raise HTTPException(
+            400,
+            f"La risorsa del corpo ({payload.risorsa!r}) non corrisponde a quella dell'URL ({risorsa!r})",
+        )
+
     # is_admin reale, non un True fisso (T-08-63): con il gate per risorsa
     # un consulente puo' raggiungere questo punto per la risorsa "lead",
     # e la scrittura di colonne is_admin-gated (oggi solo su "parametri",

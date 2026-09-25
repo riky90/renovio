@@ -328,9 +328,14 @@ def apply(
         if ris.scarto is not None or ris.esistente is None:
             continue
 
+        # IN-01: una riga conta come applicata solo se cambia almeno un campo.
+        cambiata = False
         for campo, valore in ris.campi_aggiornati.items():
-            setattr(ris.esistente, campo, valore)
-        applicate += 1
+            if getattr(ris.esistente, campo) != valore:
+                setattr(ris.esistente, campo, valore)
+                cambiata = True
+        if cambiata:
+            applicate += 1
 
     return applicate
 

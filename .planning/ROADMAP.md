@@ -71,7 +71,7 @@ Requisiti archiviati: [`.planning/milestones/v1.0-REQUIREMENTS.md`](milestones/v
 
 ### Phase 07: Arredo
 
-**Status:** ✅ Complete (2026-09-21) — 1/1 piano, `07-01-SUMMARY.md`. Verificata dal vivo: totale lavori invariato, arredo accanto e non dentro. **Non ancora committata.**
+**Status:** ✅ Complete (2026-09-21) — 1/1 piano, `07-01-SUMMARY.md`. Verificata dal vivo: totale lavori invariato, arredo accanto e non dentro. Commit `6158eef`.
 **Goal:** L'utente dice quali ambienti vuole arredare e riceve un forfait arredo a range, esposto **accanto** al totale lavori e mai dentro — e da lì il Bonus Mobili diventa accendibile.
 **Mode:** mvp
 **UI hint:** yes
@@ -86,7 +86,7 @@ Requisiti archiviati: [`.planning/milestones/v1.0-REQUIREMENTS.md`](milestones/v
 
 ### Phase 08: Export/import Excel dal pannello admin
 
-**Status:** ⏳ NEXT
+**Status:** ✅ Complete (2026-09-23) — 8/8 piani, verifica `passed` 5/5, tredici findings della code review chiuse in gap closure. Il catalogo domande e' stato spostato nella 08.1.
 **Goal:** La curatela dei dati esce dal `dev.db` e diventa un file che l'admin scarica, modifica e ricarica senza perdere nulla — prerequisito di ogni taratura seria.
 **Mode:** mvp
 **UI hint:** yes
@@ -134,7 +134,7 @@ raccomandazione di split in `.planning/phases/08-export-import-excel/08-CONTEXT.
 
 ### Phase 08.1: Catalogo domande: pagina CRUD e file Excel
 
-**Status:** pending
+**Status:** ✅ Complete (2026-09-25) — 6/6 piani, tre BLOCKER della code review chiusi, collaudo dal vivo approvato da Riccardo il 2026-09-25.
 **Goal:** Il catalogo delle domande smette di essere curabile solo dal seed: prende una pagina nel pannello e un file Excel, così che chi tara le domande non debba passare da un deploy.
 **Mode:** mvp
 **UI hint:** yes
@@ -234,4 +234,4 @@ va impostata **una** variabile, `BACKEND_PUBLIC_URL`.
 | QST-05, CFG-01..04, WIZ-04 | 09 |
 | RIS-01..04 | 10 |
 
-Tutti i 27 requisiti v2 sono mappati a esattamente una fase.
+Tutti i 27 requisiti v2 sono mappati; CUR-01/02 compaiono in due fasi perche' la 08.1 li ha estesi al catalogo domande.

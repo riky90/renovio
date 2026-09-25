@@ -35,10 +35,10 @@ farci*, senza che aggiungere una domanda costi un deploy.
 
 ### Arredo (ARR)
 
-- [ ] **ARR-01**: Esiste la categoria `E-ARREDO`, esclusa dal totale lavori tramite la colonna dato `categoria.nel_totale_lavori` — nessuna costante di business nel codice
-- [ ] **ARR-02**: Free: forfait per `(ambiente, livello)` a range, guidato dalla multiselect "ambienti da arredare"
-- [ ] **ARR-03**: L'arredo è esposto come **fratello** di `totale`, mai dentro, con il suo disclaimer nel payload, così finisce nello snapshot e nel PDF
-- [ ] **ARR-04**: Con l'input arredo disponibile, il Bonus Mobili si può accendere dal pannello admin senza deploy
+- [x] **ARR-01**: Esiste la categoria `E-ARREDO`, esclusa dal totale lavori tramite la colonna dato `categoria.nel_totale_lavori` — nessuna costante di business nel codice
+- [x] **ARR-02**: Free: forfait per `(ambiente, livello)` a range, guidato dalla multiselect "ambienti da arredare"
+- [x] **ARR-03**: L'arredo è esposto come **fratello** di `totale`, mai dentro, con il suo disclaimer nel payload, così finisce nello snapshot e nel PDF
+- [x] **ARR-04**: Con l'input arredo disponibile, il Bonus Mobili si può accendere dal pannello admin senza deploy
 
 ### Curatela dei dati (CUR)
 
@@ -94,13 +94,38 @@ farci*, senza che aggiungere una domanda costi un deploy.
 
 ## Traceability
 
-| Requisiti | Fase |
-|-----------|------|
-| QST-01..04, PAR-01..03, PAR-05 | 05 — Catalogo domande + motore Free parametrico ✅ |
-| WIZ-01..03 | 06 — Wizard unico ✅ |
-| ARR-01..04 | 07 — Arredo |
-| CUR-01..04, PAR-04 | 08 — Export/import Excel |
-| QST-05, CFG-01..04, WIZ-04 | 09 — Configuratore Pro e chiusura del bug |
-| RIS-01..04 | 10 — Risultato leggibile e tetto di budget |
+| Requisito | Fase | Stato |
+|-----------|------|-------|
+| QST-01 | 05 | fatto |
+| QST-02 | 05 | fatto |
+| QST-03 | 05 | fatto |
+| QST-04 | 05 | fatto |
+| QST-05 | 09 | da fare |
+| PAR-01 | 05 | fatto |
+| PAR-02 | 05 | fatto |
+| PAR-03 | 05 | fatto |
+| PAR-04 | 08 | fatto |
+| PAR-05 | 05 | fatto |
+| WIZ-01 | 06 | fatto |
+| WIZ-02 | 06 | fatto |
+| WIZ-03 | 06 | fatto |
+| WIZ-04 | 09 | da fare |
+| ARR-01 | 07 | fatto |
+| ARR-02 | 07 | fatto |
+| ARR-03 | 07 | fatto |
+| ARR-04 | 07 | fatto |
+| CUR-01 | 08, 08.1 | fatto |
+| CUR-02 | 08, 08.1 | fatto |
+| CUR-03 | 08 | fatto |
+| CUR-04 | 08 | fatto |
+| CFG-01 | 09 | da fare |
+| CFG-02 | 09 | da fare |
+| CFG-03 | 09 | da fare |
+| CFG-04 | 09 | da fare |
+| RIS-01 | 10 | da fare |
+| RIS-02 | 10 | da fare |
+| RIS-03 | 10 | da fare |
+| RIS-04 | 10 | da fare |
+| D-01 | tutte (vincolo permanente) | vincolo |
 
-Copertura: 27/27 requisiti v2 mappati a esattamente una fase.
+Copertura: 27/27 requisiti v2 mappati. CUR-01/02 sono nati nella 08 (listino e parametri) e chiusi per il catalogo domande nella 08.1. D-01 e' un vincolo che vale per ogni fase.

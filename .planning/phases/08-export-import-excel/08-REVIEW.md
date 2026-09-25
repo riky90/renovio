@@ -652,3 +652,7 @@ disallineamento silenzioso del client in un errore leggibile.
 _Reviewed: 2026-09-23_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard — iterazione 2_
+
+---
+
+**Aggiornamento 2026-09-25:** le Info rimaste aperte sono state chiuse fuori dal ciclo di review, su richiesta di Riccardo, insieme alla chiusura della 08.1. Per la 08: IN-01 conta solo le righe che cambiano davvero, in `parametri.py` e `lead.py`; IN-02 fa rispondere `/confirm` con 400 quando la risorsa nel corpo non coincide con quella del path. Per la 08.1: IN-01 aggiunge a `formattaValore` un ramo `default` controllato con `never`. Le regressioni sono in `tests/test_import_parametri.py::TestConteggioERisorsaDelConfirm`.

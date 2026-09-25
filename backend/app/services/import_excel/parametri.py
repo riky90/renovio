@@ -700,12 +700,21 @@ def _forse_aggiungi_margine(r: RigaPiattaIn, valori_creazione: dict[str, object]
         valori_creazione[CAMPO_MARGINE] = margine
 
 
-def _forse_aggiorna_margine(riga_db: ListinoCategoria, r: RigaPiattaIn, *, is_admin: bool) -> None:
+def _forse_aggiorna_margine(riga_db: ListinoCategoria, r: RigaPiattaIn, *, is_admin: bool) -> bool:
     if not is_admin or CAMPO_MARGINE not in r.valori:
-        return
+        return False
     margine = _decimal(r.valori[CAMPO_MARGINE])
     if margine is not None and 0 < margine <= 1:
-        setattr(riga_db, CAMPO_MARGINE, margine)
+        return _scrivi(riga_db, CAMPO_MARGINE, margine)
+    return False
+
+
+def _scrivi(oggetto: object, campo: str, valore: object) -> bool:
+    """Scrive `campo` solo se il valore cambia e dice se l'ha cambiato (IN-01)."""
+    if getattr(oggetto, campo) == valore:
+        return False
+    setattr(oggetto, campo, valore)
+    return True
 
 
 def apply(
@@ -720,6 +729,10 @@ def apply(
     for r in [*nuove, *modificate]:
         if campi_nulli_in_valori(r) or _campi_non_annullabili(r):
             continue
+        # IN-01: conta la riga solo se qualcosa cambia davvero, cosi' "N righe
+        # applicate" dopo un round-trip a vuoto dice 0 e non il numero di righe
+        # del file.
+        cambiata = False
 
         resolver = _RESOLVER.get(r.foglio)
         if resolver is None:
@@ -740,7 +753,7 @@ def apply(
             categoria = db.get(Categoria, categoria_code) if categoria_code else None
             if categoria is not None:
                 for campo, valore in ris.campi_extra.items():
-                    setattr(categoria, campo, valore)
+                    cambiata |= _scrivi(categoria, campo, valore)
 
         if ris.esistente is None:
             valori_creazione = dict(ris.valori_creazione or {})
@@ -768,13 +781,15 @@ def apply(
             # trova la prima e diventa un aggiornamento.
             # Stesso pattern di `listino_upload_service._upsert_voce`.
             db.flush()
+            cambiata = True
         else:
             for campo, valore in ris.campi_aggiornati.items():
-                setattr(ris.esistente, campo, valore)
+                cambiata |= _scrivi(ris.esistente, campo, valore)
             if r.foglio == FOGLIO_LISTINO_CATEGORIA:
-                _forse_aggiorna_margine(ris.esistente, r, is_admin=is_admin)
+                cambiata |= _forse_aggiorna_margine(ris.esistente, r, is_admin=is_admin)
 
-        applicate += 1
+        if cambiata:
+            applicate += 1
 
     return applicate
 
