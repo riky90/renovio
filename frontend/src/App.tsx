@@ -19,6 +19,7 @@ import { CittaTestiPage } from "@/pages/admin/CittaTestiPage";
 import { UtentiPage } from "@/pages/admin/UtentiPage";
 import { DettaglioProAdminPage } from "@/pages/admin/DettaglioProPage";
 import { BonusPage } from "@/pages/admin/BonusPage";
+import { DocumentazionePage } from "@/pages/admin/DocumentazionePage";
 
 const router = createBrowserRouter([
   { path: "/", element: <EstimatePage /> },
@@ -45,6 +46,7 @@ const router = createBrowserRouter([
   { path: "/admin/citta-testi", element: <CittaTestiPage /> },
   { path: "/admin/referenti", element: <ReferentiPage /> },
   { path: "/admin/utenti", element: <UtentiPage /> },
+  { path: "/admin/documentazione", element: <DocumentazionePage /> },
 ]);
 
 function App() {

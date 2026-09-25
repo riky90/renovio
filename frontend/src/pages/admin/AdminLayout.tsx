@@ -10,6 +10,7 @@ import {
   Layers,
   Percent,
   HelpCircle,
+  BookOpen,
   type LucideIcon,
 } from "lucide-react";
 import { AccountMenu } from "@/components/AccountMenu";
@@ -43,6 +44,7 @@ const NAV_ITEMS: AdminNavItem[] = [
   { path: "/admin/citta-testi", label: "Città e testi", icon: MapPin, roles: ["admin"] },
   { path: "/admin/referenti", label: "Referenti", icon: Users, roles: ["admin"] },
   { path: "/admin/utenti", label: "Utenti", icon: ShieldCheck, roles: ["admin"] },
+  { path: "/admin/documentazione", label: "Documentazione", icon: BookOpen, roles: ["admin"] },
 ];
 
 /**
