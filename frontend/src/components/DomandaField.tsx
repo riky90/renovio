@@ -2,12 +2,28 @@ import { Label } from "@/components/ui/label";
 import { NumberStepper } from "@/components/ui/number-stepper";
 import { OptionCard } from "@/components/EstimateFormFields";
 import { cn } from "@/lib/utils";
-import { isNumerico, type Domanda, type ValoreRisposta } from "@/api/domande";
+import { isNumerico, type Domanda, type OpzioneDomanda, type ValoreRisposta } from "@/api/domande";
+
+/**
+ * Sottoinsieme di `Domanda`/`OpzioneDomanda`: quello che a questo componente
+ * serve davvero per disegnare, cosi' il pannello Pro (`DomandaProOut`, meno
+ * campi di `Domanda`) puo' passare le sue domande senza un adattamento.
+ */
+export type DomandaMinima = Pick<Domanda, "code" | "testo" | "help" | "tipo_controllo"> & {
+  opzioni: Pick<OpzioneDomanda, "code" | "etichetta" | "descrizione">[];
+};
 
 interface DomandaFieldProps {
-  domanda: Domanda;
+  domanda: DomandaMinima;
   valore: ValoreRisposta | undefined;
   onChange: (valore: ValoreRisposta) => void;
+  /**
+   * Griglia 2x2 fissa (UI-SPEC §A.2), invece della regola generica
+   * `opzioni.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-3"`: solo per il
+   * pavimento (4 opzioni, pannello largo max 640px). Senza questa prop il
+   * comportamento resta identico a oggi — nessun campo del wizard la passa.
+   */
+  griglia?: "due-colonne";
 }
 
 /**
@@ -22,7 +38,7 @@ interface DomandaFieldProps {
  * esattamente come l'insieme dei sette tipi di effetto lato motore: un
  * controllo in piu' e' una decisione di design, non una riga di configurazione.
  */
-export function DomandaField({ domanda, valore, onChange }: DomandaFieldProps) {
+export function DomandaField({ domanda, valore, onChange, griglia }: DomandaFieldProps) {
   const etichettaId = `domanda-${domanda.code}`;
   const helpId = domanda.help ? `${etichettaId}-help` : undefined;
 
@@ -42,6 +58,7 @@ export function DomandaField({ domanda, valore, onChange }: DomandaFieldProps) {
         onChange={onChange}
         id={etichettaId}
         helpId={helpId}
+        griglia={griglia}
       />
     </div>
   );
@@ -53,6 +70,7 @@ function Controllo({
   onChange,
   id,
   helpId,
+  griglia,
 }: DomandaFieldProps & { id: string; helpId?: string }) {
   if (isNumerico(domanda.tipo_controllo)) {
     return (
@@ -91,11 +109,19 @@ function Controllo({
   }
 
   // scelta_singola / toggle: stessa forma, cambia solo quante opzioni ci sono.
+  // Eccezione dichiarata (UI-SPEC §A.2): con `griglia="due-colonne"` la
+  // griglia e' 2x2 fissa a ogni breakpoint, non solo `sm:` — usata solo dal
+  // pavimento (4 opzioni in un pannello largo max 640px); senza la prop il
+  // wizard non cambia.
   return (
     <div
       className={cn(
         "grid grid-cols-1 gap-3",
-        domanda.opzioni.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-3"
+        griglia === "due-colonne"
+          ? "grid-cols-2"
+          : domanda.opzioni.length === 2
+            ? "sm:grid-cols-2"
+            : "sm:grid-cols-3"
       )}
     >
       {domanda.opzioni.map((opzione) => (
