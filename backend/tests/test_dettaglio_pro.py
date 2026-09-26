@@ -1,17 +1,20 @@
 """DettaglioProService regression tests (03-03-PLAN.md Task 1/2).
 
-Oracolo per-voce pinnato a mano dal seed reale (docs/seed-dettaglio-pro.json):
-- A.1.1.1 (A-EDILE, um=mq, prezzo_unitario_cliente=45.00, coefficiente_qta_per_mq
-  tipo=totale=0.6): mq=85 -> quantita=51.00, totale_voce=2295.00,
-  range_pct(totale)=0.20 -> [1836, 2754].
-- A.0.3 (A-EDILE, um=cad, prezzo_unitario_cliente=40.00, tipo=totale,
-  domanda_mirata_key="bagni", default_conteggio=1): senza risposte ->
-  quantita=1 -> [32, 48]; con risposte={"bagni": 3} -> quantita=3 -> [96, 144].
+Oracolo per-voce (A.1.1.1, A-EDILE, um=mq): dal piano 09-06 (CFG-04) il
+coefficiente non e' piu' la bozza uniforme 0.6 x TIPO_FACTOR — cambia con la
+classe di taratura e cambiera' ancora con la taratura vera di Riccardo.
+L'attesa si legge dal coefficiente seminato a DB (`quantita = coefficiente x
+mq`, range = `TipoRistrutturazione.range_pct`), non da un numero cablato: e'
+la CATENA che questo test presidia, non il valore di taratura.
+
+A.0.3 (A-EDILE, um=cad, prezzo_unitario_cliente=40.00, tipo=totale,
+domanda_mirata_key="bagni", default_conteggio=1): senza risposte ->
+quantita=1 -> [32, 48]; con risposte={"bagni": 3} -> quantita=3 -> [96, 144].
 """
 
 from __future__ import annotations
 
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
 import pytest
 from fastapi.testclient import TestClient
@@ -21,6 +24,8 @@ import app.db as db_module
 from app.db import Base
 from app.limiter import limiter
 from app.main import app
+from app.models.catalogo import TipoRistrutturazione
+from app.models.dettaglio_pro import CoefficienteQuantitaVoce, Voce
 from app.services.city_resolver import resolve_listino
 from app.services.dettaglio_pro import DettaglioProService
 from scripts.seed import load_seed_data, seed
@@ -53,9 +58,32 @@ def test_oracolo_per_voce_coefficiente_qta_per_mq(session):
     result = DettaglioProService.compute(session, listino, mq=85, tipo="totale", risposte={})
 
     voce = _find_voce(result, "A.1.1.1")
-    assert voce.quantita_stimata == Decimal("51.00")
-    assert voce.prezzo_min == Decimal("1836")
-    assert voce.prezzo_max == Decimal("2754")
+
+    # Attesa derivata dal coefficiente seminato a DB (CFG-04, piano 09-06),
+    # non da un numero di taratura cablato: la bozza e' cambiata e cambiera'
+    # ancora con la taratura vera di Riccardo.
+    voce_db = session.query(Voce).filter_by(codice="A.1.1.1").one()
+    coeff = (
+        session.query(CoefficienteQuantitaVoce)
+        .filter_by(voce_id=voce_db.id, tipo_code="totale")
+        .one()
+    )
+    range_pct = session.query(TipoRistrutturazione).filter_by(code="totale").one().range_pct
+
+    quantita_attesa = (coeff.coefficiente_qta_per_mq * Decimal(85)).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
+    totale_voce = quantita_attesa * voce_db.prezzo_unitario_cliente
+    prezzo_min_atteso = (totale_voce * (Decimal("1") - range_pct)).quantize(
+        Decimal("1"), rounding=ROUND_HALF_UP
+    )
+    prezzo_max_atteso = (totale_voce * (Decimal("1") + range_pct)).quantize(
+        Decimal("1"), rounding=ROUND_HALF_UP
+    )
+
+    assert voce.quantita_stimata == quantita_attesa
+    assert voce.prezzo_min == prezzo_min_atteso
+    assert voce.prezzo_max == prezzo_max_atteso
 
 
 def test_senza_risposta_bagni_vale_latteso_a_85_mq(session):

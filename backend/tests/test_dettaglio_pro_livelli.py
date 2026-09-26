@@ -76,8 +76,16 @@ def _descrizioni_sotto(result, nome_sotto: str) -> list[str]:
 
 class TestRetrocompatibilita:
     def test_oracolo_per_voce_invariato(self, session):
-        """L'oracolo pinnato di `test_dettaglio_pro.py` deve reggere identico:
-        A.1.1.1 sta in A-EDILE, che il livello non tocca mai."""
+        """L'oracolo di `test_dettaglio_pro.py` deve reggere identico: A.1.1.1
+        sta in A-EDILE, che il livello non tocca mai. Dal piano 09-06 (CFG-04)
+        l'attesa si legge dal coefficiente seminato a DB, non da un numero di
+        taratura cablato (la bozza cambiera' ancora con la taratura di
+        Riccardo)."""
+        from decimal import ROUND_HALF_UP
+
+        from app.models.catalogo import TipoRistrutturazione
+        from app.models.dettaglio_pro import CoefficienteQuantitaVoce, Voce
+
         result = _compute(session)
 
         voce = next(
@@ -87,9 +95,29 @@ class TestRetrocompatibilita:
             for v in sotto.voci
             if v.codice == "A.1.1.1"
         )
-        assert voce.quantita_stimata == Decimal("51.00")
-        assert voce.prezzo_min == Decimal("1836")
-        assert voce.prezzo_max == Decimal("2754")
+
+        voce_db = session.query(Voce).filter_by(codice="A.1.1.1").one()
+        coeff = (
+            session.query(CoefficienteQuantitaVoce)
+            .filter_by(voce_id=voce_db.id, tipo_code="totale")
+            .one()
+        )
+        range_pct = session.query(TipoRistrutturazione).filter_by(code="totale").one().range_pct
+
+        quantita_attesa = (coeff.coefficiente_qta_per_mq * Decimal(85)).quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
+        )
+        totale_voce = quantita_attesa * voce_db.prezzo_unitario_cliente
+        prezzo_min_atteso = (totale_voce * (Decimal("1") - range_pct)).quantize(
+            Decimal("1"), rounding=ROUND_HALF_UP
+        )
+        prezzo_max_atteso = (totale_voce * (Decimal("1") + range_pct)).quantize(
+            Decimal("1"), rounding=ROUND_HALF_UP
+        )
+
+        assert voce.quantita_stimata == quantita_attesa
+        assert voce.prezzo_min == prezzo_min_atteso
+        assert voce.prezzo_max == prezzo_max_atteso
 
 class TestSelezionePerLivello:
     """Dalla Fase 09-03 il filtro per livello non e' piu' `voce.livello`

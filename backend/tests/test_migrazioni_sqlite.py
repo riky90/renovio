@@ -24,6 +24,8 @@ I test qui sotto chiudono quel buco su tre fronti:
 
 from __future__ import annotations
 
+import datetime as _dt
+import shutil
 import sqlite3
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -36,6 +38,7 @@ from sqlalchemy import create_engine, inspect
 
 from app.config import settings
 from app.db import Base
+from scripts.applica_taratura import _TEMPLATE_MIGRAZIONE
 
 # Importare `app.models` registra TUTTE le entita' su `Base.metadata` — da
 # WR-05 anche `Lead` e `Testo`, che il package prima taceva e che questo
@@ -180,7 +183,7 @@ def test_upgrade_head_gira_su_sqlite_vergine(tmp_path, monkeypatch):
         revisione = connessione.execute("SELECT version_num FROM alembic_version").fetchone()
     finally:
         connessione.close()
-    assert revisione == ("0021",)
+    assert revisione == ("0022",)
 
 
 def test_upgrade_all_ultima_revisione_gira_su_un_database_popolato(tmp_path, monkeypatch):
@@ -882,3 +885,423 @@ def test_downgrade_0021_e_poi_upgrade_e_reversibile(tmp_path, monkeypatch):
         assert chiavi_dopo == chiavi_prima
     finally:
         connessione.close()
+
+
+# ---------------------------------------------------------------------------
+# 0022 — taratura approvata (D-03/D-08, piano 09-06): coefficienti + effetti
+# ---------------------------------------------------------------------------
+#
+# La 0022 reale (generata da `scripts/applica_taratura.py --migrazione` sulla
+# bozza accettata) ha `_VALORI_EFFETTO`/`_INCLUDI_SPOSTATI` vuote (nessun
+# valore di stepper o asse spostato tra la base 09-02 e la bozza corrente).
+# Per provare TUTTI i quattro rami del template, questi test scrivono una
+# 0022 SINTETICA (stesso `_TEMPLATE_MIGRAZIONE` del modulo, stesse
+# revision/down_revision "0022"/"0021") con costanti scelte ad hoc, dentro una
+# copia temporanea di `alembic/` — mai il file reale, mai `backend/dev.db`.
+
+CHIAVE_A = ("finiture", "GRES", "Voce coefficiente")
+CHIAVE_B = ("finiture", "GRES", "Voce quantita")
+
+
+def _scrivi_0022_sintetica(
+    versions_dir: Path,
+    *,
+    coefficienti: tuple = (),
+    valori_effetto: tuple = (),
+    includi_spostati: tuple = (),
+    effetti_rimossi: tuple = (),
+) -> None:
+    contenuto = _TEMPLATE_MIGRAZIONE.format(
+        revision="0022",
+        down_revision="0021",
+        create_date=_dt.datetime.now().isoformat(),
+        coefficienti=tuple(coefficienti),
+        valori_effetto=tuple(valori_effetto),
+        includi_spostati=tuple(includi_spostati),
+        effetti_rimossi=tuple(effetti_rimossi),
+    )
+    (versions_dir / "0022_taratura_pro_approvata.py").write_text(contenuto, encoding="utf-8")
+
+
+def _alembic_config_0022_sintetica(db_path: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, **costanti) -> Config:
+    """Config Alembic su una copia temporanea di `alembic/` con la 0022 reale
+    sostituita da una sintetica (stesse revision/down_revision, costanti a
+    scelta) — la catena 0001..0021 resta quella vera, invariata."""
+    versions_tmp_root = tmp_path / "alembic_0022_sintetica"
+    shutil.copytree(BACKEND_DIR / "alembic", versions_tmp_root)
+    _scrivi_0022_sintetica(versions_tmp_root / "versions", **costanti)
+    monkeypatch.setattr(settings, "DATABASE_URL", f"sqlite:///{db_path}")
+    config = Config()
+    config.set_main_option("script_location", str(versions_tmp_root))
+    return config
+
+
+def _semina_curatela_09_06(connessione: sqlite3.Connection) -> dict[str, int]:
+    """Curatela minima su un DB a revisione 0021: una sottocategoria/due voci
+    con coefficiente_qta_voce (una 'in bozza' al valore vecchio, una 'curata a
+    mano' a un valore diverso), la domanda `finitura` con opzioni medio/alto,
+    la domanda `bagni` con opzione `valore`."""
+    connessione.execute(
+        "INSERT INTO categoria (code, nome, ordine, iva_pct, livello_selezionabile, nel_totale_lavori)"
+        " VALUES ('finiture', 'Finiture', 1, 0.22, 1, 1)"
+    )
+    connessione.execute(
+        "INSERT INTO listino (id, nome, citta_riferimento, valuta, is_default, attivo)"
+        " VALUES (1, 'Listino RE', 'Reggio Emilia', 'EUR', 1, 1)"
+    )
+    connessione.execute(
+        "INSERT INTO sottocategoria (id, listino_id, categoria_code, nome, famiglia, ordine)"
+        " VALUES (1, 1, 'finiture', 'GRES', 'catalogo', 1)"
+    )
+    connessione.execute(
+        "INSERT INTO tipo_ristrutturazione (code, nome, ordine, range_pct) VALUES ('totale', 'Totale', 1, 0.15)"
+    )
+
+    cursore = connessione.execute(
+        "INSERT INTO voce (sottocategoria_id, descrizione, um, prezzo_unitario_cliente, ordine)"
+        " VALUES (1, 'Voce coefficiente', 'mq', 40.00, 1)"
+    )
+    voce_coeff_id = cursore.lastrowid
+    connessione.execute(
+        "INSERT INTO coefficiente_qta_voce (voce_id, tipo_code, coefficiente_qta_per_mq) VALUES (?, 'totale', 0.6)",
+        (voce_coeff_id,),
+    )
+
+    cursore = connessione.execute(
+        "INSERT INTO voce (sottocategoria_id, descrizione, um, prezzo_unitario_cliente, ordine)"
+        " VALUES (1, 'Voce curata', 'mq', 40.00, 2)"
+    )
+    voce_curata_id = cursore.lastrowid
+    connessione.execute(
+        "INSERT INTO coefficiente_qta_voce (voce_id, tipo_code, coefficiente_qta_per_mq) VALUES (?, 'totale', 1.23)",
+        (voce_curata_id,),
+    )
+
+    cursore = connessione.execute(
+        "INSERT INTO voce (sottocategoria_id, descrizione, um, prezzo_unitario_cliente, ordine)"
+        " VALUES (1, 'Voce quantita', 'cad', 50.00, 3)"
+    )
+    voce_quantita_id = cursore.lastrowid
+
+    connessione.execute(
+        "INSERT INTO domanda (code, testo, tipo_controllo) VALUES ('finitura', 'Livello di finitura', 'scelta_singola')"
+    )
+    connessione.execute(
+        "INSERT INTO opzione_domanda (domanda_code, code, etichetta) VALUES ('finitura', 'medio', 'Medio')"
+    )
+    connessione.execute(
+        "INSERT INTO opzione_domanda (domanda_code, code, etichetta) VALUES ('finitura', 'alto', 'Alto')"
+    )
+    connessione.execute(
+        "INSERT INTO domanda (code, testo, tipo_controllo) VALUES ('bagni', 'Numero di bagni', 'stepper')"
+    )
+    connessione.execute(
+        "INSERT INTO opzione_domanda (domanda_code, code, etichetta) VALUES ('bagni', 'valore', 'Valore')"
+    )
+    connessione.commit()
+
+    return {
+        "voce_coeff": voce_coeff_id,
+        "voce_curata": voce_curata_id,
+        "voce_quantita": voce_quantita_id,
+    }
+
+
+def test_0022_aggiorna_solo_le_righe_in_bozza(tmp_path, monkeypatch):
+    """DB a 0021 con una riga coefficiente al valore di bozza e una riga
+    curata a mano: dopo upgrade 0022 la prima ha il valore nuovo, la seconda
+    e' invariata."""
+    db_path = tmp_path / "coeff.db"
+    config = _alembic_config_0022_sintetica(
+        db_path,
+        tmp_path,
+        monkeypatch,
+        coefficienti=((CHIAVE_A[0], CHIAVE_A[1], CHIAVE_A[2], "totale", "coefficiente_qta_per_mq", 0.6, 0.85),),
+    )
+    command.upgrade(config, "0021")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        id_ = _semina_curatela_09_06(connessione)
+    finally:
+        connessione.close()
+
+    command.upgrade(config, "0022")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        (valore_bozza,) = connessione.execute(
+            "SELECT coefficiente_qta_per_mq FROM coefficiente_qta_voce WHERE voce_id = ? AND tipo_code = 'totale'",
+            (id_["voce_coeff"],),
+        ).fetchone()
+        (valore_curato,) = connessione.execute(
+            "SELECT coefficiente_qta_per_mq FROM coefficiente_qta_voce WHERE voce_id = ? AND tipo_code = 'totale'",
+            (id_["voce_curata"],),
+        ).fetchone()
+    finally:
+        connessione.close()
+
+    assert valore_bozza == pytest.approx(0.85)
+    assert valore_curato == pytest.approx(1.23)  # invariata: non era al valore di bozza (0.6)
+
+
+def test_0022_aggiorna_valori_effetto_ancora_alla_base(tmp_path, monkeypatch):
+    """Un effetto `quantita_per_unita` viene aggiornato solo se vale ancora
+    il valore base; una riga gia' curata a un valore diverso resta
+    invariata."""
+    db_path = tmp_path / "valori.db"
+    config = _alembic_config_0022_sintetica(
+        db_path,
+        tmp_path,
+        monkeypatch,
+        valori_effetto=(("bagni", "valore", "quantita_per_unita", CHIAVE_B, None, 1.0, 2.0),),
+    )
+    command.upgrade(config, "0021")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        id_ = _semina_curatela_09_06(connessione)
+        opzione_id = connessione.execute(
+            "SELECT id FROM opzione_domanda WHERE domanda_code = 'bagni' AND code = 'valore'"
+        ).fetchone()[0]
+        connessione.execute(
+            "INSERT INTO effetto_opzione (opzione_id, tipo_effetto, target_voce_id, valore, attivo)"
+            " VALUES (?, 'quantita_per_unita', ?, 1.0, 1)",
+            (opzione_id, id_["voce_quantita"]),
+        )
+        connessione.commit()
+    finally:
+        connessione.close()
+
+    command.upgrade(config, "0022")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        (valore,) = connessione.execute(
+            "SELECT valore FROM effetto_opzione WHERE tipo_effetto = 'quantita_per_unita' AND target_voce_id = ?",
+            (id_["voce_quantita"],),
+        ).fetchone()
+    finally:
+        connessione.close()
+    assert valore == pytest.approx(2.0)
+
+
+def test_0022_sposta_la_finitura_senza_doppioni(tmp_path, monkeypatch):
+    """L'effetto `includi` di una voce del gres passa dall'opzione vecchia
+    alla nuova senza doppioni; se la nuova ha gia' un includi identico, quello
+    sulla vecchia viene rimosso invece di duplicare."""
+    db_path = tmp_path / "includi.db"
+    config = _alembic_config_0022_sintetica(
+        db_path,
+        tmp_path,
+        monkeypatch,
+        includi_spostati=(("finitura", CHIAVE_A, "medio", "alto"),),
+    )
+    command.upgrade(config, "0021")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        id_ = _semina_curatela_09_06(connessione)
+        opzione_medio_id = connessione.execute(
+            "SELECT id FROM opzione_domanda WHERE domanda_code = 'finitura' AND code = 'medio'"
+        ).fetchone()[0]
+        connessione.execute(
+            "INSERT INTO effetto_opzione (opzione_id, tipo_effetto, target_voce_id, attivo)"
+            " VALUES (?, 'includi', ?, 1)",
+            (opzione_medio_id, id_["voce_coeff"]),
+        )
+        connessione.commit()
+    finally:
+        connessione.close()
+
+    command.upgrade(config, "0022")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        righe = connessione.execute(
+            "SELECT od.code FROM effetto_opzione eo JOIN opzione_domanda od ON od.id = eo.opzione_id"
+            " WHERE eo.tipo_effetto = 'includi' AND eo.target_voce_id = ?",
+            (id_["voce_coeff"],),
+        ).fetchall()
+    finally:
+        connessione.close()
+    assert righe == [("alto",)]  # una sola riga, mai un doppione
+
+
+def test_0022_sposta_la_finitura_non_duplica_se_gia_presente_sulla_nuova(tmp_path, monkeypatch):
+    """Se l'opzione nuova ha GIA' un includi identico (curatela concorrente),
+    l'upgrade rimuove quello sulla vecchia invece di crearne un secondo."""
+    db_path = tmp_path / "includi_doppio.db"
+    config = _alembic_config_0022_sintetica(
+        db_path,
+        tmp_path,
+        monkeypatch,
+        includi_spostati=(("finitura", CHIAVE_A, "medio", "alto"),),
+    )
+    command.upgrade(config, "0021")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        id_ = _semina_curatela_09_06(connessione)
+        opzione_medio_id = connessione.execute(
+            "SELECT id FROM opzione_domanda WHERE domanda_code = 'finitura' AND code = 'medio'"
+        ).fetchone()[0]
+        opzione_alto_id = connessione.execute(
+            "SELECT id FROM opzione_domanda WHERE domanda_code = 'finitura' AND code = 'alto'"
+        ).fetchone()[0]
+        for opzione_id in (opzione_medio_id, opzione_alto_id):
+            connessione.execute(
+                "INSERT INTO effetto_opzione (opzione_id, tipo_effetto, target_voce_id, attivo)"
+                " VALUES (?, 'includi', ?, 1)",
+                (opzione_id, id_["voce_coeff"]),
+            )
+        connessione.commit()
+    finally:
+        connessione.close()
+
+    command.upgrade(config, "0022")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        righe = connessione.execute(
+            "SELECT od.code FROM effetto_opzione eo JOIN opzione_domanda od ON od.id = eo.opzione_id"
+            " WHERE eo.tipo_effetto = 'includi' AND eo.target_voce_id = ?",
+            (id_["voce_coeff"],),
+        ).fetchall()
+    finally:
+        connessione.close()
+    assert righe == [("alto",)]
+
+
+def test_0022_rimuove_solo_effetti_identici(tmp_path, monkeypatch):
+    """Un effetto con bersaglio naturale presente nella base e assente nel
+    nuovo (assegnazione respinta) viene cancellato solo se esiste ancora
+    identico; una riga gia' cambiata (valore diverso da quello base) resta."""
+    db_path = tmp_path / "rimossi.db"
+    config = _alembic_config_0022_sintetica(
+        db_path,
+        tmp_path,
+        monkeypatch,
+        effetti_rimossi=(("bagni", "valore", "quantita_per_unita", CHIAVE_B, None, 1.0),),
+    )
+    command.upgrade(config, "0021")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        id_ = _semina_curatela_09_06(connessione)
+        opzione_id = connessione.execute(
+            "SELECT id FROM opzione_domanda WHERE domanda_code = 'bagni' AND code = 'valore'"
+        ).fetchone()[0]
+        connessione.execute(
+            "INSERT INTO effetto_opzione (opzione_id, tipo_effetto, target_voce_id, valore, attivo)"
+            " VALUES (?, 'quantita_per_unita', ?, 1.0, 1)",
+            (opzione_id, id_["voce_quantita"]),
+        )
+        connessione.commit()
+    finally:
+        connessione.close()
+
+    command.upgrade(config, "0022")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        righe = connessione.execute(
+            "SELECT COUNT(*) FROM effetto_opzione WHERE tipo_effetto = 'quantita_per_unita' AND target_voce_id = ?",
+            (id_["voce_quantita"],),
+        ).fetchone()[0]
+    finally:
+        connessione.close()
+    assert righe == 0
+
+
+def test_0022_non_rimuove_un_effetto_gia_cambiato(tmp_path, monkeypatch):
+    db_path = tmp_path / "rimossi_cambiati.db"
+    config = _alembic_config_0022_sintetica(
+        db_path,
+        tmp_path,
+        monkeypatch,
+        effetti_rimossi=(("bagni", "valore", "quantita_per_unita", CHIAVE_B, None, 1.0),),
+    )
+    command.upgrade(config, "0021")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        id_ = _semina_curatela_09_06(connessione)
+        opzione_id = connessione.execute(
+            "SELECT id FROM opzione_domanda WHERE domanda_code = 'bagni' AND code = 'valore'"
+        ).fetchone()[0]
+        connessione.execute(
+            "INSERT INTO effetto_opzione (opzione_id, tipo_effetto, target_voce_id, valore, attivo)"
+            " VALUES (?, 'quantita_per_unita', ?, 9.0, 1)",  # curato a mano, non piu' al valore base 1.0
+            (opzione_id, id_["voce_quantita"]),
+        )
+        connessione.commit()
+    finally:
+        connessione.close()
+
+    command.upgrade(config, "0022")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        righe = connessione.execute(
+            "SELECT valore FROM effetto_opzione WHERE tipo_effetto = 'quantita_per_unita' AND target_voce_id = ?",
+            (id_["voce_quantita"],),
+        ).fetchall()
+    finally:
+        connessione.close()
+    assert righe == [(9.0,)]  # invariata: non era piu' al valore base
+
+
+def test_downgrade_0022_e_poi_upgrade_e_reversibile(tmp_path, monkeypatch):
+    """upgrade head -> downgrade 0021 -> upgrade head e' stabile: il
+    coefficiente torna al valore base al downgrade e al nuovo al successivo
+    upgrade."""
+    db_path = tmp_path / "reversibile_0022.db"
+    config = _alembic_config_0022_sintetica(
+        db_path,
+        tmp_path,
+        monkeypatch,
+        coefficienti=((CHIAVE_A[0], CHIAVE_A[1], CHIAVE_A[2], "totale", "coefficiente_qta_per_mq", 0.6, 0.85),),
+    )
+    command.upgrade(config, "0021")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        id_ = _semina_curatela_09_06(connessione)
+    finally:
+        connessione.close()
+
+    command.upgrade(config, "0022")
+    connessione = sqlite3.connect(db_path)
+    try:
+        (dopo_upgrade,) = connessione.execute(
+            "SELECT coefficiente_qta_per_mq FROM coefficiente_qta_voce WHERE voce_id = ? AND tipo_code = 'totale'",
+            (id_["voce_coeff"],),
+        ).fetchone()
+    finally:
+        connessione.close()
+    assert dopo_upgrade == pytest.approx(0.85)
+
+    command.downgrade(config, "0021")
+    connessione = sqlite3.connect(db_path)
+    try:
+        (dopo_downgrade,) = connessione.execute(
+            "SELECT coefficiente_qta_per_mq FROM coefficiente_qta_voce WHERE voce_id = ? AND tipo_code = 'totale'",
+            (id_["voce_coeff"],),
+        ).fetchone()
+        assert connessione.execute("PRAGMA foreign_key_check").fetchall() == []
+        assert connessione.execute("PRAGMA integrity_check").fetchone() == ("ok",)
+    finally:
+        connessione.close()
+    assert dopo_downgrade == pytest.approx(0.6)
+
+    command.upgrade(config, "0022")
+    connessione = sqlite3.connect(db_path)
+    try:
+        (dopo_riupgrade,) = connessione.execute(
+            "SELECT coefficiente_qta_per_mq FROM coefficiente_qta_voce WHERE voce_id = ? AND tipo_code = 'totale'",
+            (id_["voce_coeff"],),
+        ).fetchone()
+    finally:
+        connessione.close()
+    assert dopo_riupgrade == pytest.approx(0.85)
