@@ -1,11 +1,17 @@
-"""Applica al catalogo la curatela degli ASSI del file di decisioni (D-08,
-09-07-PLAN.md Task 1). Il piano 09-06 aggiungera' allo STESSO script la parte
-coefficienti; oggi (`--solo-assi`, l'unica modalita' di questo piano) lo
-script legge `docs/taratura/09-taratura-pro-compilato.xlsx`
-(`genera_excel_taratura.leggi_decisioni`) e ricostruisce da zero, per ogni
-voce con un asse approvato, gli effetti Pro corrispondenti in
-`backend/seed_data/seed-domande.json` + la fixture delle famiglie di
-alternative (`backend/tests/fixtures/famiglie_alternative_pro.json`).
+"""Applica al catalogo la curatela del file di decisioni: gli ASSI (D-08,
+09-07-PLAN.md Task 1) e i COEFFICIENTI quantita'-per-mq (D-03, 09-06-PLAN.md
+Task 1). Lo script legge `docs/taratura/09-taratura-pro-compilato.xlsx`
+(`genera_excel_taratura.leggi_decisioni`) e ricostruisce da zero:
+- gli effetti Pro a bersaglio naturale in `backend/seed_data/seed-domande.json`
+  + la fixture delle famiglie di alternative
+  (`backend/tests/fixtures/famiglie_alternative_pro.json`) — vedi `applica_assi`;
+- i coefficienti quantita'-per-mq in `backend/seed_data/seed-dettaglio-pro.json`
+  (e la copia `docs/seed-dettaglio-pro.json`) + i valori per classe in
+  `backend/seed_data/taratura-classi.json` — vedi `applica_coefficienti` e
+  `calcola_classi`.
+
+Senza `--solo-assi` (default da questo piano) applica ENTRAMBE le parti in
+un'unica esecuzione.
 
 REGOLA DI PROPRIETA' (vedi `<action>` del piano): gli effetti con
 `target_voce`/`target_sottocategoria` sotto le domande `finitura`,
@@ -30,8 +36,10 @@ from __future__ import annotations
 import argparse
 import copy
 import json
+import statistics
 import sys
 from dataclasses import dataclass, field
+from decimal import Decimal
 from pathlib import Path
 
 # Allow `python scripts/applica_taratura.py` direct execution, stesso
@@ -44,6 +52,12 @@ import openpyxl  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
 from app.models.dettaglio_pro import Sottocategoria, Voce  # noqa: E402
+from app.services.computo_parsing import (  # noqa: E402
+    PROPOSTA_PER_CLASSE,
+    TIPI,
+    TIPO_FACTOR,
+    proponi_coefficiente,
+)
 from app.services.effetti import (  # noqa: E402
     OPZIONE_VALORE,
     TIPO_ESCLUDI,
@@ -51,7 +65,7 @@ from app.services.effetti import (  # noqa: E402
     TIPO_INCLUDI,
     TIPO_QUANTITA_PER_UNITA,
 )
-from scripts.genera_excel_taratura import DecisioniTaratura, leggi_decisioni  # noqa: E402
+from scripts.genera_excel_taratura import AsseDeciso, DecisioniTaratura, leggi_decisioni  # noqa: E402
 
 #: Le cinque domande su cui questo script ha proprieta' esclusiva degli
 #: effetti a bersaglio naturale (vedi docstring di modulo).
@@ -367,7 +381,168 @@ def applica_assi(
     )
 
 
-# --- (c) main -----------------------------------------------------------------
+# --- (c) applica_coefficienti + calcola_classi -------------------------------
+#
+# Parte "coefficienti" del piano 09-06 (D-03): scrive nel seed-dettaglio-pro.json
+# il valore finale (OK=proposto/ATTUALE=attuale/MODIFICATO=scritto a mano) per
+# ogni (voce, tipo) del foglio coefficienti_pro, e ricava i valori per CLASSE
+# (`taratura-classi.json`) che alimentano `computo_parsing.coefficienti_per_voce()`
+# per i computi futuri (Pitfall 4 09-RESEARCH.md). Nessun coefficiente impresa.
+
+
+def _indice_seed_dettaglio(seed_dettaglio: dict) -> dict[tuple[str, str, str], dict]:
+    """Chiave naturale (categoria_code, sottocategoria, voce) -> dict voce
+    (riferimento mutabile dentro `seed_dettaglio`, mai una copia)."""
+    indice: dict[tuple[str, str, str], dict] = {}
+    for sotto in seed_dettaglio.get("sottocategorie", []):
+        chiave_sotto = sotto.get("codice") if sotto.get("codice") is not None else sotto["nome"]
+        for voce in sotto.get("voci", []):
+            chiave_voce = voce.get("codice") if voce.get("codice") is not None else voce["descrizione"]
+            indice[(sotto["categoria_code"], chiave_sotto, chiave_voce)] = voce
+    return indice
+
+
+def applica_coefficienti(
+    decisioni: DecisioniTaratura,
+    seed_dettaglio: dict,
+    chiavi: dict[int, dict],
+) -> tuple[dict, list[str]]:
+    """Pura salvo la copia profonda di `seed_dettaglio` (nessun accesso a DB,
+    nessuna scrittura su disco): per ogni `CoeffDeciso` scrive nel dict di
+    seed il valore finale di quel (voce, tipo) — OK/MODIFICATO = il proposto/
+    scritto a mano (colonna `coefficiente_qta_per_mq`/`default_conteggio` del
+    foglio), ATTUALE = il valore attuale letto a DB (stesse colonne "_attuale",
+    gia' risolte da `genera_excel_taratura.leggi_decisioni`). Le voci non
+    presenti nel seed (bersaglio non risolto o sparito) sono segnalate nella
+    lista di ritorno e saltate, mai un'eccezione (stessa disciplina del seed:
+    un dato di curatela rotto non deve bloccare l'applicazione).
+
+    Solleva `ValueError` su un coefficiente o un default_conteggio negativo
+    (stessa regola >= 0 del resto del motore Pro)."""
+    seed_dettaglio = copy.deepcopy(seed_dettaglio)
+    indice = _indice_seed_dettaglio(seed_dettaglio)
+    saltate: list[str] = []
+
+    for riga in decisioni.coefficienti:
+        if riga.coefficiente_qta_per_mq is not None and riga.coefficiente_qta_per_mq < 0:
+            raise ValueError(
+                f"voce_id={riga.voce_id} tipo={riga.tipo_code!r}: "
+                f"coefficiente_qta_per_mq negativo ({riga.coefficiente_qta_per_mq})"
+            )
+        if riga.default_conteggio is not None and riga.default_conteggio < 0:
+            raise ValueError(
+                f"voce_id={riga.voce_id} tipo={riga.tipo_code!r}: "
+                f"default_conteggio negativo ({riga.default_conteggio})"
+            )
+
+        chiave_dict = chiavi.get(riga.voce_id)
+        if chiave_dict is None:
+            saltate.append(f"voce_id={riga.voce_id} tipo={riga.tipo_code!r}: non risolta a DB, saltata")
+            continue
+        chiave = (chiave_dict["categoria_code"], chiave_dict["sottocategoria"], chiave_dict["voce"])
+        voce_entry = indice.get(chiave)
+        if voce_entry is None:
+            saltate.append(
+                f"voce_id={riga.voce_id} chiave={chiave} tipo={riga.tipo_code!r}: "
+                "non presente nel seed-dettaglio-pro.json, saltata"
+            )
+            continue
+
+        blocco = voce_entry.setdefault("coefficienti", {}).setdefault(riga.tipo_code, {})
+        if riga.coefficiente_qta_per_mq is not None:
+            blocco["coefficiente_qta_per_mq"] = round(float(riga.coefficiente_qta_per_mq), 4)
+            blocco.pop("default_conteggio", None)
+        elif riga.default_conteggio is not None:
+            blocco["default_conteggio"] = riga.default_conteggio
+            blocco.pop("coefficiente_qta_per_mq", None)
+
+    return seed_dettaglio, saltate
+
+
+#: codice_dato del foglio `dati_richiesti` (genera_excel_taratura.
+#: DATI_RICHIESTI_PROPOSTI, 09-01) -> classe di `proponi_coefficiente`.
+#: Solo i dati che corrispondono a UNA classe: gli altri (rivestimento_cucina,
+#: mq_controsoffitto, ml_cassonetti_per_mq, radiatori_per_locale,
+#: punti_impianto_per_mq, scala_tipo_factor, famiglie_alternative_livelli)
+#: non hanno una classe dedicata in `PROPOSTA_PER_CLASSE` e restano fuori.
+DATO_PER_CLASSE: dict[str, str] = {
+    "quota_calpestabile": "pavimento",
+    "mq_rivestimento_bagno": "rivestimento",
+    "ml_battiscopa_per_mq": "battiscopa",
+    "quota_massetto": "massetto",
+    "mq_pareti_soffitti_per_mq": "pareti_soffitti",
+    "quota_demolizioni": "demolizione",
+    "superficie_finestrata": "serramento_mq",
+}
+
+
+def _valore_numerico(valore) -> Decimal | None:
+    """Converte in Decimal un valore del foglio dati_richiesti, tollerando
+    testo libero non numerico (es. "circa 20 m2 per bagno...", D-03): ritorna
+    None quando non e' interpretabile come numero, mai un'eccezione — un dato
+    discorsivo non deve bloccare il calcolo delle classi."""
+    if valore in (None, ""):
+        return None
+    testo = str(valore).strip()
+    try:
+        return Decimal(testo)
+    except (ValueError, ArithmeticError):
+        primo_token = testo.split()[0] if testo.split() else ""
+        try:
+            return Decimal(primo_token)
+        except (ValueError, ArithmeticError):
+            return None
+
+
+def calcola_classi(
+    decisioni: DecisioniTaratura,
+    chiavi_classe: dict[int, str],
+) -> dict[str, dict[str, str]]:
+    """Per ogni classe di `proponi_coefficiente` e ogni tipo, il valore
+    mediano dei coefficienti FINALI (post-decisione) delle voci di quella
+    classe fra `decisioni.coefficienti`; se `decisioni.dati` ha un valore per
+    un `codice_dato` mappato a una classe (`DATO_PER_CLASSE`), il valore di
+    quella classe per il tipo `totale` e' quello (leggera/moderata =
+    totale x TIPO_FACTOR) — sovrascrive la mediana. Classi senza alcuna voce
+    decisa e senza un dato_richiesto usano `PROPOSTA_PER_CLASSE x TIPO_FACTOR`
+    (stesso fallback di `coefficienti_per_voce`, mai un buco). Valori
+    serializzati come stringa (JSON-safe, precisione Decimal preservata)."""
+    valori_per_classe_tipo: dict[str, dict[str, list[Decimal]]] = {}
+    for riga in decisioni.coefficienti:
+        if riga.coefficiente_qta_per_mq is None:
+            continue
+        classe = chiavi_classe.get(riga.voce_id)
+        if classe is None or classe not in PROPOSTA_PER_CLASSE:
+            continue
+        valori_per_classe_tipo.setdefault(classe, {}).setdefault(riga.tipo_code, []).append(
+            riga.coefficiente_qta_per_mq
+        )
+
+    classi: dict[str, dict[str, str]] = {}
+    for classe in PROPOSTA_PER_CLASSE:
+        classi[classe] = {}
+        for tipo in TIPI:
+            valori = valori_per_classe_tipo.get(classe, {}).get(tipo)
+            if valori:
+                valore = Decimal(str(statistics.median(valori)))
+            else:
+                valore = Decimal(str(round(float(PROPOSTA_PER_CLASSE[classe]) * TIPO_FACTOR[tipo], 4)))
+            classi[classe][tipo] = str(valore)
+
+    for codice_dato, classe in DATO_PER_CLASSE.items():
+        if classe not in PROPOSTA_PER_CLASSE:
+            continue
+        valore_totale = _valore_numerico(decisioni.dati.get(codice_dato))
+        if valore_totale is None:
+            continue
+        for tipo in TIPI:
+            valore = valore_totale if tipo == "totale" else valore_totale * Decimal(str(TIPO_FACTOR[tipo]))
+            classi[classe][tipo] = str(round(valore, 4))
+
+    return classi
+
+
+# --- (d) main -----------------------------------------------------------------
 
 
 def _percorso_sqlite_da_database_url(url: str) -> str:
@@ -387,13 +562,13 @@ def main() -> None:
     parser.add_argument(
         "--solo-assi",
         action="store_true",
-        default=True,
-        help="applica solo la parte assi (unica modalita' di questo piano; il 09-06 ne aggiunge altre)",
+        help="applica solo la parte assi (comportamento del 09-07); senza questo flag "
+        "(default dal piano 09-06) applica ANCHE i coefficienti quantita'-per-mq",
     )
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="stampa il riepilogo senza scrivere seed-domande.json / la fixture",
+        help="stampa il riepilogo senza scrivere alcun file",
     )
     args = parser.parse_args()
 
@@ -412,20 +587,35 @@ def main() -> None:
 
     from app.db import SessionLocal  # import tardivo: serve solo qui, mai nei test unitari puri
 
+    voce_ids_assi = {riga.voce_id for riga in decisioni.assi}
+    voce_ids_coeff = {riga.voce_id for riga in decisioni.coefficienti}
+
     chiavi: dict[int, dict] = {}
     sottocategorie_gerarchiche: set[int] = set()
+    chiavi_classe: dict[int, str] = {}
     with SessionLocal() as session:  # sola lettura: nessun commit/add in questo script
-        for voce_id in {riga.voce_id for riga in decisioni.assi}:
+        for voce_id in voce_ids_assi | voce_ids_coeff:
             chiave = risolvi_chiave_naturale(session, voce_id)
             if chiave is not None:
                 chiavi[voce_id] = chiave
-            if sottocategoria_famiglia_di(session, voce_id) == "gerarchica":
+            if voce_id in voce_ids_assi and sottocategoria_famiglia_di(session, voce_id) == "gerarchica":
                 sottocategorie_gerarchiche.add(voce_id)
+
+        if not args.solo_assi:
+            for voce_id in voce_ids_coeff:
+                voce = session.get(Voce, voce_id)
+                if voce is None:
+                    continue
+                sotto = session.get(Sottocategoria, voce.sottocategoria_id)
+                if sotto is None:
+                    continue
+                proposta = proponi_coefficiente(voce.um, voce.descrizione, sotto.nome, sotto.categoria_code)
+                chiavi_classe[voce_id] = proposta.classe
 
     seed_path = _BACKEND_DIR / "seed_data" / "seed-domande.json"
     seed_domande = json.loads(seed_path.read_text(encoding="utf-8"))
 
-    risultato = applica_assi(
+    risultato_assi = applica_assi(
         decisioni,
         seed_domande,
         chiavi,
@@ -436,30 +626,62 @@ def main() -> None:
     for riga in decisioni.assi:
         conteggi_per_asse[riga.asse] = conteggi_per_asse.get(riga.asse, 0) + 1
 
-    print(f"stato: {risultato.stato}")
+    print(f"stato: {risultato_assi.stato}")
     for asse, n in sorted(conteggi_per_asse.items()):
         print(f"  asse {asse!r}: {n} righe")
-    print(f"famiglie di alternative: {len(risultato.famiglie)}")
-    print(f"righe con decisione != OK: {len(risultato.modificate)}")
-    for riga in risultato.modificate:
+    print(f"famiglie di alternative: {len(risultato_assi.famiglie)}")
+    print(f"righe assi con decisione != OK: {len(risultato_assi.modificate)}")
+    for riga in risultato_assi.modificate:
         print(f"  - {riga}")
+
+    dettaglio_path = _BACKEND_DIR / "seed_data" / "seed-dettaglio-pro.json"
+    risultato_coeff_seed: dict | None = None
+    saltate_coeff: list[str] = []
+    classi: dict[str, dict[str, str]] | None = None
+    if not args.solo_assi:
+        seed_dettaglio = json.loads(dettaglio_path.read_text(encoding="utf-8"))
+        risultato_coeff_seed, saltate_coeff = applica_coefficienti(decisioni, seed_dettaglio, chiavi)
+        classi = calcola_classi(decisioni, chiavi_classe)
+        print(f"coefficienti: {len(decisioni.coefficienti)} righe decise, {len(saltate_coeff)} saltate")
+        for riga in saltate_coeff:
+            print(f"  - {riga}")
+        print(f"classi calcolate: {len(classi)}")
 
     if args.dry_run:
         print("dry-run: nessuna scrittura.")
         return
 
     seed_path.write_text(
-        json.dumps(risultato.seed_domande, indent=2, ensure_ascii=False) + "\n",
+        json.dumps(risultato_assi.seed_domande, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
     fixture_path = _BACKEND_DIR / "tests" / "fixtures" / "famiglie_alternative_pro.json"
     fixture_path.parent.mkdir(parents=True, exist_ok=True)
     fixture_path.write_text(
-        json.dumps(risultato.famiglie, indent=2, ensure_ascii=False) + "\n",
+        json.dumps(risultato_assi.famiglie, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
     print(f"scritto {seed_path}")
     print(f"scritto {fixture_path}")
+
+    if not args.solo_assi:
+        contenuto_dettaglio = json.dumps(risultato_coeff_seed, indent=2, ensure_ascii=False) + "\n"
+        dettaglio_path.write_text(contenuto_dettaglio, encoding="utf-8")
+        docs_dettaglio_path = _BACKEND_DIR.parent / "docs" / "seed-dettaglio-pro.json"
+        docs_dettaglio_path.write_text(contenuto_dettaglio, encoding="utf-8")
+        classi_path = _BACKEND_DIR / "seed_data" / "taratura-classi.json"
+        classi_path.write_text(
+            json.dumps(
+                {"stato": decisioni.stato, "fonte": Path(args.file).name, "classi": classi},
+                indent=2,
+                ensure_ascii=False,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        print(f"scritto {dettaglio_path}")
+        print(f"scritto {docs_dettaglio_path}")
+        print(f"scritto {classi_path}")
 
 
 if __name__ == "__main__":

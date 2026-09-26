@@ -1,0 +1,51 @@
+{
+  "stato": "bozza-accettata",
+  "fonte": "09-taratura-pro-compilato.xlsx",
+  "classi": {
+    "pavimento": {
+      "leggera": "0.3400",
+      "moderata": "0.5950",
+      "totale": "0.8500"
+    },
+    "rivestimento": {
+      "leggera": "0.1",
+      "moderata": "0.175",
+      "totale": "0.25"
+    },
+    "battiscopa": {
+      "leggera": "0.3600",
+      "moderata": "0.6300",
+      "totale": "0.9000"
+    },
+    "massetto": {
+      "leggera": "0.3400",
+      "moderata": "0.5950",
+      "totale": "0.8500"
+    },
+    "pareti_soffitti": {
+      "leggera": "1.0800",
+      "moderata": "1.8900",
+      "totale": "2.7000"
+    },
+    "demolizione": {
+      "leggera": "0.2000",
+      "moderata": "0.3500",
+      "totale": "0.5000"
+    },
+    "serramento_mq": {
+      "leggera": "0.0480",
+      "moderata": "0.0840",
+      "totale": "0.1200"
+    },
+    "lineare": {
+      "leggera": "0.12",
+      "moderata": "0.21",
+      "totale": "0.3"
+    },
+    "altro_mq": {
+      "leggera": "0.16",
+      "moderata": "0.28",
+      "totale": "0.4"
+    }
+  }
+}

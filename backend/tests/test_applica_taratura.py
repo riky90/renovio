@@ -13,9 +13,12 @@ import pytest
 from sqlalchemy import create_engine
 
 from app.db import Base
-from scripts.genera_excel_taratura import AsseDeciso, DecisioniTaratura
+from scripts.genera_excel_taratura import AsseDeciso, CoeffDeciso, DecisioniTaratura
 from scripts.applica_taratura import (
+    DATO_PER_CLASSE,
     applica_assi,
+    applica_coefficienti,
+    calcola_classi,
     risolvi_chiave_naturale,
 )
 from scripts.seed import load_seed_data, seed
@@ -444,3 +447,278 @@ class TestRisolviChiaveNaturale:
 
     def test_voce_inesistente_torna_none(self, session):
         assert risolvi_chiave_naturale(session, 10**9) is None
+
+
+# --- Task 1 (09-06-PLAN.md): applica_coefficienti / calcola_classi ----------
+
+CHIAVE_VOCE_PAVIMENTO = {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI",
+    "voce": "Voce pavimento",
+}
+CHIAVE_VOCE_PAVIMENTO_2 = {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI",
+    "voce": "Voce pavimento 2",
+}
+CHIAVE_VOCE_CONTEGGIO_MIRATO = {
+    "categoria_code": "A-EDILE",
+    "sottocategoria": "A.0",
+    "voce": "A.0.3",
+}
+
+
+def _seed_dettaglio_sintetico() -> dict:
+    return {
+        "listino": {"nome": "Reggio Emilia"},
+        "sottocategorie": [
+            {
+                "categoria_code": "B-FINITURE",
+                "codice": None,
+                "nome": "PAVIMENTI",
+                "famiglia": "catalogo",
+                "voci": [
+                    {
+                        "codice": None,
+                        "descrizione": "Voce pavimento",
+                        "um": "mq",
+                        "prezzo_unitario_cliente": 40.0,
+                        "coefficienti": {
+                            "leggera": {"coefficiente_qta_per_mq": 0.24},
+                            "moderata": {"coefficiente_qta_per_mq": 0.42},
+                            "totale": {"coefficiente_qta_per_mq": 0.6},
+                        },
+                    },
+                    {
+                        "codice": None,
+                        "descrizione": "Voce pavimento 2",
+                        "um": "mq",
+                        "prezzo_unitario_cliente": 42.0,
+                        "coefficienti": {
+                            "leggera": {"coefficiente_qta_per_mq": 0.24},
+                            "moderata": {"coefficiente_qta_per_mq": 0.42},
+                            "totale": {"coefficiente_qta_per_mq": 0.6},
+                        },
+                    },
+                ],
+            },
+            {
+                "categoria_code": "A-EDILE",
+                "codice": "A.0",
+                "nome": "Allestimento di cantiere",
+                "famiglia": "gerarchica",
+                "voci": [
+                    {
+                        "codice": "A.0.3",
+                        "descrizione": "Rimozione sanitari bagno",
+                        "um": "cad",
+                        "prezzo_unitario_cliente": 40.0,
+                        "coefficienti": {
+                            "leggera": {"domanda_mirata_key": "bagni", "default_conteggio": 1},
+                            "moderata": {"domanda_mirata_key": "bagni", "default_conteggio": 1},
+                            "totale": {"domanda_mirata_key": "bagni", "default_conteggio": 1},
+                        },
+                    }
+                ],
+            },
+        ],
+    }
+
+
+def _coeff_deciso(
+    *, voce_id: int, tipo_code: str, coefficiente: str | None = None,
+    conteggio: int | None = None, decisione: str = "OK", note: str = "",
+) -> CoeffDeciso:
+    return CoeffDeciso(
+        voce_id=voce_id,
+        tipo_code=tipo_code,
+        coefficiente_qta_per_mq=Decimal(coefficiente) if coefficiente is not None else None,
+        default_conteggio=conteggio,
+        decisione=decisione,
+        note=note,
+    )
+
+
+def _decisioni_coeff(coefficienti: list[CoeffDeciso], stato: str = "bozza-accettata", dati: dict | None = None) -> DecisioniTaratura:
+    return DecisioniTaratura(stato=stato, coefficienti=coefficienti, assi=[], dati=dati or {})
+
+
+class TestApplicaCoefficienti:
+    def test_ok_scrive_il_valore_proposto(self):
+        decisioni = _decisioni_coeff(
+            [_coeff_deciso(voce_id=1, tipo_code="totale", coefficiente="0.85", decisione="OK")]
+        )
+        chiavi = {1: dict(CHIAVE_VOCE_PAVIMENTO)}
+
+        nuovo, saltate = applica_coefficienti(decisioni, _seed_dettaglio_sintetico(), chiavi)
+
+        voce = nuovo["sottocategorie"][0]["voci"][0]
+        assert voce["coefficienti"]["totale"]["coefficiente_qta_per_mq"] == 0.85
+        assert saltate == []
+
+    def test_attuale_scrive_il_valore_attuale_non_cambia(self):
+        decisioni = _decisioni_coeff(
+            [_coeff_deciso(voce_id=1, tipo_code="totale", coefficiente="0.6", decisione="ATTUALE")]
+        )
+        chiavi = {1: dict(CHIAVE_VOCE_PAVIMENTO)}
+
+        nuovo, _ = applica_coefficienti(decisioni, _seed_dettaglio_sintetico(), chiavi)
+
+        voce = nuovo["sottocategorie"][0]["voci"][0]
+        assert voce["coefficienti"]["totale"]["coefficiente_qta_per_mq"] == 0.6
+
+    def test_modificato_scrive_il_valore_scritto_a_mano(self):
+        decisioni = _decisioni_coeff(
+            [_coeff_deciso(voce_id=1, tipo_code="totale", coefficiente="1.1", decisione="MODIFICATO", note="corretto")]
+        )
+        chiavi = {1: dict(CHIAVE_VOCE_PAVIMENTO)}
+
+        nuovo, _ = applica_coefficienti(decisioni, _seed_dettaglio_sintetico(), chiavi)
+
+        voce = nuovo["sottocategorie"][0]["voci"][0]
+        assert voce["coefficienti"]["totale"]["coefficiente_qta_per_mq"] == 1.1
+
+    def test_domanda_mirata_key_non_viene_persa_quando_si_scrive_default_conteggio(self):
+        decisioni = _decisioni_coeff(
+            [_coeff_deciso(voce_id=3, tipo_code="totale", conteggio=2, decisione="ATTUALE")]
+        )
+        chiavi = {3: dict(CHIAVE_VOCE_CONTEGGIO_MIRATO)}
+
+        nuovo, _ = applica_coefficienti(decisioni, _seed_dettaglio_sintetico(), chiavi)
+
+        voce = nuovo["sottocategorie"][1]["voci"][0]
+        assert voce["coefficienti"]["totale"]["domanda_mirata_key"] == "bagni"
+        assert voce["coefficienti"]["totale"]["default_conteggio"] == 2
+
+    def test_voce_non_risolta_a_db_viene_segnalata_e_saltata(self):
+        decisioni = _decisioni_coeff(
+            [_coeff_deciso(voce_id=999, tipo_code="totale", coefficiente="0.85")]
+        )
+        originale = _seed_dettaglio_sintetico()
+
+        nuovo, saltate = applica_coefficienti(decisioni, originale, chiavi={})
+
+        assert len(saltate) == 1
+        assert "999" in saltate[0]
+        assert nuovo == originale
+
+    def test_voce_non_presente_nel_seed_viene_segnalata_e_saltata(self):
+        decisioni = _decisioni_coeff(
+            [_coeff_deciso(voce_id=1, tipo_code="totale", coefficiente="0.85")]
+        )
+        chiavi = {1: {"categoria_code": "B-FINITURE", "sottocategoria": "SPARITA", "voce": "Non esiste"}}
+        originale = _seed_dettaglio_sintetico()
+
+        nuovo, saltate = applica_coefficienti(decisioni, originale, chiavi)
+
+        assert len(saltate) == 1
+        assert nuovo == originale
+
+    def test_valore_negativo_solleva_errore(self):
+        decisioni = _decisioni_coeff(
+            [_coeff_deciso(voce_id=1, tipo_code="totale", coefficiente="-0.1")]
+        )
+        chiavi = {1: dict(CHIAVE_VOCE_PAVIMENTO)}
+
+        with pytest.raises(ValueError):
+            applica_coefficienti(decisioni, _seed_dettaglio_sintetico(), chiavi)
+
+    def test_default_conteggio_negativo_solleva_errore(self):
+        decisioni = _decisioni_coeff(
+            [_coeff_deciso(voce_id=3, tipo_code="totale", conteggio=-1)]
+        )
+        chiavi = {3: dict(CHIAVE_VOCE_CONTEGGIO_MIRATO)}
+
+        with pytest.raises(ValueError):
+            applica_coefficienti(decisioni, _seed_dettaglio_sintetico(), chiavi)
+
+    def test_idempotenza_applicando_due_volte(self):
+        decisioni = _decisioni_coeff(
+            [_coeff_deciso(voce_id=1, tipo_code="totale", coefficiente="0.85", decisione="OK")]
+        )
+        chiavi = {1: dict(CHIAVE_VOCE_PAVIMENTO)}
+
+        primo, _ = applica_coefficienti(decisioni, _seed_dettaglio_sintetico(), chiavi)
+        secondo, _ = applica_coefficienti(decisioni, primo, chiavi)
+
+        assert primo == secondo
+
+    def test_non_presente_nel_seed_non_solleva_eccezione(self):
+        """Non un'eccezione: la voce viene solo segnalata (stessa disciplina
+        del seed, D-24)."""
+        decisioni = _decisioni_coeff(
+            [_coeff_deciso(voce_id=1234, tipo_code="totale", coefficiente="0.85")]
+        )
+        _, saltate = applica_coefficienti(decisioni, _seed_dettaglio_sintetico(), chiavi={})
+        assert saltate  # nessuna eccezione, solo segnalazione
+
+
+class TestCalcolaClassi:
+    def test_mediana_delle_voci_della_stessa_classe(self):
+        decisioni = _decisioni_coeff(
+            [
+                _coeff_deciso(voce_id=1, tipo_code="totale", coefficiente="0.7"),
+                _coeff_deciso(voce_id=2, tipo_code="totale", coefficiente="0.9"),
+            ]
+        )
+        chiavi_classe = {1: "pavimento", 2: "pavimento"}
+
+        classi = calcola_classi(decisioni, chiavi_classe)
+
+        assert classi["pavimento"]["totale"] == "0.8"
+
+    def test_classe_senza_voci_decise_usa_il_fallback_proposta_per_classe(self):
+        decisioni = _decisioni_coeff([])
+        classi = calcola_classi(decisioni, chiavi_classe={})
+
+        # PROPOSTA_PER_CLASSE["battiscopa"] = 0.9, TIPO_FACTOR["totale"] = 1.0
+        assert classi["battiscopa"]["totale"] == "0.9"
+        assert len(classi) >= 9
+
+    def test_bozza_accettata_riproduce_proposta_per_classe_x_tipo_factor(self):
+        """Con decisioni tutte OK sulla bozza (ogni voce della classe ha lo
+        stesso valore proposto), calcola_classi() riproduce esattamente
+        PROPOSTA_PER_CLASSE x TIPO_FACTOR per ogni tipo."""
+        decisioni = _decisioni_coeff(
+            [
+                _coeff_deciso(voce_id=1, tipo_code="totale", coefficiente="0.85"),
+                _coeff_deciso(voce_id=1, tipo_code="moderata", coefficiente="0.595"),
+                _coeff_deciso(voce_id=1, tipo_code="leggera", coefficiente="0.34"),
+            ]
+        )
+        chiavi_classe = {1: "pavimento"}
+
+        classi = calcola_classi(decisioni, chiavi_classe)
+
+        assert Decimal(classi["pavimento"]["totale"]) == Decimal("0.85")
+        assert Decimal(classi["pavimento"]["moderata"]) == Decimal("0.595")
+        assert Decimal(classi["pavimento"]["leggera"]) == Decimal("0.34")
+
+    def test_dato_richiesto_sovrascrive_la_mediana_per_tutti_i_tipi(self):
+        decisioni = _decisioni_coeff(
+            [_coeff_deciso(voce_id=1, tipo_code="totale", coefficiente="0.7")],
+            dati={"quota_calpestabile": "0.95"},
+        )
+        chiavi_classe = {1: "pavimento"}
+
+        classi = calcola_classi(decisioni, chiavi_classe)
+
+        assert Decimal(classi["pavimento"]["totale"]) == Decimal("0.95")
+        assert Decimal(classi["pavimento"]["moderata"]) == Decimal("0.665")
+        assert Decimal(classi["pavimento"]["leggera"]) == Decimal("0.38")
+
+    def test_dato_richiesto_con_testo_non_numerico_viene_ignorato(self):
+        decisioni = _decisioni_coeff(
+            [_coeff_deciso(voce_id=1, tipo_code="totale", coefficiente="0.7")],
+            dati={"mq_rivestimento_bagno": "circa 20 m2 per bagno su un appartamento di riferimento"},
+        )
+        classi = calcola_classi(decisioni, chiavi_classe={})
+
+        # non numerico: nessuna sovrascrittura, resta il fallback PROPOSTA_PER_CLASSE
+        assert classi["rivestimento"]["totale"] == "0.25"
+
+    def test_tutti_i_codici_dato_per_classe_sono_classi_valide(self):
+        from app.services.computo_parsing import PROPOSTA_PER_CLASSE
+
+        for classe in DATO_PER_CLASSE.values():
+            assert classe in PROPOSTA_PER_CLASSE
