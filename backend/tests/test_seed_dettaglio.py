@@ -187,7 +187,6 @@ def test_seed_json_coerente_con_le_decisioni_del_file_di_taratura():
         pytest.skip("backend/dev.db non presente in questo ambiente")
 
     from sqlalchemy import create_engine as _create_engine
-    from sqlalchemy.orm import sessionmaker
 
     from scripts.applica_taratura import risolvi_chiave_naturale
 
@@ -207,7 +206,7 @@ def test_seed_json_coerente_con_le_decisioni_del_file_di_taratura():
             indice[(sotto["categoria_code"], chiave_sotto, chiave_voce)] = voce
 
     engine = _create_engine(f"sqlite:///{dev_db_path}")
-    session_locale = sessionmaker(bind=engine)
+    session_locale = sessione_di_test(engine)
     verificate = 0
     try:
         with session_locale() as db_session:
