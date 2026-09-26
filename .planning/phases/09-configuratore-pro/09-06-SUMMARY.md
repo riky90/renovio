@@ -173,3 +173,7 @@ None - nessuna configurazione di servizio esterno richiesta.
 - Commit `ba6a183` — FOUND in `git log`
 - Commit `5d3dbf2` — FOUND in `git log`
 - Commit `331bb49` — FOUND in `git log`
+
+## Correzione post-merge (orchestratore, 2026-09-26)
+
+I numeri della 0022 riportati sopra (309 righe coefficiente, 27 effetti rimossi) erano falsati da un bug di encoding: `applica_taratura.py` leggeva il seed base via `git show` in text mode senza `encoding`, e su Windows la decodifica cp1252 trasformava "×" in "Ã—". Le chiavi naturali costruite dalle descrizioni non si risolvevano piu', e la validazione "senza errori" era vera solo perche' le chiavi irrisolte vengono saltate in silenzio. Corretto in `7a4ff1c` (`encoding="utf-8"` + test di regressione): la 0022 rigenerata con lo stesso comando ha **430 righe coefficiente e 1 effetto rimosso** (l'`includi` di A.6.1 su gres, D-02), verificata su copia di `dev.db` con 430/430 righe applicate e upgrade/downgrade/upgrade puliti. I due test elencati in `deferred-items.md` sono stati corretti in `7532e57`.
