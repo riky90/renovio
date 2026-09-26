@@ -237,7 +237,13 @@ class TestCatalogoProSulJsonReale:
     (`load_seed_data()`), che include il catalogo domande. Qui si verifica il
     comportamento atteso su un DB nuovo seminato da zero."""
 
-    def test_finitura_ha_21_effetti_includi_7_per_opzione(self, session):
+    def test_finitura_ha_almeno_21_effetti_includi_7_per_opzione(self, session):
+        """21 (7 per opzione) e' il minimo garantito dalla migrazione delle 21
+        voci gres livellate a mano (09-02/09-03/09-04); da 09-07 la curatela
+        del file di taratura (D-08) puo' aggiungere altre voci allo stesso
+        asse (famiglie di alternative sanitari/porte/condizionatori assegnate
+        per fascia di prezzo) — il numero esatto e' una decisione di
+        taratura, non una verita' cablata qui (D-05)."""
         finitura = session.get(Domanda, "finitura")
         assert finitura is not None
         assert finitura.tier_minimo == "pro"
@@ -260,11 +266,16 @@ class TestCatalogoProSulJsonReale:
                 .filter_by(opzione_id=o.id, tipo_effetto="includi")
                 .count()
             )
-            assert count == 7, f"opzione {o.code} ha {count} effetti includi, attesi 7"
+            assert count >= 7, f"opzione {o.code} ha {count} effetti includi, attesi almeno 7"
             totale += count
-        assert totale == 21
+        assert totale >= 21
 
-    def test_tipo_pavimento_ha_4_effetti_includi_su_a6(self, session):
+    def test_tipo_pavimento_ha_almeno_4_effetti_includi_su_a6(self, session):
+        """Ogni opzione governa almeno la sua posa A.6 principale. Da 09-07
+        la curatela (D-02) puo' aggiungere un secondo bersaglio `includi` su
+        parquet/maxi_lastra/mosaico per A.6.1 (la quota bagno, che resta
+        sempre gres a prescindere dal pavimento scelto per il resto della
+        casa): il conteggio esatto per opzione non e' una verita' cablata."""
         tipo_pavimento = session.get(Domanda, "tipo_pavimento")
         assert tipo_pavimento is not None
         assert tipo_pavimento.tier_minimo == "pro"
@@ -294,9 +305,9 @@ class TestCatalogoProSulJsonReale:
                 .filter_by(opzione_id=o.id, tipo_effetto="includi")
                 .all()
             )
-            assert len(effetti) == 1
-            voce = session.get(Voce, effetti[0].target_voce_id)
-            assert voce.codice == attese_voce[o.code]
+            assert len(effetti) >= 1
+            voci = {session.get(Voce, e.target_voce_id).codice for e in effetti}
+            assert attese_voce[o.code] in voci
 
     def test_stepper_bagni_porte_condizionatori_hanno_quantita_per_unita(self, session):
         for code in ("bagni", "porte", "condizionatori"):
