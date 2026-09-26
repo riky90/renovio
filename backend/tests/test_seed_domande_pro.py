@@ -237,7 +237,13 @@ class TestCatalogoProSulJsonReale:
     (`load_seed_data()`), che include il catalogo domande. Qui si verifica il
     comportamento atteso su un DB nuovo seminato da zero."""
 
-    def test_finitura_ha_21_effetti_includi_7_per_opzione(self, session):
+    def test_finitura_ha_almeno_21_effetti_includi_7_per_opzione(self, session):
+        """21 (7 per opzione) e' il minimo garantito dalla migrazione delle 21
+        voci gres livellate a mano (09-02/09-03/09-04); da 09-07 la curatela
+        del file di taratura (D-08) puo' aggiungere altre voci allo stesso
+        asse (famiglie di alternative sanitari/porte/condizionatori assegnate
+        per fascia di prezzo) — il numero esatto e' una decisione di
+        taratura, non una verita' cablata qui (D-05)."""
         finitura = session.get(Domanda, "finitura")
         assert finitura is not None
         assert finitura.tier_minimo == "pro"
@@ -260,11 +266,20 @@ class TestCatalogoProSulJsonReale:
                 .filter_by(opzione_id=o.id, tipo_effetto="includi")
                 .count()
             )
-            assert count == 7, f"opzione {o.code} ha {count} effetti includi, attesi 7"
+            assert count >= 7, f"opzione {o.code} ha {count} effetti includi, attesi almeno 7"
             totale += count
-        assert totale == 21
+        assert totale >= 21
 
-    def test_tipo_pavimento_ha_4_effetti_includi_su_a6(self, session):
+    def test_tipo_pavimento_ha_almeno_1_effetto_includi_per_la_sua_posa_principale(self, session):
+        """Ogni opzione governa almeno la sua posa A.6 principale (parquet/
+        maxi_lastra/mosaico -> A.6.2/.5/.6 sempre, per costruzione). A.6.1
+        (gres) e' un caso speciale da 09-07 (D-02): NON e' bersaglio di
+        alcun `includi`, nemmeno sulla sua opzione "gres" — resta sempre
+        inclusa (non governata da alcun asse), mentre parquet/maxi_lastra/
+        mosaico la riducono via `fattore_quantita` alla sola quota bagno.
+        Un `includi` la renderebbe bersaglio di piu' di un'opzione
+        (gres + le altre) e romperebbe il conteggio per-asse di CFG-02
+        (09-03), che assume bersagli disgiunti fra opzioni."""
         tipo_pavimento = session.get(Domanda, "tipo_pavimento")
         assert tipo_pavimento is not None
         assert tipo_pavimento.tier_minimo == "pro"
@@ -283,20 +298,32 @@ class TestCatalogoProSulJsonReale:
         assert gres.is_default is True
 
         attese_voce = {
-            "gres": "A.6.1",
             "parquet": "A.6.2",
             "maxi_lastra": "A.6.5",
             "mosaico": "A.6.6",
         }
+        a6_1 = session.query(Voce).filter_by(codice="A.6.1").one()
+
         for o in opzioni:
-            effetti = (
+            effetti_includi = (
                 session.query(EffettoOpzione)
                 .filter_by(opzione_id=o.id, tipo_effetto="includi")
                 .all()
             )
-            assert len(effetti) == 1
-            voce = session.get(Voce, effetti[0].target_voce_id)
-            assert voce.codice == attese_voce[o.code]
+            voci_includi = {e.target_voce_id for e in effetti_includi}
+            assert a6_1.id not in voci_includi, f"A.6.1 non deve essere bersaglio di includi su {o.code!r}"
+            if o.code in attese_voce:
+                voci_codici = {session.get(Voce, vid).codice for vid in voci_includi}
+                assert attese_voce[o.code] in voci_codici
+
+        for opzione_non_gres in ("parquet", "maxi_lastra", "mosaico"):
+            o = next(x for x in opzioni if x.code == opzione_non_gres)
+            fattori = (
+                session.query(EffettoOpzione)
+                .filter_by(opzione_id=o.id, tipo_effetto="fattore_quantita", target_voce_id=a6_1.id)
+                .all()
+            )
+            assert len(fattori) == 1, f"opzione {opzione_non_gres!r} deve avere un fattore_quantita su A.6.1"
 
     def test_stepper_bagni_porte_condizionatori_hanno_quantita_per_unita(self, session):
         for code in ("bagni", "porte", "condizionatori"):

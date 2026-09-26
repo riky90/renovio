@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pencil, Trash2, SlidersHorizontal, Plus, ChevronRight } from "lucide-react";
+import { Link } from "react-router";
 import { toast } from "sonner";
 import { AdminLayout } from "@/pages/admin/AdminLayout";
 import { AdminCrudDialog } from "@/components/admin/AdminCrudDialog";
@@ -404,20 +405,18 @@ function DettaglioProContent() {
           <Input id="voce-prezzo" type="number" min={0} step="0.01" value={voceForm.prezzo} onChange={(e) => setVoceForm((f) => ({ ...f, prezzo: e.target.value }))} />
         </div>
         <div className="flex flex-col gap-2">
-          <Label htmlFor="voce-livello">Livello di finitura</Label>
-          <Select value={voceForm.livello} onValueChange={(v) => setVoceForm((f) => ({ ...f, livello: v }))}>
-            <SelectTrigger id="voce-livello" className="w-full"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value={LIVELLO_COMUNE}>— comune a tutti i livelli —</SelectItem>
-              {(livelliQuery.data ?? []).map((l) => (
-                <SelectItem key={l.code} value={l.code}>{l.nome}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <p className="text-xs text-muted-foreground">
-            Le voci di un catalogo sono alternative: solo quelle del livello scelto dal cliente
-            entrano nel computo. Lascia &quot;comune a tutti i livelli&quot; per posa, materiali di
-            consumo e montaggio, che vanno sempre inclusi.
+          <Label>Livello storico</Label>
+          <p className="text-sm text-foreground">
+            {voceForm.livello === LIVELLO_COMUNE
+              ? "nessuno"
+              : (livelliQuery.data ?? []).find((l) => l.code === voceForm.livello)?.nome ?? voceForm.livello}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Il livello non cambia più il calcolo: le alternative si curano in{" "}
+            <Link to="/admin/domande" className="underline underline-offset-2 hover:text-foreground">
+              Domande
+            </Link>
+            , domanda &quot;Livello di finitura&quot;.
           </p>
         </div>
         <div className="flex flex-col gap-2">
@@ -521,8 +520,11 @@ function SottoCollapsible({
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       {v.um} · {v.prezzo_unitario_cliente} € al cliente
                       {v.livello && (
-                        <span className="ml-2 rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium">
-                          {v.livello}
+                        <span
+                          className="ml-2 rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium"
+                          title="Livello storico: non cambia il calcolo, vedi Domande"
+                        >
+                          {v.livello} (storico)
                         </span>
                       )}
                     </p>
