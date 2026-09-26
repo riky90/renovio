@@ -216,6 +216,63 @@ class TestApplicaAssiFattorePavimento:
         assert ("A.6.2", "posa_pavimento_A6") in famiglie
 
 
+class TestApplicaAssiDeduplicaFamiglia:
+    def test_piu_voci_sulla_stessa_opzione_tengono_solo_la_prima(self):
+        """Bug scoperto sui dati reali (fornitura_pavimento_parquet, battiscopa):
+        la bozza 09-01 assegna piu' voci alla STESSA opzione della STESSA
+        famiglia di alternative. Senza deduplica torna a sommarle (il bug che
+        la fase chiude); qui restano tutte GOVERNATE (escluse quando un'altra
+        opzione e' scelta) ma solo la prima (voce_id minore) resta INCLUSA."""
+        decisioni = _decisioni(
+            [
+                _riga(voce_id=101, asse="tipo_pavimento", opzione="parquet", famiglia="battiscopa"),
+                _riga(voce_id=102, asse="tipo_pavimento", opzione="parquet", famiglia="battiscopa"),
+                _riga(voce_id=103, asse="tipo_pavimento", opzione="parquet", famiglia="battiscopa"),
+            ]
+        )
+        chiavi = {
+            101: {"categoria_code": "B-FINITURE", "sottocategoria": "BATTISCOPA", "voce": "Zoccolino A"},
+            102: {"categoria_code": "B-FINITURE", "sottocategoria": "BATTISCOPA", "voce": "Zoccolino B"},
+            103: {"categoria_code": "B-FINITURE", "sottocategoria": "BATTISCOPA", "voce": "Zoccolino C"},
+        }
+
+        risultato = applica_assi(decisioni, _seed_domande_sintetico(), chiavi)
+
+        tipo_pav = next(d for d in risultato.seed_domande["domande"] if d["code"] == "tipo_pavimento")
+        parquet = next(o for o in tipo_pav["opzioni"] if o["code"] == "parquet")
+
+        includi_targets = {e["target_voce"]["voce"] for e in parquet["effetti"] if e["tipo_effetto"] == "includi"}
+        escludi_targets = {e["target_voce"]["voce"] for e in parquet["effetti"] if e["tipo_effetto"] == "escludi"}
+
+        assert includi_targets == {"Zoccolino A", "Zoccolino B", "Zoccolino C"}
+        assert escludi_targets == {"Zoccolino B", "Zoccolino C"}
+        assert len(risultato.modificate) == 2
+
+    def test_finitura_sku_variety_non_viene_deduplicata(self):
+        """La famiglia 'finitura:<sottocategoria>' (varieta' di SKU migrata da
+        voce.livello) NON va deduplicata: e' comportamento intenzionale gia'
+        verificato dalla 09-03."""
+        decisioni = _decisioni(
+            [
+                _riga(voce_id=201, asse="finitura", opzione="medio", famiglia="finitura:GRES"),
+                _riga(voce_id=202, asse="finitura", opzione="medio", famiglia="finitura:GRES"),
+            ]
+        )
+        chiavi = {
+            201: {"categoria_code": "B-FINITURE", "sottocategoria": "GRES", "voce": "Gres A"},
+            202: {"categoria_code": "B-FINITURE", "sottocategoria": "GRES", "voce": "Gres B"},
+        }
+
+        risultato = applica_assi(decisioni, _seed_domande_sintetico(), chiavi)
+
+        finitura = next(d for d in risultato.seed_domande["domande"] if d["code"] == "finitura")
+        medio = next(o for o in finitura["opzioni"] if o["code"] == "medio")
+        assert medio["effetti"] == [
+            {"tipo_effetto": "includi", "target_voce": chiavi[201]},
+            {"tipo_effetto": "includi", "target_voce": chiavi[202]},
+        ]
+
+
 class TestApplicaAssiEscludiSempre:
     def test_escludi_su_tutte_e_tre_le_opzioni_di_finitura(self):
         decisioni = _decisioni(

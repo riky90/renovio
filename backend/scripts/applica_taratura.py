@@ -161,6 +161,36 @@ def applica_assi(
     modificate: list[str] = []
     famiglie: list[dict] = []
 
+    # Deduplica le famiglie di alternative che la bozza di 09-01 ha assegnato
+    # TUTTE alla stessa opzione (es. 6 forniture 'PAVIMENTI PARQUET' o 4
+    # zoccolini in legno, tutte -> tipo_pavimento=parquet): senza questo passo
+    # tornerebbero a sommarsi fra loro, lo stesso bug che la fase chiude.
+    # Eccezione esplicita: la famiglia 'finitura:<sottocategoria>' (varieta' di
+    # SKU migrata da voce.livello, 09-02/09-03/09-04) mette DELIBERATAMENTE piu'
+    # voci sulla stessa opzione — non e' un difetto di curatela, e' il
+    # comportamento gia' verificato da test_dettaglio_pro_alternative.py
+    # (test_gres_default_include_bersagli_di_medio_piu_le_non_governate).
+    gruppi_asse_opzione: dict[tuple[str, str, str], list[AsseDeciso]] = {}
+    for riga in decisioni.assi:
+        if riga.asse in (DOMANDA_FINITURA, DOMANDA_TIPO_PAVIMENTO) and riga.opzione:
+            gruppi_asse_opzione.setdefault(
+                (riga.asse, riga.opzione, riga.famiglia_alternativa), []
+            ).append(riga)
+
+    voce_id_da_deduplicare: set[int] = set()
+    for (asse, opzione, famiglia), righe_gruppo in gruppi_asse_opzione.items():
+        if famiglia.startswith("finitura:") or len(righe_gruppo) <= 1:
+            continue
+        ordinate = sorted(righe_gruppo, key=lambda r: r.voce_id)
+        for extra in ordinate[1:]:
+            voce_id_da_deduplicare.add(extra.voce_id)
+            modificate.append(
+                f"voce_id={extra.voce_id} asse={asse!r} opzione={opzione!r} DEDUPLICATA: "
+                f"famiglia {famiglia!r} aveva {len(righe_gruppo)} voci sulla stessa opzione, "
+                f"tenuta solo voce_id={ordinate[0].voce_id} (Rule 1, evita di sommare le "
+                "alternative)"
+            )
+
     for riga in decisioni.assi:
         if riga.decisione == "MODIFICATO":
             modificate.append(
@@ -177,6 +207,12 @@ def applica_assi(
 
         if riga.asse in (DOMANDA_FINITURA, DOMANDA_TIPO_PAVIMENTO):
             _aggiungi(riga.asse, riga.opzione, {"tipo_effetto": TIPO_INCLUDI, "target_voce": chiave})
+            if riga.voce_id in voce_id_da_deduplicare:
+                # Governata (includi) ma sempre esclusa: sparisce anche quando
+                # e' proprio questa opzione a essere scelta, senza smettere di
+                # essere "governata" quando NON lo e' (regola 4 di effetti.py
+                # la includerebbe sempre, altrimenti).
+                _aggiungi(riga.asse, riga.opzione, {"tipo_effetto": TIPO_ESCLUDI, "target_voce": chiave})
         elif riga.asse in ASSI_STEPPER:
             valore = float(riga.valore_per_unita) if riga.valore_per_unita is not None else 1.0
             _aggiungi(

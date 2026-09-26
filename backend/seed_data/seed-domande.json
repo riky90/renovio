@@ -2530,11 +2530,27 @@
               }
             },
             {
+              "tipo_effetto": "escludi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "BATTISCOPA",
+                "voce": "Zoccolino in legno 40 × 10 mm: essenza"
+              }
+            },
+            {
               "tipo_effetto": "includi",
               "target_voce": {
                 "categoria_code": "B-FINITURE",
                 "sottocategoria": "BATTISCOPA",
                 "voce": "Zoccolino in legno 40 × 10 mm: essenza"
+              }
+            },
+            {
+              "tipo_effetto": "escludi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "BATTISCOPA",
+                "voce": "Zoccolino in legno 40 × 10 mm: multistrato bianco"
               }
             },
             {
@@ -2554,7 +2570,7 @@
               }
             },
             {
-              "tipo_effetto": "includi",
+              "tipo_effetto": "escludi",
               "target_voce": {
                 "categoria_code": "B-FINITURE",
                 "sottocategoria": "BATTISCOPA",
@@ -2563,6 +2579,14 @@
             },
             {
               "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "BATTISCOPA",
+                "voce": "Zoccolino in legno 75 × 10 mm: multistrato bianco"
+              }
+            },
+            {
+              "tipo_effetto": "escludi",
               "target_voce": {
                 "categoria_code": "B-FINITURE",
                 "sottocategoria": "PAVIMENTI PARQUET",
@@ -2574,11 +2598,27 @@
               "target_voce": {
                 "categoria_code": "B-FINITURE",
                 "sottocategoria": "PAVIMENTI PARQUET",
+                "voce": "Parquet prefinito in listoni composti da uno strato superiore in legno nobile di spessore 5 mm e supporto in multistrato di betulla con profili maschiati:con superficie prelevigata, da finire in opera, spessore totale 10mm, lunghezza 1.200 ÷ 2.000 mm, larghezza 140 mm:rovere"
+              }
+            },
+            {
+              "tipo_effetto": "escludi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI PARQUET",
                 "voce": "Parquet prefinito in listoni composti da uno strato superiore in legno nobile di spessore 5 mm e supporto in multistrato di betulla con profili maschiati:con superficie prelevigata, da finire in opera, spessore totale 14 mm, lunghezza 1.200 ÷ 2.000 mm, larghezza 140 mm: iroko"
               }
             },
             {
               "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI PARQUET",
+                "voce": "Parquet prefinito in listoni composti da uno strato superiore in legno nobile di spessore 5 mm e supporto in multistrato di betulla con profili maschiati:con superficie prelevigata, da finire in opera, spessore totale 14 mm, lunghezza 1.200 ÷ 2.000 mm, larghezza 140 mm: iroko"
+              }
+            },
+            {
+              "tipo_effetto": "escludi",
               "target_voce": {
                 "categoria_code": "B-FINITURE",
                 "sottocategoria": "PAVIMENTI PARQUET",
@@ -2590,7 +2630,31 @@
               "target_voce": {
                 "categoria_code": "B-FINITURE",
                 "sottocategoria": "PAVIMENTI PARQUET",
+                "voce": "Parquet prefinito in listoni composti da uno strato superiore in legno nobile di spessore 5 mm e supporto in multistrato di betulla con profili maschiati:con superficie prelevigata, da finire in opera, spessore totale 14 mm, lunghezza 1.200 ÷ 2.000 mm, larghezza 140 mm: rovere"
+              }
+            },
+            {
+              "tipo_effetto": "escludi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI PARQUET",
                 "voce": "Parquet prefinito in listoni composti da uno strato superiore in legno nobile di spessore 5 mm e supporto in multistrato di betulla con profili maschiati:con superficie prelevigata, da finire in opera, spessore totale 14 mm, lunghezza 1.200 ÷ 2.000 mm, larghezza 140 mm: teak"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI PARQUET",
+                "voce": "Parquet prefinito in listoni composti da uno strato superiore in legno nobile di spessore 5 mm e supporto in multistrato di betulla con profili maschiati:con superficie prelevigata, da finire in opera, spessore totale 14 mm, lunghezza 1.200 ÷ 2.000 mm, larghezza 140 mm: teak"
+              }
+            },
+            {
+              "tipo_effetto": "escludi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI PARQUET",
+                "voce": "Parquet prefinito in listoni composti da uno strato superiore in legno nobile di spessore 5 mm e supporto in multistrato di betulla con profili maschiati:con superficie prelevigata, da finire in opera, spessore totale 14 mm, lunghezza 1.200 ÷ 2.000 mm, larghezza 140 mm: wengè"
               }
             },
             {
