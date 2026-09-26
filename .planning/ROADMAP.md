@@ -188,13 +188,13 @@ Plans:
 rialzo** su A-EDILE, B-FINITURE (tranne il gres), C-SERRAMENTI e D-PRODOTTI. È una scelta
 consapevole, non una dimenticanza.
 
-**Plans:** 8 plans
+**Plans:** 2/8 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 09-01-PLAN.md — Excel di taratura + elenco dei dati richiesti a Riccardo (D-04, primo deliverable, checkpoint di compilazione)
-- [ ] 09-02-PLAN.md — Assi Pro nel catalogo: domande finitura e tipo_pavimento, quantita' per bagni/porte/condizionatori, seed a chiave naturale, esclusione dal wizard
+- [x] 09-01-PLAN.md — Excel di taratura + elenco dei dati richiesti a Riccardo (D-04, primo deliverable, checkpoint di compilazione)
+- [x] 09-02-PLAN.md — Assi Pro nel catalogo: domande finitura e tipo_pavimento, quantita' per bagni/porte/condizionatori, seed a chiave naturale, esclusione dal wizard
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
