@@ -21,8 +21,10 @@ propagano normalmente — nessuna regressione sullo script esistente.
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from decimal import Decimal
+from pathlib import Path
 
 TIPI = ["leggera", "moderata", "totale"]
 # Fattore di intensita' per tipo — stessa scala 0.1..1.0 di seed-coefficienti-base.json
@@ -65,47 +67,95 @@ def detect_domanda_mirata(descrizione: str) -> str | None:
     return None
 
 
-def coefficienti_per_voce(um: str, descrizione: str) -> dict:
-    """Costruisce il blocco {tipo: {...}} di coefficienti bozza per una voce,
-    seguendo le regole UM di D-05 (Fase 3)."""
-    um_norm = (um or "").strip().lower()
-    coeff: dict[str, dict] = {}
+# --- Valori per classe della taratura corrente (D-03, piano 09-06) ---------
+#
+# `taratura-classi.json` (generato da `scripts/applica_taratura.py` dal file
+# di decisioni) e' la fonte PRIMARIA dei coefficienti per classe per i
+# computi futuri caricati da admin; `PROPOSTA_PER_CLASSE x TIPO_FACTOR`
+# (definita piu' sotto) resta SOLO il fallback di bootstrap per voci/classi
+# senza un valore curato a DB o nel JSON — mai la fonte primaria. Caricamento
+# pigro e in cache: il file cambia solo quando qualcuno rilancia lo script di
+# taratura, non a ogni richiesta.
+_BACKEND_DIR_TARATURA = Path(__file__).resolve().parent.parent.parent
+_TARATURA_CLASSI_PATH = _BACKEND_DIR_TARATURA / "seed_data" / "taratura-classi.json"
+_taratura_classi_cache: dict | None = None
 
-    if um_norm in MQ_UM:
-        for tipo in TIPI:
-            coeff[tipo] = {"coefficiente_qta_per_mq": round(0.6 * TIPO_FACTOR[tipo], 4)}
-    elif um_norm in ML_UM:
-        for tipo in TIPI:
-            coeff[tipo] = {"coefficiente_qta_per_mq": round(0.15 * TIPO_FACTOR[tipo], 4)}
-    elif um_norm in CAD_UM:
+
+def _carica_taratura_classi() -> dict:
+    """{classe: {tipo: valore}} da `taratura-classi.json`, o `{}` se il file
+    manca o e' illeggibile (upload mai bloccato dalla taratura: fallback a
+    PROPOSTA_PER_CLASSE x TIPO_FACTOR in `coefficienti_per_voce`)."""
+    global _taratura_classi_cache
+    if _taratura_classi_cache is None:
+        try:
+            contenuto = json.loads(_TARATURA_CLASSI_PATH.read_text(encoding="utf-8"))
+            _taratura_classi_cache = contenuto.get("classi", {})
+        except (OSError, ValueError):
+            _taratura_classi_cache = {}
+    return _taratura_classi_cache
+
+
+def coefficienti_per_voce(
+    um: str,
+    descrizione: str,
+    sottocategoria_nome: str = "",
+    categoria_code: str = "",
+) -> dict:
+    """Costruisce il blocco {tipo: {...}} di coefficienti bozza per una voce
+    NUOVA caricata da admin (upload/parser, D-19), derivandolo da
+    `proponi_coefficiente()` (D-03) con i valori per classe di
+    `taratura-classi.json` — non piu' `0.6/0.15 x TIPO_FACTOR` uniforme per
+    ogni voce a mq/ml (Pitfall 4 09-RESEARCH.md, chiuso dal piano 09-06).
+
+    Le voci `cad` con una parola chiave di domanda mirata (bagni/porte/
+    condizionatori) restano governate dallo stepper omonimo, invariato
+    rispetto a prima: la quantita' vera arriva dalla risposta dell'utente,
+    non da un coefficiente per m2."""
+    um_norm = (um or "").strip().lower()
+
+    if um_norm in CAD_UM:
         domanda_key = detect_domanda_mirata(descrizione)
         if domanda_key:
+            coeff: dict[str, dict] = {}
             for tipo in TIPI:
                 coeff[tipo] = {
                     "domanda_mirata_key": domanda_key,
                     "default_conteggio": DOMANDA_MIRATA_DEFAULT_CONTEGGIO[domanda_key],
                 }
-        else:
-            defaults = {"leggera": 0, "moderata": 1, "totale": 2}
-            for tipo in TIPI:
-                coeff[tipo] = {"default_conteggio": defaults[tipo]}
-    else:
-        # 'ac' (a corpo/forfait), '%', 'piano', 'n.air zone', 'n.bocchette', ecc.
-        for tipo in TIPI:
-            coeff[tipo] = {"default_conteggio": FORFAIT_DEFAULT}
+            return coeff
 
+    proposta = proponi_coefficiente(um, descrizione, sottocategoria_nome, categoria_code)
+    classi_taratura = _carica_taratura_classi()
+    valori_classe = classi_taratura.get(proposta.classe)
+
+    coeff = {}
+    for tipo in TIPI:
+        coeff_val, conteggio_val = proposta.per_tipo[tipo]
+        if coeff_val is not None:
+            if valori_classe and tipo in valori_classe:
+                try:
+                    coeff_val = Decimal(str(valori_classe[tipo]))
+                except (ValueError, TypeError):
+                    pass
+            coeff[tipo] = {"coefficiente_qta_per_mq": round(float(coeff_val), 4)}
+        else:
+            coeff[tipo] = {"default_conteggio": conteggio_val}
     return coeff
 
 
-# --- Proposta di taratura (D-03, Fase 09/09-01) ----------------------------
+# --- Proposta di taratura (D-03, Fase 09/09-01, chiusa dal piano 09-06) ---
 #
-# `coefficienti_per_voce()' sopra resta INVARIATA (Pitfall 4 del RESEARCH
-# 09): e' la bozza uniforme 0.6/0.15 x TIPO_FACTOR che alimenta ancora ogni
-# futuro upload admin finche' Riccardo non valida la taratura del piano
-# 09-06. Le funzioni sotto sono un canale SEPARATO e di sola lettura: una
-# proposta motivata per voce, usata dal generatore del file di taratura
-# (09-01 Task 2) per riempire le colonne *_proposto — non scrivono nulla e
-# non sono chiamate da nessun percorso di scrittura esistente.
+# Dal piano 09-06 `coefficienti_per_voce()' sopra NON e' piu' la bozza
+# uniforme 0.6/0.15 x TIPO_FACTOR (Pitfall 4 del RESEARCH 09, superato): usa
+# la classificazione di `proponi_coefficiente()` con i valori per classe di
+# `taratura-classi.json` (generato dal file di decisioni via
+# `scripts/applica_taratura.py`). Le funzioni sotto restano il canale che
+# produce quella proposta motivata per voce, usato anche dal generatore del
+# file di taratura (09-01 Task 2) per riempire le colonne *_proposto —
+# `PROPOSTA_PER_CLASSE` in particolare resta la bozza di Claude, letta come
+# fallback di bootstrap da `coefficienti_per_voce()` quando il JSON manca o
+# non ha quella classe, mai riscritta a mano con i numeri di Riccardo (i
+# numeri decisi vivono nel JSON generato).
 
 # Bozza di Claude per il tipo "totale" (valore per m2 o per ml/m2), motivata
 # per classe di voce. NON e' una taratura: e' la proposta che Riccardo valida
@@ -337,7 +387,9 @@ def append_voce(
         "um": um_str,
         "prezzo_unitario_cliente": prezzo_f,
         "ordine": ordine,
-        "coefficienti": coefficienti_per_voce(um_str, descrizione),
+        "coefficienti": coefficienti_per_voce(
+            um_str, descrizione, sotto.get("nome", ""), sotto.get("categoria_code", "")
+        ),
     }
     sotto["voci"].append(voce)
     return voce
