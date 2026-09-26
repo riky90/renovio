@@ -116,6 +116,16 @@ TIER_PRO = "pro"
 #: Per convenzione, uno stepper/numero ha una sola opzione con questo codice.
 OPZIONE_VALORE = "valore"
 
+#: Per convenzione (stesso precedente di OPZIONE_VALORE, non regole di
+#: business): la domanda del catalogo che rappresenta i livelli di
+#: `livello_finitura`. Il motore Pro (Fase 09-03) instrada la scelta per
+#: categoria verso questa domanda.
+DOMANDA_FINITURA = "finitura"
+
+#: Per convenzione: il gruppo delle domande che si rispondono solo nel
+#: pannello del dettaglio Pro (D-06). Il wizard (`_domande_attive`) le esclude.
+GRUPPO_CONFIGURATORE_PRO = "configuratore_pro"
+
 #: Bersagli ammessi per ciascun tipo di effetto.
 TARGET_AMMESSI: dict[str, frozenset[str]] = {
     TIPO_MOLTIPLICATORE_CATEGORIA: frozenset({"categoria"}),

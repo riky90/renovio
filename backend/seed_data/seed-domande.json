@@ -1,5 +1,5 @@
 {
-  "nota": "BOZZA. Le domande e le opzioni sono struttura del prodotto e il seed le riscrive a ogni boot; i VALORI degli effetti e le attese sono curatela e il seed li crea soltanto se mancano, cosi' una taratura fatta dal pannello admin non viene azzerata dal deploy successivo. I numeri qui sotto sono un punto di partenza plausibile, non una taratura: vanno confermati su preventivi reali. Tutti gli importi sono in euro-cliente, mai coefficiente impresa. I forfait di arredo (`forfait_arredo`) seguono la stessa regola: struttura riscritta a ogni boot, importi creati solo se mancanti. Sono importi LORDI, IVA inclusa, come li vede il cliente in un negozio di arredamento.",
+  "nota": "BOZZA. Le domande e le opzioni sono struttura del prodotto e il seed le riscrive a ogni boot; i VALORI degli effetti e le attese sono curatela e il seed li crea soltanto se mancano, cosi' una taratura fatta dal pannello admin non viene azzerata dal deploy successivo. I numeri qui sotto sono un punto di partenza plausibile, non una taratura: vanno confermati su preventivi reali. Tutti gli importi sono in euro-cliente, mai coefficiente impresa. I forfait di arredo (`forfait_arredo`) seguono la stessa regola: struttura riscritta a ogni boot, importi creati solo se mancanti. Sono importi LORDI, IVA inclusa, come li vede il cliente in un negozio di arredamento. Dalla Fase 09: gli effetti Pro (`includi` su finitura/tipo_pavimento, `quantita_per_unita` su bagni/porte/condizionatori) usano un bersaglio a chiave naturale (`target_voce`/`target_sottocategoria`: categoria_code, sottocategoria codice-o-nome, voce codice-o-descrizione) risolto dal seed sul listino di default, non un id cablato, cosi' il JSON resta leggibile e stabile anche se gli id cambiano. Le domande `finitura` e `tipo_pavimento` hanno gruppo `configuratore_pro`: si rispondono solo nel pannello del dettaglio Pro (D-06), il wizard (`_domande_attive`) le esclude sempre.",
   "attese": [
     {
       "attributo_code": "locali",
@@ -581,6 +581,240 @@
               "tipo_effetto": "eur_per_scostamento",
               "target_categoria_code": "D-PRODOTTI",
               "valore": "1400"
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.0",
+                "voce": "A.0.3"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.0",
+                "voce": "A.0.4"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.0",
+                "voce": "A.0.5"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.0",
+                "voce": "A.0.6"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.0",
+                "voce": "A.0.7"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.0",
+                "voce": "A.0.8"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.0",
+                "voce": "A.0.9"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.0",
+                "voce": "A.0.10"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.8",
+                "voce": "A.8.1"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.8",
+                "voce": "A.8.5"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.8",
+                "voce": "A.8.8"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.8",
+                "voce": "A.8.18"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.10",
+                "voce": "A.10.5"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.10",
+                "voce": "A.10.12"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.10",
+                "voce": "A.10.13"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "Miscelatore monocomando cromato per bidet, erogazione a doccetta orientabile, completo di scarico, senza nipples e rosoni"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "Miscelatore cromato monocomando da incasso per doccia/vasca: con corpo incassato, maniglia, cappuccio, rosone, doccia a sistema anticalcare, flessibile da 1500 mm e appendidoccia orientabile."
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "Piatto doccia in acrilico colore bianco, scarico centrale, per installazione sopra pavimento, inclusa piletta sifonata con foro ∅ 90 mm: rettangolare: 120 × 80 × 4 cm o 100 × 80 × 4 cm"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "Vasca in acrilico colore bianco, scarico centrale, per installazione ad incasso, inclusa piletta sifonata con foro ∅ 90 mm: rettangolare: 170 × 70"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "Cabina per piatto doccia composta da porta con profili in alluminio verniciato a caldo con resine epossidiche, altezza 1850 mm, lastre trasparenti con guarnizioni in gomma trattate con antimuffa, chiusura anta apribile mediante magnete:una porta a soffietto con apertura verso l'interno, con vetro st"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "Bidet in porcellana dura (vetrochina): monoforo con erogazione dalla rubinetteria, 36 × 54 × 39 cm"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "Vaso igienico in porcellana vetrificata (vetrochina), esclusi accessori di fissaggio: scarico a pavimento"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "Cassetta d'incasso da 9 litri, per posa in muratura, con regolazione del flusso e doppio tipo di risciacquo, allacciamento alla rete idrica sul lato superiore da 1/2\", con rubinetto d'arresto, fissaggi per la cassetta e rete di rivestimento per l'intonaco, con tubo di risciacquamento in polietilene "
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "Vaso igienico in porcellana vetrificata (vetrochina), esclusi accessori di fissaggio: sospeso con scarico a parete"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "Bidet in porcellana dura (vetrochina): sospeso, monoforo con erogazione dalla rubinetteria. 35 × 57 × 32 cm"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "D-PRODOTTI",
+                "sottocategoria": "PRODOTTI",
+                "voce": "Fornitura scaldabagno TURBO 12L"
+              }
             }
           ]
         }
@@ -653,6 +887,105 @@
               "tipo_effetto": "eur_per_scostamento",
               "target_categoria_code": "C-SERRAMENTI",
               "valore": "480"
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.0",
+                "voce": "A.0.12"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.3",
+                "voce": "A.3.5"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.3",
+                "voce": "A.3.6"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.3",
+                "voce": "A.3.7"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "C-SERRAMENTI",
+                "sottocategoria": "PORTE",
+                "voce": "Porta interna in legno con anta mobile tamburata e con bordi impiallacciati, completa di telaio maestro in listellare impiallacciato dello spessore di 8/11 mm, coprifili ad incastro in multistrato e tutta la ferramenta necessaria per il fissaggio, movimento e chiusura, delle dimensioni standard di 2"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "C-SERRAMENTI",
+                "sottocategoria": "PORTE",
+                "voce": "Montaggio di porte interne a battente misure standard"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "C-SERRAMENTI",
+                "sottocategoria": "PORTE",
+                "voce": "Porta in legno scorrevole interno muro con anta tamburata e bordi impiallacciati, spessore 8/11 mm, coprifili ad incastro in multistrato, serratura a gancio con nottolino e maniglia ad incasso, dimensioni 210 × 60 ÷ 90 cm:cieca liscia, anta singola:noce tanganika"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "C-SERRAMENTI",
+                "sottocategoria": "PORTE",
+                "voce": "Porta in legno scorrevole interno muro con anta tamburata e bordi impiallacciati, spessore 8/11 mm, coprifili ad incastro in multistrato, serratura a gancio con nottolino e maniglia ad incasso, dimensioni 210 × 60 ÷ 90 cm:cieca liscia, anta singola:laccata bianca"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "C-SERRAMENTI",
+                "sottocategoria": "PORTE",
+                "voce": "Montaggio di porte interne a scomparsa misure standard"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "C-SERRAMENTI",
+                "sottocategoria": "PORTE",
+                "voce": "Porta blindata costituita da telaio in lamiera d'acciaio dello spessore di 20/10 verniciato e predisposto per l'ancoraggio dei bulloni, controtelaio in lamiera dello spessore di 25/10 verniciato con vernice antiruggine, anta in doppia lamiera d'acciaio dello spessore di 12/10 con profili perimetrali"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "C-SERRAMENTI",
+                "sottocategoria": "PORTE",
+                "voce": "Montaggio di porta blindata mediante montaggio di nuovo controtelaio e assistenza muraria"
+              }
             }
           ]
         }
@@ -683,6 +1016,105 @@
               "tipo_effetto": "eur_per_scostamento",
               "target_categoria_code": "D-PRODOTTI",
               "valore": "900"
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.0",
+                "voce": "A.0.16"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.0",
+                "voce": "A.0.17"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.8",
+                "voce": "A.8.21"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.8",
+                "voce": "A.8.22"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.10",
+                "voce": "A.10.1"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "D-PRODOTTI",
+                "sottocategoria": "PRODOTTI",
+                "voce": "Fornitura di condizionatore SAMSUNG CEBU monoplit"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "D-PRODOTTI",
+                "sottocategoria": "PRODOTTI",
+                "voce": "Fornitura di condizionatore SAMSUNG CEBU dualsplit"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "D-PRODOTTI",
+                "sottocategoria": "PRODOTTI",
+                "voce": "Fornitura di condizionatore SAMSUNG CEBU trialsplit"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "D-PRODOTTI",
+                "sottocategoria": "PRODOTTI",
+                "voce": "Fornitura di condizionatore DAIKIN PREFERA monoplit"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "D-PRODOTTI",
+                "sottocategoria": "PRODOTTI",
+                "voce": "Fornitura di condizionatore DAIKIN PREFERA dualsplit"
+              }
+            },
+            {
+              "tipo_effetto": "quantita_per_unita",
+              "valore": 1,
+              "target_voce": {
+                "categoria_code": "D-PRODOTTI",
+                "sottocategoria": "PRODOTTI",
+                "voce": "Fornitura di condizionatore DAIKIN PREFERA trialsplit"
+              }
             }
           ]
         }
@@ -1457,6 +1889,288 @@
       "help": "Puoi sceglierne piu' di uno.",
       "visibile_se_domanda_code": "efficientamento",
       "visibile_se_opzione_code": "si"
+    },
+    {
+      "code": "finitura",
+      "testo": "Livello di finitura",
+      "help": "Cambia i materiali considerati nel computo, non le lavorazioni.",
+      "tipo_controllo": "scelta_singola",
+      "gruppo": "configuratore_pro",
+      "ordine": 200,
+      "tier_minimo": "pro",
+      "opzioni": [
+        {
+          "code": "base",
+          "etichetta": "Entry level",
+          "descrizione": "Materiali di serie, buon rapporto qualita/prezzo.",
+          "ordine": 1,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+                "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: effetto cemento, con superficie antiscivolo (R10 A):30 × 60 cm, naturale o bocciardato, spessore 10"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+                "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: effetto cemento, con superficie antiscivolo (R10 A): 60 × 60 cm, spessore 15 mm"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+                "voce": "Fornitura di pavimentazione/rivestimento in gres porcelanato TIPO: Padana marmosmart pietrasanta smart honed 60 x 60 1° sc. (mq. 1,44x)"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+                "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:effetto cemento, con superficie antiscivolo (R10 A):dimensioni 60 × 60 cm, spessore 15 mm"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+                "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 30 × 60 cm, spessore 10 mm"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+                "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: granigliato: 30 × 30 cm, effetto marmetta grana media antiscivolo (R11), spessore 8,5 mm"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+                "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: granigliato: 30 × 30 cm, superficie bocciardata antiscivolo (R12 B), spessore 8,5 mm"
+              }
+            }
+          ]
+        },
+        {
+          "code": "medio",
+          "etichetta": "Medio",
+          "descrizione": "Materiali di fascia media, la scelta piu' frequente.",
+          "ordine": 2,
+          "is_default": true,
+          "effetti": [
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+                "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: effetto cemento, con superficie antiscivolo (R10 A): 60 × 120 cm, naturale, spessore 10 mm"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+                "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto marmo, antiscivolo (R9), spessore 9 mm:30 × 60 cm"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+                "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto marmo, antiscivolo (R9), spessore 9 mm:60 × 120 cm"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+                "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:effetto cemento, con superficie antiscivolo (R10 A):60 × 120 cm, naturale, spessore 10 mm"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+                "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 60 × 120 cm, spessore 10,5 mm"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+                "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto pietra naturale, rettificato, antiscivolo (R9):60 × 120 cm, spessore 10,5 mm"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+                "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto pietra naturale, rettificato, antiscivolo (R9): 60 × 60 cm, spessore 10 mm"
+              }
+            }
+          ]
+        },
+        {
+          "code": "alto",
+          "etichetta": "Lusso",
+          "descrizione": "Materiali di pregio e finiture su misura.",
+          "ordine": 3,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+                "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 30 × 30 cm, disegno mosaico"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+                "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto cemento:120 × 120 cm, rettificato, spessore 10,5 mm"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+                "voce": "Gres porcellanato colorato in massa, ottenuto per pressatura, in lastre di bassissimo spessore rinforzate sul lato inferiore con rete in fibra di vetro, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe reazione al fuoco A2 - s1, classe assorbimento acqua Bia-UGL, "
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+                "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto marmo, antiscivolo (R9), spessore 9 mm: 90 × 90 cm"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+                "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:120 × 278 cm, spessore 6 mm:effetto marmo, superficie lucida"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+                "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:160 × 320 cm, spessore 6 mm:effetto marmo, superficie lucida"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+                "voce": "Ceramica monocottura di pasta bianca in lastre ottenute per pressatura, rettificate, per rivestimenti ad uso residenziale, grado di assorbimento acqua gruppo BIII L a norma UNI EN 14411, delle dimensioni di 60 × 180 cm:effetto cemento, strutturato, spessore 9 mm"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "tipo_pavimento",
+      "testo": "Che pavimento vuoi per casa?",
+      "help": "Vale per le zone giorno e notte. Il bagno resta sempre in gres o rivestimento, non cambia con questa scelta.",
+      "tipo_controllo": "scelta_singola",
+      "gruppo": "configuratore_pro",
+      "ordine": 52,
+      "tier_minimo": "pro",
+      "opzioni": [
+        {
+          "code": "gres",
+          "etichetta": "Gres",
+          "descrizione": "Piastrelle in gres porcellanato",
+          "ordine": 1,
+          "is_default": true,
+          "effetti": [
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.6",
+                "voce": "A.6.1"
+              }
+            }
+          ]
+        },
+        {
+          "code": "parquet",
+          "etichetta": "Parquet",
+          "ordine": 2,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.6",
+                "voce": "A.6.2"
+              }
+            }
+          ]
+        },
+        {
+          "code": "maxi_lastra",
+          "etichetta": "Maxi lastra",
+          "ordine": 3,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.6",
+                "voce": "A.6.5"
+              }
+            }
+          ]
+        },
+        {
+          "code": "mosaico",
+          "etichetta": "Mosaico",
+          "ordine": 4,
+          "is_default": false,
+          "effetti": [
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.6",
+                "voce": "A.6.6"
+              }
+            }
+          ]
+        }
+      ]
     }
   ],
   "forfait_arredo": [

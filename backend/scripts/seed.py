@@ -518,7 +518,55 @@ def seed_livelli_finitura(session: Session) -> None:
         row.is_default = dati["is_default"]
 
 
-def seed_domande(session: Session, data: dict | None = None) -> None:
+def _risolvi_bersaglio_naturale(session: Session, listino: Listino, e_data: dict) -> tuple[dict, bool]:
+    """Risolve le chiavi opzionali `target_voce` / `target_sottocategoria` di un
+    effetto del JSON di seed (bersaglio a chiave naturale) in id concreti del
+    listino di default.
+
+    `target_voce`: {categoria_code, sottocategoria, voce}. `target_sottocategoria`:
+    {categoria_code, sottocategoria}. La sottocategoria si cerca per
+    (listino_id, categoria_code, codice == sottocategoria) e, se non trovata, per
+    (codice IS NULL, nome == sottocategoria); la voce per codice == voce e, se non
+    trovata, per (codice IS NULL, descrizione == voce) dentro quella sottocategoria.
+
+    Ritorna (campi_target, risolto): `campi_target` e' il dict da fondere in
+    `e_data` prima di chiamare `_crea_effetto_se_manca` (vuoto se l'effetto non ha
+    bersaglio naturale — nulla da risolvere); `risolto` e' False quando una chiave
+    naturale e' presente ma non trova corrispondenza — l'effetto va SALTATO senza
+    eccezione, perche' il seed gira al boot del container e un errore di curatela
+    nel JSON non deve impedire all'app di partire."""
+    target_voce = e_data.get("target_voce")
+    target_sotto = e_data.get("target_sottocategoria")
+    if target_voce is None and target_sotto is None:
+        return {}, True
+
+    dati_sotto = target_voce if target_voce is not None else target_sotto
+    categoria_code = dati_sotto["categoria_code"]
+    sottocategoria_key = dati_sotto["sottocategoria"]
+
+    query = session.query(Sottocategoria).filter_by(
+        listino_id=listino.id, categoria_code=categoria_code
+    )
+    sotto = query.filter_by(codice=sottocategoria_key).one_or_none()
+    if sotto is None:
+        sotto = query.filter_by(codice=None, nome=sottocategoria_key).one_or_none()
+    if sotto is None:
+        return {}, False
+
+    if target_voce is None:
+        return {"target_sottocategoria_id": sotto.id}, True
+
+    voce_key = target_voce["voce"]
+    query_voce = session.query(Voce).filter_by(sottocategoria_id=sotto.id)
+    voce = query_voce.filter_by(codice=voce_key).one_or_none()
+    if voce is None:
+        voce = query_voce.filter_by(codice=None, descrizione=voce_key).one_or_none()
+    if voce is None:
+        return {}, False
+    return {"target_voce_id": voce.id}, True
+
+
+def seed_domande(session: Session, data: dict | None = None) -> int:
     """Upsert idempotente del catalogo domande (0014). Chiamata da `seed()` —
     mai un secondo script (D-12/Pitfall 5).
 
@@ -538,8 +586,15 @@ def seed_domande(session: Session, data: dict | None = None) -> None:
     Nessun DELETE implicito (D-24): un'opzione tolta dal JSON resta in tabella e
     va rimossa esplicitamente da admin. Cancellare in automatico righe a cui
     puntano effetti curati a mano sarebbe distruttivo e silenzioso.
+
+    Ritorna il numero di effetti con bersaglio naturale (`target_voce` /
+    `target_sottocategoria`) NON risolti — i chiamanti esistenti (`seed()`)
+    ignorano il valore, i test del Task 1/2 lo usano per verificare che il JSON
+    reale non abbia bersagli rotti.
     """
     data = data or load_domande_data()
+    listino = session.query(Listino).filter_by(is_default=True).one_or_none()
+    non_risolti = 0
 
     for d_data in data.get("domande", []):
         domanda = session.get(Domanda, d_data["code"])
@@ -583,6 +638,16 @@ def seed_domande(session: Session, data: dict | None = None) -> None:
             # else: gia' presente -> curatela del pannello, non si tocca.
 
             for e_data in o_data.get("effetti", []):
+                ha_bersaglio_naturale = "target_voce" in e_data or "target_sottocategoria" in e_data
+                if ha_bersaglio_naturale:
+                    if listino is None:
+                        non_risolti += 1
+                        continue
+                    campi_target, risolto = _risolvi_bersaglio_naturale(session, listino, e_data)
+                    if not risolto:
+                        non_risolti += 1
+                        continue
+                    e_data = {**e_data, **campi_target}
                 _crea_effetto_se_manca(session, opzione, e_data)
 
     for a_data in data.get("attese", []):
@@ -609,6 +674,7 @@ def seed_domande(session: Session, data: dict | None = None) -> None:
     _seed_derivazioni(session, data.get("derivazioni", []))
     _seed_forfait_arredo(session, data.get("forfait_arredo", []))
     session.flush()
+    return non_risolti
 
 
 def _seed_derivazioni(session: Session, righe: list[dict]) -> None:

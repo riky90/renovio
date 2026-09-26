@@ -148,6 +148,21 @@ def test_tier_pro_include_le_domande_free(client):
     assert free <= pro, "un utente Pro compila anche le domande Free"
 
 
+def test_configuratore_pro_non_entra_nel_wizard(client):
+    """`finitura` e `tipo_pavimento` (gruppo `configuratore_pro`, D-06) si
+    rispondono solo nel pannello del dettaglio Pro: il wizard, anche a tier
+    pro, non le riceve mai. Gli stepper bagni/porte/condizionatori restano
+    invece nel catalogo servito, invariati (09-02)."""
+    pro = {d["code"] for d in _get(client, tier="pro")["domande"]}
+    free = {d["code"] for d in _get(client, tier="free")["domande"]}
+
+    assert "finitura" not in pro
+    assert "tipo_pavimento" not in pro
+    assert {"bagni", "porte", "condizionatori"} <= pro
+    assert "finitura" not in free
+    assert "tipo_pavimento" not in free
+
+
 def test_tier_sconosciuto_e_422(client):
     assert client.get("/api/v1/domande", params={"tier": "enterprise"}).status_code == 422
 

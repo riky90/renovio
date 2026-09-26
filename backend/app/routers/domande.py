@@ -30,6 +30,7 @@ from app.schemas.domande import CatalogoDomandeOut, DomandaOut, OpzioneOut
 from app.services.effetti import (
     CONTROLLI_NUMERICI,
     CONTROLLO_SCELTA_MULTIPLA,
+    GRUPPO_CONFIGURATORE_PRO,
     TIER_FREE,
     TIER_PRO,
     attese_per_mq,
@@ -105,10 +106,18 @@ def _domande_attive(session: Session, tiers: tuple[str, ...]) -> list[Domanda]:
     raggruppa per step, e due domande di gruppi diversi con lo stesso `ordine`
     devono comunque uscire in un ordine stabile. `code` chiude il pareggio, cosi'
     la lista non cambia fra due chiamate identiche.
+
+    Le domande del gruppo `configuratore_pro` si rispondono solo nel pannello
+    del dettaglio Pro (D-06): il wizard non le riceve mai, anche se il loro
+    `tier_minimo` e' `pro`.
     """
     return (
         session.query(Domanda)
-        .filter(Domanda.attiva.is_(True), Domanda.tier_minimo.in_(tiers))
+        .filter(
+            Domanda.attiva.is_(True),
+            Domanda.tier_minimo.in_(tiers),
+            Domanda.gruppo != GRUPPO_CONFIGURATORE_PRO,
+        )
         .order_by(Domanda.gruppo, Domanda.ordine, Domanda.code)
         .all()
     )
