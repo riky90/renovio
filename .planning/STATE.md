@@ -8,9 +8,9 @@ progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 23
-  completed_plans: 21
+  completed_plans: 22
   percent: 71
-stopped_at: Phase 09 executing — waves 1-3 done, wave 4 running (09-06)
+stopped_at: Phase 09 — waves 1-4 done (7/8 plans), suite 818 green; next: wave 5 = plan 09-08 (migrate dev.db, auto checks, 09-HUMAN-UAT.md) via /gsd:execute-phase 09, then Phase 10
 ---
 
 # Project State — ristruttura-stima

@@ -188,7 +188,7 @@ Plans:
 rialzo** su A-EDILE, B-FINITURE (tranne il gres), C-SERRAMENTI e D-PRODOTTI. È una scelta
 consapevole, non una dimenticanza.
 
-**Plans:** 6/8 plans executed
+**Plans:** 7/8 plans executed
 
 Plans:
 **Wave 1**
@@ -208,7 +208,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 09-06-PLAN.md — Taratura dei coefficienti approvata: seed, migrazione 0022, bozza dei computi futuri (CFG-04)
+- [x] 09-06-PLAN.md — Taratura dei coefficienti approvata: seed, migrazione 0022, bozza dei computi futuri (CFG-04)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
