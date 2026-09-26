@@ -188,7 +188,7 @@ Plans:
 rialzo** su A-EDILE, B-FINITURE (tranne il gres), C-SERRAMENTI e D-PRODOTTI. È una scelta
 consapevole, non una dimenticanza.
 
-**Plans:** 4/8 plans executed
+**Plans:** 6/8 plans executed
 
 Plans:
 **Wave 1**
@@ -203,8 +203,8 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 09-05-PLAN.md — Pannello "Qualche dettaglio in piu'" su DomandaField, API generica validata, pavimento nel PDF
-- [ ] 09-07-PLAN.md — Curatela degli assi approvata + CFG-02 per famiglia su tutti i cataloghi + livello admin in sola lettura
+- [x] 09-05-PLAN.md — Pannello "Qualche dettaglio in piu'" su DomandaField, API generica validata, pavimento nel PDF
+- [x] 09-07-PLAN.md — Curatela degli assi approvata + CFG-02 per famiglia su tutti i cataloghi + livello admin in sola lettura
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
