@@ -62,7 +62,8 @@ def _voci_di(session, sotto: Sottocategoria) -> list[Voce]:
 
 def _compute(session, **kwargs):
     listino, _ = resolve_listino(session, "Reggio Emilia")
-    return DettaglioProService.compute(session, listino, mq=85, tipo="totale", risposte={}, **kwargs)
+    kwargs.setdefault("risposte", {})
+    return DettaglioProService.compute(session, listino, mq=85, tipo="totale", **kwargs)
 
 
 def _descrizioni_sotto(result, nome_sotto: str) -> list[str]:
@@ -71,27 +72,6 @@ def _descrizioni_sotto(result, nome_sotto: str) -> list[str]:
             if sotto.nome == nome_sotto:
                 return [v.descrizione for v in sotto.voci]
     return []
-
-
-class TestFiltroPuro:
-    """`_voce_inclusa` non tocca il DB: si verifica da sola, caso per caso."""
-
-    def test_categoria_non_selezionabile_include_tutto(self):
-        assert DettaglioProService._voce_inclusa("alto", False, "base") is True
-
-    def test_nessun_livello_risolto_include_tutto(self):
-        """Tabella `livello_finitura` vuota (DB migrato ma non ri-seminato):
-        si torna al comportamento precedente, non a un risultato vuoto."""
-        assert DettaglioProService._voce_inclusa("alto", True, None) is True
-
-    def test_voce_senza_livello_sempre_inclusa(self):
-        assert DettaglioProService._voce_inclusa(None, True, "base") is True
-
-    def test_voce_del_livello_scelto_inclusa(self):
-        assert DettaglioProService._voce_inclusa("medio", True, "medio") is True
-
-    def test_voce_di_altro_livello_esclusa(self):
-        assert DettaglioProService._voce_inclusa("alto", True, "medio") is False
 
 
 class TestRetrocompatibilita:
@@ -111,30 +91,38 @@ class TestRetrocompatibilita:
         assert voce.prezzo_min == Decimal("1836")
         assert voce.prezzo_max == Decimal("2754")
 
-    def test_con_voci_non_curate_il_livello_non_cambia_nulla(self, session):
-        """Tutte le voci a NULL (stato subito dopo la migrazione): qualunque
-        livello si scelga, il totale e' lo stesso. E' la garanzia che il deploy
-        della 0010 non muove un euro finche' l'admin non cura i dati."""
-        base = _compute(session)
-        for livello in ("base", "medio", "alto"):
-            scelto = _compute(session, livelli={"B-FINITURE": livello})
-            assert scelto.totale_min == base.totale_min
-            assert scelto.totale_max == base.totale_max
-
-
 class TestSelezionePerLivello:
-    @pytest.fixture()
-    def gres_taggato(self, session):
-        """Tre voci di gres etichettate base/medio/alto; le altre restano NULL."""
-        voci = _voci_di(session, _sotto_gres(session))
-        voci[0].livello = "base"
-        voci[1].livello = "medio"
-        voci[2].livello = "alto"
-        session.flush()
-        return [voci[0].descrizione, voci[1].descrizione, voci[2].descrizione]
+    """Dalla Fase 09-03 il filtro per livello non e' piu' `voce.livello`
+    (colonna letta a mano) ma l'asse `finitura` del catalogo domande, gia'
+    curato dal seed (09-02) sulle stesse 21 voci di gres. Queste fixture
+    leggono i bersagli REALI dal catalogo (`EffettoOpzione` con
+    `tipo_effetto='includi'` sulla domanda `finitura`) invece di taggare
+    `voce.livello` a mano — il motore non legge piu' quella colonna."""
 
-    def test_solo_la_voce_del_livello_scelto(self, session, gres_taggato):
-        base_desc, medio_desc, alto_desc = gres_taggato
+    @pytest.fixture()
+    def bersagli_finitura(self, session) -> dict[str, list[Voce]]:
+        from app.models.domanda import EffettoOpzione, OpzioneDomanda
+        from app.services.effetti import TIPO_INCLUDI
+
+        righe = (
+            session.query(OpzioneDomanda, EffettoOpzione)
+            .join(EffettoOpzione, EffettoOpzione.opzione_id == OpzioneDomanda.id)
+            .filter(
+                OpzioneDomanda.domanda_code == "finitura",
+                EffettoOpzione.tipo_effetto == TIPO_INCLUDI,
+            )
+            .all()
+        )
+        per_opzione: dict[str, list[Voce]] = {}
+        for opzione, effetto in righe:
+            voce = session.get(Voce, effetto.target_voce_id)
+            per_opzione.setdefault(opzione.code, []).append(voce)
+        return per_opzione
+
+    def test_solo_la_voce_del_livello_scelto(self, session, bersagli_finitura):
+        medio_desc = bersagli_finitura["medio"][0].descrizione
+        base_desc = bersagli_finitura["base"][0].descrizione
+        alto_desc = bersagli_finitura["alto"][0].descrizione
 
         incluse = _descrizioni_sotto(_compute(session, livelli={"B-FINITURE": "medio"}), GRES)
 
@@ -142,28 +130,42 @@ class TestSelezionePerLivello:
         assert base_desc not in incluse
         assert alto_desc not in incluse
 
-    def test_le_voci_senza_livello_restano(self, session, gres_taggato):
-        """Posa, consumo e montaggio non hanno livello: devono sopravvivere al
-        filtro, altrimenti il computo perde le lavorazioni."""
-        voci_null = [
-            v.descrizione for v in _voci_di(session, _sotto_gres(session)) if v.livello is None
+    def test_le_voci_non_governate_da_tipo_pavimento_restano(self, session):
+        """Le 21 voci di gres sono TUTTE bersaglio dell'asse `finitura` (il
+        seed cura esattamente quelle): l'asse che lascia voci non governate
+        e' invece `tipo_pavimento`, su A.6 — le pose A.6.7 in poi (battiscopa,
+        arrotatura...) non sono bersaglio di alcuna sua opzione e devono
+        sopravvivere al filtro qualunque pavimento si scelga."""
+        sotto_a6 = (
+            session.query(Sottocategoria).filter_by(categoria_code="A-EDILE", codice="A.6").one()
+        )
+        governate = {"A.6.1", "A.6.2", "A.6.5", "A.6.6"}
+        codici_non_governati = [
+            v.codice for v in _voci_di(session, sotto_a6) if v.codice not in governate
         ]
-        assert voci_null, "il seed deve avere voci di gres non etichettate"
+        assert codici_non_governati, "il seed deve avere pose A.6 non governate da tipo_pavimento"
 
-        incluse = _descrizioni_sotto(_compute(session, livelli={"B-FINITURE": "medio"}), GRES)
+        for pavimento in ("gres", "parquet", "maxi_lastra", "mosaico"):
+            result = _compute(session, risposte={"tipo_pavimento": pavimento})
+            codici_presenti = {
+                v.codice
+                for cat in result.categorie
+                for s in cat.sottocategorie
+                if s.nome == sotto_a6.nome
+                for v in s.voci
+            }
+            for codice in codici_non_governati:
+                assert codice in codici_presenti
 
-        for descrizione in voci_null:
-            assert descrizione in incluse
-
-    def test_livello_alto_costa_piu_del_livello_base(self, session):
-        """Con voci curate, il livello muove davvero il totale — e nella
-        direzione giusta. Due sole voci etichettate, una per livello: e' il
-        confronto pulito, perche' tutto il resto del computo e' identico."""
-        voci = _voci_di(session, _sotto_gres(session))
-        voci[0].livello = "base"
-        voci[0].prezzo_unitario_cliente = Decimal("20.00")
-        voci[1].livello = "alto"
-        voci[1].prezzo_unitario_cliente = Decimal("500.00")
+    def test_livello_alto_costa_piu_del_livello_base(self, session, bersagli_finitura):
+        """Con le voci reali del catalogo, il livello muove davvero il totale
+        — e nella direzione giusta. Si alza il prezzo di una voce bersaglio
+        di 'alto' e si abbassa quella di 'base': il resto del computo resta
+        identico, quindi il confronto e' pulito."""
+        voce_base = bersagli_finitura["base"][0]
+        voce_base.prezzo_unitario_cliente = Decimal("20.00")
+        voce_alto = bersagli_finitura["alto"][0]
+        voce_alto.prezzo_unitario_cliente = Decimal("500.00")
         session.flush()
 
         totale_base = _compute(session, livelli={"B-FINITURE": "base"}).totale_max
@@ -172,17 +174,9 @@ class TestSelezionePerLivello:
         assert totale_alto > totale_base
 
     def test_a_edile_ignora_il_livello(self, session):
-        """A-EDILE non e' selezionabile: anche etichettando le sue voci, il
-        totale di categoria non cambia al variare del livello."""
-        sotto_edile = (
-            session.query(Sottocategoria)
-            .filter_by(categoria_code="A-EDILE")
-            .order_by(Sottocategoria.id)
-            .first()
-        )
-        for voce in _voci_di(session, sotto_edile):
-            voce.livello = "alto"
-        session.flush()
+        """A-EDILE non e' selezionabile: il totale di categoria non cambia al
+        variare del livello di finitura (l'asse non la governa in alcun
+        modo — nessuna voce di A-EDILE e' bersaglio di `finitura`)."""
 
         def totale_edile(livello: str) -> Decimal:
             result = _compute(session, livelli={"B-FINITURE": livello})
@@ -190,11 +184,13 @@ class TestSelezionePerLivello:
 
         assert totale_edile("base") == totale_edile("alto")
 
-    def test_livello_assente_applica_il_default_non_tutte_le_voci(self, session, gres_taggato):
+    def test_livello_assente_applica_il_default_non_tutte_le_voci(self, session, bersagli_finitura):
         """Senza scelta si applica `is_default` ('medio'). Il caso sbagliato da
         escludere e' "nessuna scelta => nessun filtro", che riporterebbe il bug
         della somma dei cataloghi."""
-        base_desc, medio_desc, alto_desc = gres_taggato
+        medio_desc = bersagli_finitura["medio"][0].descrizione
+        base_desc = bersagli_finitura["base"][0].descrizione
+        alto_desc = bersagli_finitura["alto"][0].descrizione
 
         incluse = _descrizioni_sotto(_compute(session), GRES)
 
@@ -213,11 +209,49 @@ class TestSelezionePerLivello:
 
     def test_sottocategoria_svuotata_dal_filtro_e_assente(self, session):
         """Niente accordion vuoti a 0 EUR: se il livello svuota una
-        sottocategoria, sparisce — e ricompare col livello giusto."""
-        sotto = _sotto_gres(session)
-        for voce in _voci_di(session, sotto):
-            voce.livello = "alto"
+        sottocategoria, sparisce — e ricompare col livello giusto. Una
+        sottocategoria di TEST, interamente governata dall'asse `finitura`
+        (nessuna voce non governata), cosi' che uno dei due livelli la
+        svuoti per intero — a differenza del GRES reale, che ha sempre le
+        voci di posa non governate a tenerla non vuota."""
+        from app.models.domanda import EffettoOpzione, OpzioneDomanda
+        from app.services.effetti import TIPO_INCLUDI
+
+        gres = _sotto_gres(session)
+        sotto_test = Sottocategoria(
+            listino_id=gres.listino_id,
+            categoria_code="B-FINITURE",
+            codice=None,
+            nome="TEST SVUOTA",
+            famiglia="catalogo",
+            ordine=999,
+        )
+        session.add(sotto_test)
         session.flush()
+        voce_base = Voce(
+            sottocategoria_id=sotto_test.id,
+            codice=None,
+            descrizione="voce di test governata da base",
+            um="cad",
+            prezzo_unitario_cliente=Decimal("10.00"),
+            ordine=1,
+        )
+        voce_alto = Voce(
+            sottocategoria_id=sotto_test.id,
+            codice=None,
+            descrizione="voce di test governata da alto",
+            um="cad",
+            prezzo_unitario_cliente=Decimal("10.00"),
+            ordine=2,
+        )
+        session.add_all([voce_base, voce_alto])
+        session.flush()
+
+        opz_base = session.query(OpzioneDomanda).filter_by(domanda_code="finitura", code="base").one()
+        opz_alto = session.query(OpzioneDomanda).filter_by(domanda_code="finitura", code="alto").one()
+        session.add(EffettoOpzione(opzione_id=opz_base.id, tipo_effetto=TIPO_INCLUDI, target_voce_id=voce_base.id))
+        session.add(EffettoOpzione(opzione_id=opz_alto.id, tipo_effetto=TIPO_INCLUDI, target_voce_id=voce_alto.id))
+        session.commit()
 
         def nomi(livello: str) -> list[str]:
             return [
@@ -226,8 +260,10 @@ class TestSelezionePerLivello:
                 for s in cat.sottocategorie
             ]
 
-        assert GRES not in nomi("base")
-        assert GRES in nomi("alto")
+        # medio: nessuna delle due voci di test e' bersaglio -> sottocategoria vuota, scartata.
+        assert "TEST SVUOTA" not in nomi("medio")
+        assert "TEST SVUOTA" in nomi("base")
+        assert "TEST SVUOTA" in nomi("alto")
 
 
 class TestSeedEAdmin:
