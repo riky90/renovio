@@ -21,6 +21,9 @@ propagano normalmente — nessuna regressione sullo script esistente.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+from decimal import Decimal
+
 TIPI = ["leggera", "moderata", "totale"]
 # Fattore di intensita' per tipo — stessa scala 0.1..1.0 di seed-coefficienti-base.json
 # (moltiplicatori_tipo), riusata qui come bozza per far crescere le quantita'
@@ -92,6 +95,194 @@ def coefficienti_per_voce(um: str, descrizione: str) -> dict:
             coeff[tipo] = {"default_conteggio": FORFAIT_DEFAULT}
 
     return coeff
+
+
+# --- Proposta di taratura (D-03, Fase 09/09-01) ----------------------------
+#
+# `coefficienti_per_voce()' sopra resta INVARIATA (Pitfall 4 del RESEARCH
+# 09): e' la bozza uniforme 0.6/0.15 x TIPO_FACTOR che alimenta ancora ogni
+# futuro upload admin finche' Riccardo non valida la taratura del piano
+# 09-06. Le funzioni sotto sono un canale SEPARATO e di sola lettura: una
+# proposta motivata per voce, usata dal generatore del file di taratura
+# (09-01 Task 2) per riempire le colonne *_proposto — non scrivono nulla e
+# non sono chiamate da nessun percorso di scrittura esistente.
+
+# Bozza di Claude per il tipo "totale" (valore per m2 o per ml/m2), motivata
+# per classe di voce. NON e' una taratura: e' la proposta che Riccardo valida
+# con la checklist (09-TARATURA-TODO.md). Tarabile da admin via il file di
+# D-04/pannello, mai cablata come sorgente unica di verita' (regola 3
+# CLAUDE.md: il valore vero vive in coefficiente_qta_voce, questo dict e'
+# solo il punto di partenza scritto a DB una tantum).
+PROPOSTA_PER_CLASSE: dict[str, Decimal] = {
+    "pavimento": Decimal("0.85"),
+    "rivestimento": Decimal("0.25"),
+    "battiscopa": Decimal("0.9"),
+    "massetto": Decimal("0.85"),
+    "pareti_soffitti": Decimal("2.7"),
+    "demolizione": Decimal("0.5"),
+    "serramento_mq": Decimal("0.12"),
+    "lineare": Decimal("0.3"),
+    "altro_mq": Decimal("0.4"),
+}
+
+_MOTIVAZIONE_PER_CLASSE: dict[str, str] = {
+    "pavimento": (
+        "Coefficiente proposto come quota dei m2 commerciali effettivamente "
+        "calpestabili (al netto di murature e vani), scalato per intensita' "
+        "di intervento."
+    ),
+    "rivestimento": (
+        "Coefficiente di fallback quando manca il numero di bagni della "
+        "stima: circa 20 m2 di parete rivestita per bagno su un appartamento "
+        "di riferimento di 85 m2 (D-03). Andrebbe sostituito da una domanda "
+        "mirata sul numero di bagni, come le voci gia' a domanda_mirata_key."
+    ),
+    "battiscopa": (
+        "Metri lineari di battiscopa per m2 di pavimento, stimati dal "
+        "perimetro medio di una stanza di un appartamento di riferimento."
+    ),
+    "massetto": (
+        "Quota dei m2 dell'appartamento su cui si rifa' il massetto, "
+        "scalata per intensita' di intervento."
+    ),
+    "pareti_soffitti": (
+        "Superficie di pareti e soffitto per m2 di pavimento (altezza media "
+        "locale x perimetro, piu' il soffitto), coefficiente maggiore di 1 "
+        "per costruzione."
+    ),
+    "demolizione": (
+        "Quota dei m2 dell'appartamento soggetta a demolizione/rimozione, "
+        "scalata per intensita' di intervento."
+    ),
+    "serramento_mq": (
+        "Superficie finestrata stimata come frazione dei m2 dell'appartamento."
+    ),
+    "lineare": (
+        "Coefficiente lineare bozza per voci a metro lineare non altrimenti "
+        "classificate, in assenza di un dato piu' specifico."
+    ),
+    "altro_mq": (
+        "Coefficiente a m2 bozza per voci non altrimenti classificate, in "
+        "assenza di un dato piu' specifico."
+    ),
+}
+
+_KEYWORDS_RIVESTIMENTO = ("rivestiment",)
+_KEYWORDS_PAVIMENTO = (
+    "pavimentazione", "pavimento", "parquet", "gres", "laminato", "vinilico",
+    "moquette", "tesserine", "lastra",
+)
+_KEYWORDS_BATTISCOPA = ("battiscopa", "zoccolino")
+_KEYWORDS_MASSETTO = ("massetto", "sottofondo", "impermeabilizz")
+_KEYWORDS_PARETI_SOFFITTI = ("pittura", "tinteggiatura", "intonaco", "rasatura", "controsoffitt")
+_KEYWORDS_DEMOLIZIONE = ("demolizione", "rimozione", "trasporto")
+_KEYWORDS_SERRAMENTO_MQ = ("finestra", "porta finestra", "tapparell", "zanzarier")
+_KEYWORDS_RADIATORE = ("radiator", "termosifon")
+
+
+def _classe_voce(um_norm: str, testo: str) -> str:
+    """Classificazione pura per UM + parole chiave, nell'ordine dell'azione
+    del Task 1 (09-01-PLAN.md): rivestimento -> pavimento -> battiscopa (ml)
+    -> massetto -> pareti_soffitti -> demolizione -> serramento_mq (mq) ->
+    lineare (altro ml) -> altro_mq (altro mq) -> conteggio (cad/ac/n.*/piano)
+    -> percentuale (%)."""
+    if any(kw in testo for kw in _KEYWORDS_RIVESTIMENTO):
+        return "rivestimento"
+    if any(kw in testo for kw in _KEYWORDS_PAVIMENTO):
+        return "pavimento"
+    if um_norm in ML_UM and any(kw in testo for kw in _KEYWORDS_BATTISCOPA):
+        return "battiscopa"
+    if any(kw in testo for kw in _KEYWORDS_MASSETTO):
+        return "massetto"
+    if any(kw in testo for kw in _KEYWORDS_PARETI_SOFFITTI):
+        return "pareti_soffitti"
+    if any(kw in testo for kw in _KEYWORDS_DEMOLIZIONE):
+        return "demolizione"
+    if um_norm in MQ_UM and any(kw in testo for kw in _KEYWORDS_SERRAMENTO_MQ):
+        return "serramento_mq"
+    if um_norm in ML_UM:
+        return "lineare"
+    if um_norm in MQ_UM:
+        return "altro_mq"
+    if um_norm == "%":
+        return "percentuale"
+    return "conteggio"
+
+
+@dataclass(frozen=True)
+class PropostaCoefficiente:
+    """Proposta di taratura per UNA voce (D-03): `classe` e' l'etichetta di
+    classificazione (per diagnosi/report, non persistita), `per_tipo` mappa
+    ogni tipo di ristrutturazione a `(coefficiente_qta_per_mq, default_conteggio)`
+    — sempre uno dei due `None`, mai entrambi popolati — e `motivazione` e'
+    il testo in italiano che finisce nella colonna omonima del file di
+    taratura."""
+
+    classe: str
+    per_tipo: dict[str, tuple[Decimal | None, int | None]]
+    motivazione: str
+
+
+def proponi_coefficiente(
+    um: str, descrizione: str, sottocategoria_nome: str, categoria_code: str
+) -> PropostaCoefficiente:
+    """Bozza ragionata per UM e descrizione (D-03), al posto del
+    `0.6 x TIPO_FACTOR` uniforme di `coefficienti_per_voce()` (che resta
+    invariata, Pitfall 4 09-RESEARCH.md). Pura: nessun accesso a database,
+    nessun coefficiente impresa."""
+    um_norm = (um or "").strip().lower()
+    # Deviazione (Rule 1): la classificazione usa SOLO la descrizione, non
+    # "descrizione + nome sottocategoria" come da testo letterale
+    # dell'azione del piano. Il nome della sottocategoria A.6 e' "PAVIMENTI
+    # E RIVESTIMENTI" e contiene la keyword "rivestiment" — includerlo nel
+    # testo classificherebbe come "rivestimento" anche A.6.1 (posa della
+    # PAVIMENTAZIONE), il caso letteralmente citato nel <behavior> del piano
+    # come dover restare "pavimento". Il parametro resta nella firma per
+    # compatibilita' con l'azione del piano e per un uso futuro di
+    # disambiguazione, ma non alimenta il testo classificato.
+    _ = sottocategoria_nome
+    testo = (descrizione or "").lower()
+    classe = _classe_voce(um_norm, testo)
+
+    if classe == "percentuale":
+        per_tipo = {tipo: (None, None) for tipo in TIPI}
+        motivazione = "voce a percentuale: resta com'e', da decidere con Riccardo"
+        return PropostaCoefficiente(classe=classe, per_tipo=per_tipo, motivazione=motivazione)
+
+    if classe == "conteggio":
+        is_radiatore = any(kw in testo for kw in _KEYWORDS_RADIATORE)
+        conteggio = 2 if is_radiatore else 1
+        per_tipo = {tipo: (None, conteggio) for tipo in TIPI}
+        if is_radiatore:
+            motivazione = (
+                "Voce a conteggio (radiatori/termosifoni): la regola vera "
+                "sarebbe circa 1 ogni 15 m2 arrotondato in su, fuori portata "
+                "di una funzione pura senza i m2 della stima. Bozza "
+                "default_conteggio=2, da confermare con Riccardo."
+            )
+        else:
+            motivazione = (
+                "Voce a conteggio (UM cad/ac/n.*): nessun coefficiente per "
+                "m2 possibile, proposto un default_conteggio di partenza "
+                "da confermare con Riccardo."
+            )
+        return PropostaCoefficiente(classe=classe, per_tipo=per_tipo, motivazione=motivazione)
+
+    valore_totale = PROPOSTA_PER_CLASSE[classe]
+    per_tipo = {
+        tipo: (
+            Decimal(str(round(float(valore_totale) * TIPO_FACTOR[tipo], 4))),
+            None,
+        )
+        for tipo in TIPI
+    }
+    motivazione = _MOTIVAZIONE_PER_CLASSE[classe]
+    if classe == "rivestimento":
+        # Ridondante per costruzione (la motivazione cita i bagni sopra), ma
+        # esplicito qui perche' e' proprio cio' che il Task 1 chiede di
+        # verificare col test (D-03: rivestimenti per numero di bagni).
+        assert "bagn" in motivazione.lower()
+    return PropostaCoefficiente(classe=classe, per_tipo=per_tipo, motivazione=motivazione)
 
 
 def is_header_row(codice, um, prezzo) -> bool:
