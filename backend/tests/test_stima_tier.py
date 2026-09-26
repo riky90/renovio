@@ -151,7 +151,7 @@ class TestStimaFreeNonDiventaPro:
 
         response = client.post(
             f"{STIME_URL}/{stima_id}/dettaglio-pro/risposte",
-            json={"bagni": 1, "porte": 1, "condizionatori": 1},
+            json={"risposte": {"bagni": 1, "porte": 1, "condizionatori": 1}},
         )
 
         assert response.status_code == 403

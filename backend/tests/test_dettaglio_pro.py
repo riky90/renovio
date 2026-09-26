@@ -310,8 +310,10 @@ def test_get_domande_configuratore_in_ordine_con_default(http_client):
 
 def test_post_risposte_payload_generico_ricalcola_e_valida(http_client):
     """Contratto generico (Open Question 2): il payload e' `{risposte:
-    {codice: valore}, livelli}`; A.6 mostra solo la posa scelta (A.6.2, non
-    A.6.1) e il server rifiuta codici/opzioni/numeri non previsti."""
+    {codice: valore}, livelli}`; A.6 mostra la posa scelta (A.6.2) e non le
+    pose alternative (A.6.5/A.6.6), e il server rifiuta codici/opzioni/numeri
+    non previsti. A.6.1 resta presente: e' la quota bagno della posa gres
+    (D-02), non governata dall'asse e scalata solo da fattore_quantita (09-07)."""
     http_client.post(
         REGISTRAZIONE_URL,
         json={"email": "generico.pro@example.com", "password": "Password123", "nome": "Generico"},
@@ -334,7 +336,9 @@ def test_post_risposte_payload_generico_ricalcola_e_valida(http_client):
     )
     codici_a6 = {v["codice"] for v in a6["voci"]}
     assert "A.6.2" in codici_a6
-    assert "A.6.1" not in codici_a6
+    assert "A.6.1" in codici_a6
+    assert "A.6.5" not in codici_a6
+    assert "A.6.6" not in codici_a6
 
     codice_sconosciuto = http_client.post(
         f"{STIME_URL}/{stima_id}/dettaglio-pro/risposte",
