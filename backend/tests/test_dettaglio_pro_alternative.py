@@ -26,7 +26,7 @@ from app.db import Base
 from app.models.dettaglio_pro import Sottocategoria, Voce
 from app.models.domanda import Domanda, EffettoOpzione, OpzioneDomanda
 from app.services.city_resolver import resolve_listino
-from app.services.dettaglio_pro import DettaglioProService
+from app.services.dettaglio_pro import DettaglioProService, SottocategoriaEstimata
 from app.services.effetti import TIPO_INCLUDI
 from scripts.seed import load_seed_data, seed
 from tests.session_factory import sessione_di_test
@@ -62,19 +62,34 @@ def _tutte_le_voci_di(session, sotto: Sottocategoria) -> list[Voce]:
     return session.query(Voce).filter_by(sottocategoria_id=sotto.id).order_by(Voce.id).all()
 
 
-def _identificatore(codice: str | None, descrizione: str) -> tuple[str | None, str]:
-    """Chiave stabile di una voce: `codice` quando c'e' (A-EDILE), altrimenti
-    la descrizione (B/C/D, senza codice)."""
-    return (codice, descrizione)
+def _identificatore(
+    sottocategoria_id: int, codice: str | None, descrizione: str
+) -> tuple[int, str | None, str]:
+    """Chiave stabile di una voce: la sua sottocategoria piu' `codice` (quando
+    c'e', A-EDILE) o la descrizione (B/C/D, senza codice). La sottocategoria
+    e' necessaria: il listino ha righe con descrizione identica in
+    sottocategorie DIVERSE (wrinkle nota, non introdotta da questa fase — vedi
+    09-02-SUMMARY.md), quindi `descrizione` sola non e' una chiave univoca."""
+    return (sottocategoria_id, codice, descrizione)
 
 
-def _identificatori_presenti(result) -> set[tuple[str | None, str]]:
-    return {
-        _identificatore(v.codice, v.descrizione)
-        for cat in result.categorie
-        for sotto in cat.sottocategorie
-        for v in sotto.voci
-    }
+def _identificatori_presenti(session, result) -> set[tuple[int, str | None, str]]:
+    presenti = set()
+    for cat in result.categorie:
+        for sotto_result in cat.sottocategorie:
+            sotto_id = _id_sottocategoria(session, cat.code, sotto_result)
+            for v in sotto_result.voci:
+                presenti.add(_identificatore(sotto_id, v.codice, v.descrizione))
+    return presenti
+
+
+def _id_sottocategoria(session, categoria_code: str, sotto_result: SottocategoriaEstimata) -> int:
+    query = session.query(Sottocategoria).filter_by(categoria_code=categoria_code)
+    if sotto_result.codice is not None:
+        query = query.filter_by(codice=sotto_result.codice)
+    else:
+        query = query.filter_by(nome=sotto_result.nome)
+    return query.one().id
 
 
 def _voci_di_sottocategoria_effetto(session, effetto: EffettoOpzione) -> list[Voce]:
@@ -88,7 +103,7 @@ def _voci_di_sottocategoria_effetto(session, effetto: EffettoOpzione) -> list[Vo
     return []
 
 
-def _bersagli_per_opzione(session, domanda_code: str) -> dict[str, set[tuple[str | None, str]]]:
+def _bersagli_per_opzione(session, domanda_code: str) -> dict[str, set[tuple[int, str | None, str]]]:
     """Dal catalogo: per ogni opzione ATTIVA della domanda, l'insieme delle
     voci-bersaglio dei suoi effetti `includi` (attivi)."""
     righe = (
@@ -102,11 +117,11 @@ def _bersagli_per_opzione(session, domanda_code: str) -> dict[str, set[tuple[str
         )
         .all()
     )
-    bersagli: dict[str, set[tuple[str | None, str]]] = {}
+    bersagli: dict[str, set[tuple[int, str | None, str]]] = {}
     for opzione, effetto in righe:
         voci = _voci_di_sottocategoria_effetto(session, effetto)
         bersagli.setdefault(opzione.code, set()).update(
-            _identificatore(v.codice, v.descrizione) for v in voci
+            _identificatore(v.sottocategoria_id, v.codice, v.descrizione) for v in voci
         )
     return bersagli
 
@@ -124,7 +139,7 @@ def _domande_con_includi(session) -> list[str]:
 
 
 def _opzioni_con_almeno_una_voce_presente(session, domanda_code: str, result) -> list[str]:
-    presenti = _identificatori_presenti(result)
+    presenti = _identificatori_presenti(session, result)
     bersagli = _bersagli_per_opzione(session, domanda_code)
     return [code for code, voci in bersagli.items() if voci & presenti]
 
@@ -200,7 +215,7 @@ def test_gres_default_include_bersagli_di_medio_piu_le_non_governate(session):
     for voci in bersagli.values():
         governate |= voci
     attese = {
-        _identificatore(v.codice, v.descrizione) for v in tutte
+        _identificatore(sotto.id, v.codice, v.descrizione) for v in tutte
     } - governate | bersagli.get("medio", set())
 
     result = _compute(session)
@@ -208,7 +223,7 @@ def test_gres_default_include_bersagli_di_medio_piu_le_non_governate(session):
     for cat in result.categorie:
         for s in cat.sottocategorie:
             if s.nome == GRES:
-                presenti_gres = {_identificatore(v.codice, v.descrizione) for v in s.voci}
+                presenti_gres = {_identificatore(sotto.id, v.codice, v.descrizione) for v in s.voci}
 
     assert presenti_gres == attese
 
@@ -217,6 +232,7 @@ def test_gres_default_include_bersagli_di_medio_piu_le_non_governate(session):
 
 
 def test_livelli_alto_gres_e_livello_scelto_categoria(session):
+    sotto = _sotto_gres(session)
     bersagli = _bersagli_per_opzione(session, "finitura")
 
     result = _compute(session, livelli={"B-FINITURE": "alto"})
@@ -225,7 +241,7 @@ def test_livelli_alto_gres_e_livello_scelto_categoria(session):
     for cat in result.categorie:
         for s in cat.sottocategorie:
             if s.nome == GRES:
-                presenti_gres = {_identificatore(v.codice, v.descrizione) for v in s.voci}
+                presenti_gres = {_identificatore(sotto.id, v.codice, v.descrizione) for v in s.voci}
 
     assert bersagli["alto"] <= presenti_gres
     assert not (bersagli["medio"] & presenti_gres)
@@ -299,9 +315,13 @@ def test_catalogo_pro_svuotato_nessuna_voce_governata(session):
     for cat in result.categorie:
         for s in cat.sottocategorie:
             if s.nome == GRES:
-                presenti_gres = {_identificatore(v.codice, v.descrizione) for v in s.voci}
+                presenti_gres = {
+                    _identificatore(sotto_gres.id, v.codice, v.descrizione) for v in s.voci
+                }
 
-    assert presenti_gres == {_identificatore(v.codice, v.descrizione) for v in tutte_gres}
+    assert presenti_gres == {
+        _identificatore(sotto_gres.id, v.codice, v.descrizione) for v in tutte_gres
+    }
 
     presenti_a6 = _codici_a6_presenti(result)
     for pose in ("A.6.1", "A.6.2", "A.6.5", "A.6.6"):

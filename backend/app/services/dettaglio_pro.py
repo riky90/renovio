@@ -15,13 +15,33 @@ Range per-voce (Assunzione A1, 03-RESEARCH.md Pattern 4): riuso di
 `TipoRistrutturazione.range_pct` (10/15/20% per tipo, gia' a DB per il
 Free) applicato a `quantita_stimata * prezzo_unitario_cliente`.
 
-LIVELLI DI FINITURA — le sottocategorie `famiglia='catalogo'` sono cataloghi
-di ALTERNATIVE, non addendi. `PAVIMENTI E RIVESTIMENTI GRES`, `PAVIMENTI` e
-`PAVIMENTI PARQUET` sono tre pavimentazioni per la STESSA stanza: sommarle
-tutte gonfia il totale per costruzione (misurato: otto volte il sintetico su
-una stima reale di 120 m2). Il livello di finitura e' il selettore che ne
-sceglie una — vedi `_voce_inclusa()`, che e' un filtro A MONTE del calcolo:
-`_quantita()` non sa nulla dei livelli e non deve saperne.
+GLI ASSI DI SCELTA SONO DATI (Fase 09-03) — le sottocategorie
+`famiglia='catalogo'` sono cataloghi di ALTERNATIVE, non addendi.
+`PAVIMENTI E RIVESTIMENTI GRES`, `PAVIMENTI` e `PAVIMENTI PARQUET` sono tre
+pavimentazioni per la STESSA stanza: sommarle tutte gonfia il totale per
+costruzione. Da questa fase il filtro non e' piu' una colonna (`livello` di
+`Voce`) letta a mano da questo modulo, ma la RISOLUZIONE del
+catalogo domande (`app/services/effetti.py::risolvi_effetti_pro`), la stessa
+che gia' serve il layer Free: una domanda con effetti `includi` diventa un
+asse, e ogni voce entra nel computo solo se l'asse che la governa (se c'e')
+ha scelto l'opzione che la include.
+
+ORDINE DI RISOLUZIONE (contratto ereditato da `effetti.py`, applicato qui
+voce per voce):
+  1. si parte da tutte le voci del listino
+  2. le esclusioni vincono sempre (`RisoluzionePro.voce_inclusa`)
+  3. per ogni asse restano solo le voci dell'opzione scelta (o del default)
+  4. le voci non governate da alcun asse restano sempre incluse
+  5. la quantita' viene da `quantita_per_unita` se presente per la voce,
+     altrimenti dalla catena esistente di `CoefficienteQuantitaVoce`
+     (coefficiente-per-mq, poi conteggio di default), poi si applica
+     `fattore_quantita` (`RisoluzionePro.fattore`)
+  6. le sottocategorie rimaste vuote dopo il filtro si scartano
+
+La colonna `livello` di `Voce` e `coefficiente_qta_voce.domanda_mirata_key`
+restano a DB come dati storici (D-41: nessuna perdita nella migrazione) ma
+questo modulo non li legge piu': l'asse `finitura` e gli effetti
+`quantita_per_unita` del catalogo ne hanno preso il posto.
 """
 
 from __future__ import annotations
@@ -34,6 +54,7 @@ from sqlalchemy.orm import Session
 from app.models.catalogo import Categoria, LivelloFinitura, TipoRistrutturazione
 from app.models.dettaglio_pro import CoefficienteQuantitaVoce, Sottocategoria, Voce
 from app.models.listino import Listino
+from app.services.effetti import DOMANDA_FINITURA, RisoluzionePro, risolvi_effetti_pro
 
 
 def _eur(value: Decimal) -> Decimal:
@@ -54,7 +75,9 @@ class VoceEstimata:
     quantita_stimata: Decimal
     prezzo_min: Decimal
     prezzo_max: Decimal
-    # Livello di finitura della voce; None = comune a tutti i livelli.
+    # Codice dell'opzione dell'asse `finitura` che include questa voce (es.
+    # "medio"), o None se la voce non e' governata da quell'asse (comune a
+    # tutti i livelli, o governata da un altro asse come `tipo_pavimento`).
     livello: str | None = None
 
 
@@ -140,25 +163,38 @@ class DettaglioProService:
         tipo_row = session.query(TipoRistrutturazione).filter_by(code=tipo).one()
         range_pct = tipo_row.range_pct
 
+        risposte_base = dict(risposte or {})
         livelli_scelti = livelli or {}
         livelli_rows = session.query(LivelloFinitura).order_by(LivelloFinitura.ordine).all()
         livelli_nomi = {row.code: row.nome for row in livelli_rows}
         livello_default = next((row.code for row in livelli_rows if row.is_default), None)
 
+        # Una risoluzione per valore DISTINTO di finitura: il pannello puo'
+        # mandare un valore diverso per categoria via `livelli`, ma il
+        # catalogo ha una sola domanda `finitura` — la si risolve una volta
+        # per ciascun valore effettivamente in gioco, non una volta a voce.
+        risoluzioni: dict[str | None, RisoluzionePro] = {}
+
+        def risoluzione_per(valore_finitura: str | None) -> RisoluzionePro:
+            if valore_finitura not in risoluzioni:
+                risposte_asse = dict(risposte_base)
+                if valore_finitura is not None:
+                    risposte_asse[DOMANDA_FINITURA] = valore_finitura
+                risoluzioni[valore_finitura] = risolvi_effetti_pro(
+                    session, mq=mq, tipo=tipo, risposte=risposte_asse
+                )
+            return risoluzioni[valore_finitura]
+
         categorie_rows = session.query(Categoria).order_by(Categoria.ordine).all()
 
         categorie: list[CategoriaDettagliata] = []
         for cat in categorie_rows:
-            # Livello RISOLTO per la categoria: la scelta dell'utente, altrimenti
-            # il default di tabella. None dove la categoria non e' selezionabile
-            # (A-EDILE) — e None anche se la tabella dei livelli e' vuota, caso
-            # in cui `_voce_inclusa` lascia passare tutto (retrocompatibilita'
-            # su un DB migrato ma non ri-seminato).
-            livello_scelto = (
-                (livelli_scelti.get(cat.code) or livello_default)
+            valore_finitura_cat = (
+                (livelli_scelti.get(cat.code) or risposte_base.get(DOMANDA_FINITURA))
                 if cat.livello_selezionabile
-                else None
+                else risposte_base.get(DOMANDA_FINITURA)
             )
+            ris = risoluzione_per(valore_finitura_cat)
 
             sotto_rows = (
                 session.query(Sottocategoria)
@@ -173,11 +209,7 @@ class DettaglioProService:
                     session.query(Voce).filter_by(sottocategoria_id=sotto.id).order_by(Voce.ordine).all()
                 )
                 voce_rows_incluse = [
-                    v
-                    for v in voce_rows
-                    if DettaglioProService._voce_inclusa(
-                        v.livello, cat.livello_selezionabile, livello_scelto
-                    )
+                    v for v in voce_rows if ris.voce_inclusa(v.id, sotto.id, cat.code)
                 ]
 
                 voci: list[VoceEstimata] = []
@@ -188,7 +220,7 @@ class DettaglioProService:
                         .one_or_none()
                     )
 
-                    quantita_stimata = DettaglioProService._quantita(coeff, mq, risposte)
+                    quantita_stimata = DettaglioProService._quantita(coeff, mq, voce.id, ris, sotto.id)
 
                     totale_voce = quantita_stimata * voce.prezzo_unitario_cliente
                     prezzo_min = _eur(totale_voce * (Decimal("1") - range_pct))
@@ -202,7 +234,7 @@ class DettaglioProService:
                             quantita_stimata=quantita_stimata,
                             prezzo_min=prezzo_min,
                             prezzo_max=prezzo_max,
-                            livello=voce.livello,
+                            livello=ris.opzione_asse(DOMANDA_FINITURA, voce.id),
                         )
                     )
 
@@ -234,6 +266,17 @@ class DettaglioProService:
             if not sotto_rows:
                 continue
 
+            # Livello EFFETTIVAMENTE scelto per la categoria: la prima opzione
+            # scelta sull'asse `finitura`, o il default di tabella se la
+            # domanda `finitura` non esiste a DB (retrocompatibilita' su un
+            # DB migrato ma non ri-seminato — stesso precedente di prima della
+            # Fase 09-03).
+            if cat.livello_selezionabile:
+                opzioni_finitura_scelte = ris.opzioni_scelte.get(DOMANDA_FINITURA)
+                livello_scelto = opzioni_finitura_scelte[0] if opzioni_finitura_scelte else livello_default
+            else:
+                livello_scelto = None
+
             cat_min = sum((s.totale_min for s in sottocategorie), Decimal("0"))
             cat_max = sum((s.totale_max for s in sottocategorie), Decimal("0"))
             categorie.append(
@@ -255,44 +298,27 @@ class DettaglioProService:
         )
 
     @staticmethod
-    def _voce_inclusa(
-        voce_livello: str | None, livello_selezionabile: bool, livello_scelto: str | None
-    ) -> bool:
-        """Filtro di inclusione per livello di finitura. Puro: nessun accesso al
-        DB, testabile isolatamente.
-
-        Tre casi, in quest'ordine:
-          1. categoria non selezionabile (A-EDILE) -> tutto incluso, il livello
-             non la riguarda;
-          2. nessun livello risolto (tabella `livello_finitura` vuota) -> tutto
-             incluso, cioe' il comportamento precedente ai livelli;
-          3. voce senza livello -> inclusa sempre (posa, materiali di consumo,
-             montaggio: comuni a tutti i livelli);
-          4. altrimenti la voce entra solo se e' del livello scelto.
-        """
-        if not livello_selezionabile:
-            return True
-        if livello_scelto is None:
-            return True
-        if voce_livello is None:
-            return True
-        return voce_livello == livello_scelto
-
-    @staticmethod
     def _quantita(
-        coeff: CoefficienteQuantitaVoce | None, mq: int, risposte: dict[str, int]
+        coeff: CoefficienteQuantitaVoce | None,
+        mq: int,
+        voce_id: int,
+        ris: RisoluzionePro,
+        sottocategoria_id: int,
     ) -> Decimal:
-        """Applica le due strategie UM del blocco <behavior> del piano:
-        coefficiente-per-mq (voci UM=mq/ml) vs conteggio da domanda mirata
-        con default (voci a `cad`/`ac`). Se la riga coefficiente manca del
-        tutto, la quantita' e' 0 (nessuna voce senza copertura nel seed)."""
-        if coeff is None:
-            return Decimal("0.00")
-        if coeff.coefficiente_qta_per_mq is not None:
-            return _qta(coeff.coefficiente_qta_per_mq * Decimal(mq))
-        if coeff.domanda_mirata_key is not None:
-            valore = risposte.get(coeff.domanda_mirata_key, coeff.default_conteggio)
-            return _qta(Decimal(valore if valore is not None else 0))
-        if coeff.default_conteggio is not None:
-            return _qta(Decimal(coeff.default_conteggio))
-        return Decimal("0.00")
+        """La quantita' di una voce: `quantita_per_unita` del catalogo se
+        presente per questa voce, altrimenti la catena esistente di
+        `CoefficienteQuantitaVoce` (coefficiente-per-mq, poi conteggio di
+        default; MAI `domanda_mirata_key`, che il catalogo Pro ha
+        sostituito), poi il `fattore_quantita` risolto per voce/sottocategoria.
+        Se non c'e' copertura la quantita' e' 0."""
+        base = ris.quantita_per_unita.get(voce_id)
+        if base is None:
+            if coeff is None:
+                base = Decimal("0")
+            elif coeff.coefficiente_qta_per_mq is not None:
+                base = coeff.coefficiente_qta_per_mq * Decimal(mq)
+            elif coeff.default_conteggio is not None:
+                base = Decimal(coeff.default_conteggio)
+            else:
+                base = Decimal("0")
+        return _qta(base * ris.fattore(voce_id, sottocategoria_id))

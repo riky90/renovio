@@ -58,15 +58,20 @@ def test_oracolo_per_voce_coefficiente_qta_per_mq(session):
     assert voce.prezzo_max == Decimal("2754")
 
 
-def test_domanda_mirata_usa_default_conteggio_se_risposta_assente(session):
+def test_senza_risposta_bagni_vale_latteso_a_85_mq(session):
+    """Dalla Fase 09-03 la quantita' non viene piu' da `default_conteggio`
+    (colonna letta a mano) ma da `quantita_per_unita` del catalogo: senza
+    risposta, l'unita' e' l'atteso di `attesa_immobile` per l'attributo della
+    domanda (`bagni`, a 85 m2). Letto dinamicamente dal DB, non cablato."""
+    from app.services.effetti import attese_per_mq
+
     listino, _ = resolve_listino(session, "Reggio Emilia")
+    atteso_bagni = attese_per_mq(session, 85)["bagni"]
 
     result = DettaglioProService.compute(session, listino, mq=85, tipo="totale", risposte={})
 
     voce = _find_voce(result, "A.0.3")
-    assert voce.quantita_stimata == Decimal("1.00")
-    assert voce.prezzo_min == Decimal("32")
-    assert voce.prezzo_max == Decimal("48")
+    assert voce.quantita_stimata == Decimal(atteso_bagni).quantize(Decimal("0.01"))
 
 
 def test_domanda_mirata_usa_risposta_esplicita_quando_presente(session):
@@ -134,6 +139,25 @@ def test_service_non_importa_il_motore_free():
 
     sorgente = inspect.getsource(modulo)
     assert "EstimationService" not in sorgente
+
+
+def test_motore_pro_non_legge_livello_ne_chiavi_mirate():
+    """09-03: il vecchio filtro (`_voce_inclusa`, letto da `voce.livello`) e
+    la lettura di `domanda_mirata_key` sono spariti nello swap atomico —
+    l'asse di scelta e' dato dal catalogo (`risolvi_effetti_pro`), non da
+    queste due colonne."""
+    import inspect
+    import re
+
+    from app.services import dettaglio_pro as modulo
+
+    sorgente = inspect.getsource(modulo)
+    # Le righe di prosa (docstring) citano questi nomi fra backtick per
+    # spiegare cosa NON si legge piu': si escludono dal guard, che deve
+    # controllare solo il CODICE.
+    righe_codice = "\n".join(r for r in sorgente.splitlines() if "`" not in r)
+    for pattern in (r"\bvoce\.livello\b", r"domanda_mirata_key", r"_voce_inclusa"):
+        assert not re.search(pattern, righe_codice), f"trovato {pattern!r} nel motore Pro"
 
 
 def test_nessun_campo_impresa_nel_risultato(session):
