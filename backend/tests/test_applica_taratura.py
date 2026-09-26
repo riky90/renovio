@@ -7,6 +7,7 @@ taratura cablato come verita'."""
 
 from __future__ import annotations
 
+from pathlib import Path
 import json
 import sys
 from decimal import Decimal
@@ -952,7 +953,8 @@ class TestMainArgomentiMigrazione:
             def __init__(self, stdout: str) -> None:
                 self.stdout = stdout
 
-        def _fake_run(cmd, cwd, capture_output, text, check):
+        def _fake_run(cmd, cwd, capture_output, text, encoding, check):
+            assert encoding == "utf-8"  # su Windows il default cp1252 produce mojibake
             rev_path = cmd[2]
             chiamate["git_show"].append(rev_path)
             if "seed-domande" in rev_path:
@@ -1017,3 +1019,16 @@ class TestMainArgomentiMigrazione:
 
         assert chiamato["emesso"] is False
         assert list((backend_dir / "alembic").glob("**/*.py")) == []
+
+
+def test_migrazioni_generate_senza_mojibake():
+    """Le migrazioni emesse da applica_taratura incorporano descrizioni di voce
+    lette via `git show`: se l'output fosse decodificato con la codepage di
+    Windows (cp1252) invece che UTF-8, "×" diventerebbe "Ã—" e le chiavi
+    naturali non si risolverebbero piu' sul DB (effetti mai rimossi,
+    coefficienti mai aggiornati)."""
+    versions = Path(__file__).resolve().parents[1] / "alembic" / "versions"
+    for percorso in versions.glob("*taratura*.py"):
+        testo = percorso.read_text(encoding="utf-8")
+        for marcatore in ("Ã", "â€", "âˆ"):
+            assert marcatore not in testo, f"{percorso.name}: mojibake {marcatore!r}"

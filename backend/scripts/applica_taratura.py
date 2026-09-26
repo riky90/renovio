@@ -1190,6 +1190,7 @@ def main() -> None:
                 cwd=repo_root,
                 capture_output=True,
                 text=True,
+                encoding="utf-8",  # su Windows il default e' cp1252: le descrizioni uscirebbero in mojibake
                 check=True,
             )
             return json.loads(risultato.stdout)
