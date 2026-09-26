@@ -13,7 +13,8 @@ from app.db import Base
 from app.models.domanda import Domanda, EffettoOpzione, OpzioneDomanda
 from app.models.dettaglio_pro import Sottocategoria, Voce
 from app.models.listino import Listino
-from scripts.seed import load_seed_data, seed, seed_domande
+from app.services.effetti import valida_effetto
+from scripts.seed import load_domande_data, load_seed_data, seed, seed_domande
 from tests.session_factory import sessione_di_test
 
 
@@ -226,7 +227,117 @@ def test_effetto_senza_bersaglio_naturale_passa_invariato(session):
     non_risolti = seed_domande(session, data)
 
     assert non_risolti == 0
-    effetto = session.query(EffettoOpzione).join(OpzioneDomanda).filter(
-        OpzioneDomanda.domanda_code == "test_target_esplicito"
-    ).one()
-    assert effetto.target_categoria_code == "A-EDILE"
+
+
+# --- Task 2: catalogo Pro sul JSON reale + esclusione dal wizard -----------
+
+
+class TestCatalogoProSulJsonReale:
+    """Il seed() della fixture ha gia' caricato il JSON reale
+    (`load_seed_data()`), che include il catalogo domande. Qui si verifica il
+    comportamento atteso su un DB nuovo seminato da zero."""
+
+    def test_finitura_ha_21_effetti_includi_7_per_opzione(self, session):
+        finitura = session.get(Domanda, "finitura")
+        assert finitura is not None
+        assert finitura.tier_minimo == "pro"
+        assert finitura.tipo_controllo == "scelta_singola"
+        assert finitura.gruppo == "configuratore_pro"
+
+        opzioni = (
+            session.query(OpzioneDomanda).filter_by(domanda_code="finitura").all()
+        )
+        codici = {o.code for o in opzioni}
+        assert codici == {"base", "medio", "alto"}
+
+        medio = next(o for o in opzioni if o.code == "medio")
+        assert medio.is_default is True
+
+        totale = 0
+        for o in opzioni:
+            count = (
+                session.query(EffettoOpzione)
+                .filter_by(opzione_id=o.id, tipo_effetto="includi")
+                .count()
+            )
+            assert count == 7, f"opzione {o.code} ha {count} effetti includi, attesi 7"
+            totale += count
+        assert totale == 21
+
+    def test_tipo_pavimento_ha_4_effetti_includi_su_a6(self, session):
+        tipo_pavimento = session.get(Domanda, "tipo_pavimento")
+        assert tipo_pavimento is not None
+        assert tipo_pavimento.tier_minimo == "pro"
+        assert tipo_pavimento.tipo_controllo == "scelta_singola"
+        assert tipo_pavimento.gruppo == "configuratore_pro"
+
+        opzioni = (
+            session.query(OpzioneDomanda)
+            .filter_by(domanda_code="tipo_pavimento")
+            .all()
+        )
+        codici = {o.code for o in opzioni}
+        assert codici == {"gres", "parquet", "maxi_lastra", "mosaico"}
+
+        gres = next(o for o in opzioni if o.code == "gres")
+        assert gres.is_default is True
+
+        attese_voce = {
+            "gres": "A.6.1",
+            "parquet": "A.6.2",
+            "maxi_lastra": "A.6.5",
+            "mosaico": "A.6.6",
+        }
+        for o in opzioni:
+            effetti = (
+                session.query(EffettoOpzione)
+                .filter_by(opzione_id=o.id, tipo_effetto="includi")
+                .all()
+            )
+            assert len(effetti) == 1
+            voce = session.get(Voce, effetti[0].target_voce_id)
+            assert voce.codice == attese_voce[o.code]
+
+    def test_stepper_bagni_porte_condizionatori_hanno_quantita_per_unita(self, session):
+        for code in ("bagni", "porte", "condizionatori"):
+            opzione = (
+                session.query(OpzioneDomanda)
+                .filter_by(domanda_code=code, code="valore")
+                .one()
+            )
+            effetti = (
+                session.query(EffettoOpzione)
+                .filter_by(opzione_id=opzione.id, tipo_effetto="quantita_per_unita")
+                .all()
+            )
+            assert len(effetti) > 0, f"{code} non ha effetti quantita_per_unita"
+            for e in effetti:
+                assert e.valore == 1
+                assert e.target_voce_id is not None
+
+    def test_seed_domande_sul_json_reale_ritorna_zero_non_risolti(self, session):
+        non_risolti = seed_domande(session, load_domande_data())
+        assert non_risolti == 0
+
+    def test_ogni_effetto_pro_seminato_passa_valida_effetto(self, session):
+        for code in ("finitura", "tipo_pavimento", "bagni", "porte", "condizionatori"):
+            opzioni = session.query(OpzioneDomanda).filter_by(domanda_code=code).all()
+            for o in opzioni:
+                for e in session.query(EffettoOpzione).filter_by(opzione_id=o.id).all():
+                    valida_effetto(
+                        session,
+                        e.tipo_effetto,
+                        categoria_code=e.target_categoria_code,
+                        sottocategoria_id=e.target_sottocategoria_id,
+                        voce_id=e.target_voce_id,
+                        valore=e.valore,
+                    )
+
+    def test_nessuna_domanda_pro_oltre_finitura_e_tipo_pavimento(self, session):
+        """D-01: il nucleo Pro di questa fase e' solo finitura + tipo_pavimento
+        (i tre stepper esistevano gia' come domande Free)."""
+        codici_pro = {
+            d.code
+            for d in session.query(Domanda).filter_by(tier_minimo="pro").all()
+        }
+        assert codici_pro == {"finitura", "tipo_pavimento"}

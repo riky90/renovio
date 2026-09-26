@@ -30,6 +30,7 @@ from app.db import Base
 from app.models.domanda import AttesaImmobile, Domanda, EffettoOpzione, OpzioneDomanda
 from app.services.city_resolver import resolve_listino
 from app.services.effetti import (
+    TIPI_EFFETTO_FREE,
     EffettoNonValido,
     attese_per_mq,
     risolvi_effetti_free,
@@ -116,11 +117,20 @@ def test_nessuna_opzione_di_default_porta_effetti(session):
     Se un domani qualcuno mette un moltiplicatore sull'opzione di default di
     una domanda, ogni stima gia' salvata cambia valore in silenzio. Questo test
     e' il posto in cui quella modifica si ferma.
+
+    Filtrato ai soli effetti FREE (Fase 09): un `includi` Pro sull'opzione di
+    default (finitura=medio, tipo_pavimento=gres) e' il meccanismo stesso con
+    cui il default resta "senza alternative sommate" (D-07) — non una
+    correzione di prezzo silenziosa come un `moltiplicatore_categoria`. La
+    disciplina qui protetta e' quella del layer Free, non del Pro.
     """
     colpevoli = (
         session.query(OpzioneDomanda.domanda_code, OpzioneDomanda.code)
         .join(EffettoOpzione, EffettoOpzione.opzione_id == OpzioneDomanda.id)
-        .filter(OpzioneDomanda.is_default.is_(True))
+        .filter(
+            OpzioneDomanda.is_default.is_(True),
+            EffettoOpzione.tipo_effetto.in_(sorted(TIPI_EFFETTO_FREE)),
+        )
         .all()
     )
     assert colpevoli == [], (
