@@ -7,6 +7,8 @@ taratura cablato come verita'."""
 
 from __future__ import annotations
 
+import json
+import sys
 from decimal import Decimal
 
 import pytest
@@ -14,11 +16,13 @@ from sqlalchemy import create_engine
 
 from app.db import Base
 from scripts.genera_excel_taratura import AsseDeciso, CoeffDeciso, DecisioniTaratura
+import scripts.applica_taratura as applica_taratura_mod
 from scripts.applica_taratura import (
     DATO_PER_CLASSE,
     applica_assi,
     applica_coefficienti,
     calcola_classi,
+    emetti_migrazione,
     risolvi_chiave_naturale,
 )
 from scripts.seed import load_seed_data, seed
@@ -722,3 +726,294 @@ class TestCalcolaClassi:
 
         for classe in DATO_PER_CLASSE.values():
             assert classe in PROPOSTA_PER_CLASSE
+
+
+# --- Task 3 (09-06-PLAN.md): emetti_migrazione + wiring CLI -----------------
+
+CHIAVE_A6_1_MIGR = {"categoria_code": "A-EDILE", "sottocategoria": "A.6", "voce": "A.6.1"}
+CHIAVE_GRES_MIGR = {"categoria_code": "B-FINITURE", "sottocategoria": "GRES", "voce": "Gres base"}
+
+
+def _dettaglio_con_coefficiente(valore_totale: float) -> dict:
+    return {
+        "sottocategorie": [
+            {
+                "categoria_code": "A-EDILE",
+                "codice": "A.6",
+                "nome": "A.6",
+                "voci": [
+                    {
+                        "codice": "A.6.1",
+                        "descrizione": "Posa pavimentazione",
+                        "coefficienti": {
+                            "leggera": {"coefficiente_qta_per_mq": valore_totale * 0.4},
+                            "moderata": {"coefficiente_qta_per_mq": valore_totale * 0.7},
+                            "totale": {"coefficiente_qta_per_mq": valore_totale},
+                        },
+                    }
+                ],
+            }
+        ]
+    }
+
+
+def _domande_con_effetti(*, includi_opzione: str | None, quantita_valore: float | None, con_escludi: bool) -> dict:
+    effetti_finitura_medio = []
+    effetti_finitura_alto = []
+    if includi_opzione == "medio":
+        effetti_finitura_medio.append({"tipo_effetto": "includi", "target_voce": dict(CHIAVE_GRES_MIGR)})
+    elif includi_opzione == "alto":
+        effetti_finitura_alto.append({"tipo_effetto": "includi", "target_voce": dict(CHIAVE_GRES_MIGR)})
+    if con_escludi:
+        effetti_finitura_medio.append({"tipo_effetto": "escludi", "target_voce": dict(CHIAVE_A6_1_MIGR)})
+
+    effetti_bagni_valore = []
+    if quantita_valore is not None:
+        effetti_bagni_valore.append(
+            {"tipo_effetto": "quantita_per_unita", "valore": quantita_valore, "target_voce": dict(CHIAVE_A6_1_MIGR)}
+        )
+
+    return {
+        "domande": [
+            {
+                "code": "finitura",
+                "opzioni": [
+                    {"code": "base", "effetti": []},
+                    {"code": "medio", "effetti": effetti_finitura_medio},
+                    {"code": "alto", "effetti": effetti_finitura_alto},
+                ],
+            },
+            {
+                "code": "bagni",
+                "opzioni": [{"code": "valore", "effetti": effetti_bagni_valore}],
+            },
+        ]
+    }
+
+
+class TestEmettiMigrazione:
+    def test_nessuna_differenza_non_emette_nulla(self, tmp_path):
+        dettaglio = _dettaglio_con_coefficiente(0.6)
+        domande = _domande_con_effetti(includi_opzione="medio", quantita_valore=1.0, con_escludi=False)
+
+        percorso = emetti_migrazione(dettaglio, dettaglio, domande, domande, tmp_path, "slug")
+
+        assert percorso is None
+        assert list(tmp_path.glob("*.py")) == []
+
+    def test_diff_coefficiente_produce_file_con_costanti_corrette(self, tmp_path):
+        base = _dettaglio_con_coefficiente(0.6)
+        nuovo = _dettaglio_con_coefficiente(0.85)
+        domande = _domande_con_effetti(includi_opzione="medio", quantita_valore=1.0, con_escludi=False)
+
+        percorso = emetti_migrazione(base, nuovo, domande, domande, tmp_path, "coeff_slug")
+
+        assert percorso is not None
+        assert percorso.name == "0001_coeff_slug.py"
+        codice = percorso.read_text(encoding="utf-8")
+        modulo = {}
+        exec(compile(codice, str(percorso), "exec"), modulo)
+        assert modulo["revision"] == "0001"
+        assert modulo["down_revision"] is None
+        assert len(modulo["_COEFFICIENTI"]) == 3  # leggera/moderata/totale, tutte scalate
+        riga = next(r for r in modulo["_COEFFICIENTI"] if r[3] == "totale")
+        assert riga[:3] == ("A-EDILE", "A.6", "A.6.1")
+        assert riga[4] == "coefficiente_qta_per_mq"
+        assert riga[5] == pytest.approx(0.6)
+        assert riga[6] == pytest.approx(0.85)
+        assert modulo["_VALORI_EFFETTO"] == ()
+        assert modulo["_INCLUDI_SPOSTATI"] == ()
+        assert modulo["_EFFETTI_RIMOSSI"] == ()
+
+    def test_revision_e_down_revision_dalla_testa_esistente(self, tmp_path):
+        (tmp_path / "0021_qualcosa.py").write_text("revision = '0021'\n", encoding="utf-8")
+        base = _dettaglio_con_coefficiente(0.6)
+        nuovo = _dettaglio_con_coefficiente(0.85)
+        domande = _domande_con_effetti(includi_opzione="medio", quantita_valore=1.0, con_escludi=False)
+
+        percorso = emetti_migrazione(base, nuovo, domande, domande, tmp_path, "slug")
+
+        assert percorso.name == "0022_slug.py"
+        codice = percorso.read_text(encoding="utf-8")
+        modulo = {}
+        exec(compile(codice, str(percorso), "exec"), modulo)
+        assert modulo["revision"] == "0022"
+        assert modulo["down_revision"] == "0021"
+
+    def test_includi_spostato(self, tmp_path):
+        dettaglio = _dettaglio_con_coefficiente(0.6)
+        base_domande = _domande_con_effetti(includi_opzione="medio", quantita_valore=None, con_escludi=False)
+        nuovo_domande = _domande_con_effetti(includi_opzione="alto", quantita_valore=None, con_escludi=False)
+
+        percorso = emetti_migrazione(dettaglio, dettaglio, base_domande, nuovo_domande, tmp_path, "slug")
+
+        codice = percorso.read_text(encoding="utf-8")
+        modulo = {}
+        exec(compile(codice, str(percorso), "exec"), modulo)
+        assert modulo["_COEFFICIENTI"] == ()
+        assert len(modulo["_INCLUDI_SPOSTATI"]) == 1
+        d_code, chiave_voce, opz_vecchia, opz_nuova = modulo["_INCLUDI_SPOSTATI"][0]
+        assert d_code == "finitura"
+        assert chiave_voce == ("B-FINITURE", "GRES", "Gres base")
+        assert opz_vecchia == "medio"
+        assert opz_nuova == "alto"
+
+    def test_effetto_rimosso_quando_manca_nel_nuovo(self, tmp_path):
+        dettaglio = _dettaglio_con_coefficiente(0.6)
+        base_domande = _domande_con_effetti(includi_opzione="medio", quantita_valore=2.0, con_escludi=True)
+        nuovo_domande = _domande_con_effetti(includi_opzione="medio", quantita_valore=None, con_escludi=False)
+
+        percorso = emetti_migrazione(dettaglio, dettaglio, base_domande, nuovo_domande, tmp_path, "slug")
+
+        codice = percorso.read_text(encoding="utf-8")
+        modulo = {}
+        exec(compile(codice, str(percorso), "exec"), modulo)
+        tipi_rimossi = {riga[2] for riga in modulo["_EFFETTI_RIMOSSI"]}
+        assert "quantita_per_unita" in tipi_rimossi
+        assert "escludi" in tipi_rimossi
+
+    def test_valore_effetto_cambiato(self, tmp_path):
+        dettaglio = _dettaglio_con_coefficiente(0.6)
+        base_domande = _domande_con_effetti(includi_opzione="medio", quantita_valore=1.0, con_escludi=False)
+        nuovo_domande = _domande_con_effetti(includi_opzione="medio", quantita_valore=3.0, con_escludi=False)
+
+        percorso = emetti_migrazione(dettaglio, dettaglio, base_domande, nuovo_domande, tmp_path, "slug")
+
+        codice = percorso.read_text(encoding="utf-8")
+        modulo = {}
+        exec(compile(codice, str(percorso), "exec"), modulo)
+        assert len(modulo["_VALORI_EFFETTO"]) == 1
+        riga = modulo["_VALORI_EFFETTO"][0]
+        assert riga[0] == "bagni"
+        assert riga[1] == "valore"
+        assert riga[2] == "quantita_per_unita"
+        assert riga[3] == ("A-EDILE", "A.6", "A.6.1")
+        assert riga[5] == pytest.approx(1.0)
+        assert riga[6] == pytest.approx(3.0)
+
+    def test_costanti_sempre_presenti_anche_vuote(self, tmp_path):
+        dettaglio_base = _dettaglio_con_coefficiente(0.6)
+        dettaglio_nuovo = _dettaglio_con_coefficiente(0.85)
+        domande = _domande_con_effetti(includi_opzione=None, quantita_valore=None, con_escludi=False)
+
+        percorso = emetti_migrazione(dettaglio_base, dettaglio_nuovo, domande, domande, tmp_path, "slug")
+
+        codice = percorso.read_text(encoding="utf-8")
+        for costante in ("_COEFFICIENTI", "_VALORI_EFFETTO", "_INCLUDI_SPOSTATI", "_EFFETTI_RIMOSSI"):
+            assert costante in codice
+
+    def test_nessun_open_json_load_openpyxl_coefficiente_impresa_nel_modulo_emesso(self, tmp_path):
+        base = _dettaglio_con_coefficiente(0.6)
+        nuovo = _dettaglio_con_coefficiente(0.85)
+        domande = _domande_con_effetti(includi_opzione="medio", quantita_valore=1.0, con_escludi=True)
+
+        percorso = emetti_migrazione(base, nuovo, domande, domande, tmp_path, "slug")
+
+        codice = percorso.read_text(encoding="utf-8")
+        assert "open(" not in codice
+        assert "json.load" not in codice
+        assert "openpyxl" not in codice
+        assert "coefficiente_impresa" not in codice
+        compile(codice, str(percorso), "exec")  # deve compilare
+
+
+class TestMainArgomentiMigrazione:
+    def test_migrazione_legge_git_show_con_base_rev_e_passa_slug(self, tmp_path, monkeypatch):
+        """Wiring CLI di main(): --migrazione/--slug/--base-rev, con `git show`
+        sostituito da monkeypatch (nessun accesso vero al repo)."""
+        backend_dir = tmp_path / "backend"
+        seed_data_dir = backend_dir / "seed_data"
+        seed_data_dir.mkdir(parents=True)
+        (seed_data_dir / "seed-domande.json").write_text(json.dumps({"domande": []}), encoding="utf-8")
+        (seed_data_dir / "seed-dettaglio-pro.json").write_text(json.dumps({"sottocategorie": []}), encoding="utf-8")
+        versions_dir = backend_dir / "alembic" / "versions"
+        versions_dir.mkdir(parents=True)
+        (versions_dir / "0021_fake.py").write_text("revision = '0021'\n", encoding="utf-8")
+        (tmp_path / "docs").mkdir()
+
+        monkeypatch.setattr(applica_taratura_mod, "_BACKEND_DIR", backend_dir)
+
+        class _FakeSession:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+        monkeypatch.setattr("app.db.SessionLocal", lambda: _FakeSession())
+
+        decisioni_vuote = DecisioniTaratura(stato="bozza-accettata", coefficienti=[], assi=[], dati={})
+        monkeypatch.setattr(applica_taratura_mod, "leggi_decisioni", lambda wb: decisioni_vuote)
+        monkeypatch.setattr(applica_taratura_mod.openpyxl, "load_workbook", lambda *a, **k: object())
+
+        chiamate: dict = {"git_show": []}
+
+        class _FakeResult:
+            def __init__(self, stdout: str) -> None:
+                self.stdout = stdout
+
+        def _fake_run(cmd, cwd, capture_output, text, check):
+            rev_path = cmd[2]
+            chiamate["git_show"].append(rev_path)
+            if "seed-domande" in rev_path:
+                return _FakeResult(json.dumps({"domande": []}))
+            return _FakeResult(json.dumps({"sottocategorie": []}))
+
+        monkeypatch.setattr("subprocess.run", _fake_run)
+
+        def _fake_emetti_migrazione(base_dettaglio, nuovo_dettaglio, base_domande, nuovo_domande, versions_dir_arg, slug):
+            chiamate["slug"] = slug
+            chiamate["versions_dir"] = versions_dir_arg
+            return None
+
+        monkeypatch.setattr(applica_taratura_mod, "emetti_migrazione", _fake_emetti_migrazione)
+
+        monkeypatch.setattr(
+            sys,
+            "argv",
+            ["applica_taratura.py", "--migrazione", "--slug", "mia_slug", "--base-rev", "abc123"],
+        )
+
+        applica_taratura_mod.main()
+
+        assert chiamate["slug"] == "mia_slug"
+        assert any(p == "abc123:backend/seed_data/seed-domande.json" for p in chiamate["git_show"])
+        assert any(p == "abc123:backend/seed_data/seed-dettaglio-pro.json" for p in chiamate["git_show"])
+        assert chiamate["versions_dir"] == versions_dir
+
+    def test_senza_migrazione_non_chiama_emetti_migrazione(self, tmp_path, monkeypatch):
+        backend_dir = tmp_path / "backend"
+        seed_data_dir = backend_dir / "seed_data"
+        seed_data_dir.mkdir(parents=True)
+        (seed_data_dir / "seed-domande.json").write_text(json.dumps({"domande": []}), encoding="utf-8")
+        (seed_data_dir / "seed-dettaglio-pro.json").write_text(json.dumps({"sottocategorie": []}), encoding="utf-8")
+        (tmp_path / "docs").mkdir()
+
+        monkeypatch.setattr(applica_taratura_mod, "_BACKEND_DIR", backend_dir)
+
+        class _FakeSession:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+        monkeypatch.setattr("app.db.SessionLocal", lambda: _FakeSession())
+
+        decisioni_vuote = DecisioniTaratura(stato="bozza-accettata", coefficienti=[], assi=[], dati={})
+        monkeypatch.setattr(applica_taratura_mod, "leggi_decisioni", lambda wb: decisioni_vuote)
+        monkeypatch.setattr(applica_taratura_mod.openpyxl, "load_workbook", lambda *a, **k: object())
+
+        chiamato = {"emesso": False}
+
+        def _fake_emetti_migrazione(*args, **kwargs):
+            chiamato["emesso"] = True
+            return None
+
+        monkeypatch.setattr(applica_taratura_mod, "emetti_migrazione", _fake_emetti_migrazione)
+        monkeypatch.setattr(sys, "argv", ["applica_taratura.py"])
+
+        applica_taratura_mod.main()
+
+        assert chiamato["emesso"] is False
+        assert list((backend_dir / "alembic").glob("**/*.py")) == []

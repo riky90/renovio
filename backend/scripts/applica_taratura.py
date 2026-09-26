@@ -542,7 +542,485 @@ def calcola_classi(
     return classi
 
 
-# --- (d) main -----------------------------------------------------------------
+# --- (d) emetti_migrazione ----------------------------------------------------
+#
+# Parte "migrazione" del piano 09-06 (Task 3): calcola il diff in chiavi
+# naturali fra i JSON di seed BASE (cio' che i DB esistenti hanno dopo
+# l'ultima migrazione) e i JSON NUOVI (prodotti da applica_coefficienti/
+# applica_assi su questo lancio), e rende un modulo Alembic autosufficiente
+# — una migrazione e' uno snapshot: nessuna lettura di file esterni a
+# runtime. Gli effetti NUOVI (assenti dalla base) non entrano nel diff: li
+# crea il seed create-if-missing al boot (D-41).
+
+import re as _re  # noqa: E402
+
+
+def _chiave_target_voce(effetto: dict) -> tuple[str, str, str] | None:
+    """(categoria_code, sottocategoria, voce) da un effetto con `target_voce`,
+    o `None` se l'effetto non ha un bersaglio a voce (es. `target_sottocategoria`,
+    non prodotto da `applica_assi`/`applica_coefficienti`, fuori scope qui)."""
+    tv = effetto.get("target_voce")
+    if tv is None:
+        return None
+    return (tv["categoria_code"], tv["sottocategoria"], tv["voce"])
+
+
+def _record_effetti(seed_domande: dict) -> dict[str, dict]:
+    """Indici per il diff degli effetti a bersaglio voce:
+    - `includi`: (domanda_code, chiave_voce) -> opzione_code
+    - `quantita`: (domanda_code, opzione_code, tipo_effetto, chiave_voce, tipo_code) -> valore
+      (tipo_effetto in quantita_per_unita/fattore_quantita)
+    - `escludi`: (domanda_code, opzione_code, chiave_voce, tipo_code) -> True
+    """
+    includi: dict[tuple[str, tuple], str] = {}
+    quantita: dict[tuple, object] = {}
+    escludi: dict[tuple, bool] = {}
+    for domanda in seed_domande.get("domande", []):
+        d_code = domanda["code"]
+        for opzione in domanda.get("opzioni", []):
+            o_code = opzione.get("code")
+            for effetto in opzione.get("effetti", []):
+                chiave_voce = _chiave_target_voce(effetto)
+                if chiave_voce is None:
+                    continue
+                tipo_eff = effetto.get("tipo_effetto")
+                tipo_code = effetto.get("tipo_code")
+                if tipo_eff == TIPO_INCLUDI:
+                    includi[(d_code, chiave_voce)] = o_code
+                elif tipo_eff in (TIPO_QUANTITA_PER_UNITA, TIPO_FATTORE_QUANTITA):
+                    quantita[(d_code, o_code, tipo_eff, chiave_voce, tipo_code)] = effetto.get("valore")
+                elif tipo_eff == TIPO_ESCLUDI:
+                    escludi[(d_code, o_code, chiave_voce, tipo_code)] = True
+    return {"includi": includi, "quantita": quantita, "escludi": escludi}
+
+
+def _diff_coefficienti(base_dettaglio: dict, nuovo_dettaglio: dict) -> list[tuple]:
+    """[(categoria_code, sottocategoria, voce, tipo_code, campo, vecchio, nuovo)]
+    per ogni (voce, tipo, campo) che differisce fra base e nuovo. `campo` in
+    {coefficiente_qta_per_mq, default_conteggio}. Voci assenti da uno dei due
+    lati sono saltate (bersaglio non risolto, mai un'eccezione)."""
+    base_idx = _indice_seed_dettaglio(base_dettaglio)
+    nuovo_idx = _indice_seed_dettaglio(nuovo_dettaglio)
+    diff: list[tuple] = []
+    for chiave, voce_base in base_idx.items():
+        voce_nuovo = nuovo_idx.get(chiave)
+        if voce_nuovo is None:
+            continue
+        categoria_code, sottocategoria, voce_nome = chiave
+        for tipo_code in TIPI:
+            blocco_base = voce_base.get("coefficienti", {}).get(tipo_code, {})
+            blocco_nuovo = voce_nuovo.get("coefficienti", {}).get(tipo_code, {})
+            for campo in ("coefficiente_qta_per_mq", "default_conteggio"):
+                vecchio = blocco_base.get(campo)
+                nuovo_valore = blocco_nuovo.get(campo)
+                if vecchio != nuovo_valore and (vecchio is not None or nuovo_valore is not None):
+                    diff.append((categoria_code, sottocategoria, voce_nome, tipo_code, campo, vecchio, nuovo_valore))
+    return diff
+
+
+def _prossima_revisione(versions_dir: Path) -> tuple[str, str | None]:
+    """(prossima_revision, down_revision): il numero a 4 cifre libero e la
+    testa attuale (il numero piu' alto trovato nei nomi file di
+    `versions_dir`, catena lineare — stesso schema di 0001..0021)."""
+    numeri = sorted(
+        int(m.group(1)) for f in versions_dir.glob("*.py") if (m := _re.match(r"^(\d{4})_", f.name))
+    )
+    if not numeri:
+        return "0001", None
+    testa = numeri[-1]
+    return f"{testa + 1:04d}", f"{testa:04d}"
+
+
+_TEMPLATE_MIGRAZIONE = '''"""Migrazione generata da scripts/applica_taratura.py:emetti_migrazione() dal
+diff fra i JSON di seed versionati e il file di decisioni (D-03/D-08). Una
+migrazione e' uno snapshot immutabile: nessuna lettura di file esterni a
+runtime, i valori sono costanti incorporate qui sotto. Aggiorna SOLO le
+righe ancora al valore BASE (WHERE campo = vecchio): una taratura fatta a
+mano dal pannello dopo questa migrazione non viene mai sovrascritta. Gli
+effetti NUOVI (assenti dalla base) non sono qui: li crea il seed
+create-if-missing al boot (D-41). Nessun coefficiente impresa.
+
+Revision ID: {revision}
+Revises: {down_revision}
+Create Date: {create_date}
+"""
+from __future__ import annotations
+
+from datetime import datetime, timezone
+from typing import Sequence, Union
+
+from alembic import op
+import sqlalchemy as sa
+
+
+revision: str = {revision!r}
+down_revision: Union[str, Sequence[str], None] = {down_revision!r}
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
+
+
+_COEFFICIENTI: tuple[tuple, ...] = {coefficienti!r}
+_VALORI_EFFETTO: tuple[tuple, ...] = {valori_effetto!r}
+_INCLUDI_SPOSTATI: tuple[tuple, ...] = {includi_spostati!r}
+_EFFETTI_RIMOSSI: tuple[tuple, ...] = {effetti_rimossi!r}
+
+_TOLLERANZA = 1e-6
+
+
+def _tabelle():
+    """Definizioni locali delle tabelle toccate (mai i modelli ORM: una
+    migrazione dati non deve dipendere da come saranno i modelli in futuro,
+    stesso principio della 0021)."""
+    sottocategoria = sa.table(
+        "sottocategoria",
+        sa.column("id"),
+        sa.column("categoria_code"),
+        sa.column("codice"),
+        sa.column("nome"),
+    )
+    voce = sa.table(
+        "voce",
+        sa.column("id"),
+        sa.column("sottocategoria_id"),
+        sa.column("codice"),
+        sa.column("descrizione"),
+    )
+    coefficiente = sa.table(
+        "coefficiente_qta_voce",
+        sa.column("id"),
+        sa.column("voce_id"),
+        sa.column("tipo_code"),
+        sa.column("coefficiente_qta_per_mq"),
+        sa.column("default_conteggio"),
+        sa.column("updated_at"),
+    )
+    opzione = sa.table(
+        "opzione_domanda",
+        sa.column("id"),
+        sa.column("domanda_code"),
+        sa.column("code"),
+    )
+    effetto = sa.table(
+        "effetto_opzione",
+        sa.column("id"),
+        sa.column("opzione_id"),
+        sa.column("tipo_effetto"),
+        sa.column("target_voce_id"),
+        sa.column("tipo_code"),
+        sa.column("valore"),
+        sa.column("attivo"),
+        sa.column("updated_at"),
+    )
+    return sottocategoria, voce, coefficiente, opzione, effetto
+
+
+def _risolvi_voce_id(bind, sottocategoria, voce, categoria_code, sottocategoria_key, voce_key):
+    """Chiave naturale -> voce.id (codice se esiste, altrimenti nome/descrizione
+    esatta — stessa regola del seed/09-02). `None` se non risolta: la riga
+    del diff viene saltata, mai un'eccezione (dato di curatela rotto non deve
+    bloccare il boot)."""
+    riga_sotto = bind.execute(
+        sa.select(sottocategoria.c.id).where(
+            sottocategoria.c.categoria_code == categoria_code,
+            sottocategoria.c.codice == sottocategoria_key,
+        )
+    ).first()
+    if riga_sotto is None:
+        riga_sotto = bind.execute(
+            sa.select(sottocategoria.c.id).where(
+                sottocategoria.c.categoria_code == categoria_code,
+                sottocategoria.c.codice.is_(None),
+                sottocategoria.c.nome == sottocategoria_key,
+            )
+        ).first()
+    if riga_sotto is None:
+        return None
+    sotto_id = riga_sotto[0]
+    riga_voce = bind.execute(
+        sa.select(voce.c.id).where(voce.c.sottocategoria_id == sotto_id, voce.c.codice == voce_key)
+    ).first()
+    if riga_voce is None:
+        riga_voce = bind.execute(
+            sa.select(voce.c.id).where(
+                voce.c.sottocategoria_id == sotto_id,
+                voce.c.codice.is_(None),
+                voce.c.descrizione == voce_key,
+            )
+        ).first()
+    return riga_voce[0] if riga_voce is not None else None
+
+
+def _opzione_id(bind, opzione, domanda_code, opzione_code):
+    riga = bind.execute(
+        sa.select(opzione.c.id).where(opzione.c.domanda_code == domanda_code, opzione.c.code == opzione_code)
+    ).first()
+    return riga[0] if riga is not None else None
+
+
+def _vicino(a, b) -> bool:
+    if a is None or b is None:
+        return a is None and b is None
+    return abs(float(a) - float(b)) <= _TOLLERANZA
+
+
+def upgrade() -> None:
+    bind = op.get_bind()
+    adesso = datetime.now(timezone.utc).replace(tzinfo=None)
+    sottocategoria, voce, coefficiente, opzione, effetto = _tabelle()
+
+    for categoria_code, sottocategoria_key, voce_key, tipo_code, campo, vecchio, nuovo in _COEFFICIENTI:
+        voce_id = _risolvi_voce_id(bind, sottocategoria, voce, categoria_code, sottocategoria_key, voce_key)
+        if voce_id is None:
+            continue
+        riga = bind.execute(
+            sa.select(coefficiente.c.id, coefficiente.c[campo]).where(
+                coefficiente.c.voce_id == voce_id, coefficiente.c.tipo_code == tipo_code
+            )
+        ).first()
+        if riga is None or not _vicino(riga[1], vecchio):
+            continue
+        bind.execute(
+            sa.update(coefficiente).where(coefficiente.c.id == riga[0]).values(**{{campo: nuovo, "updated_at": adesso}})
+        )
+
+    for domanda_code, opzione_code, tipo_effetto, chiave_voce, tipo_code, vecchio, nuovo in _VALORI_EFFETTO:
+        categoria_code, sottocategoria_key, voce_key = chiave_voce
+        opzione_id = _opzione_id(bind, opzione, domanda_code, opzione_code)
+        voce_id = _risolvi_voce_id(bind, sottocategoria, voce, categoria_code, sottocategoria_key, voce_key)
+        if opzione_id is None or voce_id is None:
+            continue
+        cond_tipo_code = (
+            effetto.c.tipo_code == tipo_code if tipo_code is not None else effetto.c.tipo_code.is_(None)
+        )
+        riga = bind.execute(
+            sa.select(effetto.c.id, effetto.c.valore).where(
+                effetto.c.opzione_id == opzione_id,
+                effetto.c.tipo_effetto == tipo_effetto,
+                effetto.c.target_voce_id == voce_id,
+                cond_tipo_code,
+            )
+        ).first()
+        if riga is None or not _vicino(riga[1], vecchio):
+            continue
+        bind.execute(sa.update(effetto).where(effetto.c.id == riga[0]).values(valore=nuovo, updated_at=adesso))
+
+    for domanda_code, chiave_voce, opzione_vecchia, opzione_nuova in _INCLUDI_SPOSTATI:
+        categoria_code, sottocategoria_key, voce_key = chiave_voce
+        voce_id = _risolvi_voce_id(bind, sottocategoria, voce, categoria_code, sottocategoria_key, voce_key)
+        opzione_nuova_id = _opzione_id(bind, opzione, domanda_code, opzione_nuova)
+        opzione_vecchia_id = _opzione_id(bind, opzione, domanda_code, opzione_vecchia)
+        if voce_id is None or opzione_nuova_id is None or opzione_vecchia_id is None:
+            continue
+        gia_su_nuova = bind.execute(
+            sa.select(effetto.c.id).where(
+                effetto.c.opzione_id == opzione_nuova_id,
+                effetto.c.tipo_effetto == "includi",
+                effetto.c.target_voce_id == voce_id,
+            )
+        ).first()
+        riga_vecchia = bind.execute(
+            sa.select(effetto.c.id).where(
+                effetto.c.opzione_id == opzione_vecchia_id,
+                effetto.c.tipo_effetto == "includi",
+                effetto.c.target_voce_id == voce_id,
+            )
+        ).first()
+        if gia_su_nuova is not None:
+            if riga_vecchia is not None:
+                bind.execute(sa.delete(effetto).where(effetto.c.id == riga_vecchia[0]))
+            continue
+        if riga_vecchia is None:
+            continue
+        bind.execute(
+            sa.update(effetto).where(effetto.c.id == riga_vecchia[0]).values(opzione_id=opzione_nuova_id, updated_at=adesso)
+        )
+
+    for domanda_code, opzione_code, tipo_effetto, chiave_voce, tipo_code, valore in _EFFETTI_RIMOSSI:
+        categoria_code, sottocategoria_key, voce_key = chiave_voce
+        opzione_id = _opzione_id(bind, opzione, domanda_code, opzione_code)
+        voce_id = _risolvi_voce_id(bind, sottocategoria, voce, categoria_code, sottocategoria_key, voce_key)
+        if opzione_id is None or voce_id is None:
+            continue
+        cond_tipo_code = (
+            effetto.c.tipo_code == tipo_code if tipo_code is not None else effetto.c.tipo_code.is_(None)
+        )
+        riga = bind.execute(
+            sa.select(effetto.c.id, effetto.c.valore).where(
+                effetto.c.opzione_id == opzione_id,
+                effetto.c.tipo_effetto == tipo_effetto,
+                effetto.c.target_voce_id == voce_id,
+                cond_tipo_code,
+            )
+        ).first()
+        if riga is None:
+            continue
+        if valore is not None and not _vicino(riga[1], valore):
+            continue
+        bind.execute(sa.delete(effetto).where(effetto.c.id == riga[0]))
+
+
+def downgrade() -> None:
+    bind = op.get_bind()
+    adesso = datetime.now(timezone.utc).replace(tzinfo=None)
+    sottocategoria, voce, coefficiente, opzione, effetto = _tabelle()
+
+    for categoria_code, sottocategoria_key, voce_key, tipo_code, campo, vecchio, nuovo in _COEFFICIENTI:
+        voce_id = _risolvi_voce_id(bind, sottocategoria, voce, categoria_code, sottocategoria_key, voce_key)
+        if voce_id is None:
+            continue
+        riga = bind.execute(
+            sa.select(coefficiente.c.id, coefficiente.c[campo]).where(
+                coefficiente.c.voce_id == voce_id, coefficiente.c.tipo_code == tipo_code
+            )
+        ).first()
+        if riga is None or not _vicino(riga[1], nuovo):
+            continue
+        bind.execute(
+            sa.update(coefficiente).where(coefficiente.c.id == riga[0]).values(**{{campo: vecchio, "updated_at": adesso}})
+        )
+
+    for domanda_code, opzione_code, tipo_effetto, chiave_voce, tipo_code, vecchio, nuovo in _VALORI_EFFETTO:
+        categoria_code, sottocategoria_key, voce_key = chiave_voce
+        opzione_id = _opzione_id(bind, opzione, domanda_code, opzione_code)
+        voce_id = _risolvi_voce_id(bind, sottocategoria, voce, categoria_code, sottocategoria_key, voce_key)
+        if opzione_id is None or voce_id is None:
+            continue
+        cond_tipo_code = (
+            effetto.c.tipo_code == tipo_code if tipo_code is not None else effetto.c.tipo_code.is_(None)
+        )
+        riga = bind.execute(
+            sa.select(effetto.c.id, effetto.c.valore).where(
+                effetto.c.opzione_id == opzione_id,
+                effetto.c.tipo_effetto == tipo_effetto,
+                effetto.c.target_voce_id == voce_id,
+                cond_tipo_code,
+            )
+        ).first()
+        if riga is None or not _vicino(riga[1], nuovo):
+            continue
+        bind.execute(sa.update(effetto).where(effetto.c.id == riga[0]).values(valore=vecchio, updated_at=adesso))
+
+    for domanda_code, chiave_voce, opzione_vecchia, opzione_nuova in _INCLUDI_SPOSTATI:
+        categoria_code, sottocategoria_key, voce_key = chiave_voce
+        voce_id = _risolvi_voce_id(bind, sottocategoria, voce, categoria_code, sottocategoria_key, voce_key)
+        opzione_nuova_id = _opzione_id(bind, opzione, domanda_code, opzione_nuova)
+        opzione_vecchia_id = _opzione_id(bind, opzione, domanda_code, opzione_vecchia)
+        if voce_id is None or opzione_nuova_id is None or opzione_vecchia_id is None:
+            continue
+        gia_su_vecchia = bind.execute(
+            sa.select(effetto.c.id).where(
+                effetto.c.opzione_id == opzione_vecchia_id,
+                effetto.c.tipo_effetto == "includi",
+                effetto.c.target_voce_id == voce_id,
+            )
+        ).first()
+        riga_nuova = bind.execute(
+            sa.select(effetto.c.id).where(
+                effetto.c.opzione_id == opzione_nuova_id,
+                effetto.c.tipo_effetto == "includi",
+                effetto.c.target_voce_id == voce_id,
+            )
+        ).first()
+        if gia_su_vecchia is not None:
+            if riga_nuova is not None:
+                bind.execute(sa.delete(effetto).where(effetto.c.id == riga_nuova[0]))
+            continue
+        if riga_nuova is None:
+            continue
+        bind.execute(
+            sa.update(effetto).where(effetto.c.id == riga_nuova[0]).values(opzione_id=opzione_vecchia_id, updated_at=adesso)
+        )
+
+    for domanda_code, opzione_code, tipo_effetto, chiave_voce, tipo_code, valore in _EFFETTI_RIMOSSI:
+        categoria_code, sottocategoria_key, voce_key = chiave_voce
+        opzione_id = _opzione_id(bind, opzione, domanda_code, opzione_code)
+        voce_id = _risolvi_voce_id(bind, sottocategoria, voce, categoria_code, sottocategoria_key, voce_key)
+        if opzione_id is None or voce_id is None:
+            continue
+        gia_presente = bind.execute(
+            sa.select(effetto.c.id).where(
+                effetto.c.opzione_id == opzione_id,
+                effetto.c.tipo_effetto == tipo_effetto,
+                effetto.c.target_voce_id == voce_id,
+            )
+        ).first()
+        if gia_presente is not None:
+            continue
+        bind.execute(
+            sa.insert(effetto).values(
+                opzione_id=opzione_id,
+                tipo_effetto=tipo_effetto,
+                target_voce_id=voce_id,
+                tipo_code=tipo_code,
+                valore=valore,
+                attivo=True,
+                updated_at=adesso,
+            )
+        )
+'''
+
+
+def emetti_migrazione(
+    base_dettaglio: dict,
+    nuovo_dettaglio: dict,
+    base_domande: dict,
+    nuovo_domande: dict,
+    versions_dir: Path,
+    slug: str,
+) -> Path | None:
+    """Calcola il diff (chiavi naturali) fra i JSON base e nuovi e rende un
+    modulo Alembic autosufficiente in `versions_dir`. Ritorna `None` (nessun
+    file emesso) se non c'e' alcuna differenza."""
+    coefficienti_diff = _diff_coefficienti(base_dettaglio, nuovo_dettaglio)
+
+    base_idx = _record_effetti(base_domande)
+    nuovo_idx = _record_effetti(nuovo_domande)
+
+    includi_spostati: list[tuple] = []
+    effetti_rimossi: list[tuple] = []
+    for chiave, opz_base in base_idx["includi"].items():
+        d_code, chiave_voce = chiave
+        opz_nuovo = nuovo_idx["includi"].get(chiave)
+        if opz_nuovo is None:
+            effetti_rimossi.append((d_code, opz_base, TIPO_INCLUDI, chiave_voce, None, None))
+        elif opz_nuovo != opz_base:
+            includi_spostati.append((d_code, chiave_voce, opz_base, opz_nuovo))
+
+    valori_effetto: list[tuple] = []
+    for chiave, valore_base in base_idx["quantita"].items():
+        d_code, o_code, tipo_eff, chiave_voce, tipo_code = chiave
+        valore_nuovo = nuovo_idx["quantita"].get(chiave)
+        if valore_nuovo is None:
+            effetti_rimossi.append((d_code, o_code, tipo_eff, chiave_voce, tipo_code, valore_base))
+        elif valore_nuovo != valore_base:
+            valori_effetto.append((d_code, o_code, tipo_eff, chiave_voce, tipo_code, valore_base, valore_nuovo))
+
+    for chiave in base_idx["escludi"]:
+        if chiave not in nuovo_idx["escludi"]:
+            d_code, o_code, chiave_voce, tipo_code = chiave
+            effetti_rimossi.append((d_code, o_code, TIPO_ESCLUDI, chiave_voce, tipo_code, None))
+
+    if not (coefficienti_diff or valori_effetto or includi_spostati or effetti_rimossi):
+        print("emetti_migrazione: nessuna differenza, nessun file emesso.")
+        return None
+
+    revisione, down_revision = _prossima_revisione(versions_dir)
+    contenuto = _TEMPLATE_MIGRAZIONE.format(
+        revision=revisione,
+        down_revision=down_revision,
+        create_date=__import__("datetime").datetime.now().isoformat(),
+        coefficienti=tuple(coefficienti_diff),
+        valori_effetto=tuple(valori_effetto),
+        includi_spostati=tuple(includi_spostati),
+        effetti_rimossi=tuple(effetti_rimossi),
+    )
+    versions_dir.mkdir(parents=True, exist_ok=True)
+    percorso = versions_dir / f"{revisione}_{slug}.py"
+    percorso.write_text(contenuto, encoding="utf-8")
+    return percorso
+
+
+# --- (e) main -----------------------------------------------------------------
 
 
 def _percorso_sqlite_da_database_url(url: str) -> str:
@@ -569,6 +1047,24 @@ def main() -> None:
         "--dry-run",
         action="store_true",
         help="stampa il riepilogo senza scrivere alcun file",
+    )
+    parser.add_argument(
+        "--migrazione",
+        action="store_true",
+        help="emette anche la migrazione Alembic dal diff fra i JSON a --base-rev e quelli "
+        "prodotti da questo lancio (Task 3, 09-06-PLAN.md); senza questo flag nessun file "
+        "in alembic/versions viene creato",
+    )
+    parser.add_argument(
+        "--slug",
+        default="taratura_pro",
+        help="suffisso del nome file della migrazione emessa (default: taratura_pro)",
+    )
+    parser.add_argument(
+        "--base-rev",
+        default="HEAD",
+        help="revisione git da cui leggere i JSON di seed BASE per il diff (default: HEAD, "
+        "cioe' cio' che i DB esistenti hanno dopo l'ultima migrazione)",
     )
     args = parser.parse_args()
 
@@ -682,6 +1178,35 @@ def main() -> None:
         print(f"scritto {dettaglio_path}")
         print(f"scritto {docs_dettaglio_path}")
         print(f"scritto {classi_path}")
+
+    if args.migrazione:
+        import subprocess
+
+        repo_root = _BACKEND_DIR.parent
+
+        def _git_show_json(rev: str, path_relativo: str) -> dict:
+            risultato = subprocess.run(
+                ["git", "show", f"{rev}:{path_relativo}"],
+                cwd=repo_root,
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            return json.loads(risultato.stdout)
+
+        base_domande = _git_show_json(args.base_rev, "backend/seed_data/seed-domande.json")
+        base_dettaglio = _git_show_json(args.base_rev, "backend/seed_data/seed-dettaglio-pro.json")
+        nuovo_domande = risultato_assi.seed_domande
+        nuovo_dettaglio = risultato_coeff_seed if risultato_coeff_seed is not None else base_dettaglio
+
+        versions_dir = _BACKEND_DIR / "alembic" / "versions"
+        percorso_migrazione = emetti_migrazione(
+            base_dettaglio, nuovo_dettaglio, base_domande, nuovo_domande, versions_dir, args.slug
+        )
+        if percorso_migrazione is not None:
+            print(f"emessa migrazione: {percorso_migrazione}")
+        else:
+            print("nessuna migrazione emessa: nessuna differenza rispetto alla base.")
 
 
 if __name__ == "__main__":
