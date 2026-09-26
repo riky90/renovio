@@ -2,23 +2,23 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: domande e motore parametrico
-status: ready_to_execute
-last_updated: "2026-09-26T07:24:10.264Z"
+status: executing
+last_updated: "2026-09-26T07:25:25.764Z"
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 23
   completed_plans: 15
   percent: 71
-stopped_at: Phase 09 planned and verified (8 plans, 5 waves, checker 0 blockers); plans non-blocking on Riccardo (taratura bozza-accettata, UAT deferred) — next /gsd:execute-phase 09
+stopped_at: Phase 09 executing — wave 1 (09-01, 09-02)
 ---
 
 # Project State — ristruttura-stima
 
 ## Current Position
 
-Phase: 09 (configuratore-pro) — contesto raccolto (`09-CONTEXT.md`, D-01..D-09)
-Plan: Not started
+Phase: 09 (configuratore-pro) — EXECUTING
+Plan: 1 of 8
 Prossima: `/gsd:execute-phase 09` (piani verificati il 2026-09-26). Primo deliverable: Excel di taratura + elenco dati richiesti a Riccardo (D-04).
 
 - **Milestone:** v2.0 (domande e motore parametrico), fasi **05-10**. La v1.0 (MVP, fasi
