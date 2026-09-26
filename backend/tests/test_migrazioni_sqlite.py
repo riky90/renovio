@@ -180,7 +180,7 @@ def test_upgrade_head_gira_su_sqlite_vergine(tmp_path, monkeypatch):
         revisione = connessione.execute("SELECT version_num FROM alembic_version").fetchone()
     finally:
         connessione.close()
-    assert revisione == ("0020",)
+    assert revisione == ("0021",)
 
 
 def test_upgrade_all_ultima_revisione_gira_su_un_database_popolato(tmp_path, monkeypatch):
@@ -534,5 +534,351 @@ def test_downgrade_0020_e_poi_upgrade_e_reversibile(tmp_path, monkeypatch):
             colonne = [riga[1] for riga in connessione.execute(f"PRAGMA table_info({tabella})")]
             assert "attiva" in colonne
         assert connessione.execute("PRAGMA foreign_key_check").fetchall() == []
+    finally:
+        connessione.close()
+
+
+# ---------------------------------------------------------------------------
+# 0021 — asse finitura da voce.livello + quantita_per_unita da domanda_mirata_key
+# ---------------------------------------------------------------------------
+
+
+def _semina_curatela_09_04(connessione: sqlite3.Connection) -> dict[str, int]:
+    """Popola a mano, su un DB a revisione 0020, la curatela minima che la
+    0021 deve leggere: 3 voci livellate (base/medio/alto), 1 voce senza
+    livello, la domanda stepper `bagni` con opzione `valore`, e righe
+    `coefficiente_qta_voce` con `domanda_mirata_key='bagni'` sui 3 tipi per
+    quella quarta voce. Ritorna gli id utili al test.
+    """
+    connessione.execute(
+        "INSERT INTO categoria (code, nome, ordine, iva_pct, livello_selezionabile, nel_totale_lavori)"
+        " VALUES ('finiture', 'Finiture', 1, 0.22, 1, 1)"
+    )
+    connessione.execute(
+        "INSERT INTO listino (id, nome, citta_riferimento, valuta, is_default, attivo)"
+        " VALUES (1, 'Listino RE', 'Reggio Emilia', 'EUR', 1, 1)"
+    )
+    connessione.execute(
+        "INSERT INTO sottocategoria (id, listino_id, categoria_code, nome, famiglia, ordine)"
+        " VALUES (1, 1, 'finiture', 'Gres', 'catalogo', 1)"
+    )
+    for codice, nome, ordine in (
+        ("leggera", "Leggera", 1),
+        ("moderata", "Moderata", 2),
+        ("totale", "Totale", 3),
+    ):
+        connessione.execute(
+            "INSERT INTO tipo_ristrutturazione (code, nome, ordine, range_pct) VALUES (?, ?, ?, 0.15)",
+            (codice, nome, ordine),
+        )
+
+    id_per_livello: dict[str, int] = {}
+    for livello in ("base", "medio", "alto"):
+        cursore = connessione.execute(
+            "INSERT INTO voce (sottocategoria_id, descrizione, um, prezzo_unitario_cliente, ordine, livello)"
+            " VALUES (1, ?, 'mq', 50.00, 1, ?)",
+            (f"Voce {livello}", livello),
+        )
+        id_per_livello[livello] = cursore.lastrowid
+
+    cursore = connessione.execute(
+        "INSERT INTO voce (sottocategoria_id, descrizione, um, prezzo_unitario_cliente, ordine, livello)"
+        " VALUES (1, 'Voce senza livello', 'mq', 30.00, 4, NULL)"
+    )
+    id_senza_livello = cursore.lastrowid
+
+    cursore = connessione.execute(
+        "INSERT INTO voce (sottocategoria_id, descrizione, um, prezzo_unitario_cliente, ordine, livello)"
+        " VALUES (1, 'Sanitari per bagno', 'cad', 400.00, 5, NULL)"
+    )
+    id_voce_bagni = cursore.lastrowid
+
+    connessione.execute(
+        "INSERT INTO domanda (code, testo, tipo_controllo) VALUES ('bagni', 'Numero di bagni', 'stepper')"
+    )
+    connessione.execute(
+        "INSERT INTO opzione_domanda (domanda_code, code, etichetta) VALUES ('bagni', 'valore', 'Valore')"
+    )
+    for tipo_code in ("leggera", "moderata", "totale"):
+        connessione.execute(
+            "INSERT INTO coefficiente_qta_voce (voce_id, tipo_code, domanda_mirata_key)"
+            " VALUES (?, ?, 'bagni')",
+            (id_voce_bagni, tipo_code),
+        )
+
+    connessione.commit()
+    return {
+        "voce_base": id_per_livello["base"],
+        "voce_medio": id_per_livello["medio"],
+        "voce_alto": id_per_livello["alto"],
+        "voce_senza_livello": id_senza_livello,
+        "voce_bagni": id_voce_bagni,
+    }
+
+
+def test_0021_crea_asse_finitura_e_quantita_dalle_chiavi(tmp_path, monkeypatch):
+    """Su curatela reale (3 voci livellate + chiavi mirate bagni), la 0021
+    crea la domanda finitura con 3 opzioni (medio default), 3 effetti
+    `includi` sulle voci giuste e 1 effetto `quantita_per_unita` (valore 1,
+    tipo_code NULL: la chiave copre tutti e 3 i tipi) sull'opzione valore di
+    bagni verso la quarta voce."""
+    db_path = tmp_path / "curatela.db"
+    config = _alembic_config(db_path, monkeypatch)
+    command.upgrade(config, "0020")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        id_ = _semina_curatela_09_04(connessione)
+    finally:
+        connessione.close()
+
+    command.upgrade(config, "0021")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        assert connessione.execute(
+            "SELECT code FROM domanda WHERE code = 'finitura'"
+        ).fetchone() is not None
+
+        opzioni = connessione.execute(
+            "SELECT code, is_default FROM opzione_domanda WHERE domanda_code = 'finitura' ORDER BY code"
+        ).fetchall()
+        assert opzioni == [("alto", 0), ("base", 0), ("medio", 1)]
+
+        opzione_id_per_livello = dict(
+            connessione.execute(
+                "SELECT code, id FROM opzione_domanda WHERE domanda_code = 'finitura'"
+            ).fetchall()
+        )
+
+        effetti_includi = connessione.execute(
+            "SELECT opzione_id, target_voce_id, tipo_code, valore FROM effetto_opzione"
+            " WHERE tipo_effetto = 'includi' AND opzione_id IN"
+            " (SELECT id FROM opzione_domanda WHERE domanda_code = 'finitura')"
+        ).fetchall()
+        assert len(effetti_includi) == 3
+        bersagli = {(opzione_id_per_livello[liv], id_[f"voce_{liv}"]) for liv in ("base", "medio", "alto")}
+        assert {(riga[0], riga[1]) for riga in effetti_includi} == bersagli
+        for _, _, tipo_code, valore in effetti_includi:
+            assert tipo_code is None
+            assert valore is None
+
+        opzione_bagni_valore = connessione.execute(
+            "SELECT id FROM opzione_domanda WHERE domanda_code = 'bagni' AND code = 'valore'"
+        ).fetchone()[0]
+        effetti_quantita = connessione.execute(
+            "SELECT target_voce_id, tipo_code, valore FROM effetto_opzione"
+            " WHERE tipo_effetto = 'quantita_per_unita' AND opzione_id = ?",
+            (opzione_bagni_valore,),
+        ).fetchall()
+        assert effetti_quantita == [(id_["voce_bagni"], None, 1)]
+    finally:
+        connessione.close()
+
+
+def test_0021_non_duplica_effetti_gia_seminati(tmp_path, monkeypatch):
+    """Se il seed (o una run precedente della migrazione) ha gia' creato la
+    domanda finitura con un effetto sulla voce base, la 0021 non lo duplica:
+    dopo l'upgrade restano 3 effetti includi in totale, non 4."""
+    db_path = tmp_path / "gia_seminato.db"
+    config = _alembic_config(db_path, monkeypatch)
+    command.upgrade(config, "0020")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        id_ = _semina_curatela_09_04(connessione)
+
+        adesso = "2026-09-26 00:00:00"
+        connessione.execute(
+            "INSERT INTO domanda (code, testo, tipo_controllo, gruppo, ordine, tier_minimo, updated_at)"
+            " VALUES ('finitura', 'Livello di finitura', 'scelta_singola', 'configuratore_pro', 200, 'pro', ?)",
+            (adesso,),
+        )
+        cursore = connessione.execute(
+            "INSERT INTO opzione_domanda (domanda_code, code, etichetta, is_default, ordine, updated_at)"
+            " VALUES ('finitura', 'base', 'Entry level', 0, 1, ?)",
+            (adesso,),
+        )
+        opzione_base_id = cursore.lastrowid
+        connessione.execute(
+            "INSERT INTO effetto_opzione (opzione_id, tipo_effetto, target_voce_id, attivo, updated_at)"
+            " VALUES (?, 'includi', ?, 1, ?)",
+            (opzione_base_id, id_["voce_base"], adesso),
+        )
+        connessione.commit()
+    finally:
+        connessione.close()
+
+    command.upgrade(config, "0021")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        totale_effetti_includi = connessione.execute(
+            "SELECT COUNT(*) FROM effetto_opzione"
+            " WHERE tipo_effetto = 'includi' AND opzione_id IN"
+            " (SELECT id FROM opzione_domanda WHERE domanda_code = 'finitura')"
+        ).fetchone()[0]
+        assert totale_effetti_includi == 3
+
+        totale_opzioni_base = connessione.execute(
+            "SELECT COUNT(*) FROM opzione_domanda WHERE domanda_code = 'finitura' AND code = 'base'"
+        ).fetchone()[0]
+        assert totale_opzioni_base == 1
+    finally:
+        connessione.close()
+
+
+def test_0021_ignora_valori_sconosciuti(tmp_path, monkeypatch):
+    """`voce.livello` fuori da base/medio/alto e `domanda_mirata_key` senza
+    domanda corrispondente vengono saltati senza errore e senza creare nulla."""
+    db_path = tmp_path / "sconosciuti.db"
+    config = _alembic_config(db_path, monkeypatch)
+    command.upgrade(config, "0020")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        connessione.execute(
+            "INSERT INTO categoria (code, nome, ordine, iva_pct, livello_selezionabile, nel_totale_lavori)"
+            " VALUES ('finiture', 'Finiture', 1, 0.22, 1, 1)"
+        )
+        connessione.execute(
+            "INSERT INTO listino (id, nome, citta_riferimento, valuta, is_default, attivo)"
+            " VALUES (1, 'Listino RE', 'Reggio Emilia', 'EUR', 1, 1)"
+        )
+        connessione.execute(
+            "INSERT INTO sottocategoria (id, listino_id, categoria_code, nome, famiglia, ordine)"
+            " VALUES (1, 1, 'finiture', 'Gres', 'catalogo', 1)"
+        )
+        connessione.execute(
+            "INSERT INTO tipo_ristrutturazione (code, nome, ordine, range_pct)"
+            " VALUES ('leggera', 'Leggera', 1, 0.15)"
+        )
+        connessione.execute(
+            "INSERT INTO voce (sottocategoria_id, descrizione, um, prezzo_unitario_cliente, ordine, livello)"
+            " VALUES (1, 'Voce livello sconosciuto', 'mq', 10.00, 1, 'xyz')"
+        )
+        cursore = connessione.execute(
+            "INSERT INTO voce (sottocategoria_id, descrizione, um, prezzo_unitario_cliente, ordine)"
+            " VALUES (1, 'Voce chiave sconosciuta', 'mq', 10.00, 2)"
+        )
+        voce_chiave_id = cursore.lastrowid
+        connessione.execute(
+            "INSERT INTO coefficiente_qta_voce (voce_id, tipo_code, domanda_mirata_key)"
+            " VALUES (?, 'leggera', 'foo')",
+            (voce_chiave_id,),
+        )
+        connessione.commit()
+    finally:
+        connessione.close()
+
+    # Non deve alzare nessuna eccezione.
+    command.upgrade(config, "0021")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        assert connessione.execute(
+            "SELECT code FROM domanda WHERE code = 'finitura'"
+        ).fetchone() is None
+        assert connessione.execute("SELECT COUNT(*) FROM effetto_opzione").fetchone()[0] == 0
+    finally:
+        connessione.close()
+
+
+def test_0021_non_tocca_livello_ne_chiavi(tmp_path, monkeypatch):
+    """Dopo l'upgrade, `voce.livello` e `coefficiente_qta_voce.domanda_mirata_key`
+    sono identici a prima: nessun UPDATE, solo nuove righe in altre tabelle."""
+    db_path = tmp_path / "invariati.db"
+    config = _alembic_config(db_path, monkeypatch)
+    command.upgrade(config, "0020")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        _semina_curatela_09_04(connessione)
+        prima_livelli = connessione.execute(
+            "SELECT id, livello FROM voce ORDER BY id"
+        ).fetchall()
+        prima_chiavi = connessione.execute(
+            "SELECT voce_id, tipo_code, domanda_mirata_key FROM coefficiente_qta_voce ORDER BY voce_id, tipo_code"
+        ).fetchall()
+    finally:
+        connessione.close()
+
+    command.upgrade(config, "0021")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        dopo_livelli = connessione.execute("SELECT id, livello FROM voce ORDER BY id").fetchall()
+        dopo_chiavi = connessione.execute(
+            "SELECT voce_id, tipo_code, domanda_mirata_key FROM coefficiente_qta_voce ORDER BY voce_id, tipo_code"
+        ).fetchall()
+    finally:
+        connessione.close()
+
+    assert prima_livelli == dopo_livelli
+    assert prima_chiavi == dopo_chiavi
+
+
+def test_downgrade_0021_e_poi_upgrade_e_reversibile(tmp_path, monkeypatch):
+    """upgrade head -> downgrade 0020 -> upgrade head: stessi conteggi di
+    `effetto_opzione`, `voce.livello` e `domanda_mirata_key` invariati."""
+    db_path = tmp_path / "reversibile_0021.db"
+    config = _alembic_config(db_path, monkeypatch)
+    command.upgrade(config, "0020")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        _semina_curatela_09_04(connessione)
+    finally:
+        connessione.close()
+
+    command.upgrade(config, "0021")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        conteggio_prima = connessione.execute("SELECT COUNT(*) FROM effetto_opzione").fetchone()[0]
+        livelli_prima = connessione.execute("SELECT id, livello FROM voce ORDER BY id").fetchall()
+        chiavi_prima = connessione.execute(
+            "SELECT voce_id, tipo_code, domanda_mirata_key FROM coefficiente_qta_voce ORDER BY voce_id, tipo_code"
+        ).fetchall()
+        assert conteggio_prima == 4  # 3 includi + 1 quantita_per_unita
+    finally:
+        connessione.close()
+
+    command.downgrade(config, "0020")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        assert connessione.execute(
+            "SELECT code FROM domanda WHERE code = 'finitura'"
+        ).fetchone() is None
+        assert connessione.execute(
+            "SELECT COUNT(*) FROM opzione_domanda WHERE domanda_code = 'finitura'"
+        ).fetchone()[0] == 0
+        assert connessione.execute(
+            "SELECT COUNT(*) FROM effetto_opzione WHERE tipo_effetto IN ('includi', 'quantita_per_unita')"
+        ).fetchone()[0] == 0
+        livelli_dopo_downgrade = connessione.execute("SELECT id, livello FROM voce ORDER BY id").fetchall()
+        chiavi_dopo_downgrade = connessione.execute(
+            "SELECT voce_id, tipo_code, domanda_mirata_key FROM coefficiente_qta_voce ORDER BY voce_id, tipo_code"
+        ).fetchall()
+        assert livelli_dopo_downgrade == livelli_prima
+        assert chiavi_dopo_downgrade == chiavi_prima
+        assert connessione.execute("PRAGMA foreign_key_check").fetchall() == []
+        assert connessione.execute("PRAGMA integrity_check").fetchone() == ("ok",)
+    finally:
+        connessione.close()
+
+    command.upgrade(config, "0021")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        conteggio_dopo = connessione.execute("SELECT COUNT(*) FROM effetto_opzione").fetchone()[0]
+        livelli_dopo = connessione.execute("SELECT id, livello FROM voce ORDER BY id").fetchall()
+        chiavi_dopo = connessione.execute(
+            "SELECT voce_id, tipo_code, domanda_mirata_key FROM coefficiente_qta_voce ORDER BY voce_id, tipo_code"
+        ).fetchall()
+        assert conteggio_dopo == conteggio_prima
+        assert livelli_dopo == livelli_prima
+        assert chiavi_dopo == chiavi_prima
     finally:
         connessione.close()
