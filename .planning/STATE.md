@@ -8,9 +8,9 @@ progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 23
-  completed_plans: 17
+  completed_plans: 19
   percent: 71
-stopped_at: Phase 09 executing — wave 1 done (09-01, 09-02), wave 2 running
+stopped_at: Phase 09 executing — waves 1-2 done, wave 3 running (09-05, 09-07)
 ---
 
 # Project State — ristruttura-stima

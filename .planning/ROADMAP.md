@@ -188,7 +188,7 @@ Plans:
 rialzo** su A-EDILE, B-FINITURE (tranne il gres), C-SERRAMENTI e D-PRODOTTI. È una scelta
 consapevole, non una dimenticanza.
 
-**Plans:** 2/8 plans executed
+**Plans:** 4/8 plans executed
 
 Plans:
 **Wave 1**
@@ -198,8 +198,8 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 09-03-PLAN.md — Motore Pro sul catalogo: risolvi_effetti_pro, swap di compute(), test di conteggio CFG-02
-- [ ] 09-04-PLAN.md — Migrazione 0021 senza perdita: voce.livello e domanda_mirata_key diventano effetti sui DB esistenti
+- [x] 09-03-PLAN.md — Motore Pro sul catalogo: risolvi_effetti_pro, swap di compute(), test di conteggio CFG-02
+- [x] 09-04-PLAN.md — Migrazione 0021 senza perdita: voce.livello e domanda_mirata_key diventano effetti sui DB esistenti
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
