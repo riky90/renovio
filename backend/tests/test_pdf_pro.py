@@ -228,6 +228,62 @@ class TestPdfProDownload:
             assert forbidden not in raw_text, f"forbidden substring '{forbidden}' leaked in PDF Pro bytes"
 
 
+class TestPdfProPavimentoScelto:
+    """09-05-PLAN.md Task 2: il PDF Pro riporta il pavimento scelto, letto da
+    `dettaglio.domande` (nessun secondo calcolo nel template). Renderizza
+    SOLO il template Jinja2 (mai `PdfService.render_pro()`/WeasyPrint): la
+    riga di riepilogo e' HTML puro e non richiede il runtime GTK3 nativo per
+    essere verificata."""
+
+    def _render_html(self, client, stima_id: int, session_factory, risposte: dict | None) -> str:
+        import app.routers.dettaglio_pro as dettaglio_pro_router_module
+        from app.models.stima_salvata import StimaSalvata
+        from app.models.user import User
+        # Riusa l'Environment del servizio (registra il filtro custom `eur`)
+        # invece di ricrearne uno: qui serve solo per rendere l'HTML senza
+        # passare da WeasyPrint, non per duplicarne la configurazione.
+        from app.services.pdf_service import _env as pdf_env
+
+        if risposte is not None:
+            client.post(
+                f"{STIME_URL}/{stima_id}/dettaglio-pro/risposte",
+                json={"risposte": risposte},
+            )
+
+        with session_factory() as session:
+            row = session.query(StimaSalvata).filter_by(id=stima_id).one()
+            result, _risposte, _salvate = dettaglio_pro_router_module._compute_dettaglio(session, row)
+            user = session.query(User).filter_by(id=row.user_id).one()
+            nome, citta, mq, tipo = user.nome, row.citta, row.mq, row.tipo
+
+        template = pdf_env.get_template("pdf_stima_pro.html")
+        return template.render(
+            dettaglio=result,
+            nome=nome,
+            data_generazione="01/01/2026",
+            citta=citta,
+            mq=mq,
+            tipo=tipo,
+            filename="test.pdf",
+        )
+
+    def test_pavimento_parquet_scelto_compare_nel_riepilogo(self, client):
+        c, session_factory = client
+        stima_id = _crea_stima_pro(c)
+
+        html = self._render_html(c, stima_id, session_factory, {"tipo_pavimento": "parquet"})
+
+        assert "Parquet" in html
+
+    def test_default_gres_compare_senza_risposte(self, client):
+        c, session_factory = client
+        stima_id = _crea_stima_pro(c)
+
+        html = self._render_html(c, stima_id, session_factory, None)
+
+        assert "Gres" in html
+
+
 class TestPdfServiceRenderProRicalcolaLive:
     def test_render_pro_non_richiama_direttamente_estimation_service(self):
         """Static guard analogo a test_pdf.py: render_pro() non deve mai
