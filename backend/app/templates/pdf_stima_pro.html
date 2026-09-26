@@ -297,6 +297,14 @@
         </div>
       </div>
       {%- endif %}
+      {%- for d in dettaglio.domande %}
+      {%- if d.tipo_controllo in ("scelta_singola", "toggle") and d.valore_etichetta %}
+      <div class="riepilogo-item">
+        <div class="label">{{ d.testo }}</div>
+        <div class="value">{{ d.valore_etichetta }}</div>
+      </div>
+      {%- endif %}
+      {%- endfor %}
     </div>
 
     <div class="disclaimer-box">

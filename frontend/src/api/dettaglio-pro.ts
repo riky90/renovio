@@ -1,4 +1,5 @@
 import { apiGet, apiPost, ApiError } from "@/api/client";
+import { isNumerico, type TipoControllo, type ValoreRisposta } from "@/api/domande";
 
 export interface VoceOut {
   codice: string | null;
@@ -35,12 +36,6 @@ export interface CategoriaDettagliataOut {
   livello_scelto_nome: string | null;
 }
 
-export interface RisposteDomande {
-  bagni: number;
-  porte: number;
-  condizionatori: number;
-}
-
 export interface LivelloFinituraOut {
   code: string;
   nome: string;
@@ -52,17 +47,45 @@ export interface LivelloFinituraOut {
 /** Livelli scelti per categoria: { "B-FINITURE": "medio", ... }. */
 export type LivelliPerCategoria = Record<string, string>;
 
+/** Un'opzione di una domanda del pannello — stessi campi di `OpzioneDomanda`. */
+export interface OpzioneProOut {
+  code: string;
+  etichetta: string;
+  descrizione: string | null;
+  is_default: boolean;
+}
+
+/**
+ * Una domanda del pannello "Qualche dettaglio in più", col valore GIA'
+ * risolto dal server (D-07): la risposta salvata se valida, altrimenti il
+ * default di catalogo. Sottoinsieme di `Domanda` (api/domande.ts) — compatibile
+ * con `DomandaField`, che conosce solo i campi che le servono per disegnare.
+ */
+export interface DomandaProOut {
+  code: string;
+  testo: string;
+  help: string | null;
+  tipo_controllo: TipoControllo;
+  opzioni: OpzioneProOut[];
+  valore: ValoreRisposta | null;
+  /** Solo per le domande a scelta: l'etichetta dell'opzione risolta in `valore`. */
+  valore_etichetta: string | null;
+}
+
 export interface DettaglioProOut {
   categorie: CategoriaDettagliataOut[];
   totale_min: number;
   totale_max: number;
-  risposte: RisposteDomande;
+  /** Eco delle risposte PERSISTITE ({codice: valore}) — generico dal 09-05. */
+  risposte: Record<string, number | string>;
   /**
-   * True se l'utente ha DAVVERO risposto alle domande mirate. Distingue
-   * `{0, 0, 0}` (risposta legittima) dal non aver mai risposto — cosa che la
-   * somma delle tre risposte non può fare.
+   * True se l'utente ha DAVVERO risposto alle domande del pannello. Distingue
+   * "tutti zero" (risposta legittima) dal non aver mai risposto — cosa che
+   * dedurlo dalle risposte non può fare.
    */
   risposte_salvate: boolean;
+  /** Le domande del pannello, dal catalogo — nessuna etichetta cablata. */
+  domande: DomandaProOut[];
   livelli: LivelliPerCategoria;
   livelli_disponibili: LivelloFinituraOut[];
 }
@@ -102,12 +125,24 @@ interface RawCategoriaDettagliataOut {
   livello_scelto_nome: string | null;
 }
 
+interface RawDomandaProOut {
+  code: string;
+  testo: string;
+  help: string | null;
+  tipo_controllo: TipoControllo;
+  opzioni: OpzioneProOut[];
+  /** Pydantic serializza gli interi come numeri, i codici opzione come stringa. */
+  valore: number | string | null;
+  valore_etichetta: string | null;
+}
+
 interface RawDettaglioProOut {
   categorie: RawCategoriaDettagliataOut[];
   totale_min: unknown;
   totale_max: unknown;
-  risposte: RisposteDomande;
+  risposte: Record<string, number | string>;
   risposte_salvate?: boolean;
+  domande?: RawDomandaProOut[];
   /**
    * `livelli` e `livelli_disponibili` NON passano da toNumber(): sono codici e
    * etichette, non importi. Farceli passare li trasformerebbe in NaN.
@@ -118,6 +153,26 @@ interface RawDettaglioProOut {
 
 function toNumber(value: unknown): number {
   return typeof value === "number" ? value : Number(value);
+}
+
+/**
+ * Converte `valore` solo per le domande numeriche (come `normalizeCatalogo`
+ * in api/domande.ts): su una scelta il valore è un codice opzione, e un
+ * codice fatto di cifre non deve diventare un numero.
+ */
+function normalizeDomandaPro(raw: RawDomandaProOut): DomandaProOut {
+  return {
+    code: raw.code,
+    testo: raw.testo,
+    help: raw.help,
+    tipo_controllo: raw.tipo_controllo,
+    opzioni: raw.opzioni,
+    valore:
+      raw.valore !== null && isNumerico(raw.tipo_controllo)
+        ? Number(raw.valore)
+        : (raw.valore as ValoreRisposta | null),
+    valore_etichetta: raw.valore_etichetta,
+  };
 }
 
 function normalizeDettaglioPro(raw: RawDettaglioProOut): DettaglioProOut {
@@ -150,6 +205,7 @@ function normalizeDettaglioPro(raw: RawDettaglioProOut): DettaglioProOut {
     totale_max: toNumber(raw.totale_max),
     risposte: raw.risposte,
     risposte_salvate: raw.risposte_salvate ?? false,
+    domande: (raw.domande ?? []).map(normalizeDomandaPro),
     livelli: raw.livelli ?? {},
     livelli_disponibili: raw.livelli_disponibili ?? [],
   };
@@ -166,14 +222,17 @@ export async function getDettaglioPro(stimaId: number): Promise<DettaglioProOut>
  * livelli sulla stessa stima e ricalcola. Un solo endpoint per entrambi: sono
  * i due parametri dello stesso calcolo, e separarli aprirebbe la porta a uno
  * stato incoerente fra due chiamate.
+ *
+ * Payload generico dal 09-05 (`{risposte: {codice: valore}, livelli}`): non
+ * più tre campi bagni/porte/condizionatori cablati.
  */
 export async function postRisposteDettaglioPro(
   stimaId: number,
-  risposte: RisposteDomande,
+  risposte: Record<string, number | string>,
   livelli?: LivelliPerCategoria
 ): Promise<DettaglioProOut> {
   const raw = await apiPost<RawDettaglioProOut>(`/me/stime/${stimaId}/dettaglio-pro/risposte`, {
-    ...risposte,
+    risposte,
     ...(livelli ? { livelli } : {}),
   });
   return normalizeDettaglioPro(raw);

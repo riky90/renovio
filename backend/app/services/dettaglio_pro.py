@@ -42,6 +42,16 @@ La colonna `livello` di `Voce` e `coefficiente_qta_voce.domanda_mirata_key`
 restano a DB come dati storici (D-41: nessuna perdita nella migrazione) ma
 questo modulo non li legge piu': l'asse `finitura` e gli effetti
 `quantita_per_unita` del catalogo ne hanno preso il posto.
+
+CONTRATTO API GENERICO (Fase 09-05): il pannello 'Qualche dettaglio in
+piu'' non manda piu' tre campi cablati (bagni/porte/condizionatori) ma un
+dict generico `{codice: valore}`. `valida_risposte_pro()` e' il gate ASVS
+V5 su questo input non fidato: ogni chiave deve essere il codice di una
+domanda restituita da `domande_configuratore()` (quindi con almeno un
+effetto Pro attivo), ogni valore un intero 0..99 per le domande numeriche o
+il codice di un'opzione attiva per le domande a scelta — mai un range
+`Field(ge=..., le=...)` fisso nello schema, perche' il limite vero e' il
+catalogo, non una costante nel codice.
 """
 
 from __future__ import annotations
@@ -53,8 +63,16 @@ from sqlalchemy.orm import Session
 
 from app.models.catalogo import Categoria, LivelloFinitura, TipoRistrutturazione
 from app.models.dettaglio_pro import CoefficienteQuantitaVoce, Sottocategoria, Voce
+from app.models.domanda import Domanda, EffettoOpzione, OpzioneDomanda
 from app.models.listino import Listino
-from app.services.effetti import DOMANDA_FINITURA, RisoluzionePro, risolvi_effetti_pro
+from app.services.effetti import (
+    CONTROLLI_NUMERICI,
+    DOMANDA_FINITURA,
+    TIPI_EFFETTO_PRO,
+    RisoluzionePro,
+    attese_per_mq,
+    risolvi_effetti_pro,
+)
 
 
 def _eur(value: Decimal) -> Decimal:
@@ -110,11 +128,45 @@ class CategoriaDettagliata:
 
 
 @dataclass(frozen=True)
+class OpzioneConfiguratore:
+    """Un'opzione del pannello 'Qualche dettaglio in piu'' (09-05): stessi tre
+    campi che il client mostra, niente di piu' (nessun effetto/coefficiente)."""
+
+    code: str
+    etichetta: str
+    descrizione: str | None
+    is_default: bool
+
+
+@dataclass(frozen=True)
+class DomandaConfiguratore:
+    """Una domanda del configuratore Pro con il valore GIA' risolto (D-07):
+    la risposta salvata se valida, altrimenti il default di catalogo (opzione
+    `is_default` per le scelte, l'atteso di `attesa_immobile` per gli
+    stepper). Il pannello e il PDF Pro leggono `valore`/`valore_etichetta`,
+    mai gli effetti che l'hanno prodotto."""
+
+    code: str
+    testo: str
+    help: str | None
+    tipo_controllo: str
+    opzioni: list[OpzioneConfiguratore] = field(default_factory=list)
+    valore: int | str | None = None
+    # Solo per le domande a scelta: l'etichetta dell'opzione risolta in
+    # `valore` (es. "Gres"). None per le numeriche, che non hanno etichetta.
+    valore_etichetta: str | None = None
+
+
+@dataclass(frozen=True)
 class DettaglioProResult:
     categorie: list[CategoriaDettagliata] = field(default_factory=list)
     # Totale generale a range = somma dei totali di categoria.
     totale_min: Decimal = Decimal("0")
     totale_max: Decimal = Decimal("0")
+    # Le domande del pannello "Qualche dettaglio in piu'" (09-05), gia' coi
+    # valori risolti — la finitura NON compare qui (resta sul selettore per
+    # categoria esistente).
+    domande: list[DomandaConfiguratore] = field(default_factory=list)
 
 
 class LivelliNonValidi(ValueError):
@@ -142,6 +194,155 @@ def validate_livelli(session: Session, livelli: dict[str, str] | None) -> None:
             )
         if livello_code not in codici_livello:
             raise LivelliNonValidi(f"Livello di finitura '{livello_code}' non valido")
+
+
+class RisposteNonValide(ValueError):
+    """Input `risposte` (pannello configuratore) non ammesso. Il router la
+    traduce in 400."""
+
+
+def _as_int_valido(valore: object) -> int | None:
+    """Un intero vero, non un booleano: `True`/`False` sono `int` in Python,
+    e una risposta booleana mandata per errore su uno stepper non deve
+    diventare silenziosamente 1 o 0."""
+    if isinstance(valore, bool):
+        return None
+    if isinstance(valore, int):
+        return valore
+    return None
+
+
+def domande_configuratore(
+    session: Session, *, mq: int, risposte: dict
+) -> list[DomandaConfiguratore]:
+    """Le domande del pannello 'Qualche dettaglio in piu'' (D-06): quelle che
+    governano DAVVERO il computo, cioe' hanno almeno un effetto Pro attivo
+    (`TIPI_EFFETTO_PRO`) su un'opzione attiva. Esclude sempre la domanda
+    `finitura`, che resta sul selettore per categoria esistente.
+
+    Il valore di ognuna e' gia' risolto (D-07): la risposta salvata se valida
+    per quella domanda, altrimenti il default di catalogo — mai un campo
+    vuoto che il pannello dovrebbe interpretare da solo."""
+    codici_domanda = [
+        row[0]
+        for row in (
+            session.query(Domanda.code)
+            .join(OpzioneDomanda, OpzioneDomanda.domanda_code == Domanda.code)
+            .join(EffettoOpzione, EffettoOpzione.opzione_id == OpzioneDomanda.id)
+            .filter(
+                Domanda.attiva.is_(True),
+                Domanda.code != DOMANDA_FINITURA,
+                OpzioneDomanda.attiva.is_(True),
+                EffettoOpzione.attivo.is_(True),
+                EffettoOpzione.tipo_effetto.in_(sorted(TIPI_EFFETTO_PRO)),
+            )
+            .distinct()
+            .all()
+        )
+    ]
+    if not codici_domanda:
+        return []
+
+    domande_rows = (
+        session.query(Domanda)
+        .filter(Domanda.code.in_(codici_domanda))
+        .order_by(Domanda.ordine, Domanda.code)
+        .all()
+    )
+
+    opzioni_per_domanda: dict[str, list[OpzioneDomanda]] = {c: [] for c in codici_domanda}
+    for o in (
+        session.query(OpzioneDomanda)
+        .filter(OpzioneDomanda.domanda_code.in_(codici_domanda), OpzioneDomanda.attiva.is_(True))
+        .order_by(OpzioneDomanda.domanda_code, OpzioneDomanda.ordine, OpzioneDomanda.id)
+        .all()
+    ):
+        opzioni_per_domanda[o.domanda_code].append(o)
+
+    attese: dict[str, Decimal] | None = None
+
+    def attese_lazy() -> dict[str, Decimal]:
+        nonlocal attese
+        if attese is None:
+            attese = attese_per_mq(session, mq)
+        return attese
+
+    risultato: list[DomandaConfiguratore] = []
+    for domanda in domande_rows:
+        opzioni_attive = opzioni_per_domanda.get(domanda.code, [])
+        opzioni_out = [
+            OpzioneConfiguratore(
+                code=o.code, etichetta=o.etichetta, descrizione=o.descrizione, is_default=o.is_default
+            )
+            for o in opzioni_attive
+        ]
+
+        if domanda.tipo_controllo in CONTROLLI_NUMERICI:
+            valore_numerico = _as_int_valido(risposte.get(domanda.code))
+            if valore_numerico is None:
+                if domanda.attributo_code is not None and domanda.attributo_code in attese_lazy():
+                    valore_numerico = int(attese_lazy()[domanda.attributo_code])
+                else:
+                    valore_numerico = 0
+            risultato.append(
+                DomandaConfiguratore(
+                    code=domanda.code,
+                    testo=domanda.testo,
+                    help=domanda.help,
+                    tipo_controllo=domanda.tipo_controllo,
+                    opzioni=opzioni_out,
+                    valore=valore_numerico,
+                    valore_etichetta=None,
+                )
+            )
+            continue
+
+        risposta = risposte.get(domanda.code)
+        scelta = next((o for o in opzioni_attive if o.code == risposta), None)
+        if scelta is None:
+            scelta = next((o for o in opzioni_attive if o.is_default), None)
+        risultato.append(
+            DomandaConfiguratore(
+                code=domanda.code,
+                testo=domanda.testo,
+                help=domanda.help,
+                tipo_controllo=domanda.tipo_controllo,
+                opzioni=opzioni_out,
+                valore=scelta.code if scelta is not None else None,
+                valore_etichetta=scelta.etichetta if scelta is not None else None,
+            )
+        )
+    return risultato
+
+
+def valida_risposte_pro(session: Session, risposte: dict) -> dict:
+    """Valida le risposte del pannello contro il catalogo (ASVS V5): ogni
+    chiave deve essere il codice di una domanda del configuratore, ogni
+    valore un intero 0..99 (bool rifiutato) per le numeriche o il codice di
+    un'opzione attiva per le scelte. Restituisce il dict validato — mai il
+    dict grezzo del client."""
+    if not risposte:
+        return {}
+    domande = domande_configuratore(session, mq=1, risposte={})
+    per_code = {d.code: d for d in domande}
+    validato: dict = {}
+    for codice, valore in risposte.items():
+        domanda = per_code.get(codice)
+        if domanda is None:
+            raise RisposteNonValide(f"Domanda '{codice}' non prevista nel dettaglio Pro")
+        if domanda.tipo_controllo in CONTROLLI_NUMERICI:
+            numero = _as_int_valido(valore)
+            if numero is None:
+                raise RisposteNonValide(f"'{codice}' deve essere un numero intero")
+            if numero < 0 or numero > 99:
+                raise RisposteNonValide(f"'{codice}' deve essere compreso tra 0 e 99")
+            validato[codice] = numero
+        else:
+            codici_opzione = {o.code for o in domanda.opzioni}
+            if not isinstance(valore, str) or valore not in codici_opzione:
+                raise RisposteNonValide(f"Opzione '{valore}' non valida per '{codice}'")
+            validato[codice] = valore
+    return validato
 
 
 class DettaglioProService:
@@ -293,8 +494,12 @@ class DettaglioProService:
 
         totale_min = sum((c.totale_min for c in categorie), Decimal("0"))
         totale_max = sum((c.totale_max for c in categorie), Decimal("0"))
+        domande = domande_configuratore(session, mq=mq, risposte=risposte_base)
         return DettaglioProResult(
-            categorie=categorie, totale_min=totale_min, totale_max=totale_max
+            categorie=categorie,
+            totale_min=totale_min,
+            totale_max=totale_max,
+            domande=domande,
         )
 
     @staticmethod

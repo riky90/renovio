@@ -1,53 +1,58 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Loader2 } from "lucide-react";
+import { DomandaField } from "@/components/DomandaField";
 import { SottocategoriaAccordion } from "@/components/SottocategoriaAccordion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatEurRange } from "@/lib/currency";
 import { cn } from "@/lib/utils";
+import { isNumerico, type ValoreRisposta } from "@/api/domande";
 import {
   getDettaglioPro,
   postRisposteDettaglioPro,
   scaricaPdfPro,
+  type DomandaProOut,
   type LivelliPerCategoria,
-  type RisposteDomande,
 } from "@/api/dettaglio-pro";
 
 const DOMANDE_SUBHEADING =
   "Rispondi per affinare le quantità stimate (facoltativo: se salti, usiamo una stima prudente in base ai metri quadri).";
 const DEFAULT_NOTE =
-  "Se salti una domanda, usiamo una stima prudente basata sui metri quadri dell'immobile.";
+  "Se salti una domanda, usiamo i default: finitura media, pavimento gres, quantità stimate sui metri quadri.";
 const CALC_ERROR_COPY = "Non siamo riusciti a calcolare il dettaglio. Controlla i dati e riprova.";
 const PDF_ERROR_COPY = "Non siamo riusciti a generare il PDF. Riprova tra qualche istante.";
-const VALIDATION_COPY = "Inserisci un numero valido (0 o superiore).";
 const LIVELLI_SUBHEADING =
   "Scegli il livello di finitura: cambia i materiali considerati nel computo, non le lavorazioni.";
 
-type RisposteInput = Record<keyof RisposteDomande, string>;
-
-const FIELD_LABELS: Record<keyof RisposteDomande, string> = {
-  bagni: "Quanti bagni ha l'immobile?",
-  porte: "Quante porte interne vanno sostituite?",
-  condizionatori: "Quanti climatizzatori vuoi installare?",
+/**
+ * Etichette del riepilogo collassato — SOLO presentazione (UI-SPEC
+ * §Copywriting): non governano il calcolo, solo l'ordine/nome con cui il
+ * riepilogo mostra le domande che gia' conosciamo. Un codice non in mappa
+ * cade su `domanda.testo`, cosi' una domanda futura del configuratore non
+ * sparisce dal riepilogo in attesa di una voce qui.
+ */
+const ETICHETTE_RIEPILOGO: Record<string, string> = {
+  bagni: "Bagni",
+  porte: "Porte",
+  condizionatori: "Climatizzatori",
+  tipo_pavimento: "Pavimento",
 };
 
-function toRisposteInput(r: RisposteDomande): RisposteInput {
-  return {
-    bagni: String(r.bagni),
-    porte: String(r.porte),
-    condizionatori: String(r.condizionatori),
-  };
+function risposteIniziali(domande: DomandaProOut[]): Record<string, ValoreRisposta> {
+  const risposte: Record<string, ValoreRisposta> = {};
+  for (const domanda of domande) {
+    if (domanda.valore !== null) {
+      risposte[domanda.code] = domanda.valore;
+    }
+  }
+  return risposte;
 }
 
-function isValid(input: RisposteInput): boolean {
-  return (Object.keys(input) as (keyof RisposteInput)[]).every((key) => {
-    const n = Number(input[key]);
-    return Number.isFinite(n) && n >= 0 && Number.isInteger(n);
-  });
+function etichettaValore(domanda: DomandaProOut): string {
+  return domanda.valore_etichetta ?? String(domanda.valore ?? "");
 }
 
 interface DettaglioProViewProps {
@@ -58,23 +63,24 @@ interface DettaglioProViewProps {
 }
 
 /**
- * Vista dettaglio Pro condivisa (domande mirate + accordion per sottocategoria
- * a range + totali backend + "Scarica PDF dettagliato"). Estratta da
- * DettaglioProPage così home, pagina dedicata e "Le mie stime" mostrano lo
- * STESSO dettaglio e non possono divergere. Il gate reale resta server-side
- * (require_pro su ogni endpoint); questo componente assume un utente Pro.
+ * Vista dettaglio Pro condivisa (domande del configuratore + accordion per
+ * sottocategoria a range + totali backend + "Scarica PDF dettagliato").
+ * Estratta da DettaglioProPage così home, pagina dedicata e "Le mie stime"
+ * mostrano lo STESSO dettaglio e non possono divergere. Il gate reale resta
+ * server-side (require_pro su ogni endpoint); questo componente assume un
+ * utente Pro.
+ *
+ * Le domande a scelta/stepper del pannello arrivano dal catalogo
+ * (`dettaglio.domande`, DomandaProOut) e si disegnano con `DomandaField`
+ * (CFG-01/QST-05): nessuna etichetta cablata qui dentro, a differenza di
+ * prima del 09-05.
  */
 export function DettaglioProView({ stimaId, enabled = true }: DettaglioProViewProps) {
   const queryClient = useQueryClient();
 
-  const [risposteInput, setRisposteInput] = useState<RisposteInput>({
-    bagni: "0",
-    porte: "0",
-    condizionatori: "0",
-  });
+  const [risposteInput, setRisposteInput] = useState<Record<string, ValoreRisposta>>({});
   const [livelliInput, setLivelliInput] = useState<LivelliPerCategoria>({});
   const [domandeCollassate, setDomandeCollassate] = useState(false);
-  const [usataStimaAutomatica, setUsataStimaAutomatica] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
   const dettaglioQuery = useQuery({
@@ -84,7 +90,7 @@ export function DettaglioProView({ stimaId, enabled = true }: DettaglioProViewPr
   });
 
   const risposteMutation = useMutation({
-    mutationFn: (risposte: RisposteDomande) =>
+    mutationFn: (risposte: Record<string, number | string>) =>
       postRisposteDettaglioPro(stimaId, risposte, livelliInput),
     onSuccess: (data) => {
       queryClient.setQueryData(["dettaglio-pro", stimaId], data);
@@ -96,21 +102,17 @@ export function DettaglioProView({ stimaId, enabled = true }: DettaglioProViewPr
 
   useEffect(() => {
     if (!initialized && dettaglioQuery.data) {
-      setRisposteInput(toRisposteInput(dettaglioQuery.data.risposte));
-      // I livelli si inizializzano dall'ECO del server, non da un default nel
-      // client: così il selettore mostra ciò che è stato davvero applicato.
+      // I valori iniziali arrivano gia' risolti dal server (D-07: risposta
+      // salvata o default di catalogo) — nessun default nel client.
+      setRisposteInput(risposteIniziali(dettaglioQuery.data.domande));
       setLivelliInput(dettaglioQuery.data.livelli);
-      // Flag ESPLICITO dal server, non la somma delle risposte: `{0, 0, 0}` è
-      // una risposta legittima — ed è esattamente quella che invia il form Pro
-      // di chi non ha bagni da rifare. Dedurlo dalla somma riaprirebbe il
-      // pannello domande addosso a chi ha appena risposto.
       setDomandeCollassate(dettaglioQuery.data.risposte_salvate);
       setInitialized(true);
     }
   }, [dettaglioQuery.data, initialized]);
 
-  function handleFieldChange(field: keyof RisposteDomande, value: string) {
-    setRisposteInput((prev) => ({ ...prev, [field]: value }));
+  function handleFieldChange(code: string, valore: ValoreRisposta) {
+    setRisposteInput((prev) => ({ ...prev, [code]: valore }));
   }
 
   function handleLivelloChange(categoriaCode: string, livelloCode: string) {
@@ -118,21 +120,12 @@ export function DettaglioProView({ stimaId, enabled = true }: DettaglioProViewPr
   }
 
   function handleCalcola() {
-    if (!isValid(risposteInput)) return;
-    setUsataStimaAutomatica(false);
-    risposteMutation.mutate({
-      bagni: Number(risposteInput.bagni),
-      porte: Number(risposteInput.porte),
-      condizionatori: Number(risposteInput.condizionatori),
-    });
+    risposteMutation.mutate(risposteInput as Record<string, number | string>);
   }
 
   function handleSalta() {
-    setUsataStimaAutomatica(true);
-    risposteMutation.mutate({ bagni: 0, porte: 0, condizionatori: 0 });
+    risposteMutation.mutate({});
   }
-
-  const validationError = !isValid(risposteInput);
 
   if (dettaglioQuery.isLoading || !enabled) {
     return (
@@ -174,6 +167,15 @@ export function DettaglioProView({ stimaId, enabled = true }: DettaglioProViewPr
     .map((cat) => `${cat.nome}: ${cat.livello_scelto_nome ?? cat.livello_scelto}`)
     .join(" · ");
 
+  // Ordine del riepilogo (UI-SPEC §Copywriting): le numeriche (bagni/porte/
+  // condizionatori) prima, le domande a scelta (pavimento) dopo — anche se
+  // il catalogo le ordina diversamente (pavimento ha `ordine` minore).
+  const domandeNumeriche = dettaglio.domande.filter((d) => isNumerico(d.tipo_controllo));
+  const domandeScelta = dettaglio.domande.filter((d) => !isNumerico(d.tipo_controllo));
+  const riepilogoDomande = [...domandeNumeriche, ...domandeScelta]
+    .map((d) => `${ETICHETTE_RIEPILOGO[d.code] ?? d.testo}: ${etichettaValore(d)}`)
+    .join(" · ");
+
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-4 rounded-lg border border-border bg-secondary p-6">
@@ -181,9 +183,7 @@ export function DettaglioProView({ stimaId, enabled = true }: DettaglioProViewPr
         {domandeCollassate ? (
           <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-foreground">
             <span>
-              {usataStimaAutomatica
-                ? "Stima automatica"
-                : `Bagni: ${risposteInput.bagni} · Porte: ${risposteInput.porte} · Climatizzatori: ${risposteInput.condizionatori}`}
+              {riepilogoDomande}
               {riepilogoLivelli && (
                 <span className="block text-muted-foreground">{riepilogoLivelli}</span>
               )}
@@ -241,23 +241,36 @@ export function DettaglioProView({ stimaId, enabled = true }: DettaglioProViewPr
               </div>
             )}
 
-            <p className="text-sm text-muted-foreground">{DOMANDE_SUBHEADING}</p>
-            <div className="flex flex-col gap-3">
-              {(Object.keys(FIELD_LABELS) as (keyof RisposteDomande)[]).map((field) => (
-                <div key={field} className="flex flex-col gap-1">
-                  <Label htmlFor={field}>{FIELD_LABELS[field]}</Label>
-                  <Input
-                    id={field}
-                    inputMode="numeric"
-                    min={0}
-                    value={risposteInput[field]}
-                    onChange={(e) => handleFieldChange(field, e.target.value)}
-                    className="tabular-nums"
+            {domandeScelta.length > 0 && (
+              <div className="flex flex-col gap-4">
+                {domandeScelta.map((domanda) => (
+                  <DomandaField
+                    key={domanda.code}
+                    domanda={domanda}
+                    valore={risposteInput[domanda.code] ?? domanda.valore ?? undefined}
+                    onChange={(valore) => handleFieldChange(domanda.code, valore)}
+                    griglia={domanda.opzioni.length === 4 ? "due-colonne" : undefined}
                   />
+                ))}
+              </div>
+            )}
+
+            {domandeNumeriche.length > 0 && (
+              <>
+                <p className="text-sm text-muted-foreground">{DOMANDE_SUBHEADING}</p>
+                <div className="flex flex-col gap-3">
+                  {domandeNumeriche.map((domanda) => (
+                    <DomandaField
+                      key={domanda.code}
+                      domanda={domanda}
+                      valore={risposteInput[domanda.code] ?? domanda.valore ?? undefined}
+                      onChange={(valore) => handleFieldChange(domanda.code, valore)}
+                    />
+                  ))}
                 </div>
-              ))}
-            </div>
-            {validationError && <p className="text-sm text-destructive">{VALIDATION_COPY}</p>}
+              </>
+            )}
+
             <div className="rounded-md border border-amber-border bg-amber-bg px-3 py-2">
               <p className="text-sm text-amber-fg">{DEFAULT_NOTE}</p>
             </div>
@@ -265,10 +278,10 @@ export function DettaglioProView({ stimaId, enabled = true }: DettaglioProViewPr
               <Button
                 type="button"
                 onClick={handleCalcola}
-                disabled={risposteMutation.isPending || validationError}
+                disabled={risposteMutation.isPending}
                 className="h-11 flex-1 bg-primary text-base font-semibold text-primary-foreground hover:bg-primary/90"
               >
-                {risposteMutation.isPending && !usataStimaAutomatica ? (
+                {risposteMutation.isPending ? (
                   <span className="flex items-center justify-center gap-2">
                     <Loader2 className="size-4 animate-spin" aria-hidden />
                     Calcolo in corso…

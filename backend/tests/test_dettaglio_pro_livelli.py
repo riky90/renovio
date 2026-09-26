@@ -439,7 +439,10 @@ class TestApiLivelli:
 
         response = c.post(
             f"{STIME_URL}/{stima_id}/dettaglio-pro/risposte",
-            json={"bagni": 1, "porte": 4, "condizionatori": 2, "livelli": {"D-PRODOTTI": "base"}},
+            json={
+                "risposte": {"bagni": 1, "porte": 4, "condizionatori": 2},
+                "livelli": {"D-PRODOTTI": "base"},
+            },
         )
 
         assert response.status_code == 200
@@ -457,7 +460,10 @@ class TestApiLivelli:
 
         response = c.post(
             f"{STIME_URL}/{stima_id}/dettaglio-pro/risposte",
-            json={"bagni": 0, "porte": 0, "condizionatori": 0, "livelli": {"B-FINITURE": "extra"}},
+            json={
+                "risposte": {"bagni": 0, "porte": 0, "condizionatori": 0},
+                "livelli": {"B-FINITURE": "extra"},
+            },
         )
 
         assert response.status_code == 400
@@ -471,7 +477,10 @@ class TestApiLivelli:
 
         response = c.post(
             f"{STIME_URL}/{stima_id}/dettaglio-pro/risposte",
-            json={"bagni": 0, "porte": 0, "condizionatori": 0, "livelli": {"A-EDILE": "alto"}},
+            json={
+                "risposte": {"bagni": 0, "porte": 0, "condizionatori": 0},
+                "livelli": {"A-EDILE": "alto"},
+            },
         )
 
         assert response.status_code == 400

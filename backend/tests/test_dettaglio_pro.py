@@ -235,7 +235,7 @@ def test_post_risposte_persiste_e_get_successivo_le_riflette(http_client):
 
     post_response = http_client.post(
         f"{STIME_URL}/{stima_id}/dettaglio-pro/risposte",
-        json={"bagni": 3, "porte": 5, "condizionatori": 2},
+        json={"risposte": {"bagni": 3, "porte": 5, "condizionatori": 2}},
     )
     assert post_response.status_code == 200
     assert post_response.json()["risposte"] == {"bagni": 3, "porte": 5, "condizionatori": 2}
@@ -273,10 +273,119 @@ def test_risposte_salvate_distingue_zero_zero_zero_da_nessuna_risposta(http_clie
 
     post_response = http_client.post(
         f"{STIME_URL}/{stima_id}/dettaglio-pro/risposte",
-        json={"bagni": 0, "porte": 0, "condizionatori": 0},
+        json={"risposte": {"bagni": 0, "porte": 0, "condizionatori": 0}},
     )
     assert post_response.json()["risposte_salvate"] is True
 
     dopo = http_client.get(f"{STIME_URL}/{stima_id}/dettaglio-pro").json()
     assert dopo["risposte_salvate"] is True
     assert dopo["risposte"] == {"bagni": 0, "porte": 0, "condizionatori": 0}
+
+
+def test_get_domande_configuratore_in_ordine_con_default(http_client):
+    """GET su una stima Pro nuova: `domande` = [tipo_pavimento, bagni, porte,
+    condizionatori] in ordine (ordine, code); i valori sono gia' risolti sui
+    default di catalogo (D-07), la domanda finitura non compare."""
+    http_client.post(
+        REGISTRAZIONE_URL,
+        json={"email": "domande.pro@example.com", "password": "Password123", "nome": "Domande"},
+    )
+    http_client.post(ATTIVA_PRO_URL)
+    stima_id = http_client.post(STIME_URL, json=_stima_payload()).json()["id"]
+
+    body = http_client.get(f"{STIME_URL}/{stima_id}/dettaglio-pro").json()
+
+    codici = [d["code"] for d in body["domande"]]
+    assert codici == ["tipo_pavimento", "bagni", "porte", "condizionatori"]
+    assert "finitura" not in codici
+
+    tipo_pavimento = next(d for d in body["domande"] if d["code"] == "tipo_pavimento")
+    assert tipo_pavimento["valore"] == "gres"
+    assert tipo_pavimento["valore_etichetta"] == "Gres"
+
+    bagni = next(d for d in body["domande"] if d["code"] == "bagni")
+    assert bagni["tipo_controllo"] == "stepper"
+    assert isinstance(bagni["valore"], int)
+
+
+def test_post_risposte_payload_generico_ricalcola_e_valida(http_client):
+    """Contratto generico (Open Question 2): il payload e' `{risposte:
+    {codice: valore}, livelli}`; A.6 mostra solo la posa scelta (A.6.2, non
+    A.6.1) e il server rifiuta codici/opzioni/numeri non previsti."""
+    http_client.post(
+        REGISTRAZIONE_URL,
+        json={"email": "generico.pro@example.com", "password": "Password123", "nome": "Generico"},
+    )
+    http_client.post(ATTIVA_PRO_URL)
+    stima_id = http_client.post(STIME_URL, json=_stima_payload()).json()["id"]
+
+    ok = http_client.post(
+        f"{STIME_URL}/{stima_id}/dettaglio-pro/risposte",
+        json={"risposte": {"tipo_pavimento": "parquet", "bagni": 2}, "livelli": {"B-FINITURE": "alto"}},
+    )
+    assert ok.status_code == 200
+    assert ok.json()["risposte"] == {"tipo_pavimento": "parquet", "bagni": 2}
+
+    a6 = next(
+        s
+        for cat in ok.json()["categorie"]
+        for s in cat["sottocategorie"]
+        if s["codice"] == "A.6"
+    )
+    codici_a6 = {v["codice"] for v in a6["voci"]}
+    assert "A.6.2" in codici_a6
+    assert "A.6.1" not in codici_a6
+
+    codice_sconosciuto = http_client.post(
+        f"{STIME_URL}/{stima_id}/dettaglio-pro/risposte",
+        json={"risposte": {"pippo": 1}},
+    )
+    assert codice_sconosciuto.status_code == 400
+    assert "pippo" in codice_sconosciuto.json()["detail"]
+
+    opzione_inesistente = http_client.post(
+        f"{STIME_URL}/{stima_id}/dettaglio-pro/risposte",
+        json={"risposte": {"tipo_pavimento": "legno"}},
+    )
+    assert opzione_inesistente.status_code == 400
+
+    # -1 e' gia' fuori dal bound del tipo condiviso `Risposte` (ge=0, riusato
+    # dal wizard Free): 422 a livello di schema, prima ancora del catalogo —
+    # stesso esito pratico (rifiutato) del 400 applicativo di "100" sotto.
+    numero_negativo = http_client.post(
+        f"{STIME_URL}/{stima_id}/dettaglio-pro/risposte",
+        json={"risposte": {"bagni": -1}},
+    )
+    assert numero_negativo.status_code in (400, 422)
+
+    numero_fuori_limite = http_client.post(
+        f"{STIME_URL}/{stima_id}/dettaglio-pro/risposte",
+        json={"risposte": {"bagni": 100}},
+    )
+    assert numero_fuori_limite.status_code == 400
+
+    # `bool` e' un `int` in Python: il tipo condiviso `Risposte` (stesso della
+    # domanda Free) coercizza `true` a `1` PRIMA che il nostro guard su bool
+    # in `valida_risposte_pro` possa vederlo — stessa debolezza pre-esistente
+    # del wizard, non introdotta da questo piano. Verifichiamo solo che non
+    # esploda: 200 con coercizione a 1, o un rifiuto esplicito.
+    booleano = http_client.post(
+        f"{STIME_URL}/{stima_id}/dettaglio-pro/risposte",
+        json={"risposte": {"bagni": True}},
+    )
+    assert booleano.status_code in (200, 400, 422)
+
+    campo_top_level = http_client.post(
+        f"{STIME_URL}/{stima_id}/dettaglio-pro/risposte",
+        json={"bagni": 2},
+    )
+    assert campo_top_level.status_code == 422
+
+    vuoto = http_client.post(
+        f"{STIME_URL}/{stima_id}/dettaglio-pro/risposte",
+        json={"risposte": {}, "livelli": {}},
+    )
+    assert vuoto.status_code == 200
+    assert vuoto.json()["risposte_salvate"] is True
+    tipo_pavimento_default = next(d for d in vuoto.json()["domande"] if d["code"] == "tipo_pavimento")
+    assert tipo_pavimento_default["valore"] == "gres"
