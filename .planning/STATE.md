@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: domande e motore parametrico
-status: ready_to_plan
-last_updated: "2026-09-25T18:00:00.000Z"
+status: ready_to_execute
+last_updated: "2026-09-26T07:24:10.264Z"
 progress:
   total_phases: 7
   completed_phases: 5
-  total_plans: 15
+  total_plans: 23
   completed_plans: 15
   percent: 71
-stopped_at: Phase 09 planned (8 plans, 5 waves), plan-checker not yet run — riprendere con /gsd:plan-phase 09 -> verify existing plans
+stopped_at: Phase 09 planned and verified (8 plans, 5 waves, checker 0 blockers); plans non-blocking on Riccardo (taratura bozza-accettata, UAT deferred) — next /gsd:execute-phase 09
 ---
 
 # Project State — ristruttura-stima
@@ -19,7 +19,7 @@ stopped_at: Phase 09 planned (8 plans, 5 waves), plan-checker not yet run — ri
 
 Phase: 09 (configuratore-pro) — contesto raccolto (`09-CONTEXT.md`, D-01..D-09)
 Plan: Not started
-Prossima: `/gsd:plan-phase 09`. Primo deliverable: Excel di taratura + elenco dati richiesti a Riccardo (D-04).
+Prossima: `/gsd:execute-phase 09` (piani verificati il 2026-09-26). Primo deliverable: Excel di taratura + elenco dati richiesti a Riccardo (D-04).
 
 - **Milestone:** v2.0 (domande e motore parametrico), fasi **05-10**. La v1.0 (MVP, fasi
   01-04) e' **completa, verificata e in produzione dal 2026-09-09** — backend su Render,
@@ -167,8 +167,10 @@ Prossima: `/gsd:plan-phase 09`. Primo deliverable: Excel di taratura + elenco da
 
 - `/gsd:plan-phase 09` — Configuratore Pro e chiusura del bug dei cataloghi (QST-05,
   CFG-01..04, WIZ-04).
+
 - Oracolo verificato via API il 2026-09-25: Reggio Emilia, 85 m², tipo **totale** (non moderata),
   47.985-70.575 EUR esatto. Resta da guardare la scheda Anteprima del pannello dal vivo.
+
 - Backlog invariato: nessun test runner frontend, `tsc -b` non ufficiale.
 
 ## Open Questions / To Decide

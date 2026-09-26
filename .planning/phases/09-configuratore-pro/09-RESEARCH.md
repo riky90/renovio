@@ -540,7 +540,8 @@ with op.batch_alter_table(tabella) as batch:
 
 ## Open Questions
 
-1. **`voce.livello` e `coefficiente_qta_voce.domanda_mirata_key`: colonna mantenuta o dismessa?**
+1. **`voce.livello` e `coefficiente_qta_voce.domanda_mirata_key`: colonna mantenuta o dismessa?** (RESOLVED)
+   - Resolution: 09-02/09-04 mantengono `voce.livello` (nessun DROP COLUMN), documentata come storica e non più letta dal motore.
    - What we know: CONTEXT lascia questa scelta a discrezione di Claude, purché nessun dato si
      perda.
    - What's unclear: se il piano deve includere un task esplicito di `DROP COLUMN` (con relativa
@@ -551,7 +552,8 @@ with op.batch_alter_table(tabella) as batch:
      migrazione distruttiva nella stessa fase. Un DROP successivo, se voluto, è a costo quasi
      zero in una fase futura.
 
-2. **`RisposteDomandeRequest` a campi dedicati vs. `dict[str, Any]` generico.**
+2. **`RisposteDomandeRequest` a campi dedicati vs. `dict[str, Any]` generico.** (RESOLVED)
+   - Resolution: 09-05 adotta `RisposteDomandeRequest` generico (`risposte: dict[str, Any]`) risolto dal catalogo.
    - What we know: il resto del catalogo (Free, wizard) usa già `risposte: dict[str, Any]`
      generico risolto da `risolvi_scelte()`. Il Pro oggi ha uno schema Pydantic a 3 campi fissi
      più `livelli: dict[str, str]`.
@@ -564,7 +566,8 @@ with op.batch_alter_table(tabella) as batch:
      schema Pydantic è la strada coerente con lo spirito della fase, ma è una decisione di design
      dell'API che il planner deve fissare esplicitamente in un task, non lasciare implicita.
 
-3. **`pdf_service.py::render_pro` e `pdf_stima_pro.html` — impatto del nuovo asse pavimento.**
+3. **`pdf_service.py::render_pro` e `pdf_stima_pro.html` — impatto del nuovo asse pavimento.** (RESOLVED)
+   - Resolution: 09-05 include la verifica/estensione del template PDF `pdf_stima_pro.html` per mostrare le scelte degli assi.
    - What we know: `_compute_dettaglio()` è il punto di calcolo condiviso da GET JSON e PDF, quindi
      il nuovo asse pavimento si propaga automaticamente al PDF via `DettaglioProResult`.
    - What's unclear: se il template PDF ha un riferimento hardcoded a `livelli`/`FIELD_LABELS`
