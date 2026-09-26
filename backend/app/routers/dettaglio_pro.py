@@ -25,12 +25,14 @@ congelato) — qui non serve un secondo snapshot perche' il dettaglio Pro
 deve restare aggiornabile dagli admin (Fase 4). Resta valida: cio' che il
 tier congela e' la DISPONIBILITA' del dettaglio, non il suo calcolo.
 
-Le risposte alle domande mirate (bagni/porte/condizionatori) sono
-persistite in `stima.risposte_pro_json`: GET, POST risposte e pdf-pro
-leggono/scrivono la STESSA colonna, cosi' la schermata e il PDF Pro non
-possono divergere (03-RESEARCH.md Pitfall 3). Dal 0010 vale lo stesso per i
-livelli di finitura in `stima.livelli_pro_json`: stessa colonna per tutti e
-tre gli endpoint, stessa garanzia.
+Le risposte del pannello "Qualche dettaglio in piu'" (09-05: payload
+generico `{risposte: {codice: valore}}`, validato contro il catalogo da
+`valida_risposte_pro`) sono persistite in `stima.risposte_pro_json`: GET,
+POST risposte e pdf-pro leggono/scrivono la STESSA colonna, cosi' la
+schermata e il PDF Pro non possono divergere (03-RESEARCH.md Pitfall 3).
+Dal 0010 vale lo stesso per i livelli di finitura in
+`stima.livelli_pro_json`: stessa colonna per tutti e tre gli endpoint,
+stessa garanzia.
 """
 
 from __future__ import annotations
@@ -49,9 +51,10 @@ from app.schemas.dettaglio_pro import (
     CategoriaDettagliataOut,
     CategoriaLivelloOut,
     DettaglioProOut,
+    DomandaProOut,
     LivelloFinituraOut,
+    OpzioneProOut,
     OpzioniProOut,
-    RisposteDomandeOut,
     RisposteDomandeRequest,
     SottocategoriaOut,
     VoceOut,
@@ -61,6 +64,8 @@ from app.services.dettaglio_pro import (
     DettaglioProResult,
     DettaglioProService,
     LivelliNonValidi,
+    RisposteNonValide,
+    valida_risposte_pro,
     validate_livelli,
 )
 from app.services.pdf_service import PdfService, build_filename_pro
@@ -77,6 +82,26 @@ def _to_out(
     """Mappa campo-per-campo il risultato del servizio nel DTO chiuso — mai
     `model_validate` su entita' ORM o dataclass interne."""
     return DettaglioProOut(
+        domande=[
+            DomandaProOut(
+                code=d.code,
+                testo=d.testo,
+                help=d.help,
+                tipo_controllo=d.tipo_controllo,
+                opzioni=[
+                    OpzioneProOut(
+                        code=o.code,
+                        etichetta=o.etichetta,
+                        descrizione=o.descrizione,
+                        is_default=o.is_default,
+                    )
+                    for o in d.opzioni
+                ],
+                valore=d.valore,
+                valore_etichetta=d.valore_etichetta,
+            )
+            for d in result.domande
+        ],
         categorie=[
             CategoriaDettagliataOut(
                 code=cat.code,
@@ -112,7 +137,7 @@ def _to_out(
         ],
         totale_min=result.totale_min,
         totale_max=result.totale_max,
-        risposte=RisposteDomandeOut(**risposte),
+        risposte=risposte,
         risposte_salvate=risposte_salvate,
         # L'eco si ricostruisce dal RISULTATO, non dall'input: cosi' contiene i
         # livelli davvero applicati, default inclusi.
@@ -173,15 +198,34 @@ def _compute_dettaglio(
     `row.livelli_pro_json`).
 
     Aggiungere qui un secondo punto di calcolo — anche solo per il PDF — e' il
-    modo piu' rapido di far divergere schermata e stampa."""
+    modo piu' rapido di far divergere schermata e stampa.
+
+    Le risposte per il MOTORE combinano quelle del wizard (congelate
+    nello snapshot, `row.risultato_json["input"]["risposte"]`, es.
+    bagni/porte/condizionatori risposti in Fase Free) con quelle del
+    pannello Pro (`row.risposte_pro_json`) — vince il Pro se le stesse
+    chiavi compaiono in entrambe. L'ECO che il client vede resta invece
+    SOLO `row.risposte_pro_json`: e' il contratto del pannello (D-06), il
+    wizard ha il suo proprio."""
     listino, _fallback = resolve_listino(session, row.citta)
     # La colonna NULL e la risposta {0, 0, 0} sono due stati diversi e vanno
     # tenuti distinti fin da qui: `or {}` serve al calcolo, il flag alla UI.
     risposte_salvate = row.risposte_pro_json is not None
-    risposte = row.risposte_pro_json or {}
+    risposte_wizard = (
+        row.risultato_json.get("input", {}).get("risposte")
+        if isinstance(row.risultato_json, dict)
+        else None
+    )
+    risposte_motore = {
+        **(risposte_wizard if isinstance(risposte_wizard, dict) else {}),
+        **(row.risposte_pro_json or {}),
+    }
+    risposte_eco = row.risposte_pro_json or {}
     livelli = row.livelli_pro_json or {}
-    result = DettaglioProService.compute(session, listino, row.mq, row.tipo, risposte, livelli)
-    return result, risposte, risposte_salvate
+    result = DettaglioProService.compute(
+        session, listino, row.mq, row.tipo, risposte_motore, livelli
+    )
+    return result, risposte_eco, risposte_salvate
 
 
 def _livelli_disponibili(session: Session) -> list[LivelloFinitura]:
@@ -253,8 +297,12 @@ def salva_risposte_dettaglio_pro(
 
         # `livelli` viaggia nello stesso payload ma vive in un'altra colonna:
         # va escluso da `risposte_pro_json`, che deve continuare a contenere
-        # esattamente e solo le tre risposte mirate.
-        risposte = payload.model_dump(exclude={"livelli"})
+        # esattamente e solo le risposte del pannello, validate contro il
+        # catalogo (T-09-14) — non il dict grezzo del client.
+        try:
+            risposte = valida_risposte_pro(session, dict(payload.risposte))
+        except RisposteNonValide as exc:
+            raise HTTPException(400, str(exc)) from exc
         row.risposte_pro_json = risposte
         if payload.livelli is not None:
             try:

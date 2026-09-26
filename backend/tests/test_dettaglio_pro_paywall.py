@@ -154,7 +154,7 @@ class TestPaywallMatrix:
     def test_post_risposte_anonimo_401(self, client):
         response = client.post(
             f"{STIME_URL}/1/dettaglio-pro/risposte",
-            json={"bagni": 1, "porte": 1, "condizionatori": 1},
+            json={"risposte": {"bagni": 1, "porte": 1, "condizionatori": 1}},
         )
         assert response.status_code == 401
 
@@ -165,7 +165,7 @@ class TestPaywallMatrix:
 
         response = client.post(
             f"{STIME_URL}/{stima_id}/dettaglio-pro/risposte",
-            json={"bagni": 1, "porte": 1, "condizionatori": 1},
+            json={"risposte": {"bagni": 1, "porte": 1, "condizionatori": 1}},
         )
 
         assert response.status_code == 403
@@ -192,7 +192,7 @@ class TestAntiIdor:
 
         response = client.post(
             f"{STIME_URL}/{stima_id}/dettaglio-pro/risposte",
-            json={"bagni": 1, "porte": 1, "condizionatori": 1},
+            json={"risposte": {"bagni": 1, "porte": 1, "condizionatori": 1}},
         )
 
         assert response.status_code == 404

@@ -1,21 +1,28 @@
 """Request/response schemas for GET/POST /me/stime/{id}/dettaglio-pro
-(03-03-PLAN.md Task 2).
+(03-03-PLAN.md Task 2, generalizzati in 09-05-PLAN.md Task 1).
 
 DTO a campi chiusi: nessun prezzo/moltiplicatore di listino ne' alcun dato
 di margine riservato all'impresa in nessun modello di questo modulo (stessa
 disciplina anti-leak di `schemas/stima.py`). Nessun `model_validate` su
 entita' ORM — le risposte sono costruite campo-per-campo dal router.
 
-`RisposteDomandeRequest` limita l'input non fidato (ASVS V5, T-03-07):
-bagni/porte/condizionatori sono interi non negativi con un tetto massimo,
-stesso pattern di `StimaRequest.mq`.
+`RisposteDomandeRequest` non limita piu' l'input non fidato con un range
+`Field(ge=..., le=...)` fisso per tre campi cablati: dalla Fase 09-05 il
+payload e' generico (`risposte: dict[codice, valore]`) e i limiti (quali
+codici sono ammessi, quali numeri, quali opzioni) sono validati contro il
+catalogo da `services/dettaglio_pro.py::valida_risposte_pro` (ASVS V5,
+T-09-14) — lo schema garantisce solo la FORMA (dict di massimo 60 chiavi,
+interi 0..10000 o codici opzione, `extra="forbid"`), il catalogo il
+CONTENUTO.
 """
 
 from __future__ import annotations
 
 from decimal import Decimal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
+
+from app.schemas.stima import Risposte
 
 
 class VoceOut(BaseModel):
@@ -47,12 +54,6 @@ class CategoriaDettagliataOut(BaseModel):
     livello_scelto_nome: str | None = None
 
 
-class RisposteDomandeOut(BaseModel):
-    bagni: int = 0
-    porte: int = 0
-    condizionatori: int = 0
-
-
 class LivelloFinituraOut(BaseModel):
     code: str
     nome: str
@@ -75,17 +76,47 @@ class OpzioniProOut(BaseModel):
     livelli: list[LivelloFinituraOut]
 
 
+class OpzioneProOut(BaseModel):
+    """Un'opzione di una domanda del pannello 'Qualche dettaglio in piu''.
+    Nessun campo di effetto: il client sa solo cosa mostrare, non cosa fa."""
+
+    code: str
+    etichetta: str
+    descrizione: str | None = None
+    is_default: bool = False
+
+
+class DomandaProOut(BaseModel):
+    """Una domanda del pannello con il valore GIA' risolto (D-07): la
+    risposta salvata se valida, altrimenti il default di catalogo."""
+
+    code: str
+    testo: str
+    help: str | None = None
+    tipo_controllo: str
+    opzioni: list[OpzioneProOut] = []
+    valore: int | str | None = None
+    valore_etichetta: str | None = None
+
+
 class DettaglioProOut(BaseModel):
     categorie: list[CategoriaDettagliataOut]
     totale_min: Decimal
     totale_max: Decimal
-    risposte: RisposteDomandeOut
-    # True se l'utente ha DAVVERO risposto alle domande mirate, cioe' se
+    # Eco delle risposte PERSISTITE ({codice: valore}), mai quelle del wizard
+    # (che restano nel loro snapshot): un dict generico, non piu' tre campi
+    # cablati (09-05).
+    risposte: dict[str, int | str] = {}
+    # True se l'utente ha DAVVERO risposto alle domande del pannello, cioe' se
     # `stima.risposte_pro_json` non e' NULL. Serve al client per decidere se
-    # riaprire il pannello domande: dedurlo da `bagni+porte+condizionatori > 0`
-    # sbaglia sulla risposta legittima {0, 0, 0}, che e' esattamente cio' che
-    # invia il form Pro di chi non ha bagni da rifare.
+    # riaprire il pannello domande: dedurlo da una risposta qualsiasi diversa
+    # da zero sbaglia sulla risposta legittima "tutti zero", che e'
+    # esattamente cio' che invia il form Pro di chi non ha bagni da rifare.
     risposte_salvate: bool = False
+    # Le domande del pannello, dal catalogo — nessuna etichetta cablata nel
+    # client (CFG-01/QST-05). La finitura NON compare qui: resta sul
+    # selettore per categoria esistente.
+    domande: list[DomandaProOut] = []
     # Livelli EFFETTIVAMENTE applicati, in eco: la scelta dell'utente risolta
     # coi default di tabella. Il client mostra questi, non quelli che ha
     # mandato, altrimenti alla prima stima (senza scelta) non saprebbe cosa e'
@@ -97,9 +128,14 @@ class DettaglioProOut(BaseModel):
 
 
 class RisposteDomandeRequest(BaseModel):
-    bagni: int = Field(ge=0, le=20)
-    porte: int = Field(ge=0, le=100)
-    condizionatori: int = Field(ge=0, le=50)
+    """Payload generico del pannello (09-05): un dict `{codice: valore}` al
+    posto di tre campi cablati. `extra="forbid"` rifiuta qualunque campo
+    top-level diverso da `risposte`/`livelli` — non e' piu' possibile
+    postare `{"bagni": 2}` a livello radice, deve stare sotto `risposte`."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    risposte: Risposte = Field(default_factory=dict)
     # Livelli di finitura per categoria ({"B-FINITURE": "medio", ...}). Chiavi e
     # valori sono validati contro il DB dal router (400), MAI fidati: qui il
     # tipo garantisce solo la forma. `None` = non toccare i livelli gia'
