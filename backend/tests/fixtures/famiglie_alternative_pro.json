@@ -15,31 +15,13 @@
     "categoria_code": "A-EDILE",
     "sottocategoria": "A.0",
     "voce": "A.0.16",
-    "famiglia": "condizionatori_marca"
-  },
-  {
-    "categoria_code": "A-EDILE",
-    "sottocategoria": "A.0",
-    "voce": "A.0.16",
     "famiglia": "stepper_condizionatori"
   },
   {
     "categoria_code": "A-EDILE",
     "sottocategoria": "A.0",
     "voce": "A.0.17",
-    "famiglia": "condizionatori_marca"
-  },
-  {
-    "categoria_code": "A-EDILE",
-    "sottocategoria": "A.0",
-    "voce": "A.0.17",
     "famiglia": "stepper_condizionatori"
-  },
-  {
-    "categoria_code": "A-EDILE",
-    "sottocategoria": "A.0",
-    "voce": "A.0.3",
-    "famiglia": "sanitari_doccia_vasca"
   },
   {
     "categoria_code": "A-EDILE",
@@ -57,19 +39,7 @@
     "categoria_code": "A-EDILE",
     "sottocategoria": "A.0",
     "voce": "A.0.5",
-    "famiglia": "sanitari_vaso"
-  },
-  {
-    "categoria_code": "A-EDILE",
-    "sottocategoria": "A.0",
-    "voce": "A.0.5",
     "famiglia": "stepper_bagni"
-  },
-  {
-    "categoria_code": "A-EDILE",
-    "sottocategoria": "A.0",
-    "voce": "A.0.6",
-    "famiglia": "sanitari_bidet"
   },
   {
     "categoria_code": "A-EDILE",
@@ -94,12 +64,6 @@
     "sottocategoria": "A.0",
     "voce": "A.0.9",
     "famiglia": "stepper_bagni"
-  },
-  {
-    "categoria_code": "A-EDILE",
-    "sottocategoria": "A.10",
-    "voce": "A.10.1",
-    "famiglia": "condizionatori_marca"
   },
   {
     "categoria_code": "A-EDILE",
@@ -147,7 +111,7 @@
     "categoria_code": "A-EDILE",
     "sottocategoria": "A.6",
     "voce": "A.6.1",
-    "famiglia": "posa_pavimento_A6"
+    "famiglia": "posa_pavimento_A6:bagno"
   },
   {
     "categoria_code": "A-EDILE",
@@ -208,12 +172,6 @@
     "sottocategoria": "A.8",
     "voce": "A.8.22",
     "famiglia": "stepper_condizionatori"
-  },
-  {
-    "categoria_code": "A-EDILE",
-    "sottocategoria": "A.8",
-    "voce": "A.8.5",
-    "famiglia": "sanitari_bidet"
   },
   {
     "categoria_code": "A-EDILE",

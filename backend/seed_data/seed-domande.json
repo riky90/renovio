@@ -1909,54 +1909,6 @@
             {
               "tipo_effetto": "includi",
               "target_voce": {
-                "categoria_code": "A-EDILE",
-                "sottocategoria": "A.0",
-                "voce": "A.0.16"
-              }
-            },
-            {
-              "tipo_effetto": "escludi",
-              "target_voce": {
-                "categoria_code": "A-EDILE",
-                "sottocategoria": "A.0",
-                "voce": "A.0.17"
-              }
-            },
-            {
-              "tipo_effetto": "includi",
-              "target_voce": {
-                "categoria_code": "A-EDILE",
-                "sottocategoria": "A.0",
-                "voce": "A.0.3"
-              }
-            },
-            {
-              "tipo_effetto": "includi",
-              "target_voce": {
-                "categoria_code": "A-EDILE",
-                "sottocategoria": "A.0",
-                "voce": "A.0.5"
-              }
-            },
-            {
-              "tipo_effetto": "includi",
-              "target_voce": {
-                "categoria_code": "A-EDILE",
-                "sottocategoria": "A.0",
-                "voce": "A.0.6"
-              }
-            },
-            {
-              "tipo_effetto": "escludi",
-              "target_voce": {
-                "categoria_code": "A-EDILE",
-                "sottocategoria": "A.10",
-                "voce": "A.10.1"
-              }
-            },
-            {
-              "tipo_effetto": "includi",
-              "target_voce": {
                 "categoria_code": "B-FINITURE",
                 "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
                 "voce": "Fornitura di pavimentazione/rivestimento in gres porcelanato TIPO: Padana marmosmart pietrasanta smart honed 60 x 60 1° sc. (mq. 1,44x)"
@@ -2099,30 +2051,6 @@
           "ordine": 2,
           "is_default": true,
           "effetti": [
-            {
-              "tipo_effetto": "escludi",
-              "target_voce": {
-                "categoria_code": "A-EDILE",
-                "sottocategoria": "A.0",
-                "voce": "A.0.17"
-              }
-            },
-            {
-              "tipo_effetto": "escludi",
-              "target_voce": {
-                "categoria_code": "A-EDILE",
-                "sottocategoria": "A.10",
-                "voce": "A.10.1"
-              }
-            },
-            {
-              "tipo_effetto": "includi",
-              "target_voce": {
-                "categoria_code": "A-EDILE",
-                "sottocategoria": "A.8",
-                "voce": "A.8.5"
-              }
-            },
             {
               "tipo_effetto": "includi",
               "target_voce": {
@@ -2284,22 +2212,6 @@
           "ordine": 3,
           "is_default": false,
           "effetti": [
-            {
-              "tipo_effetto": "escludi",
-              "target_voce": {
-                "categoria_code": "A-EDILE",
-                "sottocategoria": "A.0",
-                "voce": "A.0.17"
-              }
-            },
-            {
-              "tipo_effetto": "escludi",
-              "target_voce": {
-                "categoria_code": "A-EDILE",
-                "sottocategoria": "A.10",
-                "voce": "A.10.1"
-              }
-            },
             {
               "tipo_effetto": "includi",
               "target_voce": {
@@ -2483,14 +2395,6 @@
             {
               "tipo_effetto": "includi",
               "target_voce": {
-                "categoria_code": "A-EDILE",
-                "sottocategoria": "A.6",
-                "voce": "A.6.1"
-              }
-            },
-            {
-              "tipo_effetto": "includi",
-              "target_voce": {
                 "categoria_code": "B-FINITURE",
                 "sottocategoria": "BATTISCOPA",
                 "voce": "Zoccolino di gres porcellanato colorato in massa, superficie naturale o bocciardata:effetto cemento, 10 × 30 cm, spessore 8,5 mm con sguscia"
@@ -2507,14 +2411,6 @@
             {
               "tipo_effetto": "fattore_quantita",
               "valore": 0.12,
-              "target_voce": {
-                "categoria_code": "A-EDILE",
-                "sottocategoria": "A.6",
-                "voce": "A.6.1"
-              }
-            },
-            {
-              "tipo_effetto": "includi",
               "target_voce": {
                 "categoria_code": "A-EDILE",
                 "sottocategoria": "A.6",
@@ -2695,14 +2591,6 @@
               "target_voce": {
                 "categoria_code": "A-EDILE",
                 "sottocategoria": "A.6",
-                "voce": "A.6.1"
-              }
-            },
-            {
-              "tipo_effetto": "includi",
-              "target_voce": {
-                "categoria_code": "A-EDILE",
-                "sottocategoria": "A.6",
                 "voce": "A.6.5"
               }
             },
@@ -2725,14 +2613,6 @@
             {
               "tipo_effetto": "fattore_quantita",
               "valore": 0.12,
-              "target_voce": {
-                "categoria_code": "A-EDILE",
-                "sottocategoria": "A.6",
-                "voce": "A.6.1"
-              }
-            },
-            {
-              "tipo_effetto": "includi",
               "target_voce": {
                 "categoria_code": "A-EDILE",
                 "sottocategoria": "A.6",

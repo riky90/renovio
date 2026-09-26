@@ -86,6 +86,36 @@ def risolvi_chiave_naturale(session: Session, voce_id: int) -> dict | None:
     }
 
 
+#: Le sei famiglie di alternative per fascia di prezzo (D-08, genera_excel_
+#: taratura._FAMIGLIE_ALTERNATIVE_KEYWORDS): pensate per le sottocategorie
+#: 'catalogo' (RUBINETTERIE, PORTE, PRODOTTI). Il match e' per PAROLA-CHIAVE
+#: sulla descrizione, senza distinguere sottocategoria: prende anche righe
+#: 'gerarchica' di A-EDILE (rimozioni/montaggi) che menzionano "bidet"/
+#: "doccia"/"condizionatore" nel testo ma sono operazioni, non prodotti
+#: alternativi — falso positivo della bozza 09-01. `applica_assi` (sotto) li
+#: ignora quando la sottocategoria bersaglio e' 'gerarchica'.
+FAMIGLIE_ALTERNATIVE_PER_FASCIA_PREZZO = frozenset(
+    {
+        "sanitari_vaso",
+        "sanitari_bidet",
+        "sanitari_cassetta",
+        "sanitari_doccia_vasca",
+        "porte_apertura",
+        "condizionatori_marca",
+    }
+)
+
+
+def sottocategoria_famiglia_di(session: Session, voce_id: int) -> str | None:
+    """`sottocategoria.famiglia` ('gerarchica' o 'catalogo') della voce, o
+    `None` se non risolvibile."""
+    voce = session.get(Voce, voce_id)
+    if voce is None:
+        return None
+    sotto = session.get(Sottocategoria, voce.sottocategoria_id)
+    return sotto.famiglia if sotto is not None else None
+
+
 # --- (b) applica_assi ---------------------------------------------------------
 
 
@@ -134,11 +164,23 @@ def applica_assi(
     decisioni: DecisioniTaratura,
     seed_domande: dict,
     chiavi: dict[int, dict],
+    *,
+    sottocategorie_gerarchiche: frozenset[int] = frozenset(),
 ) -> RisultatoAssi:
     """Pura (nessun accesso a DB, nessuna scrittura su disco): ricostruisce da
     zero, dalle decisioni approvate (OK/MODIFICATO; NO gia' scartato da
     `leggi_decisioni`), gli effetti Pro a bersaglio naturale sulle cinque
     domande gestite, lasciando intatto tutto il resto (Free compreso).
+
+    `sottocategorie_gerarchiche`: i `voce_id` la cui sottocategoria e'
+    `famiglia='gerarchica'` (A-EDILE gerarchica). Le sei famiglie di
+    alternative per fascia di prezzo (`FAMIGLIE_ALTERNATIVE_PER_FASCIA_
+    PREZZO`) sono pensate per le sottocategorie 'catalogo' (RUBINETTERIE,
+    PORTE, PRODOTTI): una riga con quella famiglia su una voce gerarchica e'
+    un falso positivo del match per parola-chiave della bozza 09-01 (Rule 1
+    — es. una rimozione A.0 che menziona "bidet" nel testo non e' un
+    sanitario alternativo), ignorata qui senza creare alcun effetto — la
+    voce resta sempre inclusa, come prima di questa fase.
 
     Solleva `ValueError` se `decisioni.stato == "da-compilare"`: nessuna
     decisione e' mai stata presa, non si applica per sbaglio."""
@@ -161,6 +203,40 @@ def applica_assi(
     modificate: list[str] = []
     famiglie: list[dict] = []
 
+    assi_validi: list[AsseDeciso] = []
+    for riga in decisioni.assi:
+        if (
+            riga.famiglia_alternativa in FAMIGLIE_ALTERNATIVE_PER_FASCIA_PREZZO
+            and riga.voce_id in sottocategorie_gerarchiche
+        ):
+            modificate.append(
+                f"voce_id={riga.voce_id} famiglia={riga.famiglia_alternativa!r} "
+                f"asse={riga.asse!r} IGNORATA: falso positivo del match per "
+                "parola-chiave su una voce gerarchica (rimozione/montaggio), "
+                "non un prodotto alternativo — resta sempre inclusa (Rule 1)"
+            )
+            continue
+        assi_validi.append(riga)
+    decisioni = DecisioniTaratura(
+        stato=decisioni.stato, coefficienti=decisioni.coefficienti, assi=assi_validi, dati=decisioni.dati
+    )
+
+    # D-02: il bagno resta sempre gres/rivestimento, ma la SUA quota di posa
+    # (voce A.6.1) deve restare nel computo anche quando il resto della casa
+    # scegie un altro pavimento. Una voce con almeno una riga fattore_pavimento
+    # NON diventa bersaglio di alcun `includi` (nemmeno sulla sua opzione
+    # "gres" della riga tipo_pavimento gemella): resta NON governata dall'asse
+    # tipo_pavimento, quindi SEMPRE inclusa (regola 4 di effetti.py) — la
+    # fattore_quantita (sotto) si applica comunque, perche' effetti.py la
+    # risolve per l'opzione scelta indipendentemente dalla governance
+    # dell'asse. Se le dessimo un `includi` sulle altre opzioni per "salvarla"
+    # dall'esclusione, tornerebbe bersaglio di PIU' di un'opzione (gres +
+    # parquet/maxi_lastra/mosaico) e romperebbe il conteggio per-asse di
+    # CFG-02 (09-03), che assume bersagli disgiunti fra opzioni.
+    voci_con_quota_bagno: set[int] = {
+        riga.voce_id for riga in decisioni.assi if riga.asse == "fattore_pavimento"
+    }
+
     # Deduplica le famiglie di alternative che la bozza di 09-01 ha assegnato
     # TUTTE alla stessa opzione (es. 6 forniture 'PAVIMENTI PARQUET' o 4
     # zoccolini in legno, tutte -> tipo_pavimento=parquet): senza questo passo
@@ -172,7 +248,11 @@ def applica_assi(
     # (test_gres_default_include_bersagli_di_medio_piu_le_non_governate).
     gruppi_asse_opzione: dict[tuple[str, str, str], list[AsseDeciso]] = {}
     for riga in decisioni.assi:
-        if riga.asse in (DOMANDA_FINITURA, DOMANDA_TIPO_PAVIMENTO) and riga.opzione:
+        if (
+            riga.asse in (DOMANDA_FINITURA, DOMANDA_TIPO_PAVIMENTO)
+            and riga.opzione
+            and riga.voce_id not in voci_con_quota_bagno
+        ):
             gruppi_asse_opzione.setdefault(
                 (riga.asse, riga.opzione, riga.famiglia_alternativa), []
             ).append(riga)
@@ -206,13 +286,19 @@ def applica_assi(
             continue
 
         if riga.asse in (DOMANDA_FINITURA, DOMANDA_TIPO_PAVIMENTO):
-            _aggiungi(riga.asse, riga.opzione, {"tipo_effetto": TIPO_INCLUDI, "target_voce": chiave})
-            if riga.voce_id in voce_id_da_deduplicare:
-                # Governata (includi) ma sempre esclusa: sparisce anche quando
-                # e' proprio questa opzione a essere scelta, senza smettere di
-                # essere "governata" quando NON lo e' (regola 4 di effetti.py
-                # la includerebbe sempre, altrimenti).
-                _aggiungi(riga.asse, riga.opzione, {"tipo_effetto": TIPO_ESCLUDI, "target_voce": chiave})
+            if riga.voce_id in voci_con_quota_bagno:
+                # Vedi commento sopra: nessun `includi` per la quota bagno,
+                # resta sempre inclusa e la sua quantita' la regola solo la
+                # riga fattore_pavimento (gestita dal ramo successivo).
+                pass
+            else:
+                _aggiungi(riga.asse, riga.opzione, {"tipo_effetto": TIPO_INCLUDI, "target_voce": chiave})
+                if riga.voce_id in voce_id_da_deduplicare:
+                    # Governata (includi) ma sempre esclusa: sparisce anche
+                    # quando e' proprio questa opzione a essere scelta, senza
+                    # smettere di essere "governata" quando NON lo e' (regola
+                    # 4 di effetti.py la includerebbe sempre, altrimenti).
+                    _aggiungi(riga.asse, riga.opzione, {"tipo_effetto": TIPO_ESCLUDI, "target_voce": chiave})
         elif riga.asse in ASSI_STEPPER:
             valore = float(riga.valore_per_unita) if riga.valore_per_unita is not None else 1.0
             _aggiungi(
@@ -221,15 +307,6 @@ def applica_assi(
                 {"tipo_effetto": TIPO_QUANTITA_PER_UNITA, "valore": valore, "target_voce": chiave},
             )
         elif riga.asse == "fattore_pavimento":
-            # D-02: il bagno resta sempre gres/rivestimento, ma la SUA quota di
-            # posa (voce A.6.1) deve restare nel computo anche quando il resto
-            # della casa scegie un altro pavimento — altrimenti l'asse
-            # tipo_pavimento la escluderebbe (governata solo dall'opzione
-            # "gres"). Le rendiamo bersaglio anche delle altre opzioni, con
-            # fattore_quantita che ne riduce la quantita' alla sola quota bagno.
-            _aggiungi(
-                DOMANDA_TIPO_PAVIMENTO, riga.opzione, {"tipo_effetto": TIPO_INCLUDI, "target_voce": chiave}
-            )
             if riga.fattore_quantita is not None:
                 _aggiungi(
                     DOMANDA_TIPO_PAVIMENTO,
@@ -253,12 +330,13 @@ def applica_assi(
 
         if riga.famiglia_alternativa:
             famiglia = riga.famiglia_alternativa
-            if riga.asse == "fattore_pavimento":
+            if riga.voce_id in voci_con_quota_bagno:
                 # La quota bagno NON e' un'alternativa al pavimento scelto per
                 # il resto della casa (le due voci coesistono nello stesso
                 # computo, D-02): famiglia distinta per non far contare
-                # A.6.1 (bagno) insieme ad A.6.2/.5/.6 (resto casa) nel test
-                # CFG-02 "al massimo una voce per famiglia".
+                # A.6.1 (bagno, sia dalla sua riga tipo_pavimento->gres sia
+                # dalle righe fattore_pavimento) insieme ad A.6.2/.5/.6 (resto
+                # casa) nel test CFG-02 "al massimo una voce per famiglia".
                 famiglia = f"{famiglia}:bagno"
             famiglie.append(
                 {
@@ -335,16 +413,24 @@ def main() -> None:
     from app.db import SessionLocal  # import tardivo: serve solo qui, mai nei test unitari puri
 
     chiavi: dict[int, dict] = {}
+    sottocategorie_gerarchiche: set[int] = set()
     with SessionLocal() as session:  # sola lettura: nessun commit/add in questo script
         for voce_id in {riga.voce_id for riga in decisioni.assi}:
             chiave = risolvi_chiave_naturale(session, voce_id)
             if chiave is not None:
                 chiavi[voce_id] = chiave
+            if sottocategoria_famiglia_di(session, voce_id) == "gerarchica":
+                sottocategorie_gerarchiche.add(voce_id)
 
     seed_path = _BACKEND_DIR / "seed_data" / "seed-domande.json"
     seed_domande = json.loads(seed_path.read_text(encoding="utf-8"))
 
-    risultato = applica_assi(decisioni, seed_domande, chiavi)
+    risultato = applica_assi(
+        decisioni,
+        seed_domande,
+        chiavi,
+        sottocategorie_gerarchiche=frozenset(sottocategorie_gerarchiche),
+    )
 
     conteggi_per_asse: dict[str, int] = {}
     for riga in decisioni.assi:

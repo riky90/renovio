@@ -154,6 +154,11 @@ def test_risolvi_scelte_con_tiers_include_free_e_pro(session):
 
 
 def test_opzione_scelta_con_includi_su_voce_va_in_voci_scelte(session):
+    """D-02 (09-07): A.6.1 (la posa gres del bagno) NON e' piu' bersaglio di
+    alcun `includi` su tipo_pavimento — resta sempre inclusa (regola 4,
+    NON governata) e la sua quantita' scala via `fattore_quantita` sulle
+    opzioni diverse da gres. Un `includi` la renderebbe bersaglio di due
+    opzioni contemporaneamente e romperebbe CFG-02 (09-03)."""
     ris = risolvi_effetti_pro(session, mq=85, tipo="totale", risposte={"tipo_pavimento": "parquet"})
 
     voce_a62 = _voce_a6(session, "A.6.2")
@@ -161,13 +166,15 @@ def test_opzione_scelta_con_includi_su_voce_va_in_voci_scelte(session):
 
     asse = next(a for a in ris.assi if a.domanda_code == "tipo_pavimento")
     assert voce_a62.id in asse.voci_scelte
-    assert voce_a61.id not in asse.voci_scelte
-    # Entrambe governate: sono bersaglio di UNA delle opzioni attive.
     assert voce_a62.id in asse.voci_governate
-    assert voce_a61.id in asse.voci_governate
+    assert voce_a61.id not in asse.voci_scelte
+    assert voce_a61.id not in asse.voci_governate
 
 
 def test_voce_inclusa_rispetta_lasse_tipo_pavimento(session):
+    """A.6.1 non governata da alcun asse tipo_pavimento resta SEMPRE
+    inclusa (regola 4), a prescindere dalla scelta — la sua quota bagno si
+    regola con `fattore_quantita`, non con l'inclusione/esclusione."""
     ris = risolvi_effetti_pro(session, mq=85, tipo="totale", risposte={"tipo_pavimento": "parquet"})
 
     voce_a62 = _voce_a6(session, "A.6.2")
@@ -175,7 +182,7 @@ def test_voce_inclusa_rispetta_lasse_tipo_pavimento(session):
     sotto = _sotto_a6(session)
 
     assert ris.voce_inclusa(voce_a62.id, sotto.id, "A-EDILE") is True
-    assert ris.voce_inclusa(voce_a61.id, sotto.id, "A-EDILE") is False
+    assert ris.voce_inclusa(voce_a61.id, sotto.id, "A-EDILE") is True
 
 
 # --- includi su sottocategoria -----------------------------------------------

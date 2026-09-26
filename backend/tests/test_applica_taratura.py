@@ -167,7 +167,13 @@ class TestApplicaAssiStepper:
 
 
 class TestApplicaAssiFattorePavimento:
-    def test_produce_includi_e_fattore_quantita_su_tutte_le_opzioni_non_gres(self):
+    def test_produce_solo_fattore_quantita_mai_includi(self):
+        """D-02: A.6.1 (quota bagno) NON diventa bersaglio di un `includi` su
+        parquet/maxi_lastra/mosaico — se lo fosse, sarebbe bersaglio di PIU'
+        di un'opzione dell'asse tipo_pavimento (gres + parquet) e romperebbe
+        il conteggio per-asse di CFG-02 (09-03), che assume bersagli
+        disgiunti. Resta NON governata (sempre inclusa, regola 4 di
+        effetti.py); solo la sua QUANTITA' cambia via fattore_quantita."""
         decisioni = _decisioni(
             [
                 _riga(
@@ -186,10 +192,36 @@ class TestApplicaAssiFattorePavimento:
         tipo_pav = next(d for d in risultato.seed_domande["domande"] if d["code"] == "tipo_pavimento")
         parquet = next(o for o in tipo_pav["opzioni"] if o["code"] == "parquet")
         tipi = {e["tipo_effetto"] for e in parquet["effetti"]}
-        assert tipi == {"includi", "fattore_quantita"}
+        assert tipi == {"fattore_quantita"}
         fattore = next(e for e in parquet["effetti"] if e["tipo_effetto"] == "fattore_quantita")
         assert fattore["valore"] == 0.12
         assert fattore["target_voce"] == CHIAVE_A6_1
+
+    def test_la_stessa_voce_non_riceve_includi_nemmeno_dalla_sua_riga_gres_gemella(self):
+        """La riga 'tipo_pavimento'->gres della stessa voce (A.6.1, presente
+        nel file di taratura reale accanto alle 3 righe fattore_pavimento)
+        viene SALTATA: se avesse un includi solo su gres, sceglierne un altro
+        la escluderebbe (il bug di governance che questa regola evita)."""
+        decisioni = _decisioni(
+            [
+                _riga(voce_id=10, asse="tipo_pavimento", opzione="gres", famiglia="posa_pavimento_A6"),
+                _riga(
+                    voce_id=10,
+                    asse="fattore_pavimento",
+                    opzione="parquet",
+                    fattore_quantita=Decimal("0.12"),
+                    famiglia="posa_pavimento_A6",
+                ),
+            ]
+        )
+        chiavi = {10: dict(CHIAVE_A6_1)}
+
+        risultato = applica_assi(decisioni, _seed_domande_sintetico(), chiavi)
+
+        tipo_pav = next(d for d in risultato.seed_domande["domande"] if d["code"] == "tipo_pavimento")
+        for opzione in tipo_pav["opzioni"]:
+            includi = [e for e in opzione["effetti"] if e["tipo_effetto"] == "includi"]
+            assert includi == [], f"opzione {opzione['code']!r} non deve avere includi per A.6.1"
 
     def test_famiglia_bagno_distinta_dalla_famiglia_principale(self):
         decisioni = _decisioni(
@@ -302,6 +334,46 @@ class TestApplicaAssiSempreInclusa:
                 )
         # ma la voce entra comunque nella lista famiglie (per il conteggio)
         assert any(f["voce"] == "Accessorio" for f in risultato.famiglie)
+
+
+class TestApplicaAssiFalsoPositivoGerarchica:
+    def test_famiglia_alternativa_su_voce_gerarchica_viene_ignorata(self):
+        """Bug scoperto sui dati reali: il match per parola-chiave delle sei
+        famiglie sanitari_*/porte_apertura/condizionatori_marca cattura anche
+        righe A-EDILE gerarchiche (rimozioni/montaggi) che menzionano
+        "bidet"/"doccia"/"condizionatore" nel testo, non prodotti alternativi.
+        Marcata come gerarchica, la riga viene ignorata: nessun effetto,
+        resta sempre inclusa (comportamento pre-09-07)."""
+        decisioni = _decisioni(
+            [_riga(voce_id=40, asse="finitura", opzione="base", famiglia="sanitari_bidet")]
+        )
+        chiavi = {40: {"categoria_code": "A-EDILE", "sottocategoria": "A.0", "voce": "A.0.3"}}
+
+        risultato = applica_assi(
+            decisioni, _seed_domande_sintetico(), chiavi, sottocategorie_gerarchiche=frozenset({40})
+        )
+
+        finitura = next(d for d in risultato.seed_domande["domande"] if d["code"] == "finitura")
+        for opzione in finitura["opzioni"]:
+            assert opzione["effetti"] == []
+        assert any("IGNORATA" in m for m in risultato.modificate)
+        assert not any(f["voce"] == "A.0.3" for f in risultato.famiglie)
+
+    def test_famiglia_alternativa_su_voce_catalogo_non_viene_ignorata(self):
+        """Stessa famiglia, ma la voce e' 'catalogo' (non nell'insieme
+        gerarchico passato): resta un effetto normale."""
+        decisioni = _decisioni(
+            [_riga(voce_id=41, asse="finitura", opzione="base", famiglia="sanitari_bidet")]
+        )
+        chiavi = {41: {"categoria_code": "B-FINITURE", "sottocategoria": "RUBINETTERIE", "voce": "Bidet vero"}}
+
+        risultato = applica_assi(
+            decisioni, _seed_domande_sintetico(), chiavi, sottocategorie_gerarchiche=frozenset()
+        )
+
+        finitura = next(d for d in risultato.seed_domande["domande"] if d["code"] == "finitura")
+        base = next(o for o in finitura["opzioni"] if o["code"] == "base")
+        assert base["effetti"] == [{"tipo_effetto": "includi", "target_voce": chiavi[41]}]
 
 
 class TestApplicaAssiStatoEIdempotenza:
