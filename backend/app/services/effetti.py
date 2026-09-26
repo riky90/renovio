@@ -34,6 +34,29 @@ I moltiplicatori agiscono PRIMA dei termini additivi: un euro/m2 di
 efficientamento non deve essere scalato da un moltiplicatore che riguarda
 tutt'altro (l'eta' dell'immobile, il tipo di accesso al cantiere).
 
+ORDINE DI RISOLUZIONE DEL MOTORE PRO (contratto, Fase 09-03)
+--------------------------------------------------------------
+  1. si parte da tutte le voci del listino
+  2. le ESCLUSIONI vincono sempre (categoria, sottocategoria o voce esclusa
+     da un'opzione scelta esce, anche se un asse la includerebbe)
+  3. per ogni asse a scelta singola (una domanda con almeno un `includi`)
+     restano solo le voci dell'opzione scelta (o del suo default): le voci
+     bersaglio di un'opzione NON scelta della stessa domanda escono
+  4. le voci non governate da NESSUN asse restano SEMPRE incluse — e' la
+     generalizzazione della vecchia regola `voce.livello IS NULL`
+  5. la quantita' viene dalla catena `CoefficienteQuantitaVoce` esistente
+     (coefficiente-per-mq o conteggio), poi da `quantita_per_unita` se
+     presente per quella voce, poi si applica `fattore_quantita`
+  6. le sottocategorie rimaste vuote dopo il filtro si scartano (nessun
+     accordion a 0 EUR)
+
+Un asse (`AssePro`) non e' altro che una domanda del catalogo con `includi`:
+"governare" una voce significa che ALMENO UNA opzione attiva della domanda
+la include come bersaglio: la voce entra nel computo solo se l'opzione che la
+governa e' quella scelta (o il default, se non risposto). Una domanda senza
+alcun `includi` non e' un asse — le sue risposte contano solo per gli altri
+tre tipi di effetto Pro (escludi / fattore_quantita / quantita_per_unita).
+
 PERCHE' LO SCOSTAMENTO E NON IL VALORE ASSOLUTO
 ------------------------------------------------
 Le correzioni numeriche si applicano alla DIFFERENZA fra la risposta e il valore
@@ -61,7 +84,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any
+from typing import Any, Callable
 
 from sqlalchemy.orm import Session
 
@@ -454,6 +477,7 @@ def risolvi_scelte(
     *,
     risposte: dict[str, Any] | None,
     tier: str = TIER_FREE,
+    tiers: tuple[str, ...] | None = None,
 ) -> ScelteRisolte:
     """Quali domande sono in gioco e quali opzioni risultano scelte.
 
@@ -464,13 +488,21 @@ def risolvi_scelte(
     nascosta smette di pesare sul prezzo ma continua a portare arredo.
 
     `risposte is None` torna vuoto: e' il layer spento.
+
+    `tiers`, se passato, sostituisce il filtro su un singolo `tier` con
+    `tier_minimo IN tiers`: e' cio' che permette al motore Pro (Fase 09-03) di
+    risolvere in un colpo domande Free (bagni/porte/condizionatori, sempre nel
+    wizard) e domande Pro (finitura/tipo_pavimento) dallo stesso resolver.
+    Nessun chiamante esistente passa `tiers`, quindi il comportamento di oggi
+    (filtro su un tier solo) resta identico.
     """
     if risposte is None:
         return _SCELTE_VUOTE
 
+    filtro_tier = Domanda.tier_minimo.in_(tiers) if tiers is not None else Domanda.tier_minimo == tier
     domande = (
         session.query(Domanda)
-        .filter(Domanda.attiva.is_(True), Domanda.tier_minimo == tier)
+        .filter(Domanda.attiva.is_(True), filtro_tier)
         .order_by(Domanda.ordine, Domanda.code)
         .all()
     )
@@ -659,3 +691,355 @@ def _applica_effetto_free(
     contributo = scostamento * effetto.valore
     eur_scost[categoria] = eur_scost.get(categoria, Decimal("0")) + contributo
     return _traccia(True, unita=scostamento, contributo=contributo)
+
+
+# --- risoluzione pro (Fase 09-03) -------------------------------------------
+
+
+@dataclass(frozen=True)
+class AssePro:
+    """Una domanda del catalogo che governa un sottoinsieme di voci tramite
+    `includi`. `voci_governate`/`sottocategorie_governate` sono i bersagli di
+    QUALSIASI opzione attiva della domanda (serve a sapere cosa l'asse
+    controlla, non solo cosa e' scelto); `voci_scelte`/`sottocategorie_scelte`
+    sono i bersagli delle sole opzioni ATTUALMENTE scelte (risposta o
+    default)."""
+
+    domanda_code: str
+    voci_governate: frozenset[int]
+    sottocategorie_governate: frozenset[int]
+    voci_scelte: frozenset[int]
+    sottocategorie_scelte: frozenset[int]
+    opzione_per_voce: dict[int, str]
+
+
+@dataclass(frozen=True)
+class RisoluzionePro:
+    """Il risultato della risoluzione Pro: cosa e' escluso, quali assi sono in
+    gioco e con quale opzione, e le due correzioni di quantita'.
+
+    Non contiene alcun coefficiente impresa: e' materiale euro-cliente come
+    `RisoluzioneFree`, e non importa il motore Free (D-01)."""
+
+    opzioni_scelte: dict[str, tuple[str, ...]]
+    escluse_categorie: frozenset[str]
+    escluse_sottocategorie: frozenset[int]
+    escluse_voci: frozenset[int]
+    assi: tuple[AssePro, ...]
+    quantita_per_unita: dict[int, Decimal]
+    fattori_voce: dict[int, Decimal]
+    fattori_sottocategoria: dict[int, Decimal]
+    applicati: list[EffettoApplicato]
+
+    def voce_inclusa(
+        self, voce_id: int, sottocategoria_id: int, categoria_code: str
+    ) -> bool:
+        """Le esclusioni vincono sempre; poi, per ogni asse che GOVERNA questa
+        voce (o la sua sottocategoria), la voce resta solo se l'asse la
+        SCEGLIE. Una voce non governata da alcun asse e' sempre inclusa."""
+        if categoria_code in self.escluse_categorie:
+            return False
+        if sottocategoria_id in self.escluse_sottocategorie:
+            return False
+        if voce_id in self.escluse_voci:
+            return False
+        for asse in self.assi:
+            governata = (
+                voce_id in asse.voci_governate
+                or sottocategoria_id in asse.sottocategorie_governate
+            )
+            if not governata:
+                continue
+            scelta = (
+                voce_id in asse.voci_scelte or sottocategoria_id in asse.sottocategorie_scelte
+            )
+            if not scelta:
+                return False
+        return True
+
+    def fattore(self, voce_id: int, sottocategoria_id: int) -> Decimal:
+        """Prodotto dei `fattore_quantita` su voce e su sottocategoria."""
+        return self.fattori_voce.get(voce_id, Decimal("1")) * self.fattori_sottocategoria.get(
+            sottocategoria_id, Decimal("1")
+        )
+
+    def opzione_asse(self, domanda_code: str, voce_id: int) -> str | None:
+        """Il codice dell'opzione scelta che include questa voce sull'asse
+        `domanda_code`, o `None` se la voce non e' governata da quell'asse
+        (o l'asse non esiste)."""
+        for asse in self.assi:
+            if asse.domanda_code == domanda_code:
+                return asse.opzione_per_voce.get(voce_id)
+        return None
+
+
+def _bersaglio_includi(
+    effetto: EffettoOpzione, voci_di_sottocategoria: Callable[[int], tuple[int, ...]]
+) -> tuple[tuple[int, ...], int | None] | None:
+    """Le voci bersaglio di un effetto `includi`, gia' espanse se il bersaglio
+    e' una sottocategoria. `None` se l'effetto e' malformato (nessun
+    bersaglio ammesso valorizzato)."""
+    if effetto.target_voce_id is not None:
+        return (effetto.target_voce_id,), None
+    if effetto.target_sottocategoria_id is not None:
+        return (
+            voci_di_sottocategoria(effetto.target_sottocategoria_id),
+            effetto.target_sottocategoria_id,
+        )
+    return None
+
+
+def risolvi_effetti_pro(
+    session: Session,
+    *,
+    mq: int,
+    tipo: str,
+    risposte: dict[str, Any],
+) -> RisoluzionePro:
+    """Traduce le risposte Pro (e i default) negli assi di scelta e nelle due
+    correzioni di quantita', leggendo lo stesso catalogo del Free tramite
+    `risolvi_scelte(tiers=(free, pro))`.
+
+    Le domande Free (bagni/porte/condizionatori) entrano nella stessa
+    risoluzione perche' portano `quantita_per_unita`: il motore Pro deve
+    vederle per non perdere quelle quantita', anche se non sono assi.
+
+    Vedi la docstring di modulo per l'ordine di risoluzione completo.
+    """
+    scelte = risolvi_scelte(session, risposte=risposte, tiers=(TIER_FREE, TIER_PRO))
+    codici_visibili = {o.domanda_code for o in scelte.opzioni}
+    if not codici_visibili:
+        return RisoluzionePro(
+            opzioni_scelte={},
+            escluse_categorie=frozenset(),
+            escluse_sottocategorie=frozenset(),
+            escluse_voci=frozenset(),
+            assi=(),
+            quantita_per_unita={},
+            fattori_voce={},
+            fattori_sottocategoria={},
+            applicati=[],
+        )
+
+    domanda_per_code = {d.code: d for d in scelte.domande}
+
+    opzioni_attive_per_domanda: dict[str, list[OpzioneDomanda]] = {c: [] for c in codici_visibili}
+    for o in (
+        session.query(OpzioneDomanda)
+        .filter(
+            OpzioneDomanda.domanda_code.in_(list(codici_visibili)),
+            OpzioneDomanda.attiva.is_(True),
+        )
+        .order_by(OpzioneDomanda.domanda_code, OpzioneDomanda.ordine, OpzioneDomanda.id)
+        .all()
+    ):
+        opzioni_attive_per_domanda[o.domanda_code].append(o)
+
+    opzioni_scelte_per_domanda: dict[str, list[OpzioneDomanda]] = {}
+    for o in scelte.opzioni:
+        opzioni_scelte_per_domanda.setdefault(o.domanda_code, []).append(o)
+
+    tutti_gli_id_opzione = [o.id for opzs in opzioni_attive_per_domanda.values() for o in opzs]
+    effetti_per_opzione: dict[int, list[EffettoOpzione]] = {oid: [] for oid in tutti_gli_id_opzione}
+    if tutti_gli_id_opzione:
+        for e in (
+            session.query(EffettoOpzione)
+            .filter(
+                EffettoOpzione.opzione_id.in_(tutti_gli_id_opzione),
+                EffettoOpzione.attivo.is_(True),
+                EffettoOpzione.tipo_effetto.in_(sorted(TIPI_EFFETTO_PRO)),
+            )
+            .order_by(EffettoOpzione.id)
+            .all()
+        ):
+            if e.tipo_code is None or e.tipo_code == tipo:
+                effetti_per_opzione[e.opzione_id].append(e)
+
+    _cache_voci_sottocategoria: dict[int, tuple[int, ...]] = {}
+
+    def voci_di_sottocategoria(sotto_id: int) -> tuple[int, ...]:
+        if sotto_id not in _cache_voci_sottocategoria:
+            righe = session.query(Voce.id).filter_by(sottocategoria_id=sotto_id).all()
+            _cache_voci_sottocategoria[sotto_id] = tuple(r[0] for r in righe)
+        return _cache_voci_sottocategoria[sotto_id]
+
+    attese: dict[str, Decimal] | None = None  # calcolata pigra, serve solo a quantita_per_unita
+
+    def attese_lazy() -> dict[str, Decimal]:
+        nonlocal attese
+        if attese is None:
+            attese = attese_per_mq(session, mq)
+        return attese
+
+    opzioni_scelte: dict[str, tuple[str, ...]] = {}
+    escluse_categorie: set[str] = set()
+    escluse_sottocategorie: set[int] = set()
+    escluse_voci: set[int] = set()
+    fattori_voce: dict[int, Decimal] = {}
+    fattori_sottocategoria: dict[int, Decimal] = {}
+    quantita_per_unita: dict[int, Decimal] = {}
+    applicati: list[EffettoApplicato] = []
+    assi: list[AssePro] = []
+
+    for domanda_code, opzioni_attive in opzioni_attive_per_domanda.items():
+        domanda = domanda_per_code[domanda_code]
+        opzioni_scelte_qui = opzioni_scelte_per_domanda.get(domanda_code, [])
+        opzioni_scelte[domanda_code] = tuple(o.code for o in opzioni_scelte_qui)
+        id_scelte = {o.id for o in opzioni_scelte_qui}
+
+        voci_governate: set[int] = set()
+        sottocategorie_governate: set[int] = set()
+        voci_scelte: set[int] = set()
+        sottocategorie_scelte: set[int] = set()
+        opzione_per_voce: dict[int, str] = {}
+        ha_includi = False
+
+        for opzione in opzioni_attive:
+            for effetto in effetti_per_opzione.get(opzione.id, []):
+                if effetto.tipo_effetto != TIPO_INCLUDI:
+                    continue
+                ha_includi = True
+                bersaglio = _bersaglio_includi(effetto, voci_di_sottocategoria)
+                if bersaglio is None:
+                    applicati.append(
+                        EffettoApplicato(
+                            domanda_code=domanda_code,
+                            opzione_code=opzione.code,
+                            tipo_effetto=effetto.tipo_effetto,
+                            categoria_code=effetto.target_categoria_code,
+                            valore=effetto.valore,
+                            unita=None,
+                            contributo=None,
+                            applicato=False,
+                            nota="Effetto includi senza bersaglio (voce o sottocategoria).",
+                        )
+                    )
+                    continue
+                voce_ids, sotto_id = bersaglio
+                voci_governate.update(voce_ids)
+                if sotto_id is not None:
+                    sottocategorie_governate.add(sotto_id)
+                if opzione.id in id_scelte:
+                    voci_scelte.update(voce_ids)
+                    if sotto_id is not None:
+                        sottocategorie_scelte.add(sotto_id)
+                    for vid in voce_ids:
+                        opzione_per_voce[vid] = opzione.code
+                    applicati.append(
+                        EffettoApplicato(
+                            domanda_code=domanda_code,
+                            opzione_code=opzione.code,
+                            tipo_effetto=effetto.tipo_effetto,
+                            categoria_code=effetto.target_categoria_code,
+                            valore=effetto.valore,
+                            unita=None,
+                            contributo=None,
+                            applicato=True,
+                        )
+                    )
+
+        if ha_includi:
+            assi.append(
+                AssePro(
+                    domanda_code=domanda_code,
+                    voci_governate=frozenset(voci_governate),
+                    sottocategorie_governate=frozenset(sottocategorie_governate),
+                    voci_scelte=frozenset(voci_scelte),
+                    sottocategorie_scelte=frozenset(sottocategorie_scelte),
+                    opzione_per_voce=opzione_per_voce,
+                )
+            )
+
+        # escludi / fattore_quantita / quantita_per_unita: solo per le opzioni
+        # SCELTE (risposta o default), su qualunque domanda — non solo gli assi.
+        for opzione in opzioni_scelte_qui:
+            for effetto in effetti_per_opzione.get(opzione.id, []):
+                tipo_eff = effetto.tipo_effetto
+                if tipo_eff == TIPO_INCLUDI:
+                    continue
+
+                def _traccia_pro(
+                    *,
+                    applicato: bool,
+                    unita: Decimal | None = None,
+                    contributo: Decimal | None = None,
+                    nota: str | None = None,
+                ) -> EffettoApplicato:
+                    return EffettoApplicato(
+                        domanda_code=domanda_code,
+                        opzione_code=opzione.code,
+                        tipo_effetto=tipo_eff,
+                        categoria_code=effetto.target_categoria_code,
+                        valore=effetto.valore,
+                        unita=unita,
+                        contributo=contributo,
+                        applicato=applicato,
+                        nota=nota,
+                    )
+
+                if tipo_eff == TIPO_ESCLUDI:
+                    if effetto.target_categoria_code is not None:
+                        escluse_categorie.add(effetto.target_categoria_code)
+                    elif effetto.target_sottocategoria_id is not None:
+                        escluse_sottocategorie.add(effetto.target_sottocategoria_id)
+                    elif effetto.target_voce_id is not None:
+                        escluse_voci.add(effetto.target_voce_id)
+                    else:
+                        applicati.append(_traccia_pro(applicato=False, nota="Escludi senza bersaglio."))
+                        continue
+                    applicati.append(_traccia_pro(applicato=True))
+                    continue
+
+                if tipo_eff == TIPO_FATTORE_QUANTITA:
+                    if effetto.valore is None:
+                        applicati.append(_traccia_pro(applicato=False, nota="Fattore senza valore."))
+                        continue
+                    if effetto.target_voce_id is not None:
+                        fattori_voce[effetto.target_voce_id] = fattori_voce.get(
+                            effetto.target_voce_id, Decimal("1")
+                        ) * effetto.valore
+                    elif effetto.target_sottocategoria_id is not None:
+                        fattori_sottocategoria[effetto.target_sottocategoria_id] = (
+                            fattori_sottocategoria.get(effetto.target_sottocategoria_id, Decimal("1"))
+                            * effetto.valore
+                        )
+                    else:
+                        applicati.append(_traccia_pro(applicato=False, nota="Fattore senza bersaglio."))
+                        continue
+                    applicati.append(_traccia_pro(applicato=True, contributo=effetto.valore))
+                    continue
+
+                if tipo_eff == TIPO_QUANTITA_PER_UNITA:
+                    if effetto.target_voce_id is None or effetto.valore is None:
+                        applicati.append(
+                            _traccia_pro(applicato=False, nota="Bersaglio o valore mancante.")
+                        )
+                        continue
+                    risposta_numerica = _as_decimal(risposte.get(domanda_code))
+                    if risposta_numerica is not None:
+                        unita = risposta_numerica
+                    elif domanda.attributo_code is not None and domanda.attributo_code in attese_lazy():
+                        unita = attese_lazy()[domanda.attributo_code]
+                    else:
+                        applicati.append(
+                            _traccia_pro(applicato=False, nota="Nessuna risposta ne' atteso.")
+                        )
+                        continue
+                    contributo = effetto.valore * unita
+                    quantita_per_unita[effetto.target_voce_id] = (
+                        quantita_per_unita.get(effetto.target_voce_id, Decimal("0")) + contributo
+                    )
+                    applicati.append(_traccia_pro(applicato=True, unita=unita, contributo=contributo))
+                    continue
+
+    return RisoluzionePro(
+        opzioni_scelte=opzioni_scelte,
+        escluse_categorie=frozenset(escluse_categorie),
+        escluse_sottocategorie=frozenset(escluse_sottocategorie),
+        escluse_voci=frozenset(escluse_voci),
+        assi=tuple(assi),
+        quantita_per_unita=quantita_per_unita,
+        fattori_voce=fattori_voce,
+        fattori_sottocategoria=fattori_sottocategoria,
+        applicati=applicati,
+    )
