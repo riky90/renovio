@@ -220,13 +220,13 @@
           "ordine": 11,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.2
             },
             "moderata": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.35
             },
             "totale": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.5
             }
           }
         },
@@ -259,13 +259,13 @@
           "ordine": 13,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "coefficiente_qta_per_mq": 0.2
             },
             "moderata": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.35
             },
             "totale": {
-              "default_conteggio": 2
+              "coefficiente_qta_per_mq": 0.5
             }
           }
         },
@@ -277,13 +277,13 @@
           "ordine": 14,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "coefficiente_qta_per_mq": 0.2
             },
             "moderata": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.35
             },
             "totale": {
-              "default_conteggio": 2
+              "coefficiente_qta_per_mq": 0.5
             }
           }
         },
@@ -295,13 +295,13 @@
           "ordine": 15,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "coefficiente_qta_per_mq": 0.2
             },
             "moderata": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.35
             },
             "totale": {
-              "default_conteggio": 2
+              "coefficiente_qta_per_mq": 0.5
             }
           }
         },
@@ -355,13 +355,13 @@
           "ordine": 18,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.1
             },
             "moderata": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.175
             },
             "totale": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.25
             }
           }
         }
@@ -382,13 +382,13 @@
           "ordine": 19,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.2
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.35
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.5
             }
           }
         },
@@ -400,13 +400,13 @@
           "ordine": 20,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.2
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.35
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.5
             }
           }
         },
@@ -418,13 +418,13 @@
           "ordine": 21,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.2
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.35
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.5
             }
           }
         },
@@ -436,13 +436,13 @@
           "ordine": 22,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 1.08
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 1.89
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 2.7
             }
           }
         },
@@ -454,13 +454,13 @@
           "ordine": 23,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 1.08
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 1.89
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 2.7
             }
           }
         },
@@ -472,13 +472,13 @@
           "ordine": 24,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -490,13 +490,13 @@
           "ordine": 25,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -508,13 +508,13 @@
           "ordine": 26,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -526,13 +526,13 @@
           "ordine": 27,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.06
+              "coefficiente_qta_per_mq": 0.36
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.105
+              "coefficiente_qta_per_mq": 0.63
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.15
+              "coefficiente_qta_per_mq": 0.9
             }
           }
         },
@@ -544,13 +544,13 @@
           "ordine": 28,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.06
+              "coefficiente_qta_per_mq": 0.36
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.105
+              "coefficiente_qta_per_mq": 0.63
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.15
+              "coefficiente_qta_per_mq": 0.9
             }
           }
         },
@@ -562,13 +562,13 @@
           "ordine": 29,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.1
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.175
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.25
             }
           }
         },
@@ -580,13 +580,13 @@
           "ordine": 30,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.2
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.35
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.5
             }
           }
         },
@@ -598,13 +598,13 @@
           "ordine": 31,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.2
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.35
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.5
             }
           }
         },
@@ -616,13 +616,13 @@
           "ordine": 32,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -634,13 +634,13 @@
           "ordine": 33,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.2
             },
             "moderata": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.35
             },
             "totale": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.5
             }
           }
         },
@@ -652,13 +652,13 @@
           "ordine": 34,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.1
             },
             "moderata": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.175
             },
             "totale": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.25
             }
           }
         },
@@ -670,13 +670,13 @@
           "ordine": 35,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.2
             },
             "moderata": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.35
             },
             "totale": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.5
             }
           }
         },
@@ -688,13 +688,13 @@
           "ordine": 36,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.2
             },
             "moderata": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.35
             },
             "totale": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.5
             }
           }
         }
@@ -715,13 +715,13 @@
           "ordine": 37,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -733,13 +733,13 @@
           "ordine": 38,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -751,13 +751,13 @@
           "ordine": 39,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -769,13 +769,13 @@
           "ordine": 40,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.16
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.28
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.4
             }
           }
         },
@@ -787,13 +787,13 @@
           "ordine": 41,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.16
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.28
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.4
             }
           }
         }
@@ -814,13 +814,13 @@
           "ordine": 42,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.16
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.28
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.4
             }
           }
         },
@@ -832,13 +832,13 @@
           "ordine": 43,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.16
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.28
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.4
             }
           }
         },
@@ -850,13 +850,13 @@
           "ordine": 44,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -868,13 +868,13 @@
           "ordine": 45,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.16
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.28
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.4
             }
           }
         },
@@ -949,13 +949,13 @@
           "ordine": 49,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 1
             },
             "moderata": {
               "default_conteggio": 1
             },
             "totale": {
-              "default_conteggio": 2
+              "default_conteggio": 1
             }
           }
         }
@@ -976,13 +976,13 @@
           "ordine": 50,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 1.08
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 1.89
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 2.7
             }
           }
         },
@@ -994,13 +994,13 @@
           "ordine": 51,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.1
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.175
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.25
             }
           }
         }
@@ -1021,13 +1021,13 @@
           "ordine": 52,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 1.08
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 1.89
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 2.7
             }
           }
         },
@@ -1039,13 +1039,13 @@
           "ordine": 53,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 1.08
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 1.89
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 2.7
             }
           }
         },
@@ -1057,13 +1057,13 @@
           "ordine": 54,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.06
+              "coefficiente_qta_per_mq": 1.08
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.105
+              "coefficiente_qta_per_mq": 1.89
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.15
+              "coefficiente_qta_per_mq": 2.7
             }
           }
         },
@@ -1075,13 +1075,13 @@
           "ordine": 55,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.16
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.28
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.4
             }
           }
         }
@@ -1102,13 +1102,13 @@
           "ordine": 56,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -1120,13 +1120,13 @@
           "ordine": 57,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -1138,13 +1138,13 @@
           "ordine": 58,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.1
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.175
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.25
             }
           }
         },
@@ -1156,13 +1156,13 @@
           "ordine": 59,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.1
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.175
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.25
             }
           }
         },
@@ -1174,13 +1174,13 @@
           "ordine": 60,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.1
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.175
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.25
             }
           }
         },
@@ -1192,13 +1192,13 @@
           "ordine": 61,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.16
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.28
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.4
             }
           }
         },
@@ -1210,13 +1210,13 @@
           "ordine": 62,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.06
+              "coefficiente_qta_per_mq": 0.36
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.105
+              "coefficiente_qta_per_mq": 0.63
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.15
+              "coefficiente_qta_per_mq": 0.9
             }
           }
         },
@@ -1228,13 +1228,13 @@
           "ordine": 63,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.06
+              "coefficiente_qta_per_mq": 0.36
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.105
+              "coefficiente_qta_per_mq": 0.63
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.15
+              "coefficiente_qta_per_mq": 0.9
             }
           }
         },
@@ -1246,13 +1246,13 @@
           "ordine": 64,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.16
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.28
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.4
             }
           }
         },
@@ -1264,13 +1264,13 @@
           "ordine": 65,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -1282,13 +1282,13 @@
           "ordine": 66,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         }
@@ -1309,13 +1309,13 @@
           "ordine": 67,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -1327,13 +1327,13 @@
           "ordine": 68,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.16
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.28
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.4
             }
           }
         }
@@ -1375,13 +1375,13 @@
           "ordine": 70,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 1
             },
             "moderata": {
               "default_conteggio": 1
             },
             "totale": {
-              "default_conteggio": 2
+              "default_conteggio": 1
             }
           }
         },
@@ -1393,13 +1393,13 @@
           "ordine": 71,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 1
             },
             "moderata": {
               "default_conteggio": 1
             },
             "totale": {
-              "default_conteggio": 2
+              "default_conteggio": 1
             }
           }
         },
@@ -1411,13 +1411,13 @@
           "ordine": 72,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 1
             },
             "moderata": {
               "default_conteggio": 1
             },
             "totale": {
-              "default_conteggio": 2
+              "default_conteggio": 1
             }
           }
         },
@@ -1450,13 +1450,13 @@
           "ordine": 74,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 1
             },
             "moderata": {
               "default_conteggio": 1
             },
             "totale": {
-              "default_conteggio": 2
+              "default_conteggio": 1
             }
           }
         },
@@ -1489,10 +1489,10 @@
           "ordine": 76,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 2
             },
             "moderata": {
-              "default_conteggio": 1
+              "default_conteggio": 2
             },
             "totale": {
               "default_conteggio": 2
@@ -1507,10 +1507,10 @@
           "ordine": 77,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 2
             },
             "moderata": {
-              "default_conteggio": 1
+              "default_conteggio": 2
             },
             "totale": {
               "default_conteggio": 2
@@ -1525,13 +1525,13 @@
           "ordine": 78,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 1
             },
             "moderata": {
               "default_conteggio": 1
             },
             "totale": {
-              "default_conteggio": 2
+              "default_conteggio": 1
             }
           }
         },
@@ -1543,13 +1543,13 @@
           "ordine": 79,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -1561,13 +1561,13 @@
           "ordine": 80,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -1579,13 +1579,13 @@
           "ordine": 81,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 1
             },
             "moderata": {
               "default_conteggio": 1
             },
             "totale": {
-              "default_conteggio": 2
+              "default_conteggio": 1
             }
           }
         },
@@ -1597,13 +1597,13 @@
           "ordine": 82,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 1
             },
             "moderata": {
               "default_conteggio": 1
             },
             "totale": {
-              "default_conteggio": 2
+              "default_conteggio": 1
             }
           }
         },
@@ -1615,13 +1615,13 @@
           "ordine": 83,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 1
             },
             "moderata": {
               "default_conteggio": 1
             },
             "totale": {
-              "default_conteggio": 2
+              "default_conteggio": 1
             }
           }
         },
@@ -1633,13 +1633,13 @@
           "ordine": 84,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 1
             },
             "moderata": {
               "default_conteggio": 1
             },
             "totale": {
-              "default_conteggio": 2
+              "default_conteggio": 1
             }
           }
         },
@@ -1672,13 +1672,13 @@
           "ordine": 86,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 1
             },
             "moderata": {
               "default_conteggio": 1
             },
             "totale": {
-              "default_conteggio": 2
+              "default_conteggio": 1
             }
           }
         },
@@ -1759,13 +1759,13 @@
           "ordine": 90,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -1777,13 +1777,13 @@
           "ordine": 91,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -1795,13 +1795,13 @@
           "ordine": 92,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "default_conteggio": 2
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -1813,13 +1813,13 @@
           "ordine": 93,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -1897,10 +1897,10 @@
           "ordine": 97,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 2
             },
             "moderata": {
-              "default_conteggio": 1
+              "default_conteggio": 2
             },
             "totale": {
               "default_conteggio": 2
@@ -1915,13 +1915,13 @@
           "ordine": 98,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 1
             },
             "moderata": {
               "default_conteggio": 1
             },
             "totale": {
-              "default_conteggio": 2
+              "default_conteggio": 1
             }
           }
         },
@@ -1933,13 +1933,13 @@
           "ordine": 99,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 1
             },
             "moderata": {
               "default_conteggio": 1
             },
             "totale": {
-              "default_conteggio": 2
+              "default_conteggio": 1
             }
           }
         },
@@ -1972,13 +1972,13 @@
           "ordine": 101,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 1
             },
             "moderata": {
               "default_conteggio": 1
             },
             "totale": {
-              "default_conteggio": 2
+              "default_conteggio": 1
             }
           }
         },
@@ -1990,13 +1990,13 @@
           "ordine": 102,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 1
             },
             "moderata": {
               "default_conteggio": 1
             },
             "totale": {
-              "default_conteggio": 2
+              "default_conteggio": 1
             }
           }
         },
@@ -2008,13 +2008,13 @@
           "ordine": 103,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 1
             },
             "moderata": {
               "default_conteggio": 1
             },
             "totale": {
-              "default_conteggio": 2
+              "default_conteggio": 1
             }
           }
         },
@@ -2026,13 +2026,13 @@
           "ordine": 104,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 1
             },
             "moderata": {
               "default_conteggio": 1
             },
             "totale": {
-              "default_conteggio": 2
+              "default_conteggio": 1
             }
           }
         },
@@ -2044,13 +2044,13 @@
           "ordine": 105,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 1
             },
             "moderata": {
               "default_conteggio": 1
             },
             "totale": {
-              "default_conteggio": 2
+              "default_conteggio": 1
             }
           }
         },
@@ -2062,13 +2062,13 @@
           "ordine": 106,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 1
             },
             "moderata": {
               "default_conteggio": 1
             },
             "totale": {
-              "default_conteggio": 2
+              "default_conteggio": 1
             }
           }
         },
@@ -2131,13 +2131,13 @@
           "ordine": 109,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.16
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.28
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.4
             }
           }
         },
@@ -2149,13 +2149,13 @@
           "ordine": 110,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 1.08
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 1.89
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 2.7
             }
           }
         },
@@ -2167,13 +2167,13 @@
           "ordine": 111,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 1.08
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 1.89
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 2.7
             }
           }
         },
@@ -2185,13 +2185,13 @@
           "ordine": 112,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 1.08
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 1.89
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 2.7
             }
           }
         },
@@ -2203,13 +2203,13 @@
           "ordine": 113,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 1.08
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 1.89
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 2.7
             }
           }
         },
@@ -2221,13 +2221,13 @@
           "ordine": 114,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 1.08
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 1.89
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 2.7
             }
           }
         }
@@ -2275,13 +2275,13 @@
           "ordine": 1,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2293,13 +2293,13 @@
           "ordine": 2,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2311,13 +2311,13 @@
           "ordine": 3,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2329,13 +2329,13 @@
           "ordine": 4,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2347,13 +2347,13 @@
           "ordine": 5,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2365,13 +2365,13 @@
           "ordine": 6,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.1
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.175
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.25
             }
           }
         },
@@ -2383,13 +2383,13 @@
           "ordine": 7,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2401,13 +2401,13 @@
           "ordine": 8,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2419,13 +2419,13 @@
           "ordine": 9,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2455,13 +2455,13 @@
           "ordine": 11,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2473,13 +2473,13 @@
           "ordine": 12,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2491,13 +2491,13 @@
           "ordine": 13,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2509,13 +2509,13 @@
           "ordine": 14,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2527,13 +2527,13 @@
           "ordine": 15,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2545,13 +2545,13 @@
           "ordine": 16,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2563,13 +2563,13 @@
           "ordine": 17,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2581,13 +2581,13 @@
           "ordine": 18,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2599,13 +2599,13 @@
           "ordine": 19,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2617,13 +2617,13 @@
           "ordine": 20,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2635,13 +2635,13 @@
           "ordine": 21,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2653,13 +2653,13 @@
           "ordine": 22,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.1
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.175
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.25
             }
           }
         }
@@ -2680,13 +2680,13 @@
           "ordine": 23,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2698,13 +2698,13 @@
           "ordine": 24,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2716,13 +2716,13 @@
           "ordine": 25,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2734,13 +2734,13 @@
           "ordine": 26,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2752,13 +2752,13 @@
           "ordine": 27,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2770,13 +2770,13 @@
           "ordine": 28,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         }
@@ -2797,13 +2797,13 @@
           "ordine": 29,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2815,13 +2815,13 @@
           "ordine": 30,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2833,13 +2833,13 @@
           "ordine": 31,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2851,13 +2851,13 @@
           "ordine": 32,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2869,13 +2869,13 @@
           "ordine": 33,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2905,13 +2905,13 @@
           "ordine": 35,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         }
@@ -2932,13 +2932,13 @@
           "ordine": 36,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.06
+              "coefficiente_qta_per_mq": 0.34
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.105
+              "coefficiente_qta_per_mq": 0.595
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.15
+              "coefficiente_qta_per_mq": 0.85
             }
           }
         },
@@ -2950,13 +2950,13 @@
           "ordine": 37,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.06
+              "coefficiente_qta_per_mq": 0.36
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.105
+              "coefficiente_qta_per_mq": 0.63
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.15
+              "coefficiente_qta_per_mq": 0.9
             }
           }
         },
@@ -2968,13 +2968,13 @@
           "ordine": 38,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.06
+              "coefficiente_qta_per_mq": 0.36
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.105
+              "coefficiente_qta_per_mq": 0.63
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.15
+              "coefficiente_qta_per_mq": 0.9
             }
           }
         },
@@ -2986,13 +2986,13 @@
           "ordine": 39,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.06
+              "coefficiente_qta_per_mq": 0.36
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.105
+              "coefficiente_qta_per_mq": 0.63
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.15
+              "coefficiente_qta_per_mq": 0.9
             }
           }
         },
@@ -3004,13 +3004,13 @@
           "ordine": 40,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.06
+              "coefficiente_qta_per_mq": 0.36
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.105
+              "coefficiente_qta_per_mq": 0.63
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.15
+              "coefficiente_qta_per_mq": 0.9
             }
           }
         }
@@ -3031,13 +3031,13 @@
           "ordine": 41,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.16
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.28
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.4
             }
           }
         }
@@ -3058,13 +3058,13 @@
           "ordine": 42,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 1
             },
             "moderata": {
               "default_conteggio": 1
             },
             "totale": {
-              "default_conteggio": 2
+              "default_conteggio": 1
             }
           }
         },
@@ -3307,13 +3307,13 @@
           "ordine": 54,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 1
             },
             "moderata": {
               "default_conteggio": 1
             },
             "totale": {
-              "default_conteggio": 2
+              "default_conteggio": 1
             }
           }
         },
@@ -3325,10 +3325,10 @@
           "ordine": 55,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 2
             },
             "moderata": {
-              "default_conteggio": 1
+              "default_conteggio": 2
             },
             "totale": {
               "default_conteggio": 2
@@ -3343,10 +3343,10 @@
           "ordine": 56,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 2
             },
             "moderata": {
-              "default_conteggio": 1
+              "default_conteggio": 2
             },
             "totale": {
               "default_conteggio": 2
@@ -3517,13 +3517,13 @@
           "ordine": 8,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "coefficiente_qta_per_mq": 0.2
             },
             "moderata": {
-              "default_conteggio": 1
+              "coefficiente_qta_per_mq": 0.35
             },
             "totale": {
-              "default_conteggio": 2
+              "coefficiente_qta_per_mq": 0.5
             }
           }
         },
@@ -3556,13 +3556,13 @@
           "ordine": 10,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.2
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.35
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.5
             }
           }
         },
@@ -3574,13 +3574,13 @@
           "ordine": 11,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.048
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.084
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.12
             }
           }
         },
@@ -3592,13 +3592,13 @@
           "ordine": 12,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.2
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.35
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.5
             }
           }
         },
@@ -3610,13 +3610,13 @@
           "ordine": 13,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.2
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.35
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.5
             }
           }
         },
@@ -3628,13 +3628,13 @@
           "ordine": 14,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.06
+              "coefficiente_qta_per_mq": 0.2
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.105
+              "coefficiente_qta_per_mq": 0.35
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.15
+              "coefficiente_qta_per_mq": 0.5
             }
           }
         },
@@ -3646,13 +3646,13 @@
           "ordine": 15,
           "coefficienti": {
             "leggera": {
-              "coefficiente_qta_per_mq": 0.24
+              "coefficiente_qta_per_mq": 0.2
             },
             "moderata": {
-              "coefficiente_qta_per_mq": 0.42
+              "coefficiente_qta_per_mq": 0.35
             },
             "totale": {
-              "coefficiente_qta_per_mq": 0.6
+              "coefficiente_qta_per_mq": 0.5
             }
           }
         }
@@ -3799,13 +3799,13 @@
           "ordine": 7,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 1
             },
             "moderata": {
               "default_conteggio": 1
             },
             "totale": {
-              "default_conteggio": 2
+              "default_conteggio": 1
             }
           }
         },
@@ -3838,10 +3838,10 @@
           "ordine": 9,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 2
             },
             "moderata": {
-              "default_conteggio": 1
+              "default_conteggio": 2
             },
             "totale": {
               "default_conteggio": 2
@@ -3856,13 +3856,13 @@
           "ordine": 10,
           "coefficienti": {
             "leggera": {
-              "default_conteggio": 0
+              "default_conteggio": 1
             },
             "moderata": {
               "default_conteggio": 1
             },
             "totale": {
-              "default_conteggio": 2
+              "default_conteggio": 1
             }
           }
         }

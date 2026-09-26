@@ -7,15 +7,22 @@ taratura cablato come verita'."""
 
 from __future__ import annotations
 
+import json
+import sys
 from decimal import Decimal
 
 import pytest
 from sqlalchemy import create_engine
 
 from app.db import Base
-from scripts.genera_excel_taratura import AsseDeciso, DecisioniTaratura
+from scripts.genera_excel_taratura import AsseDeciso, CoeffDeciso, DecisioniTaratura
+import scripts.applica_taratura as applica_taratura_mod
 from scripts.applica_taratura import (
+    DATO_PER_CLASSE,
     applica_assi,
+    applica_coefficienti,
+    calcola_classi,
+    emetti_migrazione,
     risolvi_chiave_naturale,
 )
 from scripts.seed import load_seed_data, seed
@@ -444,3 +451,569 @@ class TestRisolviChiaveNaturale:
 
     def test_voce_inesistente_torna_none(self, session):
         assert risolvi_chiave_naturale(session, 10**9) is None
+
+
+# --- Task 1 (09-06-PLAN.md): applica_coefficienti / calcola_classi ----------
+
+CHIAVE_VOCE_PAVIMENTO = {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI",
+    "voce": "Voce pavimento",
+}
+CHIAVE_VOCE_PAVIMENTO_2 = {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI",
+    "voce": "Voce pavimento 2",
+}
+CHIAVE_VOCE_CONTEGGIO_MIRATO = {
+    "categoria_code": "A-EDILE",
+    "sottocategoria": "A.0",
+    "voce": "A.0.3",
+}
+
+
+def _seed_dettaglio_sintetico() -> dict:
+    return {
+        "listino": {"nome": "Reggio Emilia"},
+        "sottocategorie": [
+            {
+                "categoria_code": "B-FINITURE",
+                "codice": None,
+                "nome": "PAVIMENTI",
+                "famiglia": "catalogo",
+                "voci": [
+                    {
+                        "codice": None,
+                        "descrizione": "Voce pavimento",
+                        "um": "mq",
+                        "prezzo_unitario_cliente": 40.0,
+                        "coefficienti": {
+                            "leggera": {"coefficiente_qta_per_mq": 0.24},
+                            "moderata": {"coefficiente_qta_per_mq": 0.42},
+                            "totale": {"coefficiente_qta_per_mq": 0.6},
+                        },
+                    },
+                    {
+                        "codice": None,
+                        "descrizione": "Voce pavimento 2",
+                        "um": "mq",
+                        "prezzo_unitario_cliente": 42.0,
+                        "coefficienti": {
+                            "leggera": {"coefficiente_qta_per_mq": 0.24},
+                            "moderata": {"coefficiente_qta_per_mq": 0.42},
+                            "totale": {"coefficiente_qta_per_mq": 0.6},
+                        },
+                    },
+                ],
+            },
+            {
+                "categoria_code": "A-EDILE",
+                "codice": "A.0",
+                "nome": "Allestimento di cantiere",
+                "famiglia": "gerarchica",
+                "voci": [
+                    {
+                        "codice": "A.0.3",
+                        "descrizione": "Rimozione sanitari bagno",
+                        "um": "cad",
+                        "prezzo_unitario_cliente": 40.0,
+                        "coefficienti": {
+                            "leggera": {"domanda_mirata_key": "bagni", "default_conteggio": 1},
+                            "moderata": {"domanda_mirata_key": "bagni", "default_conteggio": 1},
+                            "totale": {"domanda_mirata_key": "bagni", "default_conteggio": 1},
+                        },
+                    }
+                ],
+            },
+        ],
+    }
+
+
+def _coeff_deciso(
+    *, voce_id: int, tipo_code: str, coefficiente: str | None = None,
+    conteggio: int | None = None, decisione: str = "OK", note: str = "",
+) -> CoeffDeciso:
+    return CoeffDeciso(
+        voce_id=voce_id,
+        tipo_code=tipo_code,
+        coefficiente_qta_per_mq=Decimal(coefficiente) if coefficiente is not None else None,
+        default_conteggio=conteggio,
+        decisione=decisione,
+        note=note,
+    )
+
+
+def _decisioni_coeff(coefficienti: list[CoeffDeciso], stato: str = "bozza-accettata", dati: dict | None = None) -> DecisioniTaratura:
+    return DecisioniTaratura(stato=stato, coefficienti=coefficienti, assi=[], dati=dati or {})
+
+
+class TestApplicaCoefficienti:
+    def test_ok_scrive_il_valore_proposto(self):
+        decisioni = _decisioni_coeff(
+            [_coeff_deciso(voce_id=1, tipo_code="totale", coefficiente="0.85", decisione="OK")]
+        )
+        chiavi = {1: dict(CHIAVE_VOCE_PAVIMENTO)}
+
+        nuovo, saltate = applica_coefficienti(decisioni, _seed_dettaglio_sintetico(), chiavi)
+
+        voce = nuovo["sottocategorie"][0]["voci"][0]
+        assert voce["coefficienti"]["totale"]["coefficiente_qta_per_mq"] == 0.85
+        assert saltate == []
+
+    def test_attuale_scrive_il_valore_attuale_non_cambia(self):
+        decisioni = _decisioni_coeff(
+            [_coeff_deciso(voce_id=1, tipo_code="totale", coefficiente="0.6", decisione="ATTUALE")]
+        )
+        chiavi = {1: dict(CHIAVE_VOCE_PAVIMENTO)}
+
+        nuovo, _ = applica_coefficienti(decisioni, _seed_dettaglio_sintetico(), chiavi)
+
+        voce = nuovo["sottocategorie"][0]["voci"][0]
+        assert voce["coefficienti"]["totale"]["coefficiente_qta_per_mq"] == 0.6
+
+    def test_modificato_scrive_il_valore_scritto_a_mano(self):
+        decisioni = _decisioni_coeff(
+            [_coeff_deciso(voce_id=1, tipo_code="totale", coefficiente="1.1", decisione="MODIFICATO", note="corretto")]
+        )
+        chiavi = {1: dict(CHIAVE_VOCE_PAVIMENTO)}
+
+        nuovo, _ = applica_coefficienti(decisioni, _seed_dettaglio_sintetico(), chiavi)
+
+        voce = nuovo["sottocategorie"][0]["voci"][0]
+        assert voce["coefficienti"]["totale"]["coefficiente_qta_per_mq"] == 1.1
+
+    def test_domanda_mirata_key_non_viene_persa_quando_si_scrive_default_conteggio(self):
+        decisioni = _decisioni_coeff(
+            [_coeff_deciso(voce_id=3, tipo_code="totale", conteggio=2, decisione="ATTUALE")]
+        )
+        chiavi = {3: dict(CHIAVE_VOCE_CONTEGGIO_MIRATO)}
+
+        nuovo, _ = applica_coefficienti(decisioni, _seed_dettaglio_sintetico(), chiavi)
+
+        voce = nuovo["sottocategorie"][1]["voci"][0]
+        assert voce["coefficienti"]["totale"]["domanda_mirata_key"] == "bagni"
+        assert voce["coefficienti"]["totale"]["default_conteggio"] == 2
+
+    def test_voce_non_risolta_a_db_viene_segnalata_e_saltata(self):
+        decisioni = _decisioni_coeff(
+            [_coeff_deciso(voce_id=999, tipo_code="totale", coefficiente="0.85")]
+        )
+        originale = _seed_dettaglio_sintetico()
+
+        nuovo, saltate = applica_coefficienti(decisioni, originale, chiavi={})
+
+        assert len(saltate) == 1
+        assert "999" in saltate[0]
+        assert nuovo == originale
+
+    def test_voce_non_presente_nel_seed_viene_segnalata_e_saltata(self):
+        decisioni = _decisioni_coeff(
+            [_coeff_deciso(voce_id=1, tipo_code="totale", coefficiente="0.85")]
+        )
+        chiavi = {1: {"categoria_code": "B-FINITURE", "sottocategoria": "SPARITA", "voce": "Non esiste"}}
+        originale = _seed_dettaglio_sintetico()
+
+        nuovo, saltate = applica_coefficienti(decisioni, originale, chiavi)
+
+        assert len(saltate) == 1
+        assert nuovo == originale
+
+    def test_valore_negativo_solleva_errore(self):
+        decisioni = _decisioni_coeff(
+            [_coeff_deciso(voce_id=1, tipo_code="totale", coefficiente="-0.1")]
+        )
+        chiavi = {1: dict(CHIAVE_VOCE_PAVIMENTO)}
+
+        with pytest.raises(ValueError):
+            applica_coefficienti(decisioni, _seed_dettaglio_sintetico(), chiavi)
+
+    def test_default_conteggio_negativo_solleva_errore(self):
+        decisioni = _decisioni_coeff(
+            [_coeff_deciso(voce_id=3, tipo_code="totale", conteggio=-1)]
+        )
+        chiavi = {3: dict(CHIAVE_VOCE_CONTEGGIO_MIRATO)}
+
+        with pytest.raises(ValueError):
+            applica_coefficienti(decisioni, _seed_dettaglio_sintetico(), chiavi)
+
+    def test_idempotenza_applicando_due_volte(self):
+        decisioni = _decisioni_coeff(
+            [_coeff_deciso(voce_id=1, tipo_code="totale", coefficiente="0.85", decisione="OK")]
+        )
+        chiavi = {1: dict(CHIAVE_VOCE_PAVIMENTO)}
+
+        primo, _ = applica_coefficienti(decisioni, _seed_dettaglio_sintetico(), chiavi)
+        secondo, _ = applica_coefficienti(decisioni, primo, chiavi)
+
+        assert primo == secondo
+
+    def test_non_presente_nel_seed_non_solleva_eccezione(self):
+        """Non un'eccezione: la voce viene solo segnalata (stessa disciplina
+        del seed, D-24)."""
+        decisioni = _decisioni_coeff(
+            [_coeff_deciso(voce_id=1234, tipo_code="totale", coefficiente="0.85")]
+        )
+        _, saltate = applica_coefficienti(decisioni, _seed_dettaglio_sintetico(), chiavi={})
+        assert saltate  # nessuna eccezione, solo segnalazione
+
+
+class TestCalcolaClassi:
+    def test_mediana_delle_voci_della_stessa_classe(self):
+        decisioni = _decisioni_coeff(
+            [
+                _coeff_deciso(voce_id=1, tipo_code="totale", coefficiente="0.7"),
+                _coeff_deciso(voce_id=2, tipo_code="totale", coefficiente="0.9"),
+            ]
+        )
+        chiavi_classe = {1: "pavimento", 2: "pavimento"}
+
+        classi = calcola_classi(decisioni, chiavi_classe)
+
+        assert classi["pavimento"]["totale"] == "0.8"
+
+    def test_classe_senza_voci_decise_usa_il_fallback_proposta_per_classe(self):
+        decisioni = _decisioni_coeff([])
+        classi = calcola_classi(decisioni, chiavi_classe={})
+
+        # PROPOSTA_PER_CLASSE["battiscopa"] = 0.9, TIPO_FACTOR["totale"] = 1.0
+        assert classi["battiscopa"]["totale"] == "0.9"
+        assert len(classi) >= 9
+
+    def test_bozza_accettata_riproduce_proposta_per_classe_x_tipo_factor(self):
+        """Con decisioni tutte OK sulla bozza (ogni voce della classe ha lo
+        stesso valore proposto), calcola_classi() riproduce esattamente
+        PROPOSTA_PER_CLASSE x TIPO_FACTOR per ogni tipo."""
+        decisioni = _decisioni_coeff(
+            [
+                _coeff_deciso(voce_id=1, tipo_code="totale", coefficiente="0.85"),
+                _coeff_deciso(voce_id=1, tipo_code="moderata", coefficiente="0.595"),
+                _coeff_deciso(voce_id=1, tipo_code="leggera", coefficiente="0.34"),
+            ]
+        )
+        chiavi_classe = {1: "pavimento"}
+
+        classi = calcola_classi(decisioni, chiavi_classe)
+
+        assert Decimal(classi["pavimento"]["totale"]) == Decimal("0.85")
+        assert Decimal(classi["pavimento"]["moderata"]) == Decimal("0.595")
+        assert Decimal(classi["pavimento"]["leggera"]) == Decimal("0.34")
+
+    def test_dato_richiesto_sovrascrive_la_mediana_per_tutti_i_tipi(self):
+        decisioni = _decisioni_coeff(
+            [_coeff_deciso(voce_id=1, tipo_code="totale", coefficiente="0.7")],
+            dati={"quota_calpestabile": "0.95"},
+        )
+        chiavi_classe = {1: "pavimento"}
+
+        classi = calcola_classi(decisioni, chiavi_classe)
+
+        assert Decimal(classi["pavimento"]["totale"]) == Decimal("0.95")
+        assert Decimal(classi["pavimento"]["moderata"]) == Decimal("0.665")
+        assert Decimal(classi["pavimento"]["leggera"]) == Decimal("0.38")
+
+    def test_dato_richiesto_con_testo_non_numerico_viene_ignorato(self):
+        decisioni = _decisioni_coeff(
+            [_coeff_deciso(voce_id=1, tipo_code="totale", coefficiente="0.7")],
+            dati={"mq_rivestimento_bagno": "circa 20 m2 per bagno su un appartamento di riferimento"},
+        )
+        classi = calcola_classi(decisioni, chiavi_classe={})
+
+        # non numerico: nessuna sovrascrittura, resta il fallback PROPOSTA_PER_CLASSE
+        assert classi["rivestimento"]["totale"] == "0.25"
+
+    def test_tutti_i_codici_dato_per_classe_sono_classi_valide(self):
+        from app.services.computo_parsing import PROPOSTA_PER_CLASSE
+
+        for classe in DATO_PER_CLASSE.values():
+            assert classe in PROPOSTA_PER_CLASSE
+
+
+# --- Task 3 (09-06-PLAN.md): emetti_migrazione + wiring CLI -----------------
+
+CHIAVE_A6_1_MIGR = {"categoria_code": "A-EDILE", "sottocategoria": "A.6", "voce": "A.6.1"}
+CHIAVE_GRES_MIGR = {"categoria_code": "B-FINITURE", "sottocategoria": "GRES", "voce": "Gres base"}
+
+
+def _dettaglio_con_coefficiente(valore_totale: float) -> dict:
+    return {
+        "sottocategorie": [
+            {
+                "categoria_code": "A-EDILE",
+                "codice": "A.6",
+                "nome": "A.6",
+                "voci": [
+                    {
+                        "codice": "A.6.1",
+                        "descrizione": "Posa pavimentazione",
+                        "coefficienti": {
+                            "leggera": {"coefficiente_qta_per_mq": valore_totale * 0.4},
+                            "moderata": {"coefficiente_qta_per_mq": valore_totale * 0.7},
+                            "totale": {"coefficiente_qta_per_mq": valore_totale},
+                        },
+                    }
+                ],
+            }
+        ]
+    }
+
+
+def _domande_con_effetti(*, includi_opzione: str | None, quantita_valore: float | None, con_escludi: bool) -> dict:
+    effetti_finitura_medio = []
+    effetti_finitura_alto = []
+    if includi_opzione == "medio":
+        effetti_finitura_medio.append({"tipo_effetto": "includi", "target_voce": dict(CHIAVE_GRES_MIGR)})
+    elif includi_opzione == "alto":
+        effetti_finitura_alto.append({"tipo_effetto": "includi", "target_voce": dict(CHIAVE_GRES_MIGR)})
+    if con_escludi:
+        effetti_finitura_medio.append({"tipo_effetto": "escludi", "target_voce": dict(CHIAVE_A6_1_MIGR)})
+
+    effetti_bagni_valore = []
+    if quantita_valore is not None:
+        effetti_bagni_valore.append(
+            {"tipo_effetto": "quantita_per_unita", "valore": quantita_valore, "target_voce": dict(CHIAVE_A6_1_MIGR)}
+        )
+
+    return {
+        "domande": [
+            {
+                "code": "finitura",
+                "opzioni": [
+                    {"code": "base", "effetti": []},
+                    {"code": "medio", "effetti": effetti_finitura_medio},
+                    {"code": "alto", "effetti": effetti_finitura_alto},
+                ],
+            },
+            {
+                "code": "bagni",
+                "opzioni": [{"code": "valore", "effetti": effetti_bagni_valore}],
+            },
+        ]
+    }
+
+
+class TestEmettiMigrazione:
+    def test_nessuna_differenza_non_emette_nulla(self, tmp_path):
+        dettaglio = _dettaglio_con_coefficiente(0.6)
+        domande = _domande_con_effetti(includi_opzione="medio", quantita_valore=1.0, con_escludi=False)
+
+        percorso = emetti_migrazione(dettaglio, dettaglio, domande, domande, tmp_path, "slug")
+
+        assert percorso is None
+        assert list(tmp_path.glob("*.py")) == []
+
+    def test_diff_coefficiente_produce_file_con_costanti_corrette(self, tmp_path):
+        base = _dettaglio_con_coefficiente(0.6)
+        nuovo = _dettaglio_con_coefficiente(0.85)
+        domande = _domande_con_effetti(includi_opzione="medio", quantita_valore=1.0, con_escludi=False)
+
+        percorso = emetti_migrazione(base, nuovo, domande, domande, tmp_path, "coeff_slug")
+
+        assert percorso is not None
+        assert percorso.name == "0001_coeff_slug.py"
+        codice = percorso.read_text(encoding="utf-8")
+        modulo = {}
+        exec(compile(codice, str(percorso), "exec"), modulo)
+        assert modulo["revision"] == "0001"
+        assert modulo["down_revision"] is None
+        assert len(modulo["_COEFFICIENTI"]) == 3  # leggera/moderata/totale, tutte scalate
+        riga = next(r for r in modulo["_COEFFICIENTI"] if r[3] == "totale")
+        assert riga[:3] == ("A-EDILE", "A.6", "A.6.1")
+        assert riga[4] == "coefficiente_qta_per_mq"
+        assert riga[5] == pytest.approx(0.6)
+        assert riga[6] == pytest.approx(0.85)
+        assert modulo["_VALORI_EFFETTO"] == ()
+        assert modulo["_INCLUDI_SPOSTATI"] == ()
+        assert modulo["_EFFETTI_RIMOSSI"] == ()
+
+    def test_revision_e_down_revision_dalla_testa_esistente(self, tmp_path):
+        (tmp_path / "0021_qualcosa.py").write_text("revision = '0021'\n", encoding="utf-8")
+        base = _dettaglio_con_coefficiente(0.6)
+        nuovo = _dettaglio_con_coefficiente(0.85)
+        domande = _domande_con_effetti(includi_opzione="medio", quantita_valore=1.0, con_escludi=False)
+
+        percorso = emetti_migrazione(base, nuovo, domande, domande, tmp_path, "slug")
+
+        assert percorso.name == "0022_slug.py"
+        codice = percorso.read_text(encoding="utf-8")
+        modulo = {}
+        exec(compile(codice, str(percorso), "exec"), modulo)
+        assert modulo["revision"] == "0022"
+        assert modulo["down_revision"] == "0021"
+
+    def test_includi_spostato(self, tmp_path):
+        dettaglio = _dettaglio_con_coefficiente(0.6)
+        base_domande = _domande_con_effetti(includi_opzione="medio", quantita_valore=None, con_escludi=False)
+        nuovo_domande = _domande_con_effetti(includi_opzione="alto", quantita_valore=None, con_escludi=False)
+
+        percorso = emetti_migrazione(dettaglio, dettaglio, base_domande, nuovo_domande, tmp_path, "slug")
+
+        codice = percorso.read_text(encoding="utf-8")
+        modulo = {}
+        exec(compile(codice, str(percorso), "exec"), modulo)
+        assert modulo["_COEFFICIENTI"] == ()
+        assert len(modulo["_INCLUDI_SPOSTATI"]) == 1
+        d_code, chiave_voce, opz_vecchia, opz_nuova = modulo["_INCLUDI_SPOSTATI"][0]
+        assert d_code == "finitura"
+        assert chiave_voce == ("B-FINITURE", "GRES", "Gres base")
+        assert opz_vecchia == "medio"
+        assert opz_nuova == "alto"
+
+    def test_effetto_rimosso_quando_manca_nel_nuovo(self, tmp_path):
+        dettaglio = _dettaglio_con_coefficiente(0.6)
+        base_domande = _domande_con_effetti(includi_opzione="medio", quantita_valore=2.0, con_escludi=True)
+        nuovo_domande = _domande_con_effetti(includi_opzione="medio", quantita_valore=None, con_escludi=False)
+
+        percorso = emetti_migrazione(dettaglio, dettaglio, base_domande, nuovo_domande, tmp_path, "slug")
+
+        codice = percorso.read_text(encoding="utf-8")
+        modulo = {}
+        exec(compile(codice, str(percorso), "exec"), modulo)
+        tipi_rimossi = {riga[2] for riga in modulo["_EFFETTI_RIMOSSI"]}
+        assert "quantita_per_unita" in tipi_rimossi
+        assert "escludi" in tipi_rimossi
+
+    def test_valore_effetto_cambiato(self, tmp_path):
+        dettaglio = _dettaglio_con_coefficiente(0.6)
+        base_domande = _domande_con_effetti(includi_opzione="medio", quantita_valore=1.0, con_escludi=False)
+        nuovo_domande = _domande_con_effetti(includi_opzione="medio", quantita_valore=3.0, con_escludi=False)
+
+        percorso = emetti_migrazione(dettaglio, dettaglio, base_domande, nuovo_domande, tmp_path, "slug")
+
+        codice = percorso.read_text(encoding="utf-8")
+        modulo = {}
+        exec(compile(codice, str(percorso), "exec"), modulo)
+        assert len(modulo["_VALORI_EFFETTO"]) == 1
+        riga = modulo["_VALORI_EFFETTO"][0]
+        assert riga[0] == "bagni"
+        assert riga[1] == "valore"
+        assert riga[2] == "quantita_per_unita"
+        assert riga[3] == ("A-EDILE", "A.6", "A.6.1")
+        assert riga[5] == pytest.approx(1.0)
+        assert riga[6] == pytest.approx(3.0)
+
+    def test_costanti_sempre_presenti_anche_vuote(self, tmp_path):
+        dettaglio_base = _dettaglio_con_coefficiente(0.6)
+        dettaglio_nuovo = _dettaglio_con_coefficiente(0.85)
+        domande = _domande_con_effetti(includi_opzione=None, quantita_valore=None, con_escludi=False)
+
+        percorso = emetti_migrazione(dettaglio_base, dettaglio_nuovo, domande, domande, tmp_path, "slug")
+
+        codice = percorso.read_text(encoding="utf-8")
+        for costante in ("_COEFFICIENTI", "_VALORI_EFFETTO", "_INCLUDI_SPOSTATI", "_EFFETTI_RIMOSSI"):
+            assert costante in codice
+
+    def test_nessun_open_json_load_openpyxl_coefficiente_impresa_nel_modulo_emesso(self, tmp_path):
+        base = _dettaglio_con_coefficiente(0.6)
+        nuovo = _dettaglio_con_coefficiente(0.85)
+        domande = _domande_con_effetti(includi_opzione="medio", quantita_valore=1.0, con_escludi=True)
+
+        percorso = emetti_migrazione(base, nuovo, domande, domande, tmp_path, "slug")
+
+        codice = percorso.read_text(encoding="utf-8")
+        assert "open(" not in codice
+        assert "json.load" not in codice
+        assert "openpyxl" not in codice
+        assert "coefficiente_impresa" not in codice
+        compile(codice, str(percorso), "exec")  # deve compilare
+
+
+class TestMainArgomentiMigrazione:
+    def test_migrazione_legge_git_show_con_base_rev_e_passa_slug(self, tmp_path, monkeypatch):
+        """Wiring CLI di main(): --migrazione/--slug/--base-rev, con `git show`
+        sostituito da monkeypatch (nessun accesso vero al repo)."""
+        backend_dir = tmp_path / "backend"
+        seed_data_dir = backend_dir / "seed_data"
+        seed_data_dir.mkdir(parents=True)
+        (seed_data_dir / "seed-domande.json").write_text(json.dumps({"domande": []}), encoding="utf-8")
+        (seed_data_dir / "seed-dettaglio-pro.json").write_text(json.dumps({"sottocategorie": []}), encoding="utf-8")
+        versions_dir = backend_dir / "alembic" / "versions"
+        versions_dir.mkdir(parents=True)
+        (versions_dir / "0021_fake.py").write_text("revision = '0021'\n", encoding="utf-8")
+        (tmp_path / "docs").mkdir()
+
+        monkeypatch.setattr(applica_taratura_mod, "_BACKEND_DIR", backend_dir)
+
+        class _FakeSession:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+        monkeypatch.setattr("app.db.SessionLocal", lambda: _FakeSession())
+
+        decisioni_vuote = DecisioniTaratura(stato="bozza-accettata", coefficienti=[], assi=[], dati={})
+        monkeypatch.setattr(applica_taratura_mod, "leggi_decisioni", lambda wb: decisioni_vuote)
+        monkeypatch.setattr(applica_taratura_mod.openpyxl, "load_workbook", lambda *a, **k: object())
+
+        chiamate: dict = {"git_show": []}
+
+        class _FakeResult:
+            def __init__(self, stdout: str) -> None:
+                self.stdout = stdout
+
+        def _fake_run(cmd, cwd, capture_output, text, check):
+            rev_path = cmd[2]
+            chiamate["git_show"].append(rev_path)
+            if "seed-domande" in rev_path:
+                return _FakeResult(json.dumps({"domande": []}))
+            return _FakeResult(json.dumps({"sottocategorie": []}))
+
+        monkeypatch.setattr("subprocess.run", _fake_run)
+
+        def _fake_emetti_migrazione(base_dettaglio, nuovo_dettaglio, base_domande, nuovo_domande, versions_dir_arg, slug):
+            chiamate["slug"] = slug
+            chiamate["versions_dir"] = versions_dir_arg
+            return None
+
+        monkeypatch.setattr(applica_taratura_mod, "emetti_migrazione", _fake_emetti_migrazione)
+
+        monkeypatch.setattr(
+            sys,
+            "argv",
+            ["applica_taratura.py", "--migrazione", "--slug", "mia_slug", "--base-rev", "abc123"],
+        )
+
+        applica_taratura_mod.main()
+
+        assert chiamate["slug"] == "mia_slug"
+        assert any(p == "abc123:backend/seed_data/seed-domande.json" for p in chiamate["git_show"])
+        assert any(p == "abc123:backend/seed_data/seed-dettaglio-pro.json" for p in chiamate["git_show"])
+        assert chiamate["versions_dir"] == versions_dir
+
+    def test_senza_migrazione_non_chiama_emetti_migrazione(self, tmp_path, monkeypatch):
+        backend_dir = tmp_path / "backend"
+        seed_data_dir = backend_dir / "seed_data"
+        seed_data_dir.mkdir(parents=True)
+        (seed_data_dir / "seed-domande.json").write_text(json.dumps({"domande": []}), encoding="utf-8")
+        (seed_data_dir / "seed-dettaglio-pro.json").write_text(json.dumps({"sottocategorie": []}), encoding="utf-8")
+        (tmp_path / "docs").mkdir()
+
+        monkeypatch.setattr(applica_taratura_mod, "_BACKEND_DIR", backend_dir)
+
+        class _FakeSession:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+        monkeypatch.setattr("app.db.SessionLocal", lambda: _FakeSession())
+
+        decisioni_vuote = DecisioniTaratura(stato="bozza-accettata", coefficienti=[], assi=[], dati={})
+        monkeypatch.setattr(applica_taratura_mod, "leggi_decisioni", lambda wb: decisioni_vuote)
+        monkeypatch.setattr(applica_taratura_mod.openpyxl, "load_workbook", lambda *a, **k: object())
+
+        chiamato = {"emesso": False}
+
+        def _fake_emetti_migrazione(*args, **kwargs):
+            chiamato["emesso"] = True
+            return None
+
+        monkeypatch.setattr(applica_taratura_mod, "emetti_migrazione", _fake_emetti_migrazione)
+        monkeypatch.setattr(sys, "argv", ["applica_taratura.py"])
+
+        applica_taratura_mod.main()
+
+        assert chiamato["emesso"] is False
+        assert list((backend_dir / "alembic").glob("**/*.py")) == []

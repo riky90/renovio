@@ -15,11 +15,13 @@ from sqlalchemy import create_engine
 
 from app.db import Base
 from app.models.dettaglio_pro import CoefficienteQuantitaVoce
+from app.services import computo_parsing
 from app.services.computo_parsing import (
     PROPOSTA_PER_CLASSE,
     PropostaCoefficiente,
     TIPI,
     TIPO_FACTOR,
+    coefficienti_per_voce,
     proponi_coefficiente,
 )
 import app.services.import_excel.parametri  # noqa: F401 - registra l'handler "parametri"
@@ -161,6 +163,66 @@ class TestProponiCoefficiente:
                         "lineare", "altro_mq"):
             assert classe in PROPOSTA_PER_CLASSE
             assert isinstance(PROPOSTA_PER_CLASSE[classe], Decimal)
+
+
+class TestCoefficientiPerVoce:
+    """coefficienti_per_voce() (piano 09-06, D-03): deriva da
+    proponi_coefficiente() con i valori per classe di taratura-classi.json,
+    non piu' 0.6/0.15 x TIPO_FACTOR uniforme."""
+
+    @pytest.fixture(autouse=True)
+    def _reset_cache(self, monkeypatch):
+        # ogni test imposta esplicitamente la cache (mai il file reale su disco)
+        monkeypatch.setattr(computo_parsing, "_taratura_classi_cache", None)
+        yield
+        monkeypatch.setattr(computo_parsing, "_taratura_classi_cache", None)
+
+    def test_senza_json_usa_il_fallback_proposta_per_classe(self, monkeypatch):
+        monkeypatch.setattr(computo_parsing, "_taratura_classi_cache", {})
+        coeff = coefficienti_per_voce(
+            "mq", "Posa in opera della pavimentazione con disegno a correre", "A.6", "A-EDILE"
+        )
+        atteso = round(float(PROPOSTA_PER_CLASSE["pavimento"]) * TIPO_FACTOR["totale"], 4)
+        assert coeff["totale"]["coefficiente_qta_per_mq"] == atteso
+
+    def test_classi_diverse_danno_coefficienti_diversi_per_tipo_totale(self, monkeypatch):
+        monkeypatch.setattr(
+            computo_parsing,
+            "_taratura_classi_cache",
+            {
+                "pavimento": {"leggera": "0.34", "moderata": "0.6", "totale": "0.9"},
+                "pareti_soffitti": {"leggera": "1.2", "moderata": "1.8", "totale": "2.5"},
+            },
+        )
+        pavimento = coefficienti_per_voce(
+            "mq", "Posa in opera della pavimentazione con disegno a correre", "A.6", "A-EDILE"
+        )
+        pittura = coefficienti_per_voce(
+            "mq", "Tinteggiatura di pareti con pittura lavabile", "A.11", "A-EDILE"
+        )
+        assert pavimento["totale"]["coefficiente_qta_per_mq"] != pittura["totale"]["coefficiente_qta_per_mq"]
+        assert pavimento["totale"]["coefficiente_qta_per_mq"] == 0.9
+        assert pittura["totale"]["coefficiente_qta_per_mq"] == 2.5
+
+    def test_classe_mancante_nel_json_usa_il_fallback(self, monkeypatch):
+        monkeypatch.setattr(computo_parsing, "_taratura_classi_cache", {"pavimento": {"totale": "0.9"}})
+        coeff = coefficienti_per_voce(
+            "mq", "Tinteggiatura di pareti con pittura lavabile", "A.11", "A-EDILE"
+        )
+        atteso = round(float(PROPOSTA_PER_CLASSE["pareti_soffitti"]) * TIPO_FACTOR["totale"], 4)
+        assert coeff["totale"]["coefficiente_qta_per_mq"] == atteso
+
+    def test_cad_con_parola_chiave_resta_su_domanda_mirata(self, monkeypatch):
+        monkeypatch.setattr(computo_parsing, "_taratura_classi_cache", {})
+        coeff = coefficienti_per_voce("cad", "Fornitura e posa di piatto doccia", "RUBINETTERIE", "B-FINITURE")
+        for tipo in TIPI:
+            assert coeff[tipo]["domanda_mirata_key"] == "bagni"
+            assert coeff[tipo]["default_conteggio"] == 1
+
+    def test_default_e_retrocompatibile_senza_sottocategoria_e_categoria(self, monkeypatch):
+        monkeypatch.setattr(computo_parsing, "_taratura_classi_cache", {})
+        coeff = coefficienti_per_voce("mq", "Demolizione di muratura di tamponamento")
+        assert "coefficiente_qta_per_mq" in coeff["totale"]
 
 
 @pytest.fixture()

@@ -390,24 +390,25 @@ def _upsert_voce(session: Session, sotto: Sottocategoria, voce_data: dict) -> Vo
 
 
 def _upsert_coefficiente_qta(session: Session, voce: Voce, tipo_code: str, coeff_data: dict) -> None:
-    """Upsert per chiave naturale (voce_id, tipo_code)."""
+    """Create-if-missing per chiave naturale (voce_id, tipo_code) (D-41,
+    CFG-04, piano 09-06): il seed CREA la riga se manca, non la possiede
+    piu'. Una riga gia' presente non viene mai riscritta — altrimenti la
+    taratura fatta dalla migrazione (0022+) o dal pannello admin tornerebbe
+    al valore di bozza cablato nel JSON a ogni deploy, stesso principio di
+    `seed_domande` (create-if-missing dal 09-02)."""
     coeff = session.query(CoefficienteQuantitaVoce).filter_by(voce_id=voce.id, tipo_code=tipo_code).one_or_none()
+    if coeff is not None:
+        return
     coefficiente_qta_per_mq = coeff_data.get("coefficiente_qta_per_mq")
-    domanda_mirata_key = coeff_data.get("domanda_mirata_key")
-    default_conteggio = coeff_data.get("default_conteggio")
-    if coeff is None:
-        coeff = CoefficienteQuantitaVoce(
+    session.add(
+        CoefficienteQuantitaVoce(
             voce_id=voce.id,
             tipo_code=tipo_code,
             coefficiente_qta_per_mq=_dec(coefficiente_qta_per_mq) if coefficiente_qta_per_mq is not None else None,
-            domanda_mirata_key=domanda_mirata_key,
-            default_conteggio=default_conteggio,
+            domanda_mirata_key=coeff_data.get("domanda_mirata_key"),
+            default_conteggio=coeff_data.get("default_conteggio"),
         )
-        session.add(coeff)
-    else:
-        coeff.coefficiente_qta_per_mq = _dec(coefficiente_qta_per_mq) if coefficiente_qta_per_mq is not None else None
-        coeff.domanda_mirata_key = domanda_mirata_key
-        coeff.default_conteggio = default_conteggio
+    )
 
 
 def seed_dettaglio_pro(session: Session, listino: Listino, data: dict | None = None) -> None:
