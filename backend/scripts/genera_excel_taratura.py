@@ -249,15 +249,37 @@ class PropostaAsse:
     note: str = ""
 
 
-_MAPPA_A6_TIPO_PAVIMENTO = {
-    "A.6.1": "gres",
-    "A.6.2": "parquet",
-    "A.6.5": "maxi_lastra",
-    "A.6.6": "mosaico",
+# codice_voce -> (asse, famiglia_alternativa, tupla di opzioni). Ogni opzione
+# produce una riga PropostaAsse propria per la stessa voce (G1/G2,
+# 09-HUMAN-UAT.md): una voce con piu' opzioni NON e' piu' compressa in
+# un'unica riga.
+_MAPPA_A6_TIPO_PAVIMENTO: dict[str, tuple[str, str, tuple[str, ...]]] = {
+    "A.6.1": ("tipo_pavimento", "posa_pavimento_A6", ("gres",)),
+    "A.6.2": ("tipo_pavimento", "posa_pavimento_A6", ("parquet", "laminato", "vinilico_lvt")),
+    "A.6.5": ("tipo_pavimento", "posa_pavimento_A6", ("maxi_lastra",)),
+    "A.6.6": ("tipo_pavimento", "posa_pavimento_A6", ("mosaico",)),
+    "A.6.7": ("tipo_pavimento", "posa_battiscopa_A6", ("parquet", "laminato", "vinilico_lvt", "moquette")),
+    "A.6.8": ("tipo_pavimento", "posa_battiscopa_A6", ("gres", "maxi_lastra", "mosaico")),
+    "A.6.10": ("tipo_pavimento", "levigatura_A6", ("parquet",)),
+    "A.6.3": ("finitura", "posa_rivestimento_A6", ("base", "medio")),
+    "A.6.4": ("finitura", "posa_rivestimento_A6", ("alto",)),
 }
 
+# Le sei opzioni diverse da gres dell'asse tipo_pavimento (D-02: la quota
+# bagno di A.6.1 e della fornitura gres a pavimento resta gres a
+# prescindere dalla scelta del resto della casa). Moquette ESCLUSA: la
+# moquette in quadrotte autoposanti non ha una posa dedicata nel computo e
+# usa A.6.1 a quantita' piena come posa generica (scelta di Claude, da
+# confermare a Riccardo nel ri-collaudo).
+OPZIONI_CON_QUOTA_BAGNO_A6_1 = ("parquet", "maxi_lastra", "mosaico", "laminato", "vinilico_lvt")
+
+# Tutte le opzioni dell'asse tipo_pavimento (D-08 bozza).
+OPZIONI_TIPO_PAVIMENTO = ("gres", "parquet", "maxi_lastra", "mosaico", "laminato", "vinilico_lvt", "moquette")
+
 # Quota di m2 del bagno sul totale (D-02, dato_richiesto "mq_pavimento_bagno"):
-# fattore_quantita proposto per le righe fattore_pavimento su A.6.1.
+# fattore_quantita proposto per le righe fattore_pavimento su A.6.1 e sulla
+# fornitura gres a pavimento (PAVIMENTI E RIVESTIMENTI GRES, "per
+# pavimentazion...").
 _FATTORE_BAGNO_PROPOSTO = Decimal("0.12")
 
 _FAMIGLIE_ALTERNATIVE_KEYWORDS: tuple[tuple[str, tuple[str, ...]], ...] = (
@@ -362,9 +384,73 @@ def proponi_assegnazione(voci: list[VoceTaraturaInfo]) -> list[PropostaAsse]:
         )
         coperte.add(v.voce_id)
 
-    # 1) livello_attuale valorizzato -> asse finitura.
+    def _aggiungi_riga(v: VoceTaraturaInfo, *, asse: str, opzione: str | None, famiglia: str, motivo: str,
+                        fattore_quantita: Decimal | None = None) -> None:
+        righe.append(
+            PropostaAsse(
+                voce_id=v.voce_id,
+                categoria_code=v.categoria_code,
+                sottocategoria=v.sottocategoria_nome,
+                codice_voce=v.codice_voce,
+                descrizione=v.descrizione,
+                um=v.um,
+                prezzo_unitario_cliente=v.prezzo_unitario_cliente,
+                livello_attuale=v.livello_attuale,
+                asse_proposto=asse,
+                opzione_proposta=opzione,
+                valore_per_unita=None,
+                fattore_quantita=fattore_quantita,
+                famiglia_alternativa=famiglia,
+                motivo=motivo,
+            )
+        )
+
+    # 1) livello_attuale valorizzato -> asse finitura. La fornitura di GRES A
+    #    PAVIMENTO (sottocategoria "PAVIMENTI E RIVESTIMENTI GRES", testo che
+    #    parla di "per pavimentazion..." o "pavimentazion..." senza
+    #    "rivestiment...") ha famiglia dedicata fornitura_pavimento_gres e
+    #    riceve anche la quota bagno (G1/G2: oggi tutte le 7 forniture per
+    #    livello si sommano invece di ridursi alla quota bagno con un
+    #    pavimento diverso). Le voci GRES di rivestimento restano come oggi.
     for v in voci:
-        if v.livello_attuale:
+        if not v.livello_attuale:
+            continue
+        testo = v.descrizione.lower()
+        e_gres_a_pavimento = v.sottocategoria_nome == "PAVIMENTI E RIVESTIMENTI GRES" and (
+            "per pavimentazion" in testo or ("pavimentazion" in testo and "rivestiment" not in testo)
+        )
+        if e_gres_a_pavimento:
+            _aggiungi(
+                v,
+                asse_proposto="finitura",
+                opzione_proposta=v.livello_attuale,
+                famiglia_alternativa="fornitura_pavimento_gres",
+                motivo=(
+                    "G1/G2: fornitura gres per pavimentazione governata "
+                    f"dall'asse finitura (livello curato '{v.livello_attuale}') "
+                    "e ridotta alla quota bagno (D-02) quando e' scelto un "
+                    "pavimento diverso dal gres, invece di sommarsi a tutte "
+                    "le altre forniture per livello."
+                ),
+            )
+            for altra_opzione in OPZIONI_TIPO_PAVIMENTO:
+                if altra_opzione == "gres":
+                    continue
+                _aggiungi_riga(
+                    v,
+                    asse="fattore_pavimento",
+                    opzione=altra_opzione,
+                    famiglia="fornitura_pavimento_gres",
+                    fattore_quantita=_FATTORE_BAGNO_PROPOSTO,
+                    motivo=(
+                        "D-02: il bagno resta sempre gres a prescindere dalla "
+                        "scelta del pavimento del resto della casa; "
+                        f"fattore_quantita {_FATTORE_BAGNO_PROPOSTO} stima la "
+                        f"quota di m2 quando e' scelta l'opzione '{altra_opzione}' "
+                        "(dato_richiesto mq_pavimento_bagno)."
+                    ),
+                )
+        else:
             _aggiungi(
                 v,
                 asse_proposto="finitura",
@@ -377,45 +463,55 @@ def proponi_assegnazione(voci: list[VoceTaraturaInfo]) -> list[PropostaAsse]:
                 ),
             )
 
-    # 2) A.6.1/A.6.2/A.6.5/A.6.6 -> asse tipo_pavimento; A.6.1 riceve anche
-    #    la riga fattore_pavimento (D-02: il bagno resta sempre gres).
+    # 2) A.6.1/.2/.3/.4/.5/.6/.7/.8/.10 -> asse tipo_pavimento o finitura
+    #    (G1/G2: ogni posa/battiscopa/levigatura alternativa del pavimento
+    #    ora ha una riga per opzione, non piu' una sola); A.6.9 (levigatura
+    #    marmo) esclusa di default; A.6.1 riceve anche le righe
+    #    fattore_pavimento (D-02: il bagno resta sempre gres).
     for v in voci:
         if v.codice_voce in _MAPPA_A6_TIPO_PAVIMENTO:
-            opzione = _MAPPA_A6_TIPO_PAVIMENTO[v.codice_voce]
+            asse, famiglia, opzioni = _MAPPA_A6_TIPO_PAVIMENTO[v.codice_voce]
+            for opzione in opzioni:
+                _aggiungi_riga(
+                    v,
+                    asse=asse,
+                    opzione=opzione,
+                    famiglia=famiglia,
+                    motivo=(
+                        f"G1/G2: posa/rivestimento A.6 alternativo, governato "
+                        f"dall'opzione '{opzione}' dell'asse {asse}."
+                    ),
+                )
+            coperte.add(v.voce_id)
+            if v.codice_voce == "A.6.1":
+                for altra_opzione in OPZIONI_CON_QUOTA_BAGNO_A6_1:
+                    _aggiungi_riga(
+                        v,
+                        asse="fattore_pavimento",
+                        opzione=altra_opzione,
+                        famiglia="posa_pavimento_A6",
+                        fattore_quantita=_FATTORE_BAGNO_PROPOSTO,
+                        motivo=(
+                            "D-02: il bagno resta sempre gres/rivestimento a "
+                            "prescindere dalla scelta del pavimento del resto "
+                            f"della casa; fattore_quantita {_FATTORE_BAGNO_PROPOSTO} "
+                            "stima la quota di m2 di posa gres del bagno quando "
+                            f"e' scelta l'opzione '{altra_opzione}' (dato_richiesto "
+                            "mq_pavimento_bagno)."
+                        ),
+                    )
+        elif v.codice_voce == "A.6.9":
             _aggiungi(
                 v,
-                asse_proposto="tipo_pavimento",
-                opzione_proposta=opzione,
-                famiglia_alternativa="posa_pavimento_A6",
-                motivo=f"posa A.6 alternativa: governata dall'opzione '{opzione}' dell'asse tipo_pavimento.",
+                asse_proposto="escludi_sempre",
+                opzione_proposta=None,
+                famiglia_alternativa="levigatura_A6",
+                motivo=(
+                    "G2: levigatura e lucidatura di pavimenti in marmo esclusa "
+                    "di default dal computo (nessuna domanda distingue oggi un "
+                    "pavimento in marmo dalle opzioni dell'asse tipo_pavimento)."
+                ),
             )
-            if v.codice_voce == "A.6.1":
-                for altra_opzione in ("parquet", "maxi_lastra", "mosaico"):
-                    righe.append(
-                        PropostaAsse(
-                            voce_id=v.voce_id,
-                            categoria_code=v.categoria_code,
-                            sottocategoria=v.sottocategoria_nome,
-                            codice_voce=v.codice_voce,
-                            descrizione=v.descrizione,
-                            um=v.um,
-                            prezzo_unitario_cliente=v.prezzo_unitario_cliente,
-                            livello_attuale=v.livello_attuale,
-                            asse_proposto="fattore_pavimento",
-                            opzione_proposta=altra_opzione,
-                            valore_per_unita=None,
-                            fattore_quantita=_FATTORE_BAGNO_PROPOSTO,
-                            famiglia_alternativa="posa_pavimento_A6",
-                            motivo=(
-                                "D-02: il bagno resta sempre gres/rivestimento a "
-                                "prescindere dalla scelta del pavimento del resto "
-                                f"della casa; fattore_quantita {_FATTORE_BAGNO_PROPOSTO} "
-                                "stima la quota di m2 di posa gres del bagno quando "
-                                f"e' scelta l'opzione '{altra_opzione}' (dato_richiesto "
-                                "mq_pavimento_bagno)."
-                            ),
-                        )
-                    )
 
     # 3) Sottocategoria PAVIMENTI PARQUET -> tipo_pavimento parquet.
     for v in voci:
@@ -428,7 +524,9 @@ def proponi_assegnazione(voci: list[VoceTaraturaInfo]) -> list[PropostaAsse]:
                 motivo="fornitura coerente con la posa parquet A.6.2 dell'asse tipo_pavimento.",
             )
 
-    # 4) Tesserine/mosaico, lastre di bassissimo spessore, battiscopa.
+    # 4) Tesserine/mosaico, lastre di bassissimo spessore, vinilico/laminato/
+    #    sottofondo/moquette (sottocategoria PAVIMENTI, G1), battiscopa (G2:
+    #    ogni battiscopa alternativo ora riceve una riga per opzione).
     for v in voci:
         if v.voce_id in coperte:
             continue
@@ -449,23 +547,79 @@ def proponi_assegnazione(voci: list[VoceTaraturaInfo]) -> list[PropostaAsse]:
                 famiglia_alternativa="fornitura_pavimento_maxi_lastra",
                 motivo="fornitura coerente con la posa MAXI LASTRA A.6.5 dell'asse tipo_pavimento.",
             )
+        elif v.sottocategoria_nome == "PAVIMENTI" and "vinilico" in testo:
+            _aggiungi(
+                v,
+                asse_proposto="tipo_pavimento",
+                opzione_proposta="vinilico_lvt",
+                famiglia_alternativa="fornitura_pavimento_vinilico",
+                motivo=(
+                    "G1: vinilico LVT governato dall'opzione 'vinilico_lvt' "
+                    "dell'asse tipo_pavimento (oggi sempre inclusa)."
+                ),
+            )
+        elif v.sottocategoria_nome == "PAVIMENTI" and "sottofondo" in testo:
+            _aggiungi(
+                v,
+                asse_proposto="tipo_pavimento",
+                opzione_proposta="laminato",
+                famiglia_alternativa="sottofondo_laminato",
+                motivo=(
+                    "G1: il sottofondo Unilin in schiuma e' del laminato "
+                    "(l'LVT multistrato ha il materassino integrato); famiglia "
+                    "distinta da fornitura_pavimento_laminato perche' la stessa "
+                    "opzione include gia' due voci (D-08, bersagli condivisi)."
+                ),
+            )
+        elif v.sottocategoria_nome == "PAVIMENTI" and "laminato" in testo:
+            _aggiungi(
+                v,
+                asse_proposto="tipo_pavimento",
+                opzione_proposta="laminato",
+                famiglia_alternativa="fornitura_pavimento_laminato",
+                motivo=(
+                    "G1: laminato governato dall'opzione 'laminato' dell'asse "
+                    "tipo_pavimento (oggi sempre inclusa)."
+                ),
+            )
+        elif v.sottocategoria_nome == "PAVIMENTI" and "moquette" in testo:
+            _aggiungi(
+                v,
+                asse_proposto="tipo_pavimento",
+                opzione_proposta="moquette",
+                famiglia_alternativa="fornitura_pavimento_moquette",
+                motivo=(
+                    "G1: moquette governata dall'opzione 'moquette' dell'asse "
+                    "tipo_pavimento (oggi 'comune', sempre inclusa)."
+                ),
+            )
         elif v.sottocategoria_nome == "BATTISCOPA":
             if "legno" in testo:
-                _aggiungi(
-                    v,
-                    asse_proposto="tipo_pavimento",
-                    opzione_proposta="parquet",
-                    famiglia_alternativa="battiscopa",
-                    motivo="battiscopa in legno coerente con il pavimento parquet.",
-                )
+                for opzione in ("parquet", "laminato", "vinilico_lvt", "moquette"):
+                    _aggiungi_riga(
+                        v,
+                        asse="tipo_pavimento",
+                        opzione=opzione,
+                        famiglia="battiscopa",
+                        motivo=(
+                            "G2: battiscopa in legno coerente con i pavimenti "
+                            f"legnosi/morbidi ('{opzione}')."
+                        ),
+                    )
+                coperte.add(v.voce_id)
             elif "gres" in testo or "ceramica" in testo:
-                _aggiungi(
-                    v,
-                    asse_proposto="tipo_pavimento",
-                    opzione_proposta="gres",
-                    famiglia_alternativa="battiscopa",
-                    motivo="battiscopa in gres/ceramica coerente con il pavimento gres.",
-                )
+                for opzione in ("gres", "maxi_lastra", "mosaico"):
+                    _aggiungi_riga(
+                        v,
+                        asse="tipo_pavimento",
+                        opzione=opzione,
+                        famiglia="battiscopa",
+                        motivo=(
+                            "G2: battiscopa in gres/ceramica coerente con i "
+                            f"pavimenti ceramici ('{opzione}')."
+                        ),
+                    )
+                coperte.add(v.voce_id)
 
     # 5) Voci con domanda_mirata_key -> lo stepper omonimo.
     for v in voci:
@@ -783,6 +937,102 @@ def accetta_bozza(wb: Workbook) -> Workbook:
     return copia
 
 
+def aggiorna_foglio_assi(wb: Workbook, righe: list[PropostaAsse]) -> Workbook:
+    """Copia del workbook (come `accetta_bozza`) con il SOLO foglio
+    `assi_proposti` riscritto dalle `righe` nuove: per ogni riga con
+    (voce_id, asse_proposto, opzione_proposta) gia' presente nel foglio
+    vecchio conserva `decisione` e `note`; le righe nuove prendono
+    decisione 'OK' + `_NOTE_BOZZA_ACCETTATA` se lo stato del workbook e'
+    'bozza-accettata', vuote altrimenti. Se lo stato e' 'compilato' e una
+    riga VECCHIA con decisione diversa da OK sparisce dalla nuova proposta,
+    stampa un avviso e la riaggiunge in coda (non la cancella in silenzio).
+    Non tocca `coefficienti_pro`, `dati_richiesti`, `LEGGIMI_TARATURA`."""
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    copia = openpyxl.load_workbook(buffer)
+
+    stato = _leggi_stato(copia)
+
+    ws_vecchio = copia[FOGLIO_ASSI]
+    header_vecchio = [c.value for c in next(ws_vecchio.iter_rows(min_row=1, max_row=1))]
+    idx_vecchio = {n: i for i, n in enumerate(header_vecchio)}
+    righe_vecchie = [
+        riga
+        for riga in ws_vecchio.iter_rows(min_row=2, values_only=True)
+        if riga[idx_vecchio["voce_id"]] is not None
+    ]
+    decisioni_vecchie: dict[tuple, tuple[str, str]] = {
+        (
+            riga[idx_vecchio["voce_id"]],
+            riga[idx_vecchio["asse_proposto"]],
+            riga[idx_vecchio["opzione_proposta"]],
+        ): (riga[idx_vecchio["decisione"]], riga[idx_vecchio["note"]])
+        for riga in righe_vecchie
+    }
+
+    del copia[FOGLIO_ASSI]
+    ws = copia.create_sheet(FOGLIO_ASSI)
+    ws.append(list(COLONNE_ASSI_PROPOSTI))
+
+    chiavi_nuove: set[tuple] = set()
+    n_conservate = 0
+    for r in righe:
+        chiave = (r.voce_id, r.asse_proposto, r.opzione_proposta)
+        chiavi_nuove.add(chiave)
+        if chiave in decisioni_vecchie:
+            decisione, note = decisioni_vecchie[chiave]
+            n_conservate += 1
+        elif stato == "bozza-accettata":
+            decisione, note = "OK", _NOTE_BOZZA_ACCETTATA
+        else:
+            decisione, note = "", ""
+        ws.append(
+            [
+                r.voce_id,
+                r.categoria_code,
+                r.sottocategoria,
+                r.codice_voce,
+                r.descrizione,
+                r.um,
+                float(r.prezzo_unitario_cliente),
+                r.livello_attuale,
+                r.asse_proposto,
+                r.opzione_proposta,
+                float(r.valore_per_unita) if r.valore_per_unita is not None else None,
+                float(r.fattore_quantita) if r.fattore_quantita is not None else None,
+                r.famiglia_alternativa,
+                r.motivo,
+                decisione,
+                note,
+            ]
+        )
+
+    n_rimosse = 0
+    if stato == "compilato":
+        for riga in righe_vecchie:
+            chiave = (
+                riga[idx_vecchio["voce_id"]],
+                riga[idx_vecchio["asse_proposto"]],
+                riga[idx_vecchio["opzione_proposta"]],
+            )
+            decisione_vecchia = riga[idx_vecchio["decisione"]]
+            if chiave not in chiavi_nuove and decisione_vecchia not in (None, "", "OK"):
+                n_rimosse += 1
+                print(
+                    f"AVVISO aggiorna_foglio_assi: riga {chiave} con decisione "
+                    f"{decisione_vecchia!r} sparita dalla nuova proposta, "
+                    "riaggiunta in coda (non cancellata in silenzio)."
+                )
+                ws.append(list(riga))
+
+    print(
+        f"assi_proposti: {len(righe)} righe nuove, {n_conservate} decisioni "
+        f"conservate, {n_rimosse} righe vecchie riaggiunte."
+    )
+    return copia
+
+
 # --- (e) leggi_decisioni ------------------------------------------------------
 
 
@@ -962,9 +1212,30 @@ def main() -> None:
         default=None,
         help="se presente, salva anche la bozza accettata in blocco (stato bozza-accettata) in questo percorso",
     )
+    parser.add_argument(
+        "--aggiorna-assi",
+        action="append",
+        default=None,
+        metavar="PERCORSO",
+        help="aggiorna SOLO il foglio assi_proposti di un workbook esistente a questo percorso "
+        "(ripetibile), conservando le decisioni gia' scritte; senza questo flag il "
+        "comportamento attuale (genera un workbook nuovo) non cambia",
+    )
     args = parser.parse_args()
 
     from app.db import SessionLocal  # import tardivo: serve solo qui, mai nei test unitari puri
+
+    if args.aggiorna_assi:
+        with SessionLocal() as db:
+            voci = _carica_voci_taratura(db)
+        righe_assi = proponi_assegnazione(list(voci.values()))
+        for percorso_str in args.aggiorna_assi:
+            percorso = Path(percorso_str)
+            wb_esistente = openpyxl.load_workbook(percorso)
+            aggiornato = aggiorna_foglio_assi(wb_esistente, righe_assi)
+            aggiornato.save(percorso)
+            print(f"aggiornato {percorso}")
+        return
 
     with SessionLocal() as db:
         wb = costruisci_workbook_taratura(db)

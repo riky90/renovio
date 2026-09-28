@@ -265,7 +265,7 @@ def applica_assi(
         if (
             riga.asse in (DOMANDA_FINITURA, DOMANDA_TIPO_PAVIMENTO)
             and riga.opzione
-            and riga.voce_id not in voci_con_quota_bagno
+            and not (riga.asse == DOMANDA_TIPO_PAVIMENTO and riga.voce_id in voci_con_quota_bagno)
         ):
             gruppi_asse_opzione.setdefault(
                 (riga.asse, riga.opzione, riga.famiglia_alternativa), []
@@ -300,10 +300,14 @@ def applica_assi(
             continue
 
         if riga.asse in (DOMANDA_FINITURA, DOMANDA_TIPO_PAVIMENTO):
-            if riga.voce_id in voci_con_quota_bagno:
-                # Vedi commento sopra: nessun `includi` per la quota bagno,
-                # resta sempre inclusa e la sua quantita' la regola solo la
-                # riga fattore_pavimento (gestita dal ramo successivo).
+            if riga.asse == DOMANDA_TIPO_PAVIMENTO and riga.voce_id in voci_con_quota_bagno:
+                # Vedi commento sopra: nessun `includi` per la quota bagno
+                # SULL'ASSE tipo_pavimento, resta sempre inclusa e la sua
+                # quantita' la regola solo la riga fattore_pavimento (gestita
+                # dal ramo successivo). Le righe ASSE FINITURA della stessa
+                # voce (gres a pavimento, D-02/G1) creano l'`includi`
+                # normalmente: non sono "posa A.6", sono una fornitura
+                # governata dal livello di finitura.
                 pass
             else:
                 _aggiungi(riga.asse, riga.opzione, {"tipo_effetto": TIPO_INCLUDI, "target_voce": chiave})
@@ -364,10 +368,16 @@ def applica_assi(
     for (domanda_code, opzione_code), effetti in nuovi.items():
         domanda = domande_per_code.get(domanda_code)
         if domanda is None:
-            continue
+            raise ValueError(
+                f"applica_assi: domanda {domanda_code!r} citata dal file di taratura ma "
+                "assente da seed-domande.json — aggiungila al seed prima di applicare"
+            )
         opzione = next((o for o in domanda.get("opzioni", []) if o.get("code") == opzione_code), None)
         if opzione is None:
-            continue
+            raise ValueError(
+                f"applica_assi: opzione {opzione_code!r} della domanda {domanda_code!r} citata dal "
+                "file di taratura ma assente da seed-domande.json — aggiungila al seed prima di applicare"
+            )
         opzione.setdefault("effetti", [])
         opzione["effetti"].extend(sorted(effetti, key=_chiave_ordinamento))
 
@@ -567,12 +577,15 @@ def _chiave_target_voce(effetto: dict) -> tuple[str, str, str] | None:
 
 def _record_effetti(seed_domande: dict) -> dict[str, dict]:
     """Indici per il diff degli effetti a bersaglio voce:
-    - `includi`: (domanda_code, chiave_voce) -> opzione_code
+    - `includi`: (domanda_code, chiave_voce) -> frozenset di opzione_code
+      (bersagli condivisi, D-08: una voce puo' essere inclusa da PIU'
+      opzioni dello stesso asse — un dict a opzione singola perderebbe le
+      altre o le farebbe apparire "spostate")
     - `quantita`: (domanda_code, opzione_code, tipo_effetto, chiave_voce, tipo_code) -> valore
       (tipo_effetto in quantita_per_unita/fattore_quantita)
     - `escludi`: (domanda_code, opzione_code, chiave_voce, tipo_code) -> True
     """
-    includi: dict[tuple[str, tuple], str] = {}
+    includi_raw: dict[tuple[str, tuple], set[str]] = {}
     quantita: dict[tuple, object] = {}
     escludi: dict[tuple, bool] = {}
     for domanda in seed_domande.get("domande", []):
@@ -586,11 +599,12 @@ def _record_effetti(seed_domande: dict) -> dict[str, dict]:
                 tipo_eff = effetto.get("tipo_effetto")
                 tipo_code = effetto.get("tipo_code")
                 if tipo_eff == TIPO_INCLUDI:
-                    includi[(d_code, chiave_voce)] = o_code
+                    includi_raw.setdefault((d_code, chiave_voce), set()).add(o_code)
                 elif tipo_eff in (TIPO_QUANTITA_PER_UNITA, TIPO_FATTORE_QUANTITA):
                     quantita[(d_code, o_code, tipo_eff, chiave_voce, tipo_code)] = effetto.get("valore")
                 elif tipo_eff == TIPO_ESCLUDI:
                     escludi[(d_code, o_code, chiave_voce, tipo_code)] = True
+    includi: dict[tuple[str, tuple], frozenset[str]] = {k: frozenset(v) for k, v in includi_raw.items()}
     return {"includi": includi, "quantita": quantita, "escludi": escludi}
 
 
@@ -763,15 +777,98 @@ def _vicino(a, b) -> bool:
     return abs(float(a) - float(b)) <= _TOLLERANZA
 
 
+def _domande_citate() -> set[str]:
+    """Le domanda_code menzionate da _VALORI_EFFETTO/_INCLUDI_SPOSTATI/
+    _EFFETTI_RIMOSSI (_COEFFICIENTI non cita domande: sono coefficienti_qta_
+    per_mq, non effetti). Vuoto se questa migrazione non tocca alcun effetto."""
+    domande: set[str] = set()
+    for riga in _VALORI_EFFETTO:
+        domande.add(riga[0])
+    for riga in _INCLUDI_SPOSTATI:
+        domande.add(riga[0])
+    for riga in _EFFETTI_RIMOSSI:
+        domande.add(riga[0])
+    return domande
+
+
+def _catalogo_presente(bind, opzione) -> bool:
+    """True se almeno una delle domande citate da questa migrazione ha gia'
+    righe in opzione_domanda (il seed e' gia' girato su questo DB). Su un DB
+    vergine (nessun boot ancora eseguito) e' False: il seed create-if-missing
+    creera' tutto da zero, questa migrazione diventa un no-op silenzioso
+    invece di far fallire il primo boot."""
+    domande = _domande_citate()
+    if not domande:
+        return False
+    riga = bind.execute(sa.select(opzione.c.id).where(opzione.c.domanda_code.in_(domande)).limit(1)).first()
+    return riga is not None
+
+
 def upgrade() -> None:
     bind = op.get_bind()
     adesso = datetime.now(timezone.utc).replace(tzinfo=None)
     sottocategoria, voce, coefficiente, opzione, effetto = _tabelle()
 
+    non_risolte: list[str] = []
+    n_tot = 0
+    n_ok = 0
+
+    risolti_coefficienti: list[tuple] = []
     for categoria_code, sottocategoria_key, voce_key, tipo_code, campo, vecchio, nuovo in _COEFFICIENTI:
+        n_tot += 1
         voce_id = _risolvi_voce_id(bind, sottocategoria, voce, categoria_code, sottocategoria_key, voce_key)
         if voce_id is None:
+            non_risolte.append(f"coefficiente {{categoria_code}}/{{sottocategoria_key}}/{{voce_key}}/{{tipo_code}}")
             continue
+        n_ok += 1
+        risolti_coefficienti.append((voce_id, tipo_code, campo, vecchio, nuovo))
+
+    risolti_valori_effetto: list[tuple] = []
+    for domanda_code, opzione_code, tipo_effetto, chiave_voce, tipo_code, vecchio, nuovo in _VALORI_EFFETTO:
+        n_tot += 1
+        categoria_code, sottocategoria_key, voce_key = chiave_voce
+        opzione_id = _opzione_id(bind, opzione, domanda_code, opzione_code)
+        voce_id = _risolvi_voce_id(bind, sottocategoria, voce, categoria_code, sottocategoria_key, voce_key)
+        if opzione_id is None or voce_id is None:
+            non_risolte.append(f"valore_effetto {{domanda_code}}/{{opzione_code}}/{{chiave_voce}}")
+            continue
+        n_ok += 1
+        risolti_valori_effetto.append((opzione_id, voce_id, tipo_effetto, tipo_code, vecchio, nuovo))
+
+    risolti_includi_spostati: list[tuple] = []
+    for domanda_code, chiave_voce, opzione_vecchia, opzione_nuova in _INCLUDI_SPOSTATI:
+        n_tot += 1
+        categoria_code, sottocategoria_key, voce_key = chiave_voce
+        voce_id = _risolvi_voce_id(bind, sottocategoria, voce, categoria_code, sottocategoria_key, voce_key)
+        opzione_nuova_id = _opzione_id(bind, opzione, domanda_code, opzione_nuova)
+        opzione_vecchia_id = _opzione_id(bind, opzione, domanda_code, opzione_vecchia)
+        if voce_id is None or opzione_nuova_id is None or opzione_vecchia_id is None:
+            non_risolte.append(f"includi_spostato {{domanda_code}}/{{chiave_voce}}/{{opzione_vecchia}}->{{opzione_nuova}}")
+            continue
+        n_ok += 1
+        risolti_includi_spostati.append((voce_id, opzione_vecchia_id, opzione_nuova_id))
+
+    risolti_effetti_rimossi: list[tuple] = []
+    for domanda_code, opzione_code, tipo_effetto, chiave_voce, tipo_code, valore in _EFFETTI_RIMOSSI:
+        n_tot += 1
+        categoria_code, sottocategoria_key, voce_key = chiave_voce
+        opzione_id = _opzione_id(bind, opzione, domanda_code, opzione_code)
+        voce_id = _risolvi_voce_id(bind, sottocategoria, voce, categoria_code, sottocategoria_key, voce_key)
+        if opzione_id is None or voce_id is None:
+            non_risolte.append(f"effetto_rimosso {{domanda_code}}/{{opzione_code}}/{{chiave_voce}}")
+            continue
+        n_ok += 1
+        risolti_effetti_rimossi.append((opzione_id, voce_id, tipo_effetto, tipo_code, valore))
+
+    if non_risolte and _catalogo_presente(bind, opzione):
+        raise RuntimeError(
+            f"migrazione {{revision}}: risolte {{n_ok}}/{{n_tot}} chiavi naturali, "
+            f"non risolte: {{non_risolte}}"
+        )
+
+    # --- scritture: solo dopo la guardia sopra, solo righe gia' risolte ----
+
+    for voce_id, tipo_code, campo, vecchio, nuovo in risolti_coefficienti:
         riga = bind.execute(
             sa.select(coefficiente.c.id, coefficiente.c[campo]).where(
                 coefficiente.c.voce_id == voce_id, coefficiente.c.tipo_code == tipo_code
@@ -783,12 +880,7 @@ def upgrade() -> None:
             sa.update(coefficiente).where(coefficiente.c.id == riga[0]).values(**{{campo: nuovo, "updated_at": adesso}})
         )
 
-    for domanda_code, opzione_code, tipo_effetto, chiave_voce, tipo_code, vecchio, nuovo in _VALORI_EFFETTO:
-        categoria_code, sottocategoria_key, voce_key = chiave_voce
-        opzione_id = _opzione_id(bind, opzione, domanda_code, opzione_code)
-        voce_id = _risolvi_voce_id(bind, sottocategoria, voce, categoria_code, sottocategoria_key, voce_key)
-        if opzione_id is None or voce_id is None:
-            continue
+    for opzione_id, voce_id, tipo_effetto, tipo_code, vecchio, nuovo in risolti_valori_effetto:
         cond_tipo_code = (
             effetto.c.tipo_code == tipo_code if tipo_code is not None else effetto.c.tipo_code.is_(None)
         )
@@ -804,13 +896,7 @@ def upgrade() -> None:
             continue
         bind.execute(sa.update(effetto).where(effetto.c.id == riga[0]).values(valore=nuovo, updated_at=adesso))
 
-    for domanda_code, chiave_voce, opzione_vecchia, opzione_nuova in _INCLUDI_SPOSTATI:
-        categoria_code, sottocategoria_key, voce_key = chiave_voce
-        voce_id = _risolvi_voce_id(bind, sottocategoria, voce, categoria_code, sottocategoria_key, voce_key)
-        opzione_nuova_id = _opzione_id(bind, opzione, domanda_code, opzione_nuova)
-        opzione_vecchia_id = _opzione_id(bind, opzione, domanda_code, opzione_vecchia)
-        if voce_id is None or opzione_nuova_id is None or opzione_vecchia_id is None:
-            continue
+    for voce_id, opzione_vecchia_id, opzione_nuova_id in risolti_includi_spostati:
         gia_su_nuova = bind.execute(
             sa.select(effetto.c.id).where(
                 effetto.c.opzione_id == opzione_nuova_id,
@@ -835,12 +921,7 @@ def upgrade() -> None:
             sa.update(effetto).where(effetto.c.id == riga_vecchia[0]).values(opzione_id=opzione_nuova_id, updated_at=adesso)
         )
 
-    for domanda_code, opzione_code, tipo_effetto, chiave_voce, tipo_code, valore in _EFFETTI_RIMOSSI:
-        categoria_code, sottocategoria_key, voce_key = chiave_voce
-        opzione_id = _opzione_id(bind, opzione, domanda_code, opzione_code)
-        voce_id = _risolvi_voce_id(bind, sottocategoria, voce, categoria_code, sottocategoria_key, voce_key)
-        if opzione_id is None or voce_id is None:
-            continue
+    for opzione_id, voce_id, tipo_effetto, tipo_code, valore in risolti_effetti_rimossi:
         cond_tipo_code = (
             effetto.c.tipo_code == tipo_code if tipo_code is not None else effetto.c.tipo_code.is_(None)
         )
@@ -978,13 +1059,20 @@ def emetti_migrazione(
 
     includi_spostati: list[tuple] = []
     effetti_rimossi: list[tuple] = []
-    for chiave, opz_base in base_idx["includi"].items():
+    for chiave, opz_base_set in base_idx["includi"].items():
         d_code, chiave_voce = chiave
-        opz_nuovo = nuovo_idx["includi"].get(chiave)
-        if opz_nuovo is None:
-            effetti_rimossi.append((d_code, opz_base, TIPO_INCLUDI, chiave_voce, None, None))
-        elif opz_nuovo != opz_base:
-            includi_spostati.append((d_code, chiave_voce, opz_base, opz_nuovo))
+        opz_nuovo_set = nuovo_idx["includi"].get(chiave, frozenset())
+        if len(opz_base_set) == 1 and len(opz_nuovo_set) == 1 and opz_base_set != opz_nuovo_set:
+            # Spostamento vero: la stessa voce passa da un'opzione singola a
+            # un'altra opzione singola dello stesso asse (comportamento
+            # invariato, es. test_includi_spostato).
+            includi_spostati.append((d_code, chiave_voce, next(iter(opz_base_set)), next(iter(opz_nuovo_set))))
+        else:
+            # Bersagli condivisi (D-08): un'opzione uscita dal nuovo insieme
+            # e' un effetto rimosso; le opzioni nuove (assenti dalla base) non
+            # si emettono qui, le crea il seed create-if-missing (D-41).
+            for opz_base in opz_base_set - opz_nuovo_set:
+                effetti_rimossi.append((d_code, opz_base, TIPO_INCLUDI, chiave_voce, None, None))
 
     valori_effetto: list[tuple] = []
     for chiave, valore_base in base_idx["quantita"].items():

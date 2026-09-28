@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from pathlib import Path
 import json
+import shutil
+import sqlite3
 import sys
 from decimal import Decimal
 
@@ -28,6 +30,37 @@ from scripts.applica_taratura import (
 )
 from scripts.seed import load_seed_data, seed
 from tests.session_factory import sessione_di_test
+
+
+def _seed_domande_pavimenti_estesi() -> dict:
+    """Come `_seed_domande_sintetico()` ma con le opzioni laminato/vinilico_lvt/
+    moquette dell'asse tipo_pavimento (09-09-PLAN.md, G1/G2): serve ai test dei
+    bersagli condivisi e del gres a pavimento, che il fixture originale (solo
+    gres/parquet/maxi_lastra/mosaico) non copre."""
+    return {
+        "domande": [
+            {
+                "code": "finitura",
+                "opzioni": [
+                    {"code": "base", "effetti": []},
+                    {"code": "medio", "effetti": []},
+                    {"code": "alto", "effetti": []},
+                ],
+            },
+            {
+                "code": "tipo_pavimento",
+                "opzioni": [
+                    {"code": "gres", "effetti": []},
+                    {"code": "parquet", "effetti": []},
+                    {"code": "maxi_lastra", "effetti": []},
+                    {"code": "mosaico", "effetti": []},
+                    {"code": "laminato", "effetti": []},
+                    {"code": "vinilico_lvt", "effetti": []},
+                    {"code": "moquette", "effetti": []},
+                ],
+            },
+        ]
+    }
 
 CHIAVE_GRES_BASE = {
     "categoria_code": "B-FINITURE",
@@ -1032,3 +1065,273 @@ def test_migrazioni_generate_senza_mojibake():
         testo = percorso.read_text(encoding="utf-8")
         for marcatore in ("Ã", "â€", "âˆ"):
             assert marcatore not in testo, f"{percorso.name}: mojibake {marcatore!r}"
+
+
+# --- 09-09-PLAN.md Task 2: bersagli condivisi, gres a pavimento, fail-loud -
+
+
+class TestApplicaAssiBersagliCondivisi:
+    def test_tre_opzioni_stessa_voce_tre_includi_nessuna_sovrascrittura(self):
+        decisioni = _decisioni(
+            [
+                _riga(voce_id=50, asse="tipo_pavimento", opzione="parquet", famiglia="posa_pavimento_A6"),
+                _riga(voce_id=50, asse="tipo_pavimento", opzione="laminato", famiglia="posa_pavimento_A6"),
+                _riga(voce_id=50, asse="tipo_pavimento", opzione="vinilico_lvt", famiglia="posa_pavimento_A6"),
+            ]
+        )
+        chiave = {"categoria_code": "A-EDILE", "sottocategoria": "A.6", "voce": "A.6.2"}
+        chiavi = {50: chiave}
+
+        risultato = applica_assi(decisioni, _seed_domande_pavimenti_estesi(), chiavi)
+
+        tipo_pav = next(d for d in risultato.seed_domande["domande"] if d["code"] == "tipo_pavimento")
+        for opzione_code in ("parquet", "laminato", "vinilico_lvt"):
+            opzione = next(o for o in tipo_pav["opzioni"] if o["code"] == opzione_code)
+            includi = [e for e in opzione["effetti"] if e["tipo_effetto"] == "includi"]
+            assert includi == [{"tipo_effetto": "includi", "target_voce": chiave}]
+
+
+class TestApplicaAssiGresAPavimentoFinituraEFattore:
+    """G1/G2: la fornitura gres a pavimento ha SIA una riga finitura (che deve
+    creare un includi normale) SIA righe fattore_pavimento (quota bagno);
+    solo le righe tipo_pavimento di una voce con quota bagno restano senza
+    includi (A.6.1), mai le righe finitura."""
+
+    def test_finitura_includi_e_fattore_pavimento_coesistono(self):
+        decisioni = _decisioni(
+            [
+                _riga(voce_id=60, asse="finitura", opzione="medio", famiglia="fornitura_pavimento_gres"),
+                _riga(
+                    voce_id=60,
+                    asse="fattore_pavimento",
+                    opzione="parquet",
+                    fattore_quantita=Decimal("0.12"),
+                    famiglia="fornitura_pavimento_gres",
+                ),
+                _riga(
+                    voce_id=60,
+                    asse="fattore_pavimento",
+                    opzione="laminato",
+                    fattore_quantita=Decimal("0.12"),
+                    famiglia="fornitura_pavimento_gres",
+                ),
+            ]
+        )
+        chiave = {
+            "categoria_code": "B-FINITURE",
+            "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+            "voce": "Gres pavimentazione",
+        }
+        chiavi = {60: chiave}
+
+        risultato = applica_assi(decisioni, _seed_domande_pavimenti_estesi(), chiavi)
+
+        finitura = next(d for d in risultato.seed_domande["domande"] if d["code"] == "finitura")
+        medio = next(o for o in finitura["opzioni"] if o["code"] == "medio")
+        includi = [e for e in medio["effetti"] if e["tipo_effetto"] == "includi"]
+        assert includi == [{"tipo_effetto": "includi", "target_voce": chiave}]
+
+        tipo_pav = next(d for d in risultato.seed_domande["domande"] if d["code"] == "tipo_pavimento")
+        for opzione_code in ("parquet", "laminato"):
+            opzione = next(o for o in tipo_pav["opzioni"] if o["code"] == opzione_code)
+            fattore = [e for e in opzione["effetti"] if e["tipo_effetto"] == "fattore_quantita"]
+            assert fattore == [{"tipo_effetto": "fattore_quantita", "valore": 0.12, "target_voce": chiave}]
+            includi_tp = [e for e in opzione["effetti"] if e["tipo_effetto"] == "includi"]
+            assert includi_tp == []
+
+    def test_famiglia_bagno_su_riga_finitura(self):
+        decisioni = _decisioni(
+            [
+                _riga(voce_id=61, asse="finitura", opzione="alto", famiglia="fornitura_pavimento_gres"),
+                _riga(
+                    voce_id=61,
+                    asse="fattore_pavimento",
+                    opzione="mosaico",
+                    fattore_quantita=Decimal("0.12"),
+                    famiglia="fornitura_pavimento_gres",
+                ),
+            ]
+        )
+        chiavi = {
+            61: {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+                "voce": "Gres alto",
+            }
+        }
+
+        risultato = applica_assi(decisioni, _seed_domande_pavimenti_estesi(), chiavi)
+
+        famiglie = {(f["voce"], f["famiglia"]) for f in risultato.famiglie}
+        assert ("Gres alto", "fornitura_pavimento_gres:bagno") in famiglie
+
+    def test_dedup_gres_a_pavimento_per_livello_solo_una_viva(self):
+        decisioni = _decisioni(
+            [
+                _riga(voce_id=70, asse="finitura", opzione="alto", famiglia="fornitura_pavimento_gres"),
+                _riga(
+                    voce_id=70,
+                    asse="fattore_pavimento",
+                    opzione="parquet",
+                    fattore_quantita=Decimal("0.12"),
+                    famiglia="fornitura_pavimento_gres",
+                ),
+                _riga(voce_id=71, asse="finitura", opzione="alto", famiglia="fornitura_pavimento_gres"),
+                _riga(
+                    voce_id=71,
+                    asse="fattore_pavimento",
+                    opzione="parquet",
+                    fattore_quantita=Decimal("0.12"),
+                    famiglia="fornitura_pavimento_gres",
+                ),
+            ]
+        )
+        chiavi = {
+            70: {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+                "voce": "Gres alto livello 6",
+            },
+            71: {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+                "voce": "Gres alto livello 7",
+            },
+        }
+
+        risultato = applica_assi(decisioni, _seed_domande_pavimenti_estesi(), chiavi)
+
+        finitura = next(d for d in risultato.seed_domande["domande"] if d["code"] == "finitura")
+        alto = next(o for o in finitura["opzioni"] if o["code"] == "alto")
+        includi = {e["target_voce"]["voce"] for e in alto["effetti"] if e["tipo_effetto"] == "includi"}
+        escludi = {e["target_voce"]["voce"] for e in alto["effetti"] if e["tipo_effetto"] == "escludi"}
+        assert includi == {"Gres alto livello 6", "Gres alto livello 7"}
+        assert escludi == {"Gres alto livello 7"}
+
+
+class TestApplicaAssiOpzioneSconosciuta:
+    def test_opzione_assente_solleva_value_error_con_domanda_e_opzione(self):
+        decisioni = _decisioni(
+            [_riga(voce_id=80, asse="tipo_pavimento", opzione="terracotta", famiglia="posa_pavimento_A6")]
+        )
+        chiavi = {80: {"categoria_code": "A-EDILE", "sottocategoria": "A.6", "voce": "A.6.2"}}
+
+        with pytest.raises(ValueError) as exc_info:
+            applica_assi(decisioni, _seed_domande_pavimenti_estesi(), chiavi)
+        assert "tipo_pavimento" in str(exc_info.value)
+        assert "terracotta" in str(exc_info.value)
+        assert "seed-domande.json" in str(exc_info.value)
+
+
+class TestRecordEffettiBersagliCondivisi:
+    def test_una_opzione_in_piu_non_sposta_ne_rimuove(self):
+        base = _domande_con_effetti(includi_opzione="medio", quantita_valore=None, con_escludi=False)
+        nuovo = json.loads(json.dumps(base))
+        finitura_nuovo = next(d for d in nuovo["domande"] if d["code"] == "finitura")
+        alto = next(o for o in finitura_nuovo["opzioni"] if o["code"] == "alto")
+        alto["effetti"].append({"tipo_effetto": "includi", "target_voce": dict(CHIAVE_GRES_MIGR)})
+
+        base_idx = applica_taratura_mod._record_effetti(base)
+        nuovo_idx = applica_taratura_mod._record_effetti(nuovo)
+
+        chiave_voce = ("B-FINITURE", "GRES", "Gres base")
+        assert base_idx["includi"][("finitura", chiave_voce)] == frozenset({"medio"})
+        assert nuovo_idx["includi"][("finitura", chiave_voce)] == frozenset({"medio", "alto"})
+
+    def test_emetti_migrazione_bersaglio_condiviso_nessun_diff(self, tmp_path):
+        dettaglio = _dettaglio_con_coefficiente(0.6)
+        base = _domande_con_effetti(includi_opzione="medio", quantita_valore=None, con_escludi=False)
+        nuovo = json.loads(json.dumps(base))
+        finitura_nuovo = next(d for d in nuovo["domande"] if d["code"] == "finitura")
+        alto = next(o for o in finitura_nuovo["opzioni"] if o["code"] == "alto")
+        alto["effetti"].append({"tipo_effetto": "includi", "target_voce": dict(CHIAVE_GRES_MIGR)})
+
+        percorso = emetti_migrazione(dettaglio, dettaglio, base, nuovo, tmp_path, "slug")
+
+        assert percorso is None
+
+    def test_emetti_migrazione_includi_rimosso_quando_lopzione_sparisce(self, tmp_path):
+        dettaglio = _dettaglio_con_coefficiente(0.6)
+        base = _domande_con_effetti(includi_opzione="medio", quantita_valore=None, con_escludi=False)
+        nuovo = _domande_con_effetti(includi_opzione=None, quantita_valore=None, con_escludi=False)
+
+        percorso = emetti_migrazione(dettaglio, dettaglio, base, nuovo, tmp_path, "slug")
+
+        codice = percorso.read_text(encoding="utf-8")
+        modulo = {}
+        exec(compile(codice, str(percorso), "exec"), modulo)
+        assert modulo["_INCLUDI_SPOSTATI"] == ()
+        tipi_rimossi = {(riga[0], riga[1], riga[2]) for riga in modulo["_EFFETTI_RIMOSSI"]}
+        assert ("finitura", "medio", "includi") in tipi_rimossi
+
+
+def _versions_root_e_config(tmp_path, monkeypatch) -> tuple[Path, "object"]:
+    """Copia `alembic/` (catena reale, testa attuale) in una directory
+    temporanea e porta un SQLite usa-e-getta alla testa: base sicura su cui
+    scrivere ed eseguire una migrazione sintetica (0022 esistente MAI
+    modificata)."""
+    from alembic import command
+    from alembic.config import Config
+    from app.config import settings as app_settings
+
+    backend_dir = Path(__file__).resolve().parents[1]
+    alembic_tmp = tmp_path / "alembic_guardia"
+    shutil.copytree(backend_dir / "alembic", alembic_tmp)
+
+    db_path = tmp_path / "guardia.db"
+    monkeypatch.setattr(app_settings, "DATABASE_URL", f"sqlite:///{db_path}")
+    config = Config()
+    config.set_main_option("script_location", str(alembic_tmp))
+    command.upgrade(config, "head")
+
+    return alembic_tmp, config, db_path
+
+
+class TestTemplateGuardiaCatalogoPresente:
+    """Il template di migrazione (_catalogo_presente + guardia in upgrade()):
+    fail-loud quando il catalogo e' presente e una chiave naturale non si
+    risolve, no-op silenzioso su un DB vergine (nessuna domanda citata
+    presente)."""
+
+    def test_catalogo_presente_e_chiave_non_risolta_solleva_runtime_error(self, tmp_path, monkeypatch):
+        from alembic import command
+
+        alembic_tmp, config, db_path = _versions_root_e_config(tmp_path, monkeypatch)
+
+        connessione = sqlite3.connect(db_path)
+        try:
+            connessione.execute(
+                "INSERT INTO domanda (code, testo, tipo_controllo) VALUES ('bagni', 'Numero di bagni', 'stepper')"
+            )
+            connessione.execute(
+                "INSERT INTO opzione_domanda (domanda_code, code, etichetta) VALUES ('bagni', 'valore', 'Valore')"
+            )
+            connessione.commit()
+        finally:
+            connessione.close()
+
+        dettaglio = _dettaglio_con_coefficiente(0.6)
+        base = _domande_con_effetti(includi_opzione="medio", quantita_valore=1.0, con_escludi=False)
+        nuovo = _domande_con_effetti(includi_opzione="medio", quantita_valore=3.0, con_escludi=False)
+        percorso = emetti_migrazione(dettaglio, dettaglio, base, nuovo, alembic_tmp / "versions", "guardia")
+        assert percorso is not None
+        revisione = percorso.stem.split("_")[0]
+
+        with pytest.raises(RuntimeError, match="risolte"):
+            command.upgrade(config, revisione)
+
+    def test_nessuna_domanda_citata_presente_e_no_op(self, tmp_path, monkeypatch):
+        from alembic import command
+
+        alembic_tmp, config, _db_path = _versions_root_e_config(tmp_path, monkeypatch)
+        # Nessuna domanda 'bagni' seminata: DB vergine su questo fronte, il
+        # seed create-if-missing creerebbe tutto al prossimo boot (D-41).
+
+        dettaglio = _dettaglio_con_coefficiente(0.6)
+        base = _domande_con_effetti(includi_opzione="medio", quantita_valore=1.0, con_escludi=False)
+        nuovo = _domande_con_effetti(includi_opzione="medio", quantita_valore=3.0, con_escludi=False)
+        percorso = emetti_migrazione(dettaglio, dettaglio, base, nuovo, alembic_tmp / "versions", "guardia")
+        assert percorso is not None
+        revisione = percorso.stem.split("_")[0]
+
+        command.upgrade(config, revisione)  # non deve sollevare
