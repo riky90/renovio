@@ -7,56 +7,56 @@ Spunta `[x]` le voci che vanno e scrivi nella riga `Note:` quello che non torna.
 
 ## Dialog scrollabili
 
-- [ ] **1. Modifica domanda, finestra bassa.** Riduci l'altezza della finestra del browser,
+- [ X] **1. Modifica domanda, finestra bassa.** Riduci l'altezza della finestra del browser,
   apri `/admin/domande` e clicca la matita su una domanda.
   Atteso: il popup si ferma dentro lo schermo, scorre con la rotellina e raggiungi i
   bottoni «Annulla modifica» / «Salva domanda» in fondo.
   Note:
 
-- [ ] **2. Aggiungi effetto.** Dentro una domanda apri un'opzione e poi «Aggiungi effetto».
+- [X ] **2. Aggiungi effetto.** Dentro una domanda apri un'opzione e poi «Aggiungi effetto».
   Atteso: puoi scorrere fino al bottone Salva; con la finestra alta il popup non ha una
   barra di scorrimento inutile.
-  Note:
+  Note: non trovo la voce effetto. controlla. cosi come nelle altre Listini, Coefficienti e Bonus non trovo tutte le voci della tabella da moficare se clicco su modifica.
 
-- [ ] **3. Altri popup.** Apri un popup di modifica in Listini, Coefficienti e Bonus.
+- [ X] **3. Altri popup.** Apri un popup di modifica in Listini, Coefficienti e Bonus.
   Atteso: si comportano come sopra e niente appare tagliato o spostato.
   Note:
 
-- [ ] **4. Da telefono (facoltativo).** Rifai la voce 1 con la vista mobile del browser.
+- [X ] **4. Da telefono (facoltativo).** Rifai la voce 1 con la vista mobile del browser.
   Atteso: il popup scorre e la pagina sotto resta ferma.
   Note:
 
 ## Pagina Documentazione
 
-- [ ] **5. Voce di menu.** Nella barra laterale admin, in fondo, c'è «Documentazione».
+- [ X] **5. Voce di menu.** Nella barra laterale admin, in fondo, c'è «Documentazione».
   Atteso: apre `/admin/documentazione`.
   Note:
 
-- [ ] **6. Contenuto.** Leggi «Come ragiona la stima», «Come sono collegate le tabelle» e
+- [ X] **6. Contenuto.** Leggi «Come ragiona la stima», «Come sono collegate le tabelle» e
   «Modificare tanti valori con Excel», poi apri la sezione di ciascuna pagina.
   Atteso: ogni campo che vedi nelle pagine admin è spiegato. Segna nelle note quello che è
   poco chiaro, sbagliato o mancante.
   Note:
 
-- [ ] **7. Link.** In una sezione clicca «Apri la pagina».
+- [X ] **7. Link.** In una sezione clicca «Apri la pagina».
   Atteso: porta alla pagina admin giusta.
   Note:
 
 ## Import Excel (fix delle Info della review)
 
-- [ ] **8. Round-trip a vuoto.** In Coefficienti: «Scarica parametri», poi ricarica lo stesso
+- [ x] **8. Round-trip a vuoto.** In Coefficienti: «Scarica parametri», poi ricarica lo stesso
   file senza modificarlo e conferma.
   Atteso: il messaggio dice 0 righe applicate. Prima diceva il numero di tutte le righe del
   file.
-  Note:
+  Note: ok, pero non mi fa cliccare su conferma import, che mi va bene eh, epro e' corretto?
 
-- [ ] **9. Una modifica.** Cambia un solo moltiplicatore nel file, ricaricalo e conferma.
+- [ X] **9. Una modifica.** Cambia un solo moltiplicatore nel file, ricaricalo e conferma.
   Atteso: 1 riga applicata, e il valore nuovo si vede in Coefficienti → Moltiplicatori.
   Note:
 
 ## Anteprima
 
-- [ ] **10. Oracolo nel pannello.** In Coefficienti → Anteprima: Reggio Emilia, 85 m², tipo
+- [ X] **10. Oracolo nel pannello.** In Coefficienti → Anteprima: Reggio Emilia, 85 m², tipo
   **totale**.
   Atteso: 47.985 – 70.575 €. Via API è già verificato; qui si controlla la schermata.
   Note:
