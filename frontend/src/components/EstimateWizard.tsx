@@ -44,6 +44,19 @@ interface EstimateWizardProps {
   isSubmitting?: boolean;
   /** Valori iniziali del "Rifai in versione Pro" (query param). */
   iniziali?: Partial<CampiBase>;
+  /**
+   * Risposte gia' note da cui ripartire (09-12, "Vai alla stima Pro" da una
+   * stima non salvata): quando presenti, `risposteToccate` parte `true` cosi'
+   * l'effetto che applica i default del catalogo non le sovrascrive.
+   */
+  risposteDiPartenza?: Risposte;
+  /**
+   * Step da cui aprire il wizard. Solo di presentazione (T-09-50): il server
+   * rivalida tutto al salvataggio, non e' un modo per saltare la validazione.
+   * Ignorato se `iniziali` non basta a superare lo step 1, o se fuori dal
+   * range degli step del tier.
+   */
+  stepIniziale?: number;
 }
 
 /**
@@ -65,13 +78,32 @@ export function EstimateWizard({
   onSubmit,
   isSubmitting,
   iniziali,
+  risposteDiPartenza,
+  stepIniziale,
 }: EstimateWizardProps) {
-  const [step, setStep] = useState(1);
   const [campi, setCampi] = useState<CampiBase>({ ...CAMPI_BASE_INIZIALI, ...iniziali });
+  const [step, setStep] = useState(() => {
+    // `stepIniziale` parte SOLO se i campi base sono gia' validi: altrimenti
+    // l'utente si troverebbe su uno step avanzato senza citta'/mq compilati.
+    const ultimoStepDelTier = tier === "pro" ? 4 : 3;
+    if (
+      stepIniziale !== undefined &&
+      stepIniziale >= 1 &&
+      stepIniziale <= ultimoStepDelTier &&
+      validaCampiBase({ ...CAMPI_BASE_INIZIALI, ...iniziali }).valid
+    ) {
+      return stepIniziale;
+    }
+    return 1;
+  });
   const [touched, setTouched] = useState(false);
-  const [risposte, setRisposte] = useState<Risposte>({});
-  const [risposteToccate, setRisposteToccate] = useState(false);
+  const [risposte, setRisposte] = useState<Risposte>(risposteDiPartenza ?? {});
+  // Se il chiamante manda gia' delle risposte, sono gia' "toccate": l'effetto
+  // che applica i default del catalogo non deve sovrascriverle.
+  const [risposteToccate, setRisposteToccate] = useState(risposteDiPartenza !== undefined);
   const [livelli, setLivelli] = useState<Record<string, string>>({});
+  const [scelte, setScelte] = useState<Record<string, string>>({});
+  const [scelteToccate, setScelteToccate] = useState<Set<string>>(new Set());
 
   const { mq, valid: baseValid, cittaValid, mqValid } = validaCampiBase(campi);
   const step1Valid = cittaValid && mqValid;
@@ -102,6 +134,27 @@ export function EstimateWizard({
     setRisposte((precedenti) => (risposteToccate ? precedenti : risposteIniziali(catalogo)));
   }, [catalogo, risposteToccate]);
 
+  // Stesso pattern delle risposte del catalogo Free: il default (D-07) arriva
+  // gia' risolto dal server in `opzioni.domande[].valore`, si applica quando
+  // le opzioni arrivano, e non sovrascrive le scelte che l'utente ha gia'
+  // fatto (`scelteToccate`).
+  useEffect(() => {
+    const opzioni = opzioniProQuery.data;
+    if (!opzioni) return;
+    setScelte((precedenti) => {
+      let cambiato = false;
+      const aggiornate = { ...precedenti };
+      for (const domanda of opzioni.domande) {
+        if (scelteToccate.has(domanda.code)) continue;
+        if (typeof domanda.valore === "string" && aggiornate[domanda.code] !== domanda.valore) {
+          aggiornate[domanda.code] = domanda.valore;
+          cambiato = true;
+        }
+      }
+      return cambiato ? aggiornate : precedenti;
+    });
+  }, [opzioniProQuery.data, scelteToccate]);
+
   const visibili = useMemo(
     () => (catalogo ? domandeVisibili(catalogo.domande, risposte) : []),
     [catalogo, risposte]
@@ -117,6 +170,11 @@ export function EstimateWizard({
   function handleRisposta(code: string, valore: ValoreRisposta) {
     setRisposteToccate(true);
     setRisposte((prev) => ({ ...prev, [code]: valore }));
+  }
+
+  function handleScelta(code: string, valore: string) {
+    setScelteToccate((prev) => new Set(prev).add(code));
+    setScelte((prev) => ({ ...prev, [code]: valore }));
   }
 
   function applicaValoriStandard() {
@@ -155,7 +213,7 @@ export function EstimateWizard({
     onSubmit({
       values,
       risposte: soloVisibili(risposte, visibili),
-      ...(tier === "pro" ? { preferenze: preferenzePro(livelli, risposte) } : {}),
+      ...(tier === "pro" ? { preferenze: preferenzePro(livelli, risposte, scelte) } : {}),
     });
   }
 
@@ -226,6 +284,8 @@ export function EstimateWizard({
           domande={stepCorrente?.domande ?? []}
           risposte={risposte}
           onRisposta={handleRisposta}
+          scelte={scelte}
+          onScelta={handleScelta}
         />
       )}
 
@@ -319,7 +379,11 @@ function soloVisibili(risposte: Risposte, visibili: Domanda[]): Risposte {
  * domanda mancante: e' che questo oggetto ha tre campi fissi, mentre una
  * quarta chiave mirata creata dal pannello admin non avrebbe dove entrare.
  */
-function preferenzePro(livelli: Record<string, string>, risposte: Risposte): PreferenzePro {
+function preferenzePro(
+  livelli: Record<string, string>,
+  risposte: Risposte,
+  scelte: Record<string, string>
+): PreferenzePro {
   const numero = (code: string): number => {
     const valore = risposte[code];
     return typeof valore === "number" ? valore : 0;
@@ -332,6 +396,7 @@ function preferenzePro(livelli: Record<string, string>, risposte: Risposte): Pre
       porte: numero("porte"),
       condizionatori: numero("condizionatori"),
     },
+    ...(Object.keys(scelte).length > 0 ? { scelte } : {}),
   };
 }
 
@@ -369,6 +434,8 @@ function FinitureStep({
   domande,
   risposte,
   onRisposta,
+  scelte,
+  onScelta,
 }: {
   opzioni: OpzioniProOut | undefined;
   isLoading: boolean;
@@ -377,6 +444,8 @@ function FinitureStep({
   domande: Domanda[];
   risposte: Risposte;
   onRisposta: (code: string, valore: ValoreRisposta) => void;
+  scelte: Record<string, string>;
+  onScelta: (code: string, valore: string) => void;
 }) {
   const defaultLivello = opzioni?.livelli.find((l) => l.is_default)?.code;
 
@@ -399,6 +468,21 @@ function FinitureStep({
             ))}
           </div>
         </div>
+      ))}
+
+      {/* Domande a scelta del configuratore (09-11, es. "Che pavimento vuoi per
+          casa?"): DOPO i livelli per categoria, stesso ordine dell'UI-SPEC.
+          Titolo/aiuto vengono dal catalogo (CFG-01/QST-05), nessuna etichetta
+          cablata qui. */}
+      {opzioni?.domande.map((domanda) => (
+        <DomandaField
+          key={domanda.code}
+          domanda={domanda}
+          valore={scelte[domanda.code]}
+          onChange={(valore) => {
+            if (typeof valore === "string") onScelta(domanda.code, valore);
+          }}
+        />
       ))}
 
       {domande.map((domanda) => (
