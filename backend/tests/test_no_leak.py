@@ -256,3 +256,20 @@ def test_get_e_post_dettaglio_pro_non_leakano_effetti_ne_coefficienti(pro_client
     for response in (get_response, post_response):
         _assert_no_forbidden_keys(response.json())
         _assert_no_forbidden_key_substrings(response.json())
+
+
+def test_opzioni_pro_non_leaka_effetti_ne_coefficienti(pro_client):
+    """Estende l'anti-leak (09-11) a `GET /me/opzioni-pro`, che ora espone
+    anche `domande` (le stesse del pannello, servite al wizard PRIMA che una
+    stima esista): stesso DTO chiuso, stesso controllo."""
+    pro_client.post(
+        REGISTRAZIONE_URL,
+        json={"email": "noleak.opzioni@example.com", "password": "Password123", "nome": "NoLeak2"},
+    )
+    pro_client.post(ATTIVA_PRO_URL)
+
+    response = pro_client.get("/api/v1/me/opzioni-pro")
+
+    assert response.status_code == 200
+    _assert_no_forbidden_keys(response.json())
+    _assert_no_forbidden_key_substrings(response.json())

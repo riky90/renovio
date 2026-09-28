@@ -1,5 +1,6 @@
 import { apiGet, apiPost, ApiError } from "@/api/client";
 import type { Risposte } from "@/api/domande";
+import type { DomandaProOut } from "@/api/dettaglio-pro";
 import type { TipoRistrutturazione } from "@/components/EstimateFormFields";
 
 export type { TipoRistrutturazione };
@@ -378,6 +379,8 @@ interface RawStimaSalvataListItem {
 export interface PreferenzePro {
   livelli?: Record<string, string>;
   risposte?: { bagni: number; porte: number; condizionatori: number };
+  /** Scelte del configuratore Pro raccolte nel wizard (09-11, es. pavimento). */
+  scelte?: Record<string, string>;
 }
 
 /** Dettaglio snapshot immutabile — StimaResponse + id/created_at. */
@@ -427,6 +430,9 @@ export interface LivelloOut {
 export interface OpzioniProOut {
   categorie: CategoriaLivelloOut[];
   livelli: LivelloOut[];
+  /** Domande a scelta del configuratore (09-11, es. tipo_pavimento) — il
+   * wizard Pro le disegna allo step 4 accanto ai livelli. */
+  domande: DomandaProOut[];
 }
 
 /**

@@ -30,7 +30,14 @@ from app.schemas.stima_salvata import (
     StimaSalvataListItem,
     StimaSalvataOut,
 )
-from app.services.dettaglio_pro import LivelliNonValidi, validate_livelli
+from app.services.dettaglio_pro import (
+    LivelliNonValidi,
+    RisposteNonValide,
+    domande_configuratore,
+    valida_risposte_pro,
+    validate_livelli,
+)
+from app.services.effetti import CONTROLLI_NUMERICI
 from app.services.pdf_service import PdfService, build_filename
 
 router = APIRouter(prefix="/me", tags=["stime"])
@@ -71,6 +78,32 @@ def salva_stima(
             except LivelliNonValidi as exc:
                 raise HTTPException(400, str(exc)) from exc
 
+        # Scelte del configuratore Pro raccolte nel wizard (09-11, es.
+        # tipo_pavimento): validate contro il catalogo, poi unite alle
+        # risposte mirate nella STESSA colonna che il pannello del dettaglio
+        # gia' usa (`risposte_pro_json`), cosi' schermata e wizard restano
+        # allineati.
+        scelte_grezze = preferenze.scelte if preferenze else None
+        scelte_valide: dict = {}
+        if scelte_grezze:
+            try:
+                scelte_valide = valida_risposte_pro(session, dict(scelte_grezze))
+            except RisposteNonValide as exc:
+                raise HTTPException(400, str(exc)) from exc
+            domande_catalogo = {
+                d.code: d for d in domande_configuratore(session, mq=1, risposte={})
+            }
+            for codice in scelte_valide:
+                domanda = domande_catalogo.get(codice)
+                if domanda is None or domanda.tipo_controllo in CONTROLLI_NUMERICI:
+                    raise HTTPException(400, f"'{codice}' non e' una scelta")
+
+        risposte_pro: dict = {}
+        if preferenze and preferenze.risposte is not None:
+            risposte_pro.update(preferenze.risposte.model_dump())
+        if scelte_valide:
+            risposte_pro.update(scelte_valide)
+
         row = StimaSalvata(
             user_id=current_user.id,
             tier=tier,
@@ -82,11 +115,7 @@ def salva_stima(
             fallback=payload.fallback,
             risultato_json=risultato_json,
             livelli_pro_json=livelli or None,
-            risposte_pro_json=(
-                preferenze.risposte.model_dump()
-                if preferenze and preferenze.risposte is not None
-                else None
-            ),
+            risposte_pro_json=risposte_pro or None,
         )
         session.add(row)
         session.commit()

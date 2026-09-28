@@ -63,14 +63,40 @@ from app.services.city_resolver import resolve_listino
 from app.services.dettaglio_pro import (
     DettaglioProResult,
     DettaglioProService,
+    DomandaConfiguratore,
     LivelliNonValidi,
     RisposteNonValide,
+    domande_configuratore,
     valida_risposte_pro,
     validate_livelli,
 )
+from app.services.effetti import CONTROLLI_NUMERICI
 from app.services.pdf_service import PdfService, build_filename_pro
 
 router = APIRouter(prefix="/me", tags=["dettaglio-pro"])
+
+
+def _domanda_out(d: DomandaConfiguratore) -> DomandaProOut:
+    """Mappa una `DomandaConfiguratore` del servizio nel DTO chiuso — riusato
+    da `_to_out` (dettaglio-pro) e da `opzioni_pro` (09-11: le stesse domande
+    servono anche al wizard Pro, PRIMA che una stima esista)."""
+    return DomandaProOut(
+        code=d.code,
+        testo=d.testo,
+        help=d.help,
+        tipo_controllo=d.tipo_controllo,
+        opzioni=[
+            OpzioneProOut(
+                code=o.code,
+                etichetta=o.etichetta,
+                descrizione=o.descrizione,
+                is_default=o.is_default,
+            )
+            for o in d.opzioni
+        ],
+        valore=d.valore,
+        valore_etichetta=d.valore_etichetta,
+    )
 
 
 def _to_out(
@@ -82,26 +108,7 @@ def _to_out(
     """Mappa campo-per-campo il risultato del servizio nel DTO chiuso — mai
     `model_validate` su entita' ORM o dataclass interne."""
     return DettaglioProOut(
-        domande=[
-            DomandaProOut(
-                code=d.code,
-                testo=d.testo,
-                help=d.help,
-                tipo_controllo=d.tipo_controllo,
-                opzioni=[
-                    OpzioneProOut(
-                        code=o.code,
-                        etichetta=o.etichetta,
-                        descrizione=o.descrizione,
-                        is_default=o.is_default,
-                    )
-                    for o in d.opzioni
-                ],
-                valore=d.valore,
-                valore_etichetta=d.valore_etichetta,
-            )
-            for d in result.domande
-        ],
+        domande=[_domanda_out(d) for d in result.domande],
         categorie=[
             CategoriaDettagliataOut(
                 code=cat.code,
@@ -247,7 +254,14 @@ def opzioni_pro(_current_user: User = Depends(require_pro)) -> OpzioniProOut:
     scegliere le voci del DETTAGLIO, e `E-ARREDO` nel dettaglio non c'e'
     (il suo livello lo sceglie la domanda del wizard, che governa il forfait
     Free). Offrirne il selettore vorrebbe dire mostrare un comando che non
-    cambia niente sullo schermo."""
+    cambia niente sullo schermo.
+
+    `domande` (09-11): le domande a scelta del configuratore Pro, per il
+    wizard che deve disegnarle allo step 4 PRIMA che una stima esista. Filtro
+    su `tipo_controllo` (ENG-02, nessun `if` sul codice di una domanda): le
+    numeriche (bagni/porte/condizionatori) il wizard le chiede gia' allo step
+    2 dal catalogo Free. `mq=1` e' lecito: il default di una scelta non
+    dipende dai m2."""
     with SessionLocal() as session:
         categorie = (
             session.query(Categoria)
@@ -258,6 +272,11 @@ def opzioni_pro(_current_user: User = Depends(require_pro)) -> OpzioniProOut:
             .order_by(Categoria.ordine)
             .all()
         )
+        domande = [
+            d
+            for d in domande_configuratore(session, mq=1, risposte={})
+            if d.tipo_controllo not in CONTROLLI_NUMERICI
+        ]
         return OpzioniProOut(
             categorie=[CategoriaLivelloOut(code=c.code, nome=c.nome) for c in categorie],
             livelli=[
@@ -270,6 +289,7 @@ def opzioni_pro(_current_user: User = Depends(require_pro)) -> OpzioniProOut:
                 )
                 for r in _livelli_disponibili(session)
             ],
+            domande=[_domanda_out(d) for d in domande],
         )
 
 
