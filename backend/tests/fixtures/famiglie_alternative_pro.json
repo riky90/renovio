@@ -134,8 +134,56 @@
   {
     "categoria_code": "A-EDILE",
     "sottocategoria": "A.6",
+    "voce": "A.6.1",
+    "famiglia": "posa_pavimento_A6:bagno"
+  },
+  {
+    "categoria_code": "A-EDILE",
+    "sottocategoria": "A.6",
+    "voce": "A.6.1",
+    "famiglia": "posa_pavimento_A6:bagno"
+  },
+  {
+    "categoria_code": "A-EDILE",
+    "sottocategoria": "A.6",
+    "voce": "A.6.10",
+    "famiglia": "levigatura_A6"
+  },
+  {
+    "categoria_code": "A-EDILE",
+    "sottocategoria": "A.6",
     "voce": "A.6.2",
     "famiglia": "posa_pavimento_A6"
+  },
+  {
+    "categoria_code": "A-EDILE",
+    "sottocategoria": "A.6",
+    "voce": "A.6.2",
+    "famiglia": "posa_pavimento_A6"
+  },
+  {
+    "categoria_code": "A-EDILE",
+    "sottocategoria": "A.6",
+    "voce": "A.6.2",
+    "famiglia": "posa_pavimento_A6"
+  },
+  {
+    "categoria_code": "A-EDILE",
+    "sottocategoria": "A.6",
+    "voce": "A.6.3",
+    "famiglia": "posa_rivestimento_A6"
+  },
+  {
+    "categoria_code": "A-EDILE",
+    "sottocategoria": "A.6",
+    "voce": "A.6.3",
+    "famiglia": "posa_rivestimento_A6"
+  },
+  {
+    "categoria_code": "A-EDILE",
+    "sottocategoria": "A.6",
+    "voce": "A.6.4",
+    "famiglia": "posa_rivestimento_A6"
   },
   {
     "categoria_code": "A-EDILE",
@@ -148,6 +196,54 @@
     "sottocategoria": "A.6",
     "voce": "A.6.6",
     "famiglia": "posa_pavimento_A6"
+  },
+  {
+    "categoria_code": "A-EDILE",
+    "sottocategoria": "A.6",
+    "voce": "A.6.7",
+    "famiglia": "posa_battiscopa_A6"
+  },
+  {
+    "categoria_code": "A-EDILE",
+    "sottocategoria": "A.6",
+    "voce": "A.6.7",
+    "famiglia": "posa_battiscopa_A6"
+  },
+  {
+    "categoria_code": "A-EDILE",
+    "sottocategoria": "A.6",
+    "voce": "A.6.7",
+    "famiglia": "posa_battiscopa_A6"
+  },
+  {
+    "categoria_code": "A-EDILE",
+    "sottocategoria": "A.6",
+    "voce": "A.6.7",
+    "famiglia": "posa_battiscopa_A6"
+  },
+  {
+    "categoria_code": "A-EDILE",
+    "sottocategoria": "A.6",
+    "voce": "A.6.8",
+    "famiglia": "posa_battiscopa_A6"
+  },
+  {
+    "categoria_code": "A-EDILE",
+    "sottocategoria": "A.6",
+    "voce": "A.6.8",
+    "famiglia": "posa_battiscopa_A6"
+  },
+  {
+    "categoria_code": "A-EDILE",
+    "sottocategoria": "A.6",
+    "voce": "A.6.8",
+    "famiglia": "posa_battiscopa_A6"
+  },
+  {
+    "categoria_code": "A-EDILE",
+    "sottocategoria": "A.6",
+    "voce": "A.6.9",
+    "famiglia": "levigatura_A6"
   },
   {
     "categoria_code": "A-EDILE",
@@ -194,6 +290,36 @@
   {
     "categoria_code": "B-FINITURE",
     "sottocategoria": "BATTISCOPA",
+    "voce": "Zoccolino di gres porcellanato colorato in massa, superficie naturale o bocciardata:effetto cemento, 10 × 30 cm, spessore 8,5 mm con sguscia",
+    "famiglia": "battiscopa"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "BATTISCOPA",
+    "voce": "Zoccolino di gres porcellanato colorato in massa, superficie naturale o bocciardata:effetto cemento, 10 × 30 cm, spessore 8,5 mm con sguscia",
+    "famiglia": "battiscopa"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "BATTISCOPA",
+    "voce": "Zoccolino in legno 40 × 10 mm: essenza",
+    "famiglia": "battiscopa"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "BATTISCOPA",
+    "voce": "Zoccolino in legno 40 × 10 mm: essenza",
+    "famiglia": "battiscopa"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "BATTISCOPA",
+    "voce": "Zoccolino in legno 40 × 10 mm: essenza",
+    "famiglia": "battiscopa"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "BATTISCOPA",
     "voce": "Zoccolino in legno 40 × 10 mm: essenza",
     "famiglia": "battiscopa"
   },
@@ -206,7 +332,61 @@
   {
     "categoria_code": "B-FINITURE",
     "sottocategoria": "BATTISCOPA",
+    "voce": "Zoccolino in legno 40 × 10 mm: multistrato bianco",
+    "famiglia": "battiscopa"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "BATTISCOPA",
+    "voce": "Zoccolino in legno 40 × 10 mm: multistrato bianco",
+    "famiglia": "battiscopa"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "BATTISCOPA",
+    "voce": "Zoccolino in legno 40 × 10 mm: multistrato bianco",
+    "famiglia": "battiscopa"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "BATTISCOPA",
     "voce": "Zoccolino in legno 75 × 10 mm: essenza",
+    "famiglia": "battiscopa"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "BATTISCOPA",
+    "voce": "Zoccolino in legno 75 × 10 mm: essenza",
+    "famiglia": "battiscopa"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "BATTISCOPA",
+    "voce": "Zoccolino in legno 75 × 10 mm: essenza",
+    "famiglia": "battiscopa"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "BATTISCOPA",
+    "voce": "Zoccolino in legno 75 × 10 mm: essenza",
+    "famiglia": "battiscopa"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "BATTISCOPA",
+    "voce": "Zoccolino in legno 75 × 10 mm: multistrato bianco",
+    "famiglia": "battiscopa"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "BATTISCOPA",
+    "voce": "Zoccolino in legno 75 × 10 mm: multistrato bianco",
+    "famiglia": "battiscopa"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "BATTISCOPA",
+    "voce": "Zoccolino in legno 75 × 10 mm: multistrato bianco",
     "famiglia": "battiscopa"
   },
   {
@@ -231,13 +411,13 @@
     "categoria_code": "B-FINITURE",
     "sottocategoria": "PAVIMENTI",
     "voce": "Moquette in quadrotte autoposanti idonee alla posa senza collante, ad alta flessibilità, antistatiche, ignifughe di classe 1, dimensioni 50 × 50 cm: con supporto in composto termoplastico rinforzato con due strati di fibre di vetro e pretrattato con antibatterico:100% nylon, superficie velluto diseg",
-    "famiglia": "comune"
+    "famiglia": "fornitura_pavimento_moquette"
   },
   {
     "categoria_code": "B-FINITURE",
     "sottocategoria": "PAVIMENTI",
     "voce": "Pavimento in laminato antistatico (< 2 kV - UNI EN 1815 ed UNI EN 14041), con supporto di base in fibra di legno ad elevata densità (HDF) con superficie ad effetto legno, resistenza all'abrasione superficiale in classe AC4 (UNI EN 13329), rigonfiamento del bordo ≤ 18% (valore medio 11% UNI EN 13329)",
-    "famiglia": "comune"
+    "famiglia": "fornitura_pavimento_laminato"
   },
   {
     "categoria_code": "B-FINITURE",
@@ -249,13 +429,13 @@
     "categoria_code": "B-FINITURE",
     "sottocategoria": "PAVIMENTI",
     "voce": "Unilin sottofondo in schiuma senza barriera vapore",
-    "famiglia": "comune"
+    "famiglia": "sottofondo_laminato"
   },
   {
     "categoria_code": "B-FINITURE",
     "sottocategoria": "PAVIMENTI",
     "voce": "Vinilico multistrato LVT in listoni delle dimensioni di 17 ÷ 20 × 100 ÷ 124 cm o piastre delle dimensioni di 36 × 69 cm con profili laterali ad incastro per posa senza collante, con uno strato d'usura in pvc puro trasparente che protegge uno strato a motivi stampatitrattato con fotoreticolazione UV ",
-    "famiglia": "comune"
+    "famiglia": "fornitura_pavimento_vinilico"
   },
   {
     "categoria_code": "B-FINITURE",
@@ -273,115 +453,799 @@
     "categoria_code": "B-FINITURE",
     "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
     "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: effetto cemento, con superficie antiscivolo (R10 A): 60 × 120 cm, naturale, spessore 10 mm",
-    "famiglia": "finitura:PAVIMENTI E RIVESTIMENTI GRES"
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: effetto cemento, con superficie antiscivolo (R10 A): 60 × 120 cm, naturale, spessore 10 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: effetto cemento, con superficie antiscivolo (R10 A): 60 × 120 cm, naturale, spessore 10 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: effetto cemento, con superficie antiscivolo (R10 A): 60 × 120 cm, naturale, spessore 10 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: effetto cemento, con superficie antiscivolo (R10 A): 60 × 120 cm, naturale, spessore 10 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: effetto cemento, con superficie antiscivolo (R10 A): 60 × 120 cm, naturale, spessore 10 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: effetto cemento, con superficie antiscivolo (R10 A): 60 × 120 cm, naturale, spessore 10 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
   },
   {
     "categoria_code": "B-FINITURE",
     "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
     "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: effetto cemento, con superficie antiscivolo (R10 A): 60 × 60 cm, spessore 15 mm",
-    "famiglia": "finitura:PAVIMENTI E RIVESTIMENTI GRES"
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: effetto cemento, con superficie antiscivolo (R10 A): 60 × 60 cm, spessore 15 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: effetto cemento, con superficie antiscivolo (R10 A): 60 × 60 cm, spessore 15 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: effetto cemento, con superficie antiscivolo (R10 A): 60 × 60 cm, spessore 15 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: effetto cemento, con superficie antiscivolo (R10 A): 60 × 60 cm, spessore 15 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: effetto cemento, con superficie antiscivolo (R10 A): 60 × 60 cm, spessore 15 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: effetto cemento, con superficie antiscivolo (R10 A): 60 × 60 cm, spessore 15 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
   },
   {
     "categoria_code": "B-FINITURE",
     "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
     "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: effetto cemento, con superficie antiscivolo (R10 A):30 × 60 cm, naturale o bocciardato, spessore 10",
-    "famiglia": "finitura:PAVIMENTI E RIVESTIMENTI GRES"
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: effetto cemento, con superficie antiscivolo (R10 A):30 × 60 cm, naturale o bocciardato, spessore 10",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: effetto cemento, con superficie antiscivolo (R10 A):30 × 60 cm, naturale o bocciardato, spessore 10",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: effetto cemento, con superficie antiscivolo (R10 A):30 × 60 cm, naturale o bocciardato, spessore 10",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: effetto cemento, con superficie antiscivolo (R10 A):30 × 60 cm, naturale o bocciardato, spessore 10",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: effetto cemento, con superficie antiscivolo (R10 A):30 × 60 cm, naturale o bocciardato, spessore 10",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: effetto cemento, con superficie antiscivolo (R10 A):30 × 60 cm, naturale o bocciardato, spessore 10",
+    "famiglia": "fornitura_pavimento_gres:bagno"
   },
   {
     "categoria_code": "B-FINITURE",
     "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
     "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: granigliato: 30 × 30 cm, effetto marmetta grana media antiscivolo (R11), spessore 8,5 mm",
-    "famiglia": "finitura:PAVIMENTI E RIVESTIMENTI GRES"
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: granigliato: 30 × 30 cm, effetto marmetta grana media antiscivolo (R11), spessore 8,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: granigliato: 30 × 30 cm, effetto marmetta grana media antiscivolo (R11), spessore 8,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: granigliato: 30 × 30 cm, effetto marmetta grana media antiscivolo (R11), spessore 8,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: granigliato: 30 × 30 cm, effetto marmetta grana media antiscivolo (R11), spessore 8,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: granigliato: 30 × 30 cm, effetto marmetta grana media antiscivolo (R11), spessore 8,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: granigliato: 30 × 30 cm, effetto marmetta grana media antiscivolo (R11), spessore 8,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
   },
   {
     "categoria_code": "B-FINITURE",
     "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
     "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: granigliato: 30 × 30 cm, superficie bocciardata antiscivolo (R12 B), spessore 8,5 mm",
-    "famiglia": "finitura:PAVIMENTI E RIVESTIMENTI GRES"
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: granigliato: 30 × 30 cm, superficie bocciardata antiscivolo (R12 B), spessore 8,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: granigliato: 30 × 30 cm, superficie bocciardata antiscivolo (R12 B), spessore 8,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: granigliato: 30 × 30 cm, superficie bocciardata antiscivolo (R12 B), spessore 8,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: granigliato: 30 × 30 cm, superficie bocciardata antiscivolo (R12 B), spessore 8,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: granigliato: 30 × 30 cm, superficie bocciardata antiscivolo (R12 B), spessore 8,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL: granigliato: 30 × 30 cm, superficie bocciardata antiscivolo (R12 B), spessore 8,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
   },
   {
     "categoria_code": "B-FINITURE",
     "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
     "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:120 × 278 cm, spessore 6 mm:effetto marmo, superficie lucida",
-    "famiglia": "finitura:PAVIMENTI E RIVESTIMENTI GRES"
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:120 × 278 cm, spessore 6 mm:effetto marmo, superficie lucida",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:120 × 278 cm, spessore 6 mm:effetto marmo, superficie lucida",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:120 × 278 cm, spessore 6 mm:effetto marmo, superficie lucida",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:120 × 278 cm, spessore 6 mm:effetto marmo, superficie lucida",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:120 × 278 cm, spessore 6 mm:effetto marmo, superficie lucida",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:120 × 278 cm, spessore 6 mm:effetto marmo, superficie lucida",
+    "famiglia": "fornitura_pavimento_gres:bagno"
   },
   {
     "categoria_code": "B-FINITURE",
     "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
     "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:160 × 320 cm, spessore 6 mm:effetto marmo, superficie lucida",
-    "famiglia": "finitura:PAVIMENTI E RIVESTIMENTI GRES"
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:160 × 320 cm, spessore 6 mm:effetto marmo, superficie lucida",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:160 × 320 cm, spessore 6 mm:effetto marmo, superficie lucida",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:160 × 320 cm, spessore 6 mm:effetto marmo, superficie lucida",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:160 × 320 cm, spessore 6 mm:effetto marmo, superficie lucida",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:160 × 320 cm, spessore 6 mm:effetto marmo, superficie lucida",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:160 × 320 cm, spessore 6 mm:effetto marmo, superficie lucida",
+    "famiglia": "fornitura_pavimento_gres:bagno"
   },
   {
     "categoria_code": "B-FINITURE",
     "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
     "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:effetto cemento, con superficie antiscivolo (R10 A):60 × 120 cm, naturale, spessore 10 mm",
-    "famiglia": "finitura:PAVIMENTI E RIVESTIMENTI GRES"
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:effetto cemento, con superficie antiscivolo (R10 A):60 × 120 cm, naturale, spessore 10 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:effetto cemento, con superficie antiscivolo (R10 A):60 × 120 cm, naturale, spessore 10 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:effetto cemento, con superficie antiscivolo (R10 A):60 × 120 cm, naturale, spessore 10 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:effetto cemento, con superficie antiscivolo (R10 A):60 × 120 cm, naturale, spessore 10 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:effetto cemento, con superficie antiscivolo (R10 A):60 × 120 cm, naturale, spessore 10 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:effetto cemento, con superficie antiscivolo (R10 A):60 × 120 cm, naturale, spessore 10 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
   },
   {
     "categoria_code": "B-FINITURE",
     "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
     "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:effetto cemento, con superficie antiscivolo (R10 A):dimensioni 60 × 60 cm, spessore 15 mm",
-    "famiglia": "finitura:PAVIMENTI E RIVESTIMENTI GRES"
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:effetto cemento, con superficie antiscivolo (R10 A):dimensioni 60 × 60 cm, spessore 15 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:effetto cemento, con superficie antiscivolo (R10 A):dimensioni 60 × 60 cm, spessore 15 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:effetto cemento, con superficie antiscivolo (R10 A):dimensioni 60 × 60 cm, spessore 15 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:effetto cemento, con superficie antiscivolo (R10 A):dimensioni 60 × 60 cm, spessore 15 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:effetto cemento, con superficie antiscivolo (R10 A):dimensioni 60 × 60 cm, spessore 15 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa in piastrelle rettificate, ottenute per pressatura, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe assorbimento acqua BIa UGL:effetto cemento, con superficie antiscivolo (R10 A):dimensioni 60 × 60 cm, spessore 15 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
   },
   {
     "categoria_code": "B-FINITURE",
     "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
     "voce": "Gres porcellanato colorato in massa, ottenuto per pressatura, in lastre di bassissimo spessore rinforzate sul lato inferiore con rete in fibra di vetro, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe reazione al fuoco A2 - s1, classe assorbimento acqua Bia-UGL, ",
-    "famiglia": "finitura:PAVIMENTI E RIVESTIMENTI GRES"
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa, ottenuto per pressatura, in lastre di bassissimo spessore rinforzate sul lato inferiore con rete in fibra di vetro, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe reazione al fuoco A2 - s1, classe assorbimento acqua Bia-UGL, ",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa, ottenuto per pressatura, in lastre di bassissimo spessore rinforzate sul lato inferiore con rete in fibra di vetro, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe reazione al fuoco A2 - s1, classe assorbimento acqua Bia-UGL, ",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa, ottenuto per pressatura, in lastre di bassissimo spessore rinforzate sul lato inferiore con rete in fibra di vetro, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe reazione al fuoco A2 - s1, classe assorbimento acqua Bia-UGL, ",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa, ottenuto per pressatura, in lastre di bassissimo spessore rinforzate sul lato inferiore con rete in fibra di vetro, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe reazione al fuoco A2 - s1, classe assorbimento acqua Bia-UGL, ",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa, ottenuto per pressatura, in lastre di bassissimo spessore rinforzate sul lato inferiore con rete in fibra di vetro, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe reazione al fuoco A2 - s1, classe assorbimento acqua Bia-UGL, ",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato colorato in massa, ottenuto per pressatura, in lastre di bassissimo spessore rinforzate sul lato inferiore con rete in fibra di vetro, per pavimentazioni ad intenso calpestio, rispondenti alla norma UNI EN 14411, classe reazione al fuoco A2 - s1, classe assorbimento acqua Bia-UGL, ",
+    "famiglia": "fornitura_pavimento_gres:bagno"
   },
   {
     "categoria_code": "B-FINITURE",
     "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
     "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto cemento:120 × 120 cm, rettificato, spessore 10,5 mm",
-    "famiglia": "finitura:PAVIMENTI E RIVESTIMENTI GRES"
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto cemento:120 × 120 cm, rettificato, spessore 10,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto cemento:120 × 120 cm, rettificato, spessore 10,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto cemento:120 × 120 cm, rettificato, spessore 10,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto cemento:120 × 120 cm, rettificato, spessore 10,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto cemento:120 × 120 cm, rettificato, spessore 10,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto cemento:120 × 120 cm, rettificato, spessore 10,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
   },
   {
     "categoria_code": "B-FINITURE",
     "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
     "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 30 × 30 cm, disegno mosaico",
-    "famiglia": "finitura:PAVIMENTI E RIVESTIMENTI GRES"
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 30 × 30 cm, disegno mosaico",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 30 × 30 cm, disegno mosaico",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 30 × 30 cm, disegno mosaico",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 30 × 30 cm, disegno mosaico",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 30 × 30 cm, disegno mosaico",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 30 × 30 cm, disegno mosaico",
+    "famiglia": "fornitura_pavimento_gres:bagno"
   },
   {
     "categoria_code": "B-FINITURE",
     "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
     "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 30 × 60 cm, spessore 10 mm",
-    "famiglia": "finitura:PAVIMENTI E RIVESTIMENTI GRES"
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 30 × 60 cm, spessore 10 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 30 × 60 cm, spessore 10 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 30 × 60 cm, spessore 10 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 30 × 60 cm, spessore 10 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 30 × 60 cm, spessore 10 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 30 × 60 cm, spessore 10 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
   },
   {
     "categoria_code": "B-FINITURE",
     "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
     "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 60 × 120 cm, spessore 10,5 mm",
-    "famiglia": "finitura:PAVIMENTI E RIVESTIMENTI GRES"
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 60 × 120 cm, spessore 10,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 60 × 120 cm, spessore 10,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 60 × 120 cm, spessore 10,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 60 × 120 cm, spessore 10,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 60 × 120 cm, spessore 10,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL: effetto pietra naturale, rettificato, antiscivolo (R9): 60 × 120 cm, spessore 10,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
   },
   {
     "categoria_code": "B-FINITURE",
     "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
     "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto marmo, antiscivolo (R9), spessore 9 mm: 90 × 90 cm",
-    "famiglia": "finitura:PAVIMENTI E RIVESTIMENTI GRES"
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto marmo, antiscivolo (R9), spessore 9 mm: 90 × 90 cm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto marmo, antiscivolo (R9), spessore 9 mm: 90 × 90 cm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto marmo, antiscivolo (R9), spessore 9 mm: 90 × 90 cm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto marmo, antiscivolo (R9), spessore 9 mm: 90 × 90 cm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto marmo, antiscivolo (R9), spessore 9 mm: 90 × 90 cm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto marmo, antiscivolo (R9), spessore 9 mm: 90 × 90 cm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
   },
   {
     "categoria_code": "B-FINITURE",
     "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
     "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto marmo, antiscivolo (R9), spessore 9 mm:30 × 60 cm",
-    "famiglia": "finitura:PAVIMENTI E RIVESTIMENTI GRES"
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto marmo, antiscivolo (R9), spessore 9 mm:30 × 60 cm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto marmo, antiscivolo (R9), spessore 9 mm:30 × 60 cm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto marmo, antiscivolo (R9), spessore 9 mm:30 × 60 cm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto marmo, antiscivolo (R9), spessore 9 mm:30 × 60 cm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto marmo, antiscivolo (R9), spessore 9 mm:30 × 60 cm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto marmo, antiscivolo (R9), spessore 9 mm:30 × 60 cm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
   },
   {
     "categoria_code": "B-FINITURE",
     "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
     "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto marmo, antiscivolo (R9), spessore 9 mm:60 × 120 cm",
-    "famiglia": "finitura:PAVIMENTI E RIVESTIMENTI GRES"
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto marmo, antiscivolo (R9), spessore 9 mm:60 × 120 cm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto marmo, antiscivolo (R9), spessore 9 mm:60 × 120 cm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto marmo, antiscivolo (R9), spessore 9 mm:60 × 120 cm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto marmo, antiscivolo (R9), spessore 9 mm:60 × 120 cm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto marmo, antiscivolo (R9), spessore 9 mm:60 × 120 cm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto marmo, antiscivolo (R9), spessore 9 mm:60 × 120 cm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
   },
   {
     "categoria_code": "B-FINITURE",
     "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
     "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto pietra naturale, rettificato, antiscivolo (R9): 60 × 60 cm, spessore 10 mm",
-    "famiglia": "finitura:PAVIMENTI E RIVESTIMENTI GRES"
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto pietra naturale, rettificato, antiscivolo (R9): 60 × 60 cm, spessore 10 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto pietra naturale, rettificato, antiscivolo (R9): 60 × 60 cm, spessore 10 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto pietra naturale, rettificato, antiscivolo (R9): 60 × 60 cm, spessore 10 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto pietra naturale, rettificato, antiscivolo (R9): 60 × 60 cm, spessore 10 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto pietra naturale, rettificato, antiscivolo (R9): 60 × 60 cm, spessore 10 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto pietra naturale, rettificato, antiscivolo (R9): 60 × 60 cm, spessore 10 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
   },
   {
     "categoria_code": "B-FINITURE",
     "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
     "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto pietra naturale, rettificato, antiscivolo (R9):60 × 120 cm, spessore 10,5 mm",
-    "famiglia": "finitura:PAVIMENTI E RIVESTIMENTI GRES"
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto pietra naturale, rettificato, antiscivolo (R9):60 × 120 cm, spessore 10,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto pietra naturale, rettificato, antiscivolo (R9):60 × 120 cm, spessore 10,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto pietra naturale, rettificato, antiscivolo (R9):60 × 120 cm, spessore 10,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto pietra naturale, rettificato, antiscivolo (R9):60 × 120 cm, spessore 10,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto pietra naturale, rettificato, antiscivolo (R9):60 × 120 cm, spessore 10,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
+  },
+  {
+    "categoria_code": "B-FINITURE",
+    "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+    "voce": "Gres porcellanato smaltato in piastrelle, resistente agli sbalzi termici, al gelo e agli acidi, per pavimentazioni ad uso residenziale o terziario leggero, a norma UNI EN 14411 gruppo BIa GL:effetto pietra naturale, rettificato, antiscivolo (R9):60 × 120 cm, spessore 10,5 mm",
+    "famiglia": "fornitura_pavimento_gres:bagno"
   },
   {
     "categoria_code": "B-FINITURE",
