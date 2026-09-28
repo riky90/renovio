@@ -823,7 +823,12 @@ def test_0021_non_tocca_livello_ne_chiavi(tmp_path, monkeypatch):
 
 def test_downgrade_0021_e_poi_upgrade_e_reversibile(tmp_path, monkeypatch):
     """upgrade head -> downgrade 0020 -> upgrade head: stessi conteggi di
-    `effetto_opzione`, `voce.livello` e `domanda_mirata_key` invariati."""
+    `effetto_opzione`, `voce.livello` e `domanda_mirata_key` invariati.
+
+    WR-02: il downgrade NON cancella piu' `domanda`/`opzione_domanda` di
+    `finitura` (restano anche se create da QUESTA stessa run di upgrade, per
+    lo stesso motivo per cui non verrebbero cancellate se preesistenti — il
+    downgrade non distingue i due casi, sta sugli effetti soltanto)."""
     db_path = tmp_path / "reversibile_0021.db"
     config = _alembic_config(db_path, monkeypatch)
     command.upgrade(config, "0020")
@@ -853,13 +858,13 @@ def test_downgrade_0021_e_poi_upgrade_e_reversibile(tmp_path, monkeypatch):
     try:
         assert connessione.execute(
             "SELECT code FROM domanda WHERE code = 'finitura'"
-        ).fetchone() is None
+        ).fetchone() is not None  # WR-02: la domanda non viene piu' cancellata
         assert connessione.execute(
             "SELECT COUNT(*) FROM opzione_domanda WHERE domanda_code = 'finitura'"
-        ).fetchone()[0] == 0
+        ).fetchone()[0] == 3  # idem per le opzioni base/medio/alto
         assert connessione.execute(
             "SELECT COUNT(*) FROM effetto_opzione WHERE tipo_effetto IN ('includi', 'quantita_per_unita')"
-        ).fetchone()[0] == 0
+        ).fetchone()[0] == 0  # ma gli effetti creati dall'upgrade sono rimossi
         livelli_dopo_downgrade = connessione.execute("SELECT id, livello FROM voce ORDER BY id").fetchall()
         chiavi_dopo_downgrade = connessione.execute(
             "SELECT voce_id, tipo_code, domanda_mirata_key FROM coefficiente_qta_voce ORDER BY voce_id, tipo_code"
@@ -885,6 +890,131 @@ def test_downgrade_0021_e_poi_upgrade_e_reversibile(tmp_path, monkeypatch):
         assert chiavi_dopo == chiavi_prima
     finally:
         connessione.close()
+
+
+def test_downgrade_0021_preserva_finitura_preesistente_e_effetto_curato_a_mano(tmp_path, monkeypatch):
+    """WR-02 (09-14): se `finitura` preesisteva PRIMA di 0021 (come fa il
+    seed su un DB nuovo) e ha un effetto `includi` curato a mano su una voce
+    SENZA livello, il downgrade lascia domanda, opzioni e quell'effetto —
+    rimuove solo gli `includi` il cui bersaglio ha `voce.livello` uguale al
+    code dell'opzione (quelli che la sezione (A) dell'upgrade crea)."""
+    db_path = tmp_path / "finitura_preesistente.db"
+    config = _alembic_config(db_path, monkeypatch)
+    command.upgrade(config, "0020")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        id_ = _semina_curatela_09_04(connessione)
+
+        # finitura preesistente (come la crea il seed su un DB nuovo, D-41)
+        connessione.execute(
+            "INSERT INTO domanda (code, testo, tipo_controllo, gruppo, ordine, tier_minimo)"
+            " VALUES ('finitura', 'Livello di finitura', 'scelta_singola', 'configuratore_pro', 200, 'pro')"
+        )
+        cursore = connessione.execute(
+            "INSERT INTO opzione_domanda (domanda_code, code, etichetta, is_default, ordine)"
+            " VALUES ('finitura', 'medio', 'Medio', 1, 2)"
+        )
+        opzione_medio_id = cursore.lastrowid
+
+        # effetto includi curato a mano su una voce SENZA livello: l'upgrade
+        # (sezione A) non lo crea e non lo tocca, quindi il downgrade non
+        # deve toccarlo nemmeno lui.
+        connessione.execute(
+            "INSERT INTO effetto_opzione (opzione_id, tipo_effetto, target_voce_id, attivo)"
+            " VALUES (?, 'includi', ?, 1)",
+            (opzione_medio_id, id_["voce_senza_livello"]),
+        )
+        connessione.commit()
+    finally:
+        connessione.close()
+
+    command.upgrade(config, "0021")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        # l'upgrade non duplica l'opzione 'medio' gia' presente, ne crea
+        # 'base'/'alto' e i loro includi sulle voci livellate
+        opzioni = connessione.execute(
+            "SELECT code FROM opzione_domanda WHERE domanda_code = 'finitura' ORDER BY code"
+        ).fetchall()
+        assert opzioni == [("alto",), ("base",), ("medio",)]
+    finally:
+        connessione.close()
+
+    command.downgrade(config, "0020")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        # domanda e opzioni restano TUTTE (WR-02), non solo quella preesistente
+        assert connessione.execute(
+            "SELECT code FROM domanda WHERE code = 'finitura'"
+        ).fetchone() is not None
+        assert connessione.execute(
+            "SELECT COUNT(*) FROM opzione_domanda WHERE domanda_code = 'finitura'"
+        ).fetchone()[0] == 3
+
+        # l'effetto curato a mano su una voce SENZA livello sopravvive
+        curato_superstite = connessione.execute(
+            "SELECT COUNT(*) FROM effetto_opzione WHERE opzione_id = ? AND tipo_effetto = 'includi'"
+            " AND target_voce_id = ?",
+            (opzione_medio_id, id_["voce_senza_livello"]),
+        ).fetchone()[0]
+        assert curato_superstite == 1
+
+        # gli includi che l'upgrade HA creato (voce.livello == opzione.code)
+        # sono rimossi: solo quello curato a mano resta in tutta la tabella
+        totale_includi = connessione.execute(
+            "SELECT COUNT(*) FROM effetto_opzione WHERE tipo_effetto = 'includi'"
+        ).fetchone()[0]
+        assert totale_includi == 1
+
+        assert connessione.execute("PRAGMA foreign_key_check").fetchall() == []
+        assert connessione.execute("PRAGMA integrity_check").fetchone() == ("ok",)
+    finally:
+        connessione.close()
+
+
+def test_downgrade_0021_e_poi_upgrade_non_crea_doppioni_su_finitura_preesistente(tmp_path, monkeypatch):
+    """upgrade -> downgrade 0020 -> upgrade su una `finitura` preesistente non
+    crea doppioni: stessi conteggi di `effetto_opzione` prima e dopo il
+    round-trip."""
+    db_path = tmp_path / "finitura_preesistente_roundtrip.db"
+    config = _alembic_config(db_path, monkeypatch)
+    command.upgrade(config, "0020")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        _semina_curatela_09_04(connessione)
+        connessione.execute(
+            "INSERT INTO domanda (code, testo, tipo_controllo, gruppo, ordine, tier_minimo)"
+            " VALUES ('finitura', 'Livello di finitura', 'scelta_singola', 'configuratore_pro', 200, 'pro')"
+        )
+        connessione.execute(
+            "INSERT INTO opzione_domanda (domanda_code, code, etichetta, is_default, ordine)"
+            " VALUES ('finitura', 'medio', 'Medio', 1, 2)"
+        )
+        connessione.commit()
+    finally:
+        connessione.close()
+
+    command.upgrade(config, "0021")
+    conteggio_prima = _conta_effetti(db_path)
+
+    command.downgrade(config, "0020")
+    command.upgrade(config, "0021")
+    conteggio_dopo = _conta_effetti(db_path)
+
+    assert conteggio_dopo == conteggio_prima
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        opzioni = connessione.execute(
+            "SELECT COUNT(*) FROM opzione_domanda WHERE domanda_code = 'finitura'"
+        ).fetchone()[0]
+    finally:
+        connessione.close()
+    assert opzioni == 3  # nessun doppione sulle opzioni neanche in questo scenario
 
 
 # ---------------------------------------------------------------------------

@@ -329,9 +329,18 @@ def downgrade() -> None:
     """Rimuove esattamente gli effetti che questa migrazione avrebbe creato.
 
     Non tocca `voce.livello` ne' `coefficiente_qta_voce.domanda_mirata_key`
-    (dato storico, mai scritto da questa migrazione). Ordine esplicito:
-    effetti -> opzioni -> domanda, perche' SQLite non applica i CASCADE senza
-    `PRAGMA foreign_keys=ON`.
+    (dato storico, mai scritto da questa migrazione).
+
+    WR-02 (code review 09-08): non cancella piu' `domanda`/`opzione_domanda`
+    di `finitura`. `upgrade()` le crea SOLO se `riga_domanda is None` — su un
+    DB dove `finitura` preesisteva (es. gia' seminata dal seed su un DB
+    nuovo, D-41) l'upgrade e' un no-op per la sezione (A), ma il vecchio
+    downgrade cancellava comunque domanda/opzioni, distruggendo curatela che
+    l'upgrade non aveva mai scritto — un downgrade asimmetrico e non
+    idempotente. Ora la sezione (A) del downgrade rimuove SOLO gli effetti
+    `includi` il cui bersaglio e' una voce con `voce.livello == opzione.code`
+    — esattamente cio' che la sezione (A) dell'upgrade crea, stesso principio
+    della 0022 (il cui downgrade tocca solo effetti, mai domanda/opzione).
     """
     bind = op.get_bind()
     (
@@ -382,21 +391,26 @@ def downgrade() -> None:
             )
         )
 
-    # --- (A) domanda finitura + opzioni + effetti includi ------------------
-    riga_domanda = bind.execute(
-        sa.select(domanda.c.code).where(domanda.c.code == DOMANDA_FINITURA)
-    ).first()
-    if riga_domanda is not None:
-        opzioni_finitura = bind.execute(
-            sa.select(opzione.c.id).where(opzione.c.domanda_code == DOMANDA_FINITURA)
+    # --- (A) solo gli effetti includi creati da QUESTA migrazione ----------
+    # Bersaglio: voce.livello == opzione.code — la stessa condizione che la
+    # sezione (A) dell'upgrade usa per crearli. Un `includi` curato a mano su
+    # una voce SENZA livello (bersaglio non prodotto dall'upgrade) non viene
+    # mai toccato; `domanda`/`opzione_domanda` restano sempre, anche se dopo
+    # questo downgrade non hanno piu' alcun effetto `includi` residuo.
+    opzioni_finitura = bind.execute(
+        sa.select(opzione.c.id, opzione.c.code).where(opzione.c.domanda_code == DOMANDA_FINITURA)
+    ).all()
+    for opzione_id, opzione_code in opzioni_finitura:
+        voci_del_livello = bind.execute(
+            sa.select(voce.c.id).where(voce.c.livello == opzione_code)
         ).all()
-        opzione_ids = [riga[0] for riga in opzioni_finitura]
-        if opzione_ids:
-            bind.execute(
-                sa.delete(effetto).where(
-                    effetto.c.opzione_id.in_(opzione_ids),
-                    effetto.c.tipo_effetto == TIPO_INCLUDI,
-                )
+        voce_ids = [riga[0] for riga in voci_del_livello]
+        if not voce_ids:
+            continue
+        bind.execute(
+            sa.delete(effetto).where(
+                effetto.c.opzione_id == opzione_id,
+                effetto.c.tipo_effetto == TIPO_INCLUDI,
+                effetto.c.target_voce_id.in_(voce_ids),
             )
-            bind.execute(sa.delete(opzione).where(opzione.c.id.in_(opzione_ids)))
-        bind.execute(sa.delete(domanda).where(domanda.c.code == DOMANDA_FINITURA))
+        )
