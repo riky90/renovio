@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { Navigate, useNavigate, useSearchParams } from "react-router";
+import { Navigate, useLocation, useNavigate, useSearchParams } from "react-router";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { EstimateWizard, type EstimateWizardSubmit } from "@/components/EstimateWizard";
@@ -7,13 +7,15 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
-import { postSalvaStima, postStima } from "@/api/stima";
+import { postSalvaStima, postStima, type Destinazione } from "@/api/stima";
+import type { Risposte, ValoreRisposta } from "@/api/domande";
 import type { CampiBase, TipoRistrutturazione } from "@/components/EstimateFormFields";
 
 const ERROR_COPY =
   "Non siamo riusciti a calcolare la stima. Controlla i dati inseriti e riprova. Se il problema persiste, riprova tra qualche istante.";
 
 const TIPI: TipoRistrutturazione[] = ["leggera", "moderata", "totale"];
+const DESTINAZIONI: Destinazione[] = ["prima_casa", "altro"];
 
 /**
  * Legge i query param del "Rifai in versione Pro" (Fase 1). Ogni valore è
@@ -35,6 +37,44 @@ function inizialiDaQuery(params: URLSearchParams): Partial<CampiBase> {
 }
 
 /**
+ * Un valore ammissibile in `Risposte`: stringa, numero finito o array di
+ * stringhe. Qualunque altra forma (oggetti annidati, NaN/Infinity, array
+ * misti) fa scartare l'INTERO stato invece di provare a ripararlo — arriva
+ * da `history.state`, manipolabile quanto un query param (T-09-51).
+ */
+function valoreRispostaValido(valore: unknown): valore is ValoreRisposta {
+  if (typeof valore === "string") return true;
+  if (typeof valore === "number") return Number.isFinite(valore);
+  if (Array.isArray(valore)) return valore.every((v) => typeof v === "string");
+  return false;
+}
+
+/**
+ * Legge `history.state` del "Vai alla stima Pro" da una stima non salvata
+ * (09-12, gap G3). Non e' fidato quanto i query param: qualunque valore fuori
+ * forma scarta l'intero campo (mai una risposta parziale/corrotta).
+ */
+function datiDaStato(state: unknown): { risposte?: Risposte; destinazione?: Destinazione } {
+  if (typeof state !== "object" || state === null) return {};
+  const obj = state as Record<string, unknown>;
+
+  let risposte: Risposte | undefined;
+  if (typeof obj.risposte === "object" && obj.risposte !== null && !Array.isArray(obj.risposte)) {
+    const candidato = obj.risposte as Record<string, unknown>;
+    if (Object.values(candidato).every(valoreRispostaValido)) {
+      risposte = candidato as Risposte;
+    }
+  }
+
+  let destinazione: Destinazione | undefined;
+  if (typeof obj.destinazione === "string" && (DESTINAZIONI as string[]).includes(obj.destinazione)) {
+    destinazione = obj.destinazione as Destinazione;
+  }
+
+  return { ...(risposte ? { risposte } : {}), ...(destinazione ? { destinazione } : {}) };
+}
+
+/**
  * Flusso Pro completo: form a due step → POST /stima → POST /me/stime con le
  * preferenze → dettaglio Pro.
  *
@@ -44,7 +84,11 @@ function inizialiDaQuery(params: URLSearchParams): Partial<CampiBase> {
 export function NuovaStimaProPage() {
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
+
+  const { risposte, destinazione } = datiDaStato(location.state);
+  const stepIniziale = risposte ? 4 : undefined;
 
   const mutation = useMutation({
     mutationFn: async ({ values, risposte, preferenze }: EstimateWizardSubmit) => {
@@ -76,6 +120,11 @@ export function NuovaStimaProPage() {
           Quattro passaggi: dove, l'immobile, la ristrutturazione, le finiture. Il dettaglio
           voce per voce si apre alla fine.
         </p>
+        {risposte && (
+          <p className="text-sm text-muted-foreground">
+            Abbiamo ripreso i dati della stima appena fatta. Puoi tornare indietro per cambiarli.
+          </p>
+        )}
       </header>
 
       <div className="mt-8 rounded-2xl border border-border bg-card p-6 shadow-lg shadow-black/[0.03] sm:p-8">
@@ -88,7 +137,9 @@ export function NuovaStimaProPage() {
           tier="pro"
           onSubmit={(payload) => mutation.mutate(payload)}
           isSubmitting={mutation.isPending}
-          iniziali={inizialiDaQuery(searchParams)}
+          iniziali={{ ...inizialiDaQuery(searchParams), ...(destinazione ? { destinazione } : {}) }}
+          risposteDiPartenza={risposte}
+          stepIniziale={stepIniziale}
         />
       </div>
 
