@@ -27,9 +27,15 @@ from app.services.computo_parsing import (
 import app.services.import_excel.parametri  # noqa: F401 - registra l'handler "parametri"
 from app.services.import_excel.registry import risolvi_handler
 from scripts.genera_excel_taratura import (
+    OPZIONI_CON_QUOTA_BAGNO_A6_1,
+    OPZIONI_TIPO_PAVIMENTO,
+    VoceTaraturaInfo,
+    _FATTORE_BAGNO_PROPOSTO,
     accetta_bozza,
+    aggiorna_foglio_assi,
     costruisci_workbook_taratura,
     leggi_decisioni,
+    proponi_assegnazione,
 )
 from scripts.seed import load_seed_data, seed
 from tests.session_factory import sessione_di_test
@@ -431,3 +437,294 @@ class TestWorkbookTaratura:
         wb = costruisci_workbook_taratura(session)
         ws = wb["dati_richiesti"]
         assert ws.max_row - 1 >= 14
+
+
+# --- 09-09-PLAN.md Task 1: G1/G2 (09-HUMAN-UAT.md) ---------------------------
+# Regole di proposta per i nuovi pavimenti (laminato/vinilico_lvt/moquette),
+# A.6 intera, gres a pavimento; aggiornamento del foglio assi_proposti di un
+# workbook esistente.
+
+
+def _voce(
+    voce_id: int,
+    *,
+    categoria_code: str = "A-EDILE",
+    sottocategoria_codice: str | None = "A.6",
+    sottocategoria_nome: str = "A.6 PAVIMENTI E RIVESTIMENTI",
+    famiglia: str = "gerarchica",
+    codice_voce: str | None = None,
+    descrizione: str = "",
+    um: str = "mq",
+    prezzo: Decimal = Decimal("10"),
+    livello: str | None = None,
+    domanda_mirata_key: str | None = None,
+) -> VoceTaraturaInfo:
+    return VoceTaraturaInfo(
+        voce_id=voce_id,
+        categoria_code=categoria_code,
+        sottocategoria_codice=sottocategoria_codice,
+        sottocategoria_nome=sottocategoria_nome,
+        famiglia=famiglia,
+        codice_voce=codice_voce,
+        descrizione=descrizione,
+        um=um,
+        prezzo_unitario_cliente=prezzo,
+        livello_attuale=livello,
+        domanda_mirata_key=domanda_mirata_key,
+    )
+
+
+def _voci_a6() -> list[VoceTaraturaInfo]:
+    return [
+        _voce(1, codice_voce="A.6.1", descrizione="Posa in opera della pavimentazione con disegno a correre"),
+        _voce(2, codice_voce="A.6.2", descrizione="Posa in opera di parquet prefinito a correre incollato o flottante"),
+        _voce(3, codice_voce="A.6.3", descrizione="Posa in opera dei rivestimenti formati da 20 a 60 cm"),
+        _voce(4, codice_voce="A.6.4", descrizione="Posa in opera dei rivestimenti formati da 65 a 120 cm"),
+        _voce(5, codice_voce="A.6.5", descrizione="Posa in opera dei rivestimenti MAXI LASTRA"),
+        _voce(6, codice_voce="A.6.6", descrizione="Posa in opera di mosaico"),
+        _voce(7, codice_voce="A.6.7", descrizione="Posa in opera di battiscopa in legno mediante l'ausilio di chiodini", um="ml"),
+        _voce(8, codice_voce="A.6.8", descrizione="Posa in opera di battiscopa in ceramica", um="ml"),
+        _voce(9, codice_voce="A.6.9", descrizione="Arrotatura, levigatura e lucidatura di pavimenti in marmo"),
+        _voce(10, codice_voce="A.6.10", descrizione="Levigatura e Lucidatura di pavimenti in parquet"),
+        _voce(11, codice_voce="A.6.11", descrizione="Taglio porta blindata per allarme", um="ac"),
+    ]
+
+
+class TestProponiAssegnazioneA6Intera:
+    def test_a62_produce_tre_righe_parquet_laminato_vinilico(self):
+        righe = proponi_assegnazione(_voci_a6())
+        opzioni = {r.opzione_proposta for r in righe if r.codice_voce == "A.6.2"}
+        assert opzioni == {"parquet", "laminato", "vinilico_lvt"}
+        assert all(r.asse_proposto == "tipo_pavimento" for r in righe if r.codice_voce == "A.6.2")
+
+    def test_a67_battiscopa_legno_quattro_opzioni(self):
+        righe = proponi_assegnazione(_voci_a6())
+        opzioni = {r.opzione_proposta for r in righe if r.codice_voce == "A.6.7"}
+        assert opzioni == {"parquet", "laminato", "vinilico_lvt", "moquette"}
+
+    def test_a68_battiscopa_ceramica_tre_opzioni(self):
+        righe = proponi_assegnazione(_voci_a6())
+        opzioni = {r.opzione_proposta for r in righe if r.codice_voce == "A.6.8"}
+        assert opzioni == {"gres", "maxi_lastra", "mosaico"}
+
+    def test_a610_solo_parquet(self):
+        righe = proponi_assegnazione(_voci_a6())
+        righe_a610 = [r for r in righe if r.codice_voce == "A.6.10"]
+        assert len(righe_a610) == 1
+        assert righe_a610[0].opzione_proposta == "parquet"
+
+    def test_a69_asse_escludi_sempre(self):
+        righe = proponi_assegnazione(_voci_a6())
+        righe_a69 = [r for r in righe if r.codice_voce == "A.6.9"]
+        assert len(righe_a69) == 1
+        assert righe_a69[0].asse_proposto == "escludi_sempre"
+        assert righe_a69[0].opzione_proposta is None
+
+    def test_a63_a64_asse_finitura_base_medio_alto(self):
+        righe = proponi_assegnazione(_voci_a6())
+        opzioni_63 = {r.opzione_proposta for r in righe if r.codice_voce == "A.6.3"}
+        opzioni_64 = {r.opzione_proposta for r in righe if r.codice_voce == "A.6.4"}
+        assert opzioni_63 == {"base", "medio"}
+        assert opzioni_64 == {"alto"}
+        assert all(r.asse_proposto == "finitura" for r in righe if r.codice_voce in ("A.6.3", "A.6.4"))
+        assert all(
+            r.famiglia_alternativa == "posa_rivestimento_A6" for r in righe if r.codice_voce in ("A.6.3", "A.6.4")
+        )
+
+    def test_a61_fattore_pavimento_cinque_opzioni_senza_moquette(self):
+        righe = proponi_assegnazione(_voci_a6())
+        righe_fattore = [r for r in righe if r.codice_voce == "A.6.1" and r.asse_proposto == "fattore_pavimento"]
+        opzioni = {r.opzione_proposta for r in righe_fattore}
+        assert opzioni == set(OPZIONI_CON_QUOTA_BAGNO_A6_1)
+        assert "moquette" not in opzioni
+        for r in righe_fattore:
+            assert r.fattore_quantita == _FATTORE_BAGNO_PROPOSTO
+
+    def test_a611_nessuna_riga_resta_comune(self):
+        righe = proponi_assegnazione(_voci_a6())
+        assert not any(r.codice_voce == "A.6.11" for r in righe)
+
+
+class TestProponiAssegnazioneForniturePavimenti:
+    def _voci_catalogo(self) -> list[VoceTaraturaInfo]:
+        return [
+            _voce(
+                101, categoria_code="B-FINITURE", sottocategoria_codice=None, sottocategoria_nome="PAVIMENTI",
+                famiglia="catalogo", descrizione="Vinilico multistrato LVT in listoni", um="mq",
+            ),
+            _voce(
+                102, categoria_code="B-FINITURE", sottocategoria_codice=None, sottocategoria_nome="PAVIMENTI",
+                famiglia="catalogo", descrizione="Pavimento in laminato antistatico", um="mq",
+            ),
+            _voce(
+                103, categoria_code="B-FINITURE", sottocategoria_codice=None, sottocategoria_nome="PAVIMENTI",
+                famiglia="catalogo", descrizione="Unilin sottofondo in schiuma senza barriera vapore", um="mq",
+            ),
+            _voce(
+                104, categoria_code="B-FINITURE", sottocategoria_codice=None, sottocategoria_nome="PAVIMENTI",
+                famiglia="catalogo", descrizione="Moquette in quadrotte autoposanti", um="mq",
+            ),
+            _voce(
+                105, categoria_code="B-FINITURE", sottocategoria_codice=None, sottocategoria_nome="BATTISCOPA",
+                famiglia="catalogo", descrizione="Zoccolino in legno massello", um="ml",
+            ),
+            _voce(
+                106, categoria_code="B-FINITURE", sottocategoria_codice=None, sottocategoria_nome="BATTISCOPA",
+                famiglia="catalogo", descrizione="Zoccolino in gres porcellanato", um="ml",
+            ),
+        ]
+
+    def test_vinilico_governato_da_vinilico_lvt(self):
+        righe = proponi_assegnazione(self._voci_catalogo())
+        riga = next(r for r in righe if r.voce_id == 101)
+        assert riga.asse_proposto == "tipo_pavimento"
+        assert riga.opzione_proposta == "vinilico_lvt"
+        assert riga.famiglia_alternativa == "fornitura_pavimento_vinilico"
+
+    def test_laminato_governato_da_laminato(self):
+        righe = proponi_assegnazione(self._voci_catalogo())
+        riga = next(r for r in righe if r.voce_id == 102)
+        assert riga.opzione_proposta == "laminato"
+        assert riga.famiglia_alternativa == "fornitura_pavimento_laminato"
+
+    def test_sottofondo_governato_da_laminato_famiglia_distinta(self):
+        righe = proponi_assegnazione(self._voci_catalogo())
+        riga = next(r for r in righe if r.voce_id == 103)
+        assert riga.opzione_proposta == "laminato"
+        assert riga.famiglia_alternativa == "sottofondo_laminato"
+
+    def test_moquette_governata_da_moquette(self):
+        righe = proponi_assegnazione(self._voci_catalogo())
+        riga = next(r for r in righe if r.voce_id == 104)
+        assert riga.opzione_proposta == "moquette"
+        assert riga.famiglia_alternativa == "fornitura_pavimento_moquette"
+
+    def test_zoccolino_legno_quattro_opzioni(self):
+        righe = proponi_assegnazione(self._voci_catalogo())
+        opzioni = {r.opzione_proposta for r in righe if r.voce_id == 105}
+        assert opzioni == {"parquet", "laminato", "vinilico_lvt", "moquette"}
+
+    def test_zoccolino_gres_tre_opzioni(self):
+        righe = proponi_assegnazione(self._voci_catalogo())
+        opzioni = {r.opzione_proposta for r in righe if r.voce_id == 106}
+        assert opzioni == {"gres", "maxi_lastra", "mosaico"}
+
+    def test_nessuna_voce_pavimento_resta_sempre_inclusa(self):
+        righe = proponi_assegnazione(self._voci_catalogo())
+        for voce_id in (101, 102, 103, 104):
+            assert not any(r.voce_id == voce_id and r.asse_proposto == "sempre_inclusa" for r in righe)
+
+
+class TestProponiAssegnazioneGresAPavimento:
+    def test_gres_a_pavimento_famiglia_dedicata_e_fattore_bagno(self):
+        voce = _voce(
+            201,
+            categoria_code="B-FINITURE",
+            sottocategoria_codice=None,
+            sottocategoria_nome="PAVIMENTI E RIVESTIMENTI GRES",
+            famiglia="catalogo",
+            descrizione="Fornitura gres porcellanato per pavimentazioni interne",
+            um="mq",
+            livello="medio",
+        )
+        righe = proponi_assegnazione([voce])
+
+        riga_finitura = next(r for r in righe if r.asse_proposto == "finitura")
+        assert riga_finitura.famiglia_alternativa == "fornitura_pavimento_gres"
+        assert riga_finitura.opzione_proposta == "medio"
+
+        righe_fattore = [r for r in righe if r.asse_proposto == "fattore_pavimento"]
+        opzioni = {r.opzione_proposta for r in righe_fattore}
+        assert opzioni == {o for o in OPZIONI_TIPO_PAVIMENTO if o != "gres"}
+        for r in righe_fattore:
+            assert r.fattore_quantita == _FATTORE_BAGNO_PROPOSTO
+            assert r.famiglia_alternativa == "fornitura_pavimento_gres"
+
+    def test_gres_rivestimento_resta_famiglia_finitura_sottocategoria(self):
+        voce = _voce(
+            202,
+            categoria_code="B-FINITURE",
+            sottocategoria_codice=None,
+            sottocategoria_nome="PAVIMENTI E RIVESTIMENTI GRES",
+            famiglia="catalogo",
+            descrizione="Fornitura gres porcellanato per rivestimenti bagno",
+            um="mq",
+            livello="base",
+        )
+        righe = proponi_assegnazione([voce])
+
+        riga = next(r for r in righe if r.voce_id == 202)
+        assert riga.famiglia_alternativa == "finitura:PAVIMENTI E RIVESTIMENTI GRES"
+        assert not any(r.asse_proposto == "fattore_pavimento" for r in righe)
+
+
+class TestAggiornaFoglioAssi:
+    @pytest.fixture()
+    def session(self):
+        engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
+        Base.metadata.create_all(bind=engine)
+        testing_session_local = sessione_di_test(engine)
+        with testing_session_local() as s:
+            seed(s, load_seed_data())
+            yield s
+
+    def test_conserva_decisione_e_note_su_chiave_identica(self, session):
+        from scripts.genera_excel_taratura import _carica_voci_taratura
+
+        wb = costruisci_workbook_taratura(session)
+        ws = wb["assi_proposti"]
+        header = [c.value for c in next(ws.iter_rows(min_row=1, max_row=1))]
+        idx = {n: i for i, n in enumerate(header)}
+        prima_riga = next(ws.iter_rows(min_row=2, max_row=2))
+        prima_riga[idx["decisione"]].value = "MODIFICATO"
+        prima_riga[idx["note"]].value = "nota di Riccardo"
+        voce_id = prima_riga[idx["voce_id"]].value
+        asse = prima_riga[idx["asse_proposto"]].value
+        opzione = prima_riga[idx["opzione_proposta"]].value
+
+        info = _carica_voci_taratura(session)
+        righe_nuove = proponi_assegnazione(list(info.values()))
+
+        aggiornato = aggiorna_foglio_assi(wb, righe_nuove)
+        ws_agg = aggiornato["assi_proposti"]
+        header_agg = [c.value for c in next(ws_agg.iter_rows(min_row=1, max_row=1))]
+        idx_agg = {n: i for i, n in enumerate(header_agg)}
+        trovata = next(
+            r
+            for r in ws_agg.iter_rows(min_row=2, values_only=True)
+            if r[idx_agg["voce_id"]] == voce_id
+            and r[idx_agg["asse_proposto"]] == asse
+            and r[idx_agg["opzione_proposta"]] == opzione
+        )
+        assert trovata[idx_agg["decisione"]] == "MODIFICATO"
+        assert trovata[idx_agg["note"]] == "nota di Riccardo"
+
+    def test_righe_nuove_bozza_accettata_ok_con_nota(self, session):
+        from scripts.genera_excel_taratura import _NOTE_BOZZA_ACCETTATA, _carica_voci_taratura
+
+        wb = costruisci_workbook_taratura(session)
+        bozza = accetta_bozza(wb)
+
+        info = _carica_voci_taratura(session)
+        righe_nuove = proponi_assegnazione(list(info.values()))
+
+        aggiornato = aggiorna_foglio_assi(bozza, righe_nuove)
+        ws_agg = aggiornato["assi_proposti"]
+        header_agg = [c.value for c in next(ws_agg.iter_rows(min_row=1, max_row=1))]
+        idx_agg = {n: i for i, n in enumerate(header_agg)}
+        for r in ws_agg.iter_rows(min_row=2, values_only=True):
+            assert r[idx_agg["decisione"]] == "OK"
+            assert r[idx_agg["note"]] == _NOTE_BOZZA_ACCETTATA
+
+    def test_coefficienti_pro_invariato_byte_per_byte_nei_valori(self, session):
+        from scripts.genera_excel_taratura import _carica_voci_taratura
+
+        wb = costruisci_workbook_taratura(session)
+        valori_prima = [[c.value for c in row] for row in wb["coefficienti_pro"].iter_rows()]
+
+        info = _carica_voci_taratura(session)
+        righe_nuove = proponi_assegnazione(list(info.values()))
+        aggiornato = aggiorna_foglio_assi(wb, righe_nuove)
+
+        valori_dopo = [[c.value for c in row] for row in aggiornato["coefficienti_pro"].iter_rows()]
+        assert valori_prima == valori_dopo
