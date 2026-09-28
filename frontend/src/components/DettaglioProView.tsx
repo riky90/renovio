@@ -98,6 +98,22 @@ export function DettaglioProView({ stimaId, enabled = true }: DettaglioProViewPr
     },
   });
 
+  /**
+   * Cambio di una domanda a scelta (es. pavimento), sempre visibile fuori dal
+   * pannello collassato (09-12, gap G3): ricalcola SUBITO, senza passare da
+   * "Modifica"/"Calcola il dettaglio" (D-06). `onSuccess` ricollassa comunque
+   * il pannello — il blocco del pavimento resta visibile lo stesso, e' fuori
+   * dall'alternativa collassato/espanso.
+   */
+  function handleSceltaChange(code: string, valore: ValoreRisposta) {
+    // Nessun invio concorrente (T-09-52): finche' una mutation e' in corso, un
+    // secondo click su un'altra opzione non parte.
+    if (risposteMutation.isPending) return;
+    const aggiornate = { ...risposteInput, [code]: valore };
+    setRisposteInput(aggiornate);
+    risposteMutation.mutate(aggiornate as Record<string, number | string>);
+  }
+
   const pdfMutation = useMutation({ mutationFn: () => scaricaPdfPro(stimaId) });
 
   useEffect(() => {
@@ -180,6 +196,35 @@ export function DettaglioProView({ stimaId, enabled = true }: DettaglioProViewPr
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-4 rounded-lg border border-border bg-secondary p-6">
         <h2 className="text-base font-semibold text-foreground">Qualche dettaglio in più</h2>
+
+        {/* Domande a scelta (pavimento incluso): SEMPRE visibili, fuori
+            dall'alternativa collassato/espanso (09-12, gap G3) — cambiarle
+            ricalcola subito, senza aprire il pannello con "Modifica". */}
+        {domandeScelta.length > 0 && (
+          <div className="flex flex-col gap-4">
+            {domandeScelta.map((domanda) => (
+              <DomandaField
+                key={domanda.code}
+                domanda={domanda}
+                valore={risposteInput[domanda.code] ?? domanda.valore ?? undefined}
+                onChange={(valore) => handleSceltaChange(domanda.code, valore)}
+                griglia={domanda.opzioni.length === 4 ? "due-colonne" : undefined}
+              />
+            ))}
+            {risposteMutation.isPending && (
+              <span className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="size-4 animate-spin" aria-hidden />
+                Ricalcolo in corso…
+              </span>
+            )}
+            {risposteMutation.isError && (
+              <Alert variant="destructive">
+                <AlertDescription>{CALC_ERROR_COPY}</AlertDescription>
+              </Alert>
+            )}
+          </div>
+        )}
+
         {domandeCollassate ? (
           <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-foreground">
             <span>
@@ -237,20 +282,6 @@ export function DettaglioProView({ stimaId, enabled = true }: DettaglioProViewPr
                       })}
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-
-            {domandeScelta.length > 0 && (
-              <div className="flex flex-col gap-4">
-                {domandeScelta.map((domanda) => (
-                  <DomandaField
-                    key={domanda.code}
-                    domanda={domanda}
-                    valore={risposteInput[domanda.code] ?? domanda.valore ?? undefined}
-                    onChange={(valore) => handleFieldChange(domanda.code, valore)}
-                    griglia={domanda.opzioni.length === 4 ? "due-colonne" : undefined}
-                  />
                 ))}
               </div>
             )}
