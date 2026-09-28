@@ -224,7 +224,7 @@ def test_includi_su_sottocategoria_governa_tutte_le_sue_voci(session):
 
 
 def test_escludi_vince_anche_su_una_voce_altrimenti_inclusa(session):
-    voce = _voce_a6(session, "A.6.9")  # non governata da alcun asse del seed
+    voce = _voce_a6(session, "A.6.11")  # non governata da alcun asse del seed (09-10: A.6.9 ora esclusa da tutte le finiture, G2)
     sotto = _sotto_a6(session)
 
     domanda = _aggiungi_domanda(session, code="test_escludi", tipo_controllo="toggle")
@@ -259,7 +259,7 @@ def test_escludi_su_categoria_e_sottocategoria(session):
 
 
 def test_voce_non_governata_e_non_esclusa_e_inclusa(session):
-    voce = _voce_a6(session, "A.6.9")
+    voce = _voce_a6(session, "A.6.11")
     sotto = _sotto_a6(session)
 
     ris = risolvi_effetti_pro(session, mq=85, tipo="totale", risposte={})
@@ -271,7 +271,7 @@ def test_voce_non_governata_e_non_esclusa_e_inclusa(session):
 
 
 def test_quantita_per_unita_risposta_numerica_moltiplica_il_valore(session):
-    voce = _voce_a6(session, "A.6.9")
+    voce = _voce_a6(session, "A.6.11")
     domanda = _aggiungi_domanda(
         session, code="test_qta", tipo_controllo="stepper", attributo_code="test_qta"
     )
@@ -287,7 +287,7 @@ def test_quantita_per_unita_risposta_numerica_moltiplica_il_valore(session):
 
 
 def test_quantita_per_unita_due_effetti_sulla_stessa_voce_si_sommano(session):
-    voce = _voce_a6(session, "A.6.9")
+    voce = _voce_a6(session, "A.6.11")
     domanda = _aggiungi_domanda(
         session, code="test_qta_somma", tipo_controllo="stepper", attributo_code="test_qta_somma"
     )
@@ -306,7 +306,7 @@ def test_quantita_per_unita_due_effetti_sulla_stessa_voce_si_sommano(session):
 
 
 def test_quantita_per_unita_senza_risposta_usa_atteso(session):
-    voce = _voce_a6(session, "A.6.9")
+    voce = _voce_a6(session, "A.6.11")
     domanda = _aggiungi_domanda(
         session, code="test_qta_atteso", tipo_controllo="stepper", attributo_code="bagni"
     )
@@ -323,7 +323,7 @@ def test_quantita_per_unita_senza_risposta_usa_atteso(session):
 
 
 def test_quantita_per_unita_senza_atteso_non_produce_voce(session):
-    voce = _voce_a6(session, "A.6.9")
+    voce = _voce_a6(session, "A.6.11")
     domanda = _aggiungi_domanda(
         session,
         code="test_qta_senza_atteso",
@@ -352,7 +352,7 @@ def test_quantita_per_unita_senza_atteso_non_produce_voce(session):
 
 
 def test_fattore_quantita_su_voce_e_su_sottocategoria_si_moltiplicano(session):
-    voce = _voce_a6(session, "A.6.9")
+    voce = _voce_a6(session, "A.6.11")
     sotto = _sotto_a6(session)
 
     domanda = _aggiungi_domanda(session, code="test_fattore", tipo_controllo="toggle")
@@ -378,7 +378,7 @@ def test_fattore_quantita_su_voce_e_su_sottocategoria_si_moltiplicano(session):
 
 
 def test_effetto_con_tipo_code_diverso_e_ignorato(session):
-    voce = _voce_a6(session, "A.6.9")
+    voce = _voce_a6(session, "A.6.11")
     domanda = _aggiungi_domanda(session, code="test_tipo_code", tipo_controllo="toggle")
     opz = _aggiungi_opzione(session, domanda, code="si", is_default=True)
     _aggiungi_effetto(
@@ -397,7 +397,7 @@ def test_effetto_con_tipo_code_diverso_e_ignorato(session):
 
 
 def test_opzione_non_attiva_e_ignorata(session):
-    voce = _voce_a6(session, "A.6.9")
+    voce = _voce_a6(session, "A.6.11")
     domanda = _aggiungi_domanda(session, code="test_opz_inattiva", tipo_controllo="toggle")
     opz = _aggiungi_opzione(session, domanda, code="si", is_default=True)
     opz.attiva = False
@@ -411,7 +411,7 @@ def test_opzione_non_attiva_e_ignorata(session):
 
 
 def test_effetto_non_attivo_e_ignorato(session):
-    voce = _voce_a6(session, "A.6.9")
+    voce = _voce_a6(session, "A.6.11")
     domanda = _aggiungi_domanda(session, code="test_effetto_inattivo", tipo_controllo="toggle")
     opz = _aggiungi_opzione(session, domanda, code="si", is_default=True)
     _aggiungi_effetto(session, opz, tipo_effetto=TIPO_ESCLUDI, target_voce_id=voce.id, attivo=False)
@@ -456,7 +456,7 @@ def test_escludi_senza_bersaglio_tracciato_non_eccezione(session):
 
 
 def test_domanda_non_visibile_non_governa_le_sue_voci(session):
-    voce = _voce_a6(session, "A.6.9")
+    voce = _voce_a6(session, "A.6.11")
 
     gate = _aggiungi_domanda(session, code="test_gate", tipo_controllo="toggle")
     _aggiungi_opzione(session, gate, code="si", is_default=False)
