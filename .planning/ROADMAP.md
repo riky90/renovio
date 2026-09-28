@@ -188,7 +188,7 @@ Plans:
 rialzo** su A-EDILE, B-FINITURE (tranne il gres), C-SERRAMENTI e D-PRODOTTI. È una scelta
 consapevole, non una dimenticanza.
 
-**Plans:** 8/8 plans complete
+**Plans:** 8/14 plans complete (6 di gap closure dal collaudo del 2026-09-28)
 
 Plans:
 **Wave 1**
@@ -213,6 +213,23 @@ Plans:
 **Wave 5** *(blocked on Wave 4 completion)*
 
 - [x] 09-08-PLAN.md — dev.db allo stato finale, suite completa, collaudo dal vivo con l'account Pro (WIZ-04)
+
+**Gap closure (09-HUMAN-UAT.md, G1..G4)**
+
+*Wave 1*
+
+- [ ] 09-09-PLAN.md — G1/G2 strumenti: regole di curatela per laminato/vinilico/moquette, A.6 intera e gres a pavimento; bersagli condivisi e fail-loud in applica_taratura
+- [ ] 09-11-PLAN.md — G3 wizard: pavimento nello step 4 del wizard Pro, scelte validate al salvataggio
+- [ ] 09-13-PLAN.md — G4 admin: comandi visibili per opzioni/effetti, dialog di modifica completi, modifica del listino
+
+*Wave 2*
+
+- [ ] 09-10-PLAN.md — G1/G2 dati e prova: test CFG-02 a mondo aperto (rosso poi verde), nuove opzioni, seed/fixture/workbook rigenerati
+- [ ] 09-12-PLAN.md — G3 percorso: "Vai alla stima Pro" porta i dati, pavimento sempre visibile nel dettaglio
+
+*Wave 3*
+
+- [ ] 09-14-PLAN.md — migrazione 0023 rumorosa, WR-02 sul downgrade 0021, dev.db a head, checklist di ri-collaudo
 
 ### Phase 10: Risultato leggibile e tetto di budget
 
