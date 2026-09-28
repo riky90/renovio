@@ -183,7 +183,7 @@ def test_upgrade_head_gira_su_sqlite_vergine(tmp_path, monkeypatch):
         revisione = connessione.execute("SELECT version_num FROM alembic_version").fetchone()
     finally:
         connessione.close()
-    assert revisione == ("0022",)
+    assert revisione == ("0023",)
 
 
 def test_upgrade_all_ultima_revisione_gira_su_un_database_popolato(tmp_path, monkeypatch):
@@ -1305,3 +1305,299 @@ def test_downgrade_0022_e_poi_upgrade_e_reversibile(tmp_path, monkeypatch):
     finally:
         connessione.close()
     assert dopo_riupgrade == pytest.approx(0.85)
+
+
+# ---------------------------------------------------------------------------
+# 0023 — pavimenti alternativi + A.6 intera governata (gap G1/G2, piano 09-14)
+# ---------------------------------------------------------------------------
+#
+# A differenza della 0022 (che aggiorna righe gia' esistenti al valore di
+# bozza), la 0023 CREA righe assenti dalla base (opzioni + effetti a
+# bersaglio naturale), create-if-missing come il seed. I test seminano il
+# catalogo REALE (`scripts.seed.seed`) su un DB a 0022, non curatela
+# sintetica: il rischio che questa migrazione deve coprire e' un mojibake o
+# un drift del catalogo VERO, non un caso di laboratorio.
+
+
+def _importa_modulo_0023():
+    """Importa `0023_pavimenti_alternativi.py` con `importlib` (il nome del
+    file comincia per cifra, non e' un percorso puntato valido) per leggere
+    le sue costanti `_OPZIONI_NUOVE`/`_EFFETTI_AGGIUNTI`/`_EFFETTI_RIMOSSI`
+    senza duplicarle a mano nel test."""
+    import importlib.util
+
+    percorso = BACKEND_DIR / "alembic" / "versions" / "0023_pavimenti_alternativi.py"
+    spec = importlib.util.spec_from_file_location("_migrazione_0023", percorso)
+    modulo = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(modulo)
+    return modulo
+
+
+def _semina_catalogo_reale(db_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Porta un DB vergine a 0022 e ci semina sopra il catalogo reale
+    (`backend/seed_data/seed-domande.json` + il resto di `scripts.seed.seed`)
+    — lo stesso file che gira in produzione, non una fixture di laboratorio.
+
+    Sessione legata a un engine dedicato su `db_path` (non `app.db.SessionLocal`,
+    che e' un singleton di modulo creato alla prima import e resta legato al
+    `DATABASE_URL` di quel momento: il `monkeypatch` su `settings.DATABASE_URL`
+    non lo riconfigura mai una volta importato)."""
+    import app.models  # noqa: F401 — registra le entita' su Base.metadata
+    from scripts.seed import seed as seed_reale
+    from sqlalchemy.orm import sessionmaker
+
+    config = _alembic_config(db_path, monkeypatch)
+    command.upgrade(config, "0022")
+    engine_dedicato = create_engine(f"sqlite:///{db_path}")
+    Sessione = sessionmaker(bind=engine_dedicato)
+    session = Sessione()
+    try:
+        seed_reale(session)
+        session.commit()
+    finally:
+        session.close()
+        engine_dedicato.dispose()
+
+
+def _conta_effetti(db_path: Path) -> int:
+    connessione = sqlite3.connect(db_path)
+    try:
+        return connessione.execute("SELECT COUNT(*) FROM effetto_opzione").fetchone()[0]
+    finally:
+        connessione.close()
+
+
+def _rimuovi_effetti_e_opzioni_0023(db_path: Path, modulo) -> None:
+    """Cancella dal DB esattamente le righe che `_OPZIONI_NUOVE`/
+    `_EFFETTI_AGGIUNTI` della 0023 dovrebbero ricreare, per simulare un DB
+    fermo alla base 0022 (seed di ieri) pur avendo il catalogo reale
+    intorno."""
+    connessione = sqlite3.connect(db_path)
+    try:
+        opzioni_nuove_codici = [oc for _dc, oc, *_ in modulo._OPZIONI_NUOVE]
+        segnaposto = ", ".join("?" for _ in opzioni_nuove_codici)
+        connessione.execute(
+            f"DELETE FROM effetto_opzione WHERE opzione_id IN"
+            f" (SELECT id FROM opzione_domanda WHERE domanda_code = 'tipo_pavimento' AND code IN ({segnaposto}))",
+            opzioni_nuove_codici,
+        )
+        connessione.execute(
+            f"DELETE FROM opzione_domanda WHERE domanda_code = 'tipo_pavimento' AND code IN ({segnaposto})",
+            opzioni_nuove_codici,
+        )
+        for (
+            domanda_code,
+            opzione_code,
+            tipo_effetto,
+            categoria_code,
+            sottocategoria_key,
+            voce_key,
+            tipo_code,
+            _valore,
+        ) in modulo._EFFETTI_AGGIUNTI:
+            if opzione_code in opzioni_nuove_codici:
+                continue  # gia' rimosso sopra insieme all'opzione
+            righe_voce = connessione.execute(
+                "SELECT v.id FROM voce v JOIN sottocategoria s ON s.id = v.sottocategoria_id"
+                " WHERE s.categoria_code = ? AND (s.codice = ? OR (s.codice IS NULL AND s.nome = ?))"
+                " AND (v.codice = ? OR (v.codice IS NULL AND v.descrizione = ?))",
+                (categoria_code, sottocategoria_key, sottocategoria_key, voce_key, voce_key),
+            ).fetchall()
+            for (voce_id,) in righe_voce:
+                connessione.execute(
+                    "DELETE FROM effetto_opzione WHERE opzione_id ="
+                    " (SELECT id FROM opzione_domanda WHERE domanda_code = ? AND code = ?)"
+                    " AND tipo_effetto = ? AND target_voce_id = ?"
+                    " AND (tipo_code = ? OR (tipo_code IS NULL AND ? IS NULL))",
+                    (domanda_code, opzione_code, tipo_effetto, voce_id, tipo_code, tipo_code),
+                )
+        connessione.commit()
+    finally:
+        connessione.close()
+
+
+def test_0023_tutte_le_chiavi_di_effetti_aggiunti_si_risolvono_sul_catalogo_reale(tmp_path, monkeypatch):
+    """Un mojibake o un drift nelle costanti generate dal diff deve rompere
+    la suite, non il deploy: su un DB appena seminato con il catalogo reale,
+    OGNI chiave naturale di `_EFFETTI_AGGIUNTI` risolve una voce e
+    un'opzione (gia' presente o fra le `_OPZIONI_NUOVE`)."""
+    modulo = _importa_modulo_0023()
+    db_path = tmp_path / "chiavi_reali.db"
+    _semina_catalogo_reale(db_path, monkeypatch)
+
+    opzioni_nuove_chiavi = {(dc, oc) for dc, oc, *_ in modulo._OPZIONI_NUOVE}
+    domanda, opzione, sottocategoria, voce, effetto = modulo._tabelle()
+    engine = create_engine(f"sqlite:///{db_path}")
+    bind = engine.connect()
+    try:
+        non_risolte = []
+        for (
+            domanda_code,
+            opzione_code,
+            _tipo_effetto,
+            categoria_code,
+            sottocategoria_key,
+            voce_key,
+            _tipo_code,
+            _valore,
+        ) in modulo._EFFETTI_AGGIUNTI:
+            voce_id = modulo._risolvi_voce_id(bind, sottocategoria, voce, categoria_code, sottocategoria_key, voce_key)
+            opzione_id = modulo._opzione_id(bind, opzione, domanda_code, opzione_code)
+            opzione_pendente = opzione_id is None and (domanda_code, opzione_code) in opzioni_nuove_chiavi
+            if voce_id is None or (opzione_id is None and not opzione_pendente):
+                non_risolte.append((domanda_code, opzione_code, categoria_code, sottocategoria_key, voce_key))
+        assert non_risolte == [], f"chiavi non risolte sul catalogo reale: {non_risolte}"
+    finally:
+        bind.close()
+        engine.dispose()
+
+
+def test_0023_ricrea_le_righe_rimosse_dalla_base_senza_doppioni(tmp_path, monkeypatch):
+    """Su un DB seminato col catalogo reale e poi riportato allo stato 'base'
+    (le righe che la 0023 porterebbe rimosse a mano), l'upgrade ricrea
+    esattamente 3 opzioni e N effetti (N = len(_EFFETTI_AGGIUNTI)), nessun
+    doppione."""
+    modulo = _importa_modulo_0023()
+    db_path = tmp_path / "ricostruzione.db"
+    monkeypatch_config = monkeypatch
+    _semina_catalogo_reale(db_path, monkeypatch_config)
+
+    effetti_dopo_seed = _conta_effetti(db_path)
+    _rimuovi_effetti_e_opzioni_0023(db_path, modulo)
+    effetti_dopo_rimozione = _conta_effetti(db_path)
+    assert effetti_dopo_rimozione == effetti_dopo_seed - len(modulo._EFFETTI_AGGIUNTI)
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        opzioni_residue = connessione.execute(
+            "SELECT COUNT(*) FROM opzione_domanda WHERE domanda_code = 'tipo_pavimento'"
+            " AND code IN ('laminato', 'vinilico_lvt', 'moquette')"
+        ).fetchone()[0]
+    finally:
+        connessione.close()
+    assert opzioni_residue == 0
+
+    config = _alembic_config(db_path, monkeypatch)
+    command.upgrade(config, "0023")
+
+    effetti_dopo_upgrade = _conta_effetti(db_path)
+    assert effetti_dopo_upgrade == effetti_dopo_seed
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        opzioni_ricreate = connessione.execute(
+            "SELECT COUNT(*) FROM opzione_domanda WHERE domanda_code = 'tipo_pavimento'"
+            " AND code IN ('laminato', 'vinilico_lvt', 'moquette')"
+        ).fetchone()[0]
+        assert opzioni_ricreate == 3
+
+        # nessun doppione fra gli effetti a bersaglio voce (quelli che la 0023
+        # crea): la coppia (opzione_id, tipo_effetto, target_voce_id, tipo_code)
+        # e' unica. Scoped a target_voce_id NOT NULL: altri effetti del
+        # catalogo (es. moltiplicatore_categoria) condividono legittimamente
+        # opzione/tipo con target NULL su piu' righe (tipo_code diverso non
+        # incluso nella GROUP BY qui sotto darebbe un falso positivo).
+        doppioni = connessione.execute(
+            "SELECT opzione_id, tipo_effetto, target_voce_id, tipo_code, COUNT(*) AS n"
+            " FROM effetto_opzione WHERE target_voce_id IS NOT NULL"
+            " GROUP BY opzione_id, tipo_effetto, target_voce_id, tipo_code HAVING n > 1"
+        ).fetchall()
+    finally:
+        connessione.close()
+    assert doppioni == []
+
+
+def test_0023_e_idempotente_su_un_secondo_upgrade(tmp_path, monkeypatch):
+    """Un secondo `upgrade` immediato (stato gia' a testa) non crea doppioni:
+    stesso conteggio di effetti prima e dopo."""
+    modulo = _importa_modulo_0023()
+    db_path = tmp_path / "idempotenza.db"
+    _semina_catalogo_reale(db_path, monkeypatch)
+    _rimuovi_effetti_e_opzioni_0023(db_path, modulo)
+
+    config = _alembic_config(db_path, monkeypatch)
+    command.upgrade(config, "0023")
+    dopo_primo = _conta_effetti(db_path)
+
+    command.upgrade(config, "0023")
+    dopo_secondo = _conta_effetti(db_path)
+
+    assert dopo_secondo == dopo_primo
+
+
+def test_0023_su_db_con_seed_gia_passato_non_crea_doppioni(tmp_path, monkeypatch):
+    """Un DB dove il seed nuovo e' gia' girato (ha gia' tutto quello che la
+    0023 porterebbe) non guadagna righe in piu' dopo l'upgrade."""
+    db_path = tmp_path / "gia_seminato_0023.db"
+    _semina_catalogo_reale(db_path, monkeypatch)
+
+    prima = _conta_effetti(db_path)
+    config = _alembic_config(db_path, monkeypatch)
+    command.upgrade(config, "0023")
+    dopo = _conta_effetti(db_path)
+
+    assert dopo == prima
+
+
+def test_0023_fallisce_rumorosamente_su_una_voce_bersaglio_alterata(tmp_path, monkeypatch):
+    """Con il catalogo presente, se una voce bersaglio citata da
+    `_EFFETTI_AGGIUNTI` ha la descrizione alterata (mojibake/drift), l'upgrade
+    solleva `RuntimeError` con risolte/totale e la chiave non risolta — e non
+    scrive nulla (conteggi invariati)."""
+    modulo = _importa_modulo_0023()
+    db_path = tmp_path / "voce_alterata.db"
+    _semina_catalogo_reale(db_path, monkeypatch)
+    _rimuovi_effetti_e_opzioni_0023(db_path, modulo)
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        connessione.execute("UPDATE voce SET codice = 'A.6.3-alterata' WHERE codice = 'A.6.3'")
+        connessione.commit()
+    finally:
+        connessione.close()
+
+    prima = _conta_effetti(db_path)
+    config = _alembic_config(db_path, monkeypatch)
+    with pytest.raises(RuntimeError) as errore:
+        command.upgrade(config, "0023")
+    assert "risolte" in str(errore.value)
+    assert "0023" in str(errore.value)
+
+    dopo = _conta_effetti(db_path)
+    assert dopo == prima  # nessuna scrittura prima della guardia
+
+
+def test_0023_downgrade_toglie_solo_cio_che_upgrade_ha_scritto(tmp_path, monkeypatch):
+    """Il downgrade rimuove gli effetti aggiunti e cancella le tre opzioni
+    nuove (senza effetti residui): i conteggi tornano esattamente a quelli
+    precedenti l'upgrade."""
+    modulo = _importa_modulo_0023()
+    db_path = tmp_path / "downgrade_0023.db"
+    _semina_catalogo_reale(db_path, monkeypatch)
+    _rimuovi_effetti_e_opzioni_0023(db_path, modulo)
+
+    prima_upgrade = _conta_effetti(db_path)
+    config = _alembic_config(db_path, monkeypatch)
+    command.upgrade(config, "0023")
+    dopo_upgrade = _conta_effetti(db_path)
+    assert dopo_upgrade == prima_upgrade + len(modulo._EFFETTI_AGGIUNTI)
+
+    command.downgrade(config, "0022")
+    dopo_downgrade = _conta_effetti(db_path)
+    assert dopo_downgrade == prima_upgrade
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        opzioni_residue = connessione.execute(
+            "SELECT COUNT(*) FROM opzione_domanda WHERE domanda_code = 'tipo_pavimento'"
+            " AND code IN ('laminato', 'vinilico_lvt', 'moquette')"
+        ).fetchone()[0]
+        assert connessione.execute("PRAGMA foreign_key_check").fetchall() == []
+        assert connessione.execute("PRAGMA integrity_check").fetchone() == ("ok",)
+    finally:
+        connessione.close()
+    assert opzioni_residue == 0
+
+    command.upgrade(config, "0023")
+    dopo_riupgrade = _conta_effetti(db_path)
+    assert dopo_riupgrade == dopo_upgrade
