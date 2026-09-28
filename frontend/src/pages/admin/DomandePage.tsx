@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Pencil, Power } from "lucide-react";
+import { ListTree, Pencil, Power } from "lucide-react";
 import { AdminLayout } from "@/pages/admin/AdminLayout";
 import { AdminTable } from "@/components/admin/AdminTable";
 import { AdminCrudDialog } from "@/components/admin/AdminCrudDialog";
@@ -259,6 +259,10 @@ export function DomandePage() {
           <h1 className="text-lg font-semibold text-foreground">Domande</h1>
           <ToolbarCatalogo onAggiungiDomanda={openCreate} />
         </div>
+        <p className="text-sm text-muted-foreground">
+          Ogni domanda ha le sue opzioni; ogni opzione ha i suoi effetti sul calcolo. Apri
+          «Opzioni ed effetti» e poi «Effetti» sull'opzione per aggiungerne uno.
+        </p>
 
         <AdminTable
           columns={["Codice", "Testo", "Attributo", "Tipo controllo", "Tier", "Attiva", "Azioni"]}
@@ -295,6 +299,16 @@ export function DomandePage() {
                 {row.attiva ? "Attiva" : "Non attiva"}
               </Badge>,
               <div className="flex gap-1" key="azioni">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  aria-expanded={selected}
+                  onClick={selezionaRiga}
+                >
+                  <ListTree className="size-4" />
+                  {isNumerico(row.tipo_controllo) ? "Effetti" : "Opzioni ed effetti"}
+                </Button>
                 <Button
                   type="button"
                   variant="ghost"
