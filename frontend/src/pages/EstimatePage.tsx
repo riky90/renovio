@@ -274,7 +274,7 @@ export function EstimatePage() {
                     />
                 </>
 
-                {user?.pro && <CtaDettaglioPro />}
+                {user?.pro && <CtaDettaglioPro input={input} />}
               </>
             )}
           </div>
@@ -290,9 +290,27 @@ export function EstimatePage() {
  * Per un utente Pro la home resta la stima rapida: il dettaglio voce per voce
  * richiede le domande mirate e i livelli di finitura, che si raccolgono nel
  * form a due step su /nuova-stima.
+ *
+ * (09-12, gap G3) La stima appena calcolata viaggia con la navigazione: citta'/
+ * mq/tipo in query string (come "Rifai in versione Pro"), risposte e
+ * destinazione in `history.state` (non fidato, NuovaStimaProPage li rivalida).
+ * Cosi' il wizard Pro riparte dallo step "Le finiture" invece che da zero.
  */
-function CtaDettaglioPro() {
+function CtaDettaglioPro({ input }: { input: StimaRequest }) {
   const navigate = useNavigate();
+
+  function vaiAllaStimaPro() {
+    navigate(
+      `/nuova-stima?citta=${encodeURIComponent(input.citta)}&mq=${input.mq}&tipo=${input.tipo}`,
+      {
+        state: {
+          risposte: input.risposte ?? {},
+          destinazione: input.destinazione ?? "prima_casa",
+          daStima: true,
+        },
+      }
+    );
+  }
 
   return (
     <div className="flex flex-col items-start gap-3 rounded-xl border border-primary/30 bg-accent/40 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
@@ -301,10 +319,10 @@ function CtaDettaglioPro() {
           Vuoi il dettaglio voce per voce?
         </span>
         <span className="text-sm text-muted-foreground">
-          Rispondi a due domande in piu' e ottieni il computo completo.
+          Ripartiamo da questa stima: scegli finiture e pavimento e ottieni il computo completo.
         </span>
       </div>
-      <Button type="button" onClick={() => navigate("/nuova-stima")} className="shrink-0">
+      <Button type="button" onClick={vaiAllaStimaPro} className="shrink-0">
         Vai alla stima Pro
       </Button>
     </div>

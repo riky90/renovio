@@ -94,7 +94,7 @@ export function LeMieStimePage() {
                       </p>
                       <Button asChild size="sm" className="shrink-0">
                         <Link
-                          to={`/?citta=${encodeURIComponent(selected.citta)}&mq=${selected.mq}&tipo=${selected.tipo}`}
+                          to={`/nuova-stima?citta=${encodeURIComponent(selected.citta)}&mq=${selected.mq}&tipo=${selected.tipo}`}
                         >
                           <Sparkles className="size-4" /> Rifai in versione Pro
                         </Link>
