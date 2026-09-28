@@ -292,15 +292,28 @@ class TestCatalogoProSulJsonReale:
             .all()
         )
         codici = {o.code for o in opzioni}
-        assert codici == {"gres", "parquet", "maxi_lastra", "mosaico"}
+        assert codici == {
+            "gres",
+            "parquet",
+            "maxi_lastra",
+            "mosaico",
+            "laminato",
+            "vinilico_lvt",
+            "moquette",
+        }
 
         gres = next(o for o in opzioni if o.code == "gres")
         assert gres.is_default is True
 
+        # Le tre opzioni aggiunte dal 09-10 (G1) condividono la posa A.6.2 con
+        # parquet (D-08, bersagli condivisi); moquette non ha una posa A.6
+        # principale dedicata (resta sulla posa generica A.6.1).
         attese_voce = {
             "parquet": "A.6.2",
             "maxi_lastra": "A.6.5",
             "mosaico": "A.6.6",
+            "laminato": "A.6.2",
+            "vinilico_lvt": "A.6.2",
         }
         a6_1 = session.query(Voce).filter_by(codice="A.6.1").one()
 
@@ -316,7 +329,10 @@ class TestCatalogoProSulJsonReale:
                 voci_codici = {session.get(Voce, vid).codice for vid in voci_includi}
                 assert attese_voce[o.code] in voci_codici
 
-        for opzione_non_gres in ("parquet", "maxi_lastra", "mosaico"):
+        # D-02: il bagno resta sempre gres, ridotto alla sua quota su ogni
+        # opzione diversa dal gres — TRANNE moquette, che non ha una posa
+        # dedicata e usa A.6.1 a quantita' piena (decisione 09-09).
+        for opzione_non_gres in ("parquet", "maxi_lastra", "mosaico", "laminato", "vinilico_lvt"):
             o = next(x for x in opzioni if x.code == opzione_non_gres)
             fattori = (
                 session.query(EffettoOpzione)
@@ -324,6 +340,14 @@ class TestCatalogoProSulJsonReale:
                 .all()
             )
             assert len(fattori) == 1, f"opzione {opzione_non_gres!r} deve avere un fattore_quantita su A.6.1"
+
+        moquette = next(o for o in opzioni if o.code == "moquette")
+        fattori_moquette = (
+            session.query(EffettoOpzione)
+            .filter_by(opzione_id=moquette.id, tipo_effetto="fattore_quantita", target_voce_id=a6_1.id)
+            .all()
+        )
+        assert fattori_moquette == [], "moquette non deve avere fattore_quantita su A.6.1"
 
     def test_stepper_bagni_porte_condizionatori_hanno_quantita_per_unita(self, session):
         for code in ("bagni", "porte", "condizionatori"):

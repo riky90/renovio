@@ -129,15 +129,22 @@ class TestSelezionePerLivello:
 
     @pytest.fixture()
     def bersagli_finitura(self, session) -> dict[str, list[Voce]]:
+        """Solo i bersagli DENTRO GRES: dal 09-10 (G2) l'asse `finitura`
+        governa anche A.6.3/A.6.4 (posa rivestimenti), fuori sottocategoria —
+        questa fixture serve i test che confrontano prezzi/presenza dentro
+        GRES, quindi resta scoped li'."""
         from app.models.domanda import EffettoOpzione, OpzioneDomanda
         from app.services.effetti import TIPO_INCLUDI
 
+        sotto_gres_id = _sotto_gres(session).id
         righe = (
             session.query(OpzioneDomanda, EffettoOpzione)
             .join(EffettoOpzione, EffettoOpzione.opzione_id == OpzioneDomanda.id)
+            .join(Voce, Voce.id == EffettoOpzione.target_voce_id)
             .filter(
                 OpzioneDomanda.domanda_code == "finitura",
                 EffettoOpzione.tipo_effetto == TIPO_INCLUDI,
+                Voce.sottocategoria_id == sotto_gres_id,
             )
             .all()
         )
@@ -159,19 +166,22 @@ class TestSelezionePerLivello:
         assert alto_desc not in incluse
 
     def test_le_voci_non_governate_da_tipo_pavimento_restano(self, session):
-        """Le 21 voci di gres sono TUTTE bersaglio dell'asse `finitura` (il
-        seed cura esattamente quelle): l'asse che lascia voci non governate
-        e' invece `tipo_pavimento`, su A.6 — le pose A.6.7 in poi (battiscopa,
-        arrotatura...) non sono bersaglio di alcuna sua opzione e devono
-        sopravvivere al filtro qualunque pavimento si scelga."""
+        """Dal 09-10 (G1/G2) quasi tutta A.6 e' governata da un asse (A.6.1/
+        .2/.5/.6/.7/.8/.10 da `tipo_pavimento`, A.6.3/.4 da `finitura`, A.6.9
+        esclusa su tutte le finiture): A.6.11 (taglio porta blindata) resta
+        l'unica voce non governata da alcun asse, e deve sopravvivere al
+        filtro qualunque pavimento si scelga (con la finitura di default)."""
         sotto_a6 = (
             session.query(Sottocategoria).filter_by(categoria_code="A-EDILE", codice="A.6").one()
         )
-        governate = {"A.6.1", "A.6.2", "A.6.5", "A.6.6"}
+        governate = {
+            "A.6.1", "A.6.2", "A.6.3", "A.6.4", "A.6.5",
+            "A.6.6", "A.6.7", "A.6.8", "A.6.9", "A.6.10",
+        }
         codici_non_governati = [
             v.codice for v in _voci_di(session, sotto_a6) if v.codice not in governate
         ]
-        assert codici_non_governati, "il seed deve avere pose A.6 non governate da tipo_pavimento"
+        assert codici_non_governati, "il seed deve avere pose A.6 non governate da alcun asse"
 
         for pavimento in ("gres", "parquet", "maxi_lastra", "mosaico"):
             result = _compute(session, risposte={"tipo_pavimento": pavimento})

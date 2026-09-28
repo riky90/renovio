@@ -181,51 +181,132 @@ def test_tipo_pavimento_parquet_include_parquet_e_la_quota_bagno_gres(session):
         assert pose not in presenti
 
 
-# --- il conteggio vero (behavior 3): al massimo un'opzione per asse --------
+# --- il conteggio vero (behavior 3): bersagli condivisi (09-10) ------------
+#
+# Da 09-09/09-10 due opzioni dello stesso asse possono avere BERSAGLI
+# CONDIVISI (es. A.6.2 incluso sia da 'parquet' sia da 'laminato' sia da
+# 'vinilico_lvt'), e la deduplica del gres a pavimento lascia sulla voce
+# scartata sia il suo `includi` originale SIA un `escludi` che lo annulla
+# (l'esclusione vince sempre). Il vecchio conteggio "al massimo un'opzione
+# con una voce presente" romperebbe su questi casi legittimi. L'invariante
+# corretto e' per-voce: ogni voce presente che e' bersaglio di un `includi`
+# dell'asse deve essere bersaglio di un `includi` dell'opzione SCELTA (o del
+# default) e non di un suo `escludi`.
 
 
-FINITURA_OPZIONI = ["base", "medio", "alto"]
-TIPO_PAVIMENTO_OPZIONI = ["gres", "parquet", "maxi_lastra", "mosaico"]
-
-
-@pytest.mark.parametrize("finitura,tipo_pavimento", list(product(FINITURA_OPZIONI, TIPO_PAVIMENTO_OPZIONI)))
-def test_nessun_asse_include_piu_di_unopzione(session, finitura, tipo_pavimento):
-    result = _compute(
-        session, risposte={"finitura": finitura, "tipo_pavimento": tipo_pavimento}
+def _opzioni_attive(session, domanda_code: str) -> list[str]:
+    righe = (
+        session.query(OpzioneDomanda.code)
+        .filter(OpzioneDomanda.domanda_code == domanda_code, OpzioneDomanda.attiva.is_(True))
+        .order_by(OpzioneDomanda.ordine, OpzioneDomanda.id)
+        .all()
     )
+    return [r[0] for r in righe]
 
-    for domanda_code in _domande_con_includi(session):
-        presenti = _opzioni_con_almeno_una_voce_presente(session, domanda_code, result)
-        assert len(presenti) <= 1, (
-            f"asse {domanda_code!r} con finitura={finitura!r} tipo_pavimento={tipo_pavimento!r}: "
-            f"piu' di un'opzione presente nel computo: {presenti}"
+
+def _opzione_scelta(session, domanda_code: str, risposte: dict) -> OpzioneDomanda | None:
+    opzioni = session.query(OpzioneDomanda).filter_by(domanda_code=domanda_code, attiva=True).all()
+    per_code = {o.code: o for o in opzioni}
+    codice = risposte.get(domanda_code)
+    if codice in per_code:
+        return per_code[codice]
+    return next((o for o in opzioni if o.is_default), None)
+
+
+def _bersagli_escludi_per_opzione(session, domanda_code: str) -> dict[str, set[tuple[int, str | None, str]]]:
+    righe = (
+        session.query(OpzioneDomanda, EffettoOpzione)
+        .join(EffettoOpzione, EffettoOpzione.opzione_id == OpzioneDomanda.id)
+        .filter(
+            OpzioneDomanda.domanda_code == domanda_code,
+            OpzioneDomanda.attiva.is_(True),
+            EffettoOpzione.attivo.is_(True),
+            EffettoOpzione.tipo_effetto == TIPO_ESCLUDI,
         )
+        .all()
+    )
+    bersagli: dict[str, set[tuple[int, str | None, str]]] = {}
+    for opzione, effetto in righe:
+        voci = _voci_di_sottocategoria_effetto(session, effetto)
+        bersagli.setdefault(opzione.code, set()).update(
+            _identificatore(v.sottocategoria_id, v.codice, v.descrizione) for v in voci
+        )
+    return bersagli
 
 
-@pytest.mark.parametrize("livello", ["base", "medio", "alto"])
-def test_nessun_asse_include_piu_di_unopzione_con_livelli(session, livello):
+def _errori_bersagli_condivisi(
+    session,
+    domanda_code: str,
+    presenti: set[tuple[int, str | None, str]],
+    opzione_scelta: OpzioneDomanda | None,
+) -> list[str]:
+    bersagli_includi = _bersagli_per_opzione(session, domanda_code)
+    if not bersagli_includi:
+        return []
+    unione: set[tuple[int, str | None, str]] = set()
+    for voci in bersagli_includi.values():
+        unione |= voci
+    codice_scelto = opzione_scelta.code if opzione_scelta is not None else None
+    bersagli_scelta = bersagli_includi.get(codice_scelto, set())
+    escludi_scelta = _bersagli_escludi_per_opzione(session, domanda_code).get(codice_scelto, set())
+
+    errori: list[str] = []
+    for ident in presenti & unione:
+        if ident not in bersagli_scelta:
+            errori.append(f"{ident} presente ma non bersaglio di includi dell'opzione scelta {codice_scelto!r}")
+        elif ident in escludi_scelta:
+            errori.append(f"{ident} presente ma bersaglio di escludi dell'opzione scelta {codice_scelto!r}")
+    return errori
+
+
+@pytest.fixture()
+def combinazioni(session):
+    return list(product(_opzioni_attive(session, "finitura"), _opzioni_attive(session, "tipo_pavimento")))
+
+
+def test_nessun_asse_include_piu_di_unopzione(session, combinazioni):
+    for finitura, tipo_pavimento in combinazioni:
+        risposte = {"finitura": finitura, "tipo_pavimento": tipo_pavimento}
+        result = _compute(session, risposte=risposte)
+        presenti = _identificatori_presenti(session, result)
+
+        for domanda_code in _domande_con_includi(session):
+            opzione_scelta = _opzione_scelta(session, domanda_code, risposte)
+            errori = _errori_bersagli_condivisi(session, domanda_code, presenti, opzione_scelta)
+            assert not errori, (
+                f"asse {domanda_code!r} con finitura={finitura!r} tipo_pavimento={tipo_pavimento!r}: "
+                + "; ".join(errori)
+            )
+
+
+def test_nessun_asse_include_piu_di_unopzione_con_livelli(session):
     """`livelli` differenzia il livello di finitura SOLO per le categorie con
     `livello_selezionabile=True` (B-FINITURE): le altre categorie (dove da
     09-07 l'asse finitura governa anche le famiglie di alternative
     sanitari/porte/condizionatori) restano sul default/risposta unica. Il
-    controllo "al massimo un'opzione" va quindi per CATEGORIA, non
-    globalmente su tutto il risultato — e' esattamente cio' che rende
-    legittimo differenziare il livello per categoria."""
-    result = _compute(session, livelli={"B-FINITURE": livello})
+    controllo va quindi per CATEGORIA, non globalmente su tutto il
+    risultato — e' esattamente cio' che rende legittimo differenziare il
+    livello per categoria."""
+    for livello in _opzioni_attive(session, "finitura"):
+        result = _compute(session, livelli={"B-FINITURE": livello})
 
-    for domanda_code in _domande_con_includi(session):
-        bersagli = _bersagli_per_opzione(session, domanda_code)
         for cat in result.categorie:
             presenti_categoria: set[tuple[int, str | None, str]] = set()
             for sotto in cat.sottocategorie:
                 sotto_id = _id_sottocategoria(session, cat.code, sotto)
                 for v in sotto.voci:
                     presenti_categoria.add(_identificatore(sotto_id, v.codice, v.descrizione))
-            opzioni_presenti = [code for code, voci in bersagli.items() if voci & presenti_categoria]
-            assert len(opzioni_presenti) <= 1, (
-                f"asse {domanda_code!r} categoria {cat.code!r} livello={livello!r}: "
-                f"piu' di un'opzione presente: {opzioni_presenti}"
-            )
+
+            for domanda_code in _domande_con_includi(session):
+                if domanda_code == "finitura" and cat.code == "B-FINITURE":
+                    opzione_scelta = _opzione_scelta(session, domanda_code, {"finitura": livello})
+                else:
+                    opzione_scelta = _opzione_scelta(session, domanda_code, {})
+                errori = _errori_bersagli_condivisi(session, domanda_code, presenti_categoria, opzione_scelta)
+                assert not errori, (
+                    f"asse {domanda_code!r} categoria {cat.code!r} livello={livello!r}: "
+                    + "; ".join(errori)
+                )
 
 
 def _bersagli_finitura_in_sottocategoria(session, sotto_id: int) -> dict[str, set[tuple[int, str | None, str]]]:
@@ -239,6 +320,16 @@ def _bersagli_finitura_in_sottocategoria(session, sotto_id: int) -> dict[str, se
     }
 
 
+def _escludi_finitura_in_sottocategoria(session, sotto_id: int) -> dict[str, set[tuple[int, str | None, str]]]:
+    """Come `_bersagli_finitura_in_sottocategoria` ma per gli `escludi`: dal
+    09-10 la deduplica del gres a pavimento lascia un `escludi` sulle voci
+    scartate, che vince sempre sull'`includi` gemello (09-03)."""
+    escludi = _bersagli_escludi_per_opzione(session, "finitura")
+    return {
+        code: {ident for ident in voci if ident[0] == sotto_id} for code, voci in escludi.items()
+    }
+
+
 # --- gres con default: bersagli di medio + non governate (behavior 4) ------
 
 
@@ -246,13 +337,19 @@ def test_gres_default_include_bersagli_di_medio_piu_le_non_governate(session):
     sotto = _sotto_gres(session)
     tutte = _tutte_le_voci_di(session, sotto)
     bersagli = _bersagli_finitura_in_sottocategoria(session, sotto.id)
+    escludi = _escludi_finitura_in_sottocategoria(session, sotto.id)
 
     governate = set()
     for voci in bersagli.values():
         governate |= voci
-    attese = {
-        _identificatore(sotto.id, v.codice, v.descrizione) for v in tutte
-    } - governate | bersagli.get("medio", set())
+    # Dal 09-10 i "bersagli" vivi di un'opzione sono i suoi includi MENO i
+    # suoi escludi: la deduplica del gres a pavimento (una sola fornitura per
+    # livello) lascia un includi+escludi sulle voci scartate, e l'escludi
+    # vince sempre (09-03).
+    bersagli_medio_vivi = bersagli.get("medio", set()) - escludi.get("medio", set())
+    attese = (
+        {_identificatore(sotto.id, v.codice, v.descrizione) for v in tutte} - governate
+    ) | bersagli_medio_vivi
 
     result = _compute(session)
     presenti_gres = set()
@@ -270,6 +367,7 @@ def test_gres_default_include_bersagli_di_medio_piu_le_non_governate(session):
 def test_livelli_alto_gres_e_livello_scelto_categoria(session):
     sotto = _sotto_gres(session)
     bersagli = _bersagli_finitura_in_sottocategoria(session, sotto.id)
+    escludi = _escludi_finitura_in_sottocategoria(session, sotto.id)
 
     result = _compute(session, livelli={"B-FINITURE": "alto"})
 
@@ -279,12 +377,67 @@ def test_livelli_alto_gres_e_livello_scelto_categoria(session):
             if s.nome == GRES:
                 presenti_gres = {_identificatore(sotto.id, v.codice, v.descrizione) for v in s.voci}
 
-    assert bersagli["alto"] <= presenti_gres
-    assert not (bersagli["medio"] & presenti_gres)
+    bersagli_alto_vivi = bersagli["alto"] - escludi.get("alto", set())
+    bersagli_medio_vivi = bersagli["medio"] - escludi.get("medio", set())
+    assert bersagli_alto_vivi <= presenti_gres
+    assert not (bersagli_medio_vivi & presenti_gres)
 
     per_code = {c.code: c for c in result.categorie}
     assert per_code["B-FINITURE"].livello_scelto == "alto"
     assert per_code["B-FINITURE"].livello_scelto_nome == "Lusso"
+
+
+# --- nuove opzioni pavimento (09-10, G1) ------------------------------------
+
+
+def test_moquette_non_riduce_a6_1(session):
+    """Moquette e' esclusa da OPZIONI_CON_QUOTA_BAGNO_A6_1 (09-09): non ha una
+    posa dedicata nel computo, resta sulla posa generica A.6.1 a quantita'
+    piena, come il gres di default."""
+    result_gres = _compute(session, risposte={"tipo_pavimento": "gres"})
+    result_moquette = _compute(session, risposte={"tipo_pavimento": "moquette"})
+
+    def _quantita_a6_1(result):
+        for cat in result.categorie:
+            for sotto in cat.sottocategorie:
+                if sotto.codice == "A.6":
+                    for v in sotto.voci:
+                        if v.codice == "A.6.1":
+                            return v.quantita_stimata
+        raise AssertionError("A.6.1 non presente")
+
+    assert _quantita_a6_1(result_moquette) == _quantita_a6_1(result_gres)
+
+
+def test_laminato_include_sottofondo_e_esclude_parquet(session):
+    """Con laminato: la fornitura laminato, il sottofondo Unilin (bersaglio
+    condiviso della stessa opzione, D-08), la posa A.6.2 e il battiscopa
+    A.6.7 sono presenti; nessuna voce di PAVIMENTI PARQUET, la levigatura
+    A.6.10, il vinilico LVT o la moquette."""
+    result = _compute(session, risposte={"tipo_pavimento": "laminato"})
+    codici_a6 = _codici_a6_presenti(result)
+
+    presenti_pavimenti = set()
+    presenti_parquet_sotto = set()
+    for cat in result.categorie:
+        for sotto in cat.sottocategorie:
+            if sotto.nome == "PAVIMENTI":
+                presenti_pavimenti |= {v.descrizione for v in sotto.voci}
+            elif sotto.nome == "PAVIMENTI PARQUET":
+                presenti_parquet_sotto |= {v.descrizione for v in sotto.voci}
+
+    assert any("laminato" in d.lower() for d in presenti_pavimenti)
+    assert any("sottofondo" in d.lower() for d in presenti_pavimenti)
+    assert "A.6.2" in codici_a6
+    assert "A.6.7" in codici_a6
+
+    # nessuna voce di PAVIMENTI PARQUET (sottocategoria intera), nessun
+    # vinilico LVT / moquette nella sottocategoria PAVIMENTI, nessuna
+    # levigatura parquet A.6.10.
+    assert presenti_parquet_sotto == set()
+    assert not any("vinilico" in d.lower() for d in presenti_pavimenti)
+    assert not any("moquette" in d.lower() for d in presenti_pavimenti)
+    assert "A.6.10" not in codici_a6
 
 
 # --- quantita_per_unita di bagni (behavior 6/7) -----------------------------
@@ -459,33 +612,43 @@ class TestFamiglieAlternative:
             )
         return gruppi
 
-    @pytest.mark.parametrize("finitura,tipo_pavimento", list(product(FINITURA_OPZIONI, TIPO_PAVIMENTO_OPZIONI)))
-    def test_al_massimo_una_voce_per_famiglia(self, session, gruppi, finitura, tipo_pavimento):
-        result = _compute(session, risposte={"finitura": finitura, "tipo_pavimento": tipo_pavimento})
-        presenti = _identificatori_presenti(session, result)
+    @pytest.fixture()
+    def combinazioni(self, session):
+        return list(product(_opzioni_attive(session, "finitura"), _opzioni_attive(session, "tipo_pavimento")))
 
-        for famiglia, voci_famiglia in gruppi.items():
-            if not _famiglia_e_alternativa_a_scelta_singola(famiglia):
-                continue
-            incluse = voci_famiglia & presenti
-            assert len(incluse) <= 1, (
-                f"famiglia={famiglia!r} con finitura={finitura!r} "
-                f"tipo_pavimento={tipo_pavimento!r}: piu' di una voce presente: {incluse}"
+    @pytest.fixture()
+    def risultati_per_combinazione(self, session, combinazioni):
+        """Un solo `_compute` per combinazione, riusato da tutti i test della
+        classe invece di ricalcolare per ogni famiglia (09-10 Task 3)."""
+        return {
+            (finitura, tipo_pavimento): _compute(
+                session, risposte={"finitura": finitura, "tipo_pavimento": tipo_pavimento}
             )
+            for finitura, tipo_pavimento in combinazioni
+        }
 
-    def test_ogni_famiglia_ha_almeno_una_combinazione_con_una_voce_inclusa(self, session, gruppi):
-        combinazioni = list(product(FINITURA_OPZIONI, TIPO_PAVIMENTO_OPZIONI))
-        mai_vista: list[tuple[int, str]] = []
-        for chiave_gruppo, voci_famiglia in gruppi.items():
-            trovata = False
-            for finitura, tipo_pavimento in combinazioni:
-                result = _compute(
-                    session, risposte={"finitura": finitura, "tipo_pavimento": tipo_pavimento}
+    def test_al_massimo_una_voce_per_famiglia(self, session, gruppi, risultati_per_combinazione):
+        for (finitura, tipo_pavimento), result in risultati_per_combinazione.items():
+            presenti = _identificatori_presenti(session, result)
+
+            for famiglia, voci_famiglia in gruppi.items():
+                if not _famiglia_e_alternativa_a_scelta_singola(famiglia):
+                    continue
+                incluse = voci_famiglia & presenti
+                assert len(incluse) <= 1, (
+                    f"famiglia={famiglia!r} con finitura={finitura!r} "
+                    f"tipo_pavimento={tipo_pavimento!r}: piu' di una voce presente: {incluse}"
                 )
-                presenti = _identificatori_presenti(session, result)
-                if voci_famiglia & presenti:
-                    trovata = True
-                    break
+
+    def test_ogni_famiglia_ha_almeno_una_combinazione_con_una_voce_inclusa(
+        self, session, gruppi, risultati_per_combinazione
+    ):
+        mai_vista: list[str] = []
+        for chiave_gruppo, voci_famiglia in gruppi.items():
+            trovata = any(
+                voci_famiglia & _identificatori_presenti(session, result)
+                for result in risultati_per_combinazione.values()
+            )
             if not trovata:
                 mai_vista.append(chiave_gruppo)
         assert mai_vista == []
@@ -533,7 +696,7 @@ class TestFamiglieAlternative:
                     presenti_gres = {v.codice or v.descrizione for v in s.voci}
         assert presenti_gres, "il bagno (rivestimento gres) deve restare presente con parquet"
 
-    def test_voci_escluse_sempre_non_compaiono_in_nessuna_combinazione(self, session):
+    def test_voci_escluse_sempre_non_compaiono_in_nessuna_combinazione(self, session, combinazioni):
         escluse_ids = {
             row[0]
             for row in session.query(EffettoOpzione.target_voce_id)
@@ -557,7 +720,7 @@ class TestFamiglieAlternative:
                     _identificatore(voce.sottocategoria_id, voce.codice, voce.descrizione)
                 )
 
-        for finitura, tipo_pavimento in product(FINITURA_OPZIONI, TIPO_PAVIMENTO_OPZIONI):
+        for finitura, tipo_pavimento in combinazioni:
             result = _compute(session, risposte={"finitura": finitura, "tipo_pavimento": tipo_pavimento})
             presenti = _identificatori_presenti(session, result)
             assert not (escluse_identificatori & presenti), (
