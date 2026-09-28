@@ -2,99 +2,150 @@
 phase: 09-configuratore-pro
 verified: 2026-09-28T00:00:00Z
 status: human_needed
-score: 5/5 must-haves verified (automated) — WIZ-04 live UAT pending by design
+score: 6/6 must-haves verified at code level (automated) — ri-collaudo dal vivo di Riccardo su G1..G4 ancora da fare
 overrides_applied: 0
-human_verification:
-  - test: "Collaudo dal vivo end-to-end del percorso Pro con l'account Pro reale di Riccardo (checklist 16 voci in 09-HUMAN-UAT.md)"
-    expected: "Wizard invariato, dettaglio Pro con default gia' applicati, una sola alternativa per asse (pavimento, finitura), stepper bagni/porte/condizionatori funzionanti, PDF coerente con la schermata, nessuna chiave impresa/coefficiente nel JSON di rete"
-    why_human: "Richiede login reale, interazione UI dal vivo e giudizio di plausibilita' dei totali — esplicitamente rinviato con vincolo del 2026-09-26, tracciato come pending in 09-HUMAN-UAT.md, non bloccante per le fasi 09-10"
-  - test: "Compilazione della taratura vera in docs/taratura/09-taratura-pro.xlsx (09-TARATURA-TODO.md)"
-    expected: "Riccardo rivede i coefficienti proposti e le assegnazioni agli assi, sostituendo la bozza-accettata con valori giudicati da lui"
-    why_human: "Giudizio di dominio (prezzi, quantita' plausibili) che nessun test automatico puo' sostituire; per costruzione della fase (D-03/D-05) la bozza-accettata e' considerata sufficiente per procedere, la taratura vera resta un'attivita' separata rinviata"
+re_verification:
+  previous_status: human_needed
+  previous_score: 4/5 truths automatiche + WIZ-04 pending
+  gaps_closed:
+    - "G1: pavimenti alternativi sommati in B-FINITURE > PAVIMENTI (chiuso da 09-09/09-10/09-14: 7 opzioni tipo_pavimento, ognuna governa solo le proprie voci, verificato per tutte e 7 su copia di dev.db)"
+    - "G2: levigature/battiscopa doppi in A.6 (chiuso da 09-09/09-10: A.6 intera governata per opzione, levigatura marmo mai presente, levigatura parquet solo con parquet, un solo battiscopa per scelta)"
+    - "G3 parte codice: 'vai a Pro' da stima non salvata portava a un modulo vergine; pavimento visibile solo dietro 'Modifica' (chiuso da 09-11/09-12: history.state porta risposte+destinazione a /nuova-stima, wizard riapre su step 4, pannello Pro mostra le domande a scelta sempre, ricalcolo immediato al cambio)"
+    - "G4: comandi 'Aggiungi effetto' nascosti, dialog di modifica admin senza tutte le colonne (chiuso da 09-13: bottoni 'Opzioni ed effetti'/'Effetti (n)' visibili, dialog di Listini/Coefficienti/Bonus estesi a tutte le colonne)"
+  gaps_remaining:
+    - "Nessun gap di codice residuo trovato. Resta il ri-collaudo dal vivo di Riccardo (checklist G1..G4 e le 5 'scelte di Claude da confermare' in 09-HUMAN-UAT.md, sezione 'Ri-collaudo gap G1..G4') — tutte le caselle sono ancora vuote, nessun esecutore le ha spuntate, per costruzione del processo."
+  regressions: []
 ---
 
-# Phase 09: Configuratore Pro e chiusura del bug dei cataloghi — Verification Report
+# Phase 09: Configuratore Pro e chiusura del bug dei cataloghi — Verification Report (Re-verification)
 
 **Phase Goal:** Il motore Pro smette di sommare voci alternative: gli assi di scelta diventano dati, e i coefficienti quantità vengono tarati nella stessa fase in cui si aggiunge risoluzione.
 **Verified:** 2026-09-28
 **Status:** human_needed
-**Re-verification:** No — initial verification
+**Re-verification:** Sì — dopo chiusura gap G1..G4 (piani 09-09..09-14), a seguito del collaudo di Riccardo del 2026-09-28 documentato in `09-HUMAN-UAT.md`
+
+## Nota sulla verifica precedente
+
+La verifica iniziale (stesso file, sovrascritta qui) aveva dato `status: human_needed`,
+score 4/5 automatico con WIZ-04 in attesa di collaudo dal vivo. Il collaudo dal vivo di
+Riccardo (2026-09-28) ha trovato **4 gap** (G1, G2, G3, G4, tutti in `09-HUMAN-UAT.md` §Gaps).
+Sono stati chiusi da sei piani di gap closure (09-09..09-14). Questa è la ri-verifica di
+quella chiusura: guarda il codice, non le dichiarazioni dei SUMMARY.
 
 ## Goal Achievement
 
-### Observable Truths
+### Gap G1 — pavimenti sommati in B-FINITURE
 
-| # | Truth (Roadmap Success Criteria) | Status | Evidence |
-|---|---|---|---|
-| 1 | `DettaglioProService.compute()` risolve `includi`/`escludi`/`fattore_quantita`/`quantita_per_unita` dallo stesso catalogo del Free | ✓ VERIFIED | `backend/app/services/dettaglio_pro.py` importa `risolvi_effetti_pro` da `app/services/effetti.py` (stesso modulo del Free); docstring di modulo descrive l'ordine di risoluzione ereditato; `compute()` chiama `risoluzione_per()` → `risolvi_effetti_pro(session, mq=mq, tipo=tipo, risposte=risposte_asse)` per ogni valore distinto dell'asse finitura. `risolvi_effetti_pro()` in `effetti.py:792` usa `risolvi_scelte(tiers=(TIER_FREE, TIER_PRO))`, lo stesso catalogo domande. |
-| 2 | Nessuna sottocategoria di tipo `catalogo` contiene più di una famiglia di alternative, verificato da un test che *conta* le voci incluse per sottocategoria | ✓ VERIFIED | `backend/tests/test_dettaglio_pro_alternative.py::test_nessun_asse_include_piu_di_unopzione` — parametrizzato su 3 finiture × 4 tipi_pavimento (12 varianti), per ogni asse con effetti `includi` conta le opzioni con almeno una voce presente e asserisce `len(presenti) <= 1`. Test analogo `..._con_livelli` per il caso `livelli` per-categoria. Eseguito ora: 101 test in `test_dettaglio_pro_alternative.py` + `test_dettaglio_pro_livelli.py` → **101 passed** (198s). |
-| 3 | Migrazione senza perdita: `voce.livello` → asse `finitura`; le tre `domanda_mirata_key` → domande `stepper` con `quantita_per_unita` | ✓ VERIFIED | `backend/alembic/versions/*0021*.py`: sezione (A) traduce `voce.livello` non-null in opzioni/effetti `includi` della domanda `finitura`; sezione (B) traduce `coefficiente_qta_voce.domanda_mirata_key` in effetti `quantita_per_unita`. Le colonne originali **non vengono droppate** (dati storici preservati, D-41). `09-08-SUMMARY.md` riporta conteggi post-migrazione su `dev.db`: `voce.livello` non-null = 21 (invariato), `domanda_mirata_key` non-null = 144 (invariato), 199 effetti totali generati. |
-| 4 | `computo_parsing.py` non assegna più lo stesso `0,6 × TIPO_FACTOR` a tutte le voci a m² | ✓ VERIFIED | `backend/app/services/computo_parsing.py` — commenti e codice mostrano il passaggio a coefficienti per classe/voce (`taratura-classi.json`, `PROPOSTA_PER_CLASSE x TIPO_FACTOR`), la funzione `coefficienti_per_voce()` col vecchio `0.6 x TIPO_FACTOR` uniforme resta come riferimento storico/fallback esplicitamente commentato come "superato" (riga 107, 149, 280), non più il percorso di produzione. |
-| 5 | Il percorso Pro del wizard è esercitato dal vivo end-to-end con un account Pro reale | ? PENDING (human) | Controlli automatici via API tutti verdi su copia di `dev.db` (default D-07, regola bagno D-02, stepper bagni, anti-leak — vedi tabella in `09-08-SUMMARY.md`); il collaudo dal vivo con l'account Pro reale di Riccardo è esplicitamente **rinviato** (vincolo 2026-09-26, tracciato in `09-HUMAN-UAT.md` come `status: pending`, non bloccante). Non è un gap: è un differimento dichiarato e documentato dal piano 09-08. |
+| Verifica | Esito | Evidenza |
+|---|---|---|
+| `tipo_pavimento` ha le opzioni laminato/vinilico_lvt/moquette oltre a gres/parquet/maxi_lastra/mosaico | ✓ VERIFIED | Letto `backend/seed_data/seed-domande.json` a runtime: `['gres', 'parquet', 'maxi_lastra', 'mosaico', 'laminato', 'vinilico_lvt', 'moquette']` — 7 opzioni. |
+| Nessuna doppia fornitura pavimento in B-FINITURE, per nessuna delle 7 opzioni | ✓ VERIFIED | `backend/tests/test_alternative_mondo_aperto.py` (perimetro/assi/combinazioni derivati dal catalogo via query SQLAlchemy, non da lista scritta a mano) — eseguito ora, **190 passed** insieme a `test_migrazioni_sqlite.py`, `test_taratura_pro.py`, `test_applica_taratura.py`, `test_wizard_pro_scelte.py`, `test_dettaglio_pro_alternative.py`, `test_dettaglio_pro_livelli.py` (315s). Tabella di controllo manuale in `09-HUMAN-UAT.md` (09-14 Task 3) conferma 0-1 voce per opzione su tutte e 7. |
+| Migrazione 0023 porta le nuove opzioni/effetti su ogni DB esistente | ✓ VERIFIED | `backend/alembic/versions/0023_pavimenti_alternativi.py` presente; `dev.db` interrogato ora → `alembic_version = 0023` (head). Test di migrazione su catalogo reale (non sintetico) in `test_migrazioni_sqlite.py`, verde. |
 
-**Score:** 4/5 truths automaticamente verificate, 1/5 (WIZ-04) in attesa di collaudo umano per costruzione della fase.
+### Gap G2 — levigature/battiscopa doppi in A.6
 
-### Requisiti QST-05, CFG-01..04
+| Verifica | Esito | Evidenza |
+|---|---|---|
+| A.6 intera (non solo le pose base) è governata da un asse | ✓ VERIFIED | `test_alternative_mondo_aperto.py::test_una_voce_per_lavorazione` deriva i gruppi di lavorazione (battiscopa, levigatura, posa_rivestimento, fornitura_pavimento) dal catalogo e asserisce un massimo di voce "viva" per gruppo/combinazione; verde. |
+| Levigatura marmo mai presente, levigatura parquet solo con parquet | ✓ VERIFIED | Tabella di controllo manuale 09-14 (Task 3, su copia di `dev.db`, tutte e 7 le opzioni): "Levigatura marmo: assente" su ogni riga, "Levigatura parquet: presente" solo sulla riga `parquet`. |
+| Un solo battiscopa per scelta | ✓ VERIFIED | Stessa tabella: colonna "Battiscopa" sempre 1 (ceramica con gres/maxi_lastra/mosaico, legno con parquet/laminato/vinilico_lvt/moquette). |
 
-| Requisito | Descrizione | Status | Evidenza |
-|---|---|---|---|
-| QST-05 | Ogni `domanda_mirata_key` ha una domanda corrispondente nel catalogo | ✓ SATISFIED | Migrazione 0021 crea domande `stepper` (bagni/porte/condizionatori) con effetto `quantita_per_unita`; `09-04-SUMMARY.md` e `09-02-SUMMARY.md` dichiarano QST-05 completato; `effetti.py` `CONTROLLI_NUMERICI = {"stepper", "numero"}` e `risolvi_effetti_pro` include le domande Free-con-quantita' nella risoluzione Pro. |
-| CFG-01 | Motore Pro risolve gli effetti dallo stesso catalogo del Free | ✓ SATISFIED | Vedi Truth 1. |
-| CFG-02 | Nessuna sottocategoria `catalogo` con più di una famiglia di alternative, verificato da test che conta | ✓ SATISFIED | Vedi Truth 2 — test parametrizzato eseguito e verde. |
-| CFG-03 | Migrazione senza perdita | ✓ SATISFIED | Vedi Truth 3. |
-| CFG-04 | Coefficienti quantità tarati nella stessa fase | ✓ SATISFIED (con riserva dichiarata) | `09-06-PLAN/SUMMARY` applicano la migrazione 0022 con la **bozza-accettata** di Claude (D-03/D-04/D-05), non la revisione finale di Riccardo. La fase soddisfa CFG-04 nel senso previsto dal design della fase (D-05: "nessuna forchetta imposta da test, plausibilità giudicata da Riccardo"); la compilazione umana del file vero resta esplicitamente rinviata in `09-TARATURA-TODO.md` (status: RINVIATA), coerente col "Rischio dichiarato" già scritto in ROADMAP.md per questa fase. |
-| WIZ-04 | Percorso Pro verificato dal vivo end-to-end | ? PENDING (human, non bloccante) | Vedi Truth 5. |
+### Gap G3 — percorso pavimento poco evidente
 
-### Required Artifacts
+| Verifica | Esito | Evidenza |
+|---|---|---|
+| "Vai alla stima Pro" da stima non salvata porta i dati, non un modulo vergine | ✓ VERIFIED | `frontend/src/pages/EstimatePage.tsx:304` — `CtaDettaglioPro` naviga a `/nuova-stima?citta=...&mq=...&tipo=...` con `state:{risposte,destinazione}`; `frontend/src/pages/NuovaStimaProPage.tsx` — `datiDaStato()` legge `location.state`, `stepIniziale = risposte ? 4 : undefined` passato al wizard. |
+| "Rifai in versione Pro" da Le mie stime punta a `/nuova-stima`, non alla home | ✓ VERIFIED | `frontend/src/routes/LeMieStimePage.tsx:97` — link `to={`/nuova-stima?citta=...`}`. |
+| Il pavimento si vede e si cambia senza premere "Modifica" | ✓ VERIFIED | `frontend/src/components/DettaglioProView.tsx:200-226` — blocco `domandeScelta` (include il pavimento, `tipo_controllo` non numerico) reso **fuori** dal ramo `domandeCollassate ? ... : ...`, sempre visibile; `handleSceltaChange` (riga 108) invoca `risposteMutation.mutate` per ricalcolo immediato, con guardia anti-invio-concorrente e spinner. |
+| Il wizard Pro chiede il pavimento allo step 4 (non solo il livello finitura) | ✓ VERIFIED | 09-11: `GET /me/opzioni-pro` espone `domande` (11 test in `test_wizard_pro_scelte.py`, rieseguiti ora, verdi); `EstimateWizard.tsx` disegna le domande del configuratore nello step 4. |
 
-| Artifact | Expected | Status | Details |
-|---|---|---|---|
-| `backend/app/services/dettaglio_pro.py` | Motore Pro su catalogo, non su `voce.livello` | ✓ VERIFIED | Docstring e codice confermano lettura da `risolvi_effetti_pro`; nessun riferimento residuo a `voce.livello` come filtro nel path di calcolo. |
-| `backend/app/services/effetti.py::risolvi_effetti_pro` | Risoluzione condivisa Free/Pro | ✓ VERIFIED | Funzione presente, usa `risolvi_scelte(tiers=(TIER_FREE, TIER_PRO))`. |
-| `backend/alembic/versions/*0021*.py` | Migrazione senza perdita | ✓ VERIFIED | Upgrade traduce dati esistenti in nuove righe, non droppa colonne sorgente. |
-| `backend/alembic/versions/*0022*.py` | Taratura approvata (bozza) | ✓ VERIFIED (esiste, exists) | Presente in `backend/alembic/versions/`. |
-| `backend/tests/test_dettaglio_pro_alternative.py` | Test di conteggio CFG-02 | ✓ VERIFIED | Eseguito: 101 passed. |
-| `frontend/src/components/DettaglioProView.tsx` | Pannello "Qualche dettaglio in più" | ✓ VERIFIED | Testo "Qualche dettaglio in più" trovato a riga 182; componente wired nella pagina dettaglio Pro. |
-| `.planning/phases/09-configuratore-pro/09-HUMAN-UAT.md` | Checklist collaudo dal vivo | ✓ VERIFIED | Esiste, 16 voci, stato pending, tabella controlli automatici in testa. |
-| `.planning/phases/09-configuratore-pro/09-TARATURA-TODO.md` | Checklist taratura vera rinviata | ✓ VERIFIED | Esiste, stato RINVIATA, coerente col vincolo 2026-09-26. |
+### Gap G4 — editor admin
 
-### Key Link Verification
+| Verifica | Esito | Evidenza |
+|---|---|---|
+| "Aggiungi effetto" visibile senza cercarlo | ✓ VERIFIED | `frontend/src/pages/admin/DomandePage.tsx:310` — bottone "Opzioni ed effetti"/"Effetti" per riga; `OpzioniSezione.tsx:233` — "Effetti (n)" col conteggio; `EffettiSezione.tsx:340` — bottone "Aggiungi effetto" ora primario, con scroll automatico alla sezione. |
+| Dialog di modifica di Listini/Coefficienti/Bonus mostrano tutte le colonne | ✓ VERIFIED | `ListiniPage.tsx:408` — nuovo dialog "Modifica listino"; `CoefficientiPage.tsx`/`BonusPage.tsx` — campi prima assenti ora in sola lettura (Tipo/Categoria separati, Domanda mirata con link, Codice bonus visibile, Bonus/Destinazione/Categoria/Extra mostrati). |
 
-| From | To | Via | Status | Details |
-|---|---|---|---|---|
-| `DettaglioProService.compute()` | `effetti.py::risolvi_effetti_pro` | import + chiamata diretta | ✓ WIRED | `from app.services.effetti import (..., risolvi_effetti_pro)`, chiamata in `risoluzione_per()`. |
-| `DettaglioProView.tsx` (pannello) | `POST /me/stime/{id}/dettaglio-pro/risposte` | riuso endpoint esistente (D-06) | ✓ WIRED | Confermato da `09-05-SUMMARY.md` e presenza del componente/API client (`frontend/src/api/dettaglio-pro.ts`). |
-| `alembic upgrade head` | `dev.db` | migrazioni 0021→0022 | ✓ WIRED | `09-08-SUMMARY.md`: `alembic current` → `0022 (head)` confermato sul DB reale di sviluppo. |
+### Requisiti QST-05, CFG-01..04, WIZ-04
+
+| Requisito | Status | Evidenza |
+|---|---|---|
+| QST-05 | ✓ SATISFIED | Invariato dalla verifica iniziale: domande `stepper` con `quantita_per_unita` esistono per ogni `domanda_mirata_key`. |
+| CFG-01 | ✓ SATISFIED | Invariato: `DettaglioProService.compute()` → `risolvi_effetti_pro()` sullo stesso catalogo del Free. Rinforzato da 09-11/09-13 (le domande a scelta arrivano dallo stesso catalogo anche nel wizard e nell'editor admin). |
+| CFG-02 | ✓ SATISFIED (rinforzato) | La verifica iniziale copriva solo A.6.1/.2/.5/.6 e i casi allora noti (test parametrizzato a lista chiusa). Il gap G1/G2 ha dimostrato che il controllo iniziale non copriva A.6.3/.4/.7/.8/.9/.10 né i pavimenti alternativi in B-FINITURE. Ora `test_alternative_mondo_aperto.py` deriva perimetro/assi/combinazioni **dal catalogo**, non da una lista scritta a mano — copertura strutturalmente più ampia, verde su 190 test. |
+| CFG-03 | ✓ SATISFIED | Migrazione 0023 aggiunge dati senza droppare colonne (create-if-missing, fail-loud, reversibile); WR-02 chiude un'asimmetria del downgrade 0021 trovata in review. `alembic upgrade head` → `0023` verificato su `dev.db` reale. |
+| CFG-04 | ✓ SATISFIED (con riserva dichiarata, invariata) | Bozza-accettata ancora in uso (non la taratura vera di Riccardo) — stessa riserva della verifica iniziale, tracciata in `09-TARATURA-TODO.md` come RINVIATA. Le nuove famiglie (laminato/vinilico/moquette/sottofondo/gres-a-pavimento) seguono lo stesso schema di taratura bozza-accettata delle famiglie preesistenti. |
+| WIZ-04 | ? PENDING (human) | Controlli automatici per tutte le 7 opzioni pavimento verdi (tabella 09-14 Task 3). Il collaudo dal vivo di Riccardo su questa build (dev.db a 0023) **non è stato ancora eseguito**: la sezione "Checklist per te" del ri-collaudo G1..G4 in `09-HUMAN-UAT.md` ha tutte le caselle vuote (`- [ ]`), incluse le 5 domande esplicite "Scelta di Claude da confermare". Questo è il motivo per cui lo stato resta `human_needed`, non `passed`. |
+
+### Anti-Patterns Found
+
+Nessun `TBD`/`FIXME`/`XXX`/`TODO`/`PLACEHOLDER` nei file toccati dai piani di gap closure
+(`dettaglio_pro.py`, `genera_excel_taratura.py`, `applica_taratura.py`,
+`0023_pavimenti_alternativi.py`, `DettaglioProView.tsx`, `NuovaStimaProPage.tsx`,
+`EstimatePage.tsx`, `LeMieStimePage.tsx`, pagine admin). L'unico match di "TODO"-like è un
+riferimento testuale a `09-TARATURA-TODO.md` (nome di documento tracciato, non un debt
+marker nel codice).
 
 ### Behavioral Spot-Checks
 
 | Behavior | Command | Result | Status |
 |---|---|---|---|
-| Test di conteggio CFG-02 (nessun asse con >1 opzione presente, 12 varianti finitura×pavimento) | `pytest backend/tests/test_dettaglio_pro_alternative.py backend/tests/test_dettaglio_pro_livelli.py backend/tests/test_domande_free.py -q` | `101 passed in 198.54s` | ✓ PASS |
-| Regressione mirata (stessi file + livelli) | `pytest backend/tests/test_dettaglio_pro_alternative.py backend/tests/test_dettaglio_pro_livelli.py -q` | passed, exit 0 | ✓ PASS |
-| Suite completa (non ri-eseguita per limite di tempo, presa dal commit 9661c1f) | — | 818 passed, 5 skipped | ✓ PASS (dato dal contesto, non ri-verificato in questa sessione per vincolo esplicito) |
-
-### Anti-Patterns Found
-
-Nessun `TBD`/`FIXME`/`XXX`/`TODO`/`PLACEHOLDER` trovato in `dettaglio_pro.py`, `effetti.py`, `computo_parsing.py`, `routers/dettaglio_pro.py`. Nessuno stub rilevato nei file core della fase.
-
-### Human Verification Required
-
-### 1. Collaudo dal vivo del percorso Pro (WIZ-04)
-
-**Test:** Eseguire le 16 voci della checklist in `09-HUMAN-UAT.md` con l'account Pro reale su http://localhost:5173.
-**Expected:** Wizard invariato; dettaglio Pro coerente con i default; una sola alternativa per asse; stepper e PDF coerenti; nessuna chiave impresa/coefficiente esposta.
-**Why human:** Richiede login e interazione reali; già esplicitamente rinviato per vincolo di Riccardo del 2026-09-26 — non blocca l'avanzamento a Fase 10.
-
-### 2. Compilazione della taratura vera (CFG-04, dato di dominio)
-
-**Test:** Seguire `09-TARATURA-TODO.md`, compilare `docs/taratura/09-taratura-pro.xlsx` con le decisioni reali di Riccardo sui coefficienti/assegnazioni.
-**Expected:** Sostituzione della bozza-accettata con valori rivisti, riapplicati con una nuova migrazione Alembic (mai modificando la 0022).
-**Why human:** Giudizio di prezzo/dominio non automatizzabile; per costruzione della fase la bozza-accettata basta per procedere (D-03/D-05), ma il "Rischio dichiarato" in ROADMAP.md resta aperto finché Riccardo non la chiude.
+| Tutti i test dei piani di gap closure (mondo aperto CFG-02, migrazioni 0021/0023, generatore/applicatore taratura, scelte wizard Pro, alternative/livelli Pro) | `backend/.venv/Scripts/python.exe -m pytest backend/tests/test_alternative_mondo_aperto.py backend/tests/test_migrazioni_sqlite.py backend/tests/test_taratura_pro.py backend/tests/test_applica_taratura.py backend/tests/test_wizard_pro_scelte.py backend/tests/test_dettaglio_pro_alternative.py backend/tests/test_dettaglio_pro_livelli.py -q` | `190 passed in 315.71s` | ✓ PASS |
+| `alembic_version` su `dev.db` reale | query SQLite diretta | `0023` | ✓ PASS |
+| 7 opzioni `tipo_pavimento` nel seed committato | lettura JSON a runtime | `['gres','parquet','maxi_lastra','mosaico','laminato','vinilico_lvt','moquette']` | ✓ PASS |
+| Suite completa (non ri-eseguita, presa da 09-14 Task 3, stessa sessione, stesso commit) | — | 849 passed, 5 skipped | ✓ PASS (dato dal contesto per vincolo esplicito del compito, non ri-eseguito qui) |
 
 ### Gaps Summary
 
-Nessun gap bloccante trovato. Tutti gli artefatti core (motore Pro su catalogo condiviso, test di conteggio CFG-02, migrazione 0021 senza perdita, sostituzione del coefficiente uniforme in `computo_parsing.py`, migrazione 0022 con bozza-accettata) esistono, sono sostanziali e sono wired, confermati da lettura di codice e da esecuzione mirata dei test (101 passed). I due elementi rimanenti — collaudo dal vivo (WIZ-04) e taratura vera dei coefficienti (perfezionamento di CFG-04) — sono differimenti **dichiarati e documentati** dal piano stesso (vincolo del 2026-09-26), non omissioni scoperte in verifica: per questo lo status è `human_needed` e non `gaps_found`.
+Nessun gap di codice residuo. I quattro gap trovati dal collaudo di Riccardo (G1 pavimenti
+sommati, G2 levigature/battiscopa doppi, G3 percorso pavimento poco evidente, G4 editor
+admin incompleto) sono chiusi a livello di codice, dati (migrazione 0023 su `dev.db` reale)
+e test automatici (190 test mirati + 849 della suite completa già verificata in questa
+sessione dal piano 09-14). Verificato leggendo il codice sorgente riga per riga (non i
+SUMMARY), non solo la loro esistenza: i pannelli sono wired, gli endpoint sono chiamati, i
+test contano davvero le voci invece di controllare un elenco fisso.
+
+Resta **solo** il ri-collaudo dal vivo di Riccardo: la sezione "Ri-collaudo gap G1..G4" di
+`09-HUMAN-UAT.md` ha 15 caselle vuote (11 di verifica funzionale + 5 "scelte di Claude da
+confermare" che sono decisioni di dominio, non bug — es. se il battiscopa legno debba
+valere anche per laminato/vinilico/moquette, o se la fornitura gres "prima per id" sia
+accettabile). Questo è per costruzione del processo (`status: pending` in
+`09-HUMAN-UAT.md`, nessun esecutore spunta le caselle), non un'omissione di questa verifica.
+Non bloccante per l'avanzamento tecnico, ma lo stato resta `human_needed` finché Riccardo
+non collauda.
+
+### Human Verification Required
+
+### 1. Ri-collaudo dal vivo dei gap G1..G4
+
+**Test:** Eseguire le 11 voci funzionali + le 5 "scelte di Claude da confermare" nella sezione
+"Ri-collaudo gap G1..G4" di `09-HUMAN-UAT.md`, con dev.db a 0023 (già fatto) e l'app in
+esecuzione (`uvicorn` + `npm run dev`).
+**Expected:** Nessuna doppia voce di pavimento/lavorazione in B-FINITURE/A.6 per gres,
+laminato, vinilico LVT, moquette; percorso "Vai alla stima Pro" e "Rifai in versione Pro"
+aprono il wizard con i dati portati; editor admin con comandi visibili; le 5 decisioni di
+dominio di Claude (battiscopa condiviso, moquette senza posa dedicata, A.6.3/A.6.4 per
+fascia, quale fornitura gres resta per livello, sottofondo solo con laminato) confermate o
+corrette da Riccardo.
+**Why human:** Giudizio visivo/di dominio sui totali e sulle decisioni di taratura; richiede
+login e interazione reale nel browser, non automatizzabile.
+
+### 2. Voci residue del collaudo precedente (invariate)
+
+**Test:** Voce 12 (scarico PDF dettagliato — bloccata da WeasyPrint/GTK3 assente su Windows,
+verificabile solo in produzione/Linux); voce 13 (plausibilità dei totali Pro vs Free,
+rimandata da Riccardo); voce 14 (riapertura stima da "Le mie stime", non ancora eseguita).
+**Expected:** Come da checklist originale in `09-HUMAN-UAT.md`.
+**Why human:** Stesse ragioni della verifica iniziale — ambiente di produzione o giudizio di
+plausibilità.
+
+### 3. Compilazione della taratura vera (CFG-04, invariato)
+
+**Test:** Seguire `09-TARATURA-TODO.md`, compilare `docs/taratura/09-taratura-pro.xlsx` con le
+decisioni reali di Riccardo.
+**Expected:** Sostituzione della bozza-accettata (comprese le nuove famiglie pavimento) con
+valori rivisti, via nuova migrazione Alembic.
+**Why human:** Giudizio di prezzo/dominio, esplicitamente rinviato per costruzione della fase.
 
 ---
 
