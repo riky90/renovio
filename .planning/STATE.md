@@ -3,31 +3,42 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: domande e motore parametrico
 status: executing
-last_updated: "2026-09-26T07:25:25.764Z"
+last_updated: "2026-09-28T09:30:00.000Z"
 progress:
   total_phases: 7
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 23
-  completed_plans: 22
-  percent: 71
-stopped_at: Phase 09 — waves 1-4 done (7/8 plans), suite 818 green; next: wave 5 = plan 09-08 (migrate dev.db, auto checks, 09-HUMAN-UAT.md) via /gsd:execute-phase 09, then Phase 10
+  completed_plans: 23
+  percent: 85
 ---
 
 # Project State — ristruttura-stima
 
 ## Current Position
 
-Phase: 09 (configuratore-pro) — EXECUTING
-Plan: 1 of 8
-Prossima: `/gsd:execute-phase 09` (piani verificati il 2026-09-26). Primo deliverable: Excel di taratura + elenco dati richiesti a Riccardo (D-04).
+Phase: 09 (configuratore-pro) — COMPLETE (8/8 piani)
+Plan: 8 of 8
+Prossima: Fase 10 (`/gsd:plan-phase 10`). Push rimandato a fine milestone (fine Fase 10).
 
 - **Milestone:** v2.0 (domande e motore parametrico), fasi **05-10**. La v1.0 (MVP, fasi
   01-04) e' **completa, verificata e in produzione dal 2026-09-09** — backend su Render,
   frontend su Vercel — e archiviata in `.planning/milestones/v1.0-ROADMAP.md`.
 
-- **Fasi complete (5 di 7):** 05 (catalogo domande + motore Free parametrico), 06 (wizard
+- **Fasi complete (6 di 7):** 05 (catalogo domande + motore Free parametrico), 06 (wizard
   unico), 07 (arredo), 08 (export/import Excel), 08.1 (catalogo domande: pagina CRUD e file
-  Excel). 05 e 06 eseguite fuori dal ciclo GSD e ricostruite nei `NN-RETRO-SUMMARY.md`.
+  Excel), 09 (configuratore Pro: assi finitura/pavimento senza somma di alternative, taratura
+  su tre canali, dev.db a `0022 head`). 05 e 06 eseguite fuori dal ciclo GSD e ricostruite nei
+  `NN-RETRO-SUMMARY.md`.
+
+- **09** chiusa il 2026-09-28: 8/8 piani. `dev.db` migrato a `0022 (head)` e seminato (backup
+  pre-migrazione), suite backend 818 passed/5 skipped, build e lint frontend verdi, cinque
+  controlli automatici del percorso Pro via API verdi (default D-07, quota bagno D-02,
+  stepper bagni raddoppiato, anti-leak sulle chiavi JSON) — il quinto controllo (PDF Pro) e'
+  SKIP-graceful per il limite GTK3/WeasyPrint gia' noto su questa macchina Windows, non un
+  fallimento. `09-HUMAN-UAT.md` registra il collaudo dal vivo di Riccardo con il suo account
+  Pro reale come **pending**, non bloccante (WIZ-04, vincolo del 2026-09-26): le fasi 09-10
+  proseguono senza aspettarlo. I coefficienti restano la bozza accettata finche'
+  `09-TARATURA-TODO.md` non si chiude con il file vero di Riccardo.
 
 - **08** chiusa il 2026-09-23: 8/8 piani, verifica `passed` 5/5, tredici findings della
   code review chiuse in due iterazioni di `/gsd:code-review 08 --fix` (report in
@@ -55,6 +66,23 @@ Prossima: `/gsd:execute-phase 09` (piani verificati il 2026-09-26). Primo delive
 - **Stack (da RESEARCH):** FastAPI + SQLAlchemy 2.0 + Pydantic v2 + Postgres/Alembic · React 19 + Vite + TS 5.9 + react-query + Tailwind/shadcn · autocomplete comuni ISTAT bundlato offline.
 
 ## Last Session
+
+- **2026-09-28** — **Eseguito Plan 09-08 (chiusura Fase 09): dev.db allo stato finale, gate
+  completi, controlli API automatici, collaudo rinviato.** Backup
+  `backend/dev.db.bak-pre-0021-20260928-084905`, poi `alembic upgrade head` (0020->0022) e
+  `scripts/seed.py`: conteggi invariati come atteso dal 09-04/09-06 (21 `voce.livello`, 144
+  `domanda_mirata_key`; 199 effetti totali, 573 coefficienti). Suite backend completa **818
+  passed, 5 skipped** (26min); build e lint frontend verdi. Cinque controlli automatici del
+  percorso Pro via API, su una COPIA di `dev.db` (mai il file reale, script usa-e-getta in
+  scratchpad): (a) default, A.6 una sola posa (gres) + B-FINITURE max 1 voce/famiglia —
+  verde; (b) `tipo_pavimento=parquet` — posa parquet presente, quota bagno gres D-02 resta —
+  verde; (c) bagni=2 -> quantita' raddoppiata — verde; (d) nessuna chiave JSON con
+  impresa/coefficiente/effett — verde; (e) PDF Pro — **SKIP graceful**, GTK3/WeasyPrint non
+  disponibile su questa macchina Windows (limite noto dal 02-08, non un fallimento).
+  `09-HUMAN-UAT.md` creato con `status: pending`: il collaudo dal vivo di Riccardo con il suo
+  account Pro reale (WIZ-04, D-09) e' registrato come **rinviato, non un gate** — vincolo del
+  2026-09-26, le fasi 09-10 proseguono. **Fase 09 chiusa: 8/8 piani.** Nessun push (decisione
+  di Riccardo: fine Fase 10). Vedi `09-08-SUMMARY.md`. Prima:
 
 - **2026-09-21 (6)** — **Fix delle Tabs e contesto della Fase 08.** Due commit di codice:
   `906010f` mappa le varianti `data-*` dei componenti shadcn agli attributi che Radix emette
@@ -165,8 +193,10 @@ Prossima: `/gsd:execute-phase 09` (piani verificati il 2026-09-26). Primo delive
 
 ## Next Step
 
-- `/gsd:plan-phase 09` — Configuratore Pro e chiusura del bug dei cataloghi (QST-05,
-  CFG-01..04, WIZ-04).
+- `/gsd:plan-phase 10` — ultima fase della milestone v2.0. Push solo alla sua chiusura.
+
+- Fase 09 chiusa (8/8): controlli API automatici del percorso Pro verdi; collaudo dal vivo
+  di Riccardo con account Pro reale (WIZ-04) **pending** in `09-HUMAN-UAT.md`, non bloccante.
 
 - Oracolo verificato via API il 2026-09-25: Reggio Emilia, 85 m², tipo **totale** (non moderata),
   47.985-70.575 EUR esatto. Resta da guardare la scheda Anteprima del pannello dal vivo.
@@ -251,7 +281,10 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 - [Phase 03-pro-dettaglio-sottocategorie]: build_filename_pro() dedicato invece di parametrizzare build_filename() esistente, per non toccare il contratto gia' testato della Free
 - [Phase 03-pro-dettaglio-sottocategorie]: toNumber/normalizzazione Decimal duplicati in dettaglio-pro.ts invece di estratti in un helper condiviso con stima.ts (scelta esplicitamente lasciata all'esecutore dal piano)
 - [Phase 03-pro-dettaglio-sottocategorie]: riepilogo domande mirate collassato derivato lato client dalle risposte del primo GET (non tutte zero => collassato), nessun flag server-side dedicato
+- [Phase 09-configuratore-pro P08]: controllo anti-leak (d) sulle CHIAVI del JSON, non su substring grezza del testo intero della risposta — "effett" come substring produce un falso positivo legittimo su "effettuato" in una descrizione voce del computo
+- [Phase 09-configuratore-pro P08]: controllo (e) PDF Pro (script di verifica del piano) trattato come SKIP graceful, non come rosso bloccante — stesso limite GTK3/WeasyPrint su Windows gia' accettato dal 02-08 in poi, probe runtime via `OSError`
+- [Phase 09-configuratore-pro P08]: collaudo dal vivo di Riccardo (WIZ-04) registrato come pending in 09-HUMAN-UAT.md, non un gate — vincolo esplicito del 2026-09-26, le fasi 09-10 proseguono senza aspettarlo
 
 ### Blockers
 
-- Nessuno. Fase 2 completa e verificata; tutti i checkpoint chiusi. I due limiti d'ambiente (Google OAuth proxy TLS, PDF GTK3 su Windows) sono accettati e rimandati alla verifica in produzione — non bloccanti.
+- Nessuno. Fase 09 chiusa (8/8 piani). I limiti d'ambiente noti (Google OAuth proxy TLS, PDF GTK3 su Windows) restano accettati e rimandati alla verifica in produzione — non bloccanti. Collaudo dal vivo WIZ-04 pending (non bloccante, vincolo di Riccardo).

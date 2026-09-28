@@ -31,7 +31,7 @@ farci*, senza che aggiungere una domanda costi un deploy.
 - [x] **WIZ-01**: Un solo wizard per Free e Pro, a 4 step, con le domande servite da `GET /api/v1/domande`
 - [x] **WIZ-02**: `NumberStepper` come primitivo dei contatori (−/valore/+, tap ≥44px, `inputMode="numeric"`)
 - [x] **WIZ-03**: I default derivano dai m², mai zero, e lo step dell'immobile è saltabile con i valori standard
-- [ ] **WIZ-04**: Il percorso Pro del wizard è verificato dal vivo end-to-end, non solo a livello di tipi
+- [ ] **WIZ-04**: Il percorso Pro del wizard è verificato dal vivo end-to-end, non solo a livello di tipi (controlli automatici via API verdi in 09-08; collaudo dal vivo di Riccardo **rinviato**, tracciato in `09-HUMAN-UAT.md` come pending, non bloccante — vincolo del 2026-09-26)
 
 ### Arredo (ARR)
 

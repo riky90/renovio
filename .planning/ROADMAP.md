@@ -188,7 +188,7 @@ Plans:
 rialzo** su A-EDILE, B-FINITURE (tranne il gres), C-SERRAMENTI e D-PRODOTTI. È una scelta
 consapevole, non una dimenticanza.
 
-**Plans:** 7/8 plans executed
+**Plans:** 8/8 plans complete
 
 Plans:
 **Wave 1**
@@ -212,7 +212,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 09-08-PLAN.md — dev.db allo stato finale, suite completa, collaudo dal vivo con l'account Pro (WIZ-04)
+- [x] 09-08-PLAN.md — dev.db allo stato finale, suite completa, collaudo dal vivo con l'account Pro (WIZ-04)
 
 ### Phase 10: Risultato leggibile e tetto di budget
 
