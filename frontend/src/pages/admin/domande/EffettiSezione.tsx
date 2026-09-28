@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Pencil, Power } from "lucide-react";
@@ -127,10 +127,17 @@ function voceLabel(v: VoceOut): string {
  */
 export function EffettiSezione({ domanda, opzione, onChiudi }: EffettiSezioneProps) {
   const queryClient = useQueryClient();
+  const contenitoreRef = useRef<HTMLDivElement>(null);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<EffettoOut | null>(null);
   const [form, setForm] = useState<EffettoFormState>(formVuoto());
+
+  // G4: quando la sezione si monta o cambia opzione, "Aggiungi effetto" deve
+  // essere subito in vista senza dover scorrere a mano.
+  useEffect(() => {
+    contenitoreRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [opzione.id]);
 
   const effettiQuery = useQuery<EffettoOut[]>({
     queryKey: chiaveEffetti(domanda.code),
@@ -325,11 +332,11 @@ export function EffettiSezione({ domanda, opzione, onChiudi }: EffettiSezionePro
       (form.livello === "voce" && form.voceId === ""));
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3" ref={contenitoreRef}>
       <div className="flex items-center justify-between">
         <h2 className="text-base font-semibold text-foreground">{titolo}</h2>
         <div className="flex items-center gap-2">
-          <Button type="button" size="sm" variant="outline" onClick={openCreate}>
+          <Button type="button" size="sm" onClick={openCreate}>
             Aggiungi effetto
           </Button>
           <Button type="button" size="sm" variant="ghost" onClick={onChiudi}>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Pencil, Trash2, List as ListIcon, Download, UploadCloud } from "lucide-react";
+import { Link } from "react-router";
 import { AdminLayout } from "@/pages/admin/AdminLayout";
 import { AdminTable } from "@/components/admin/AdminTable";
 import { AdminCrudDialog } from "@/components/admin/AdminCrudDialog";
@@ -21,6 +22,7 @@ import {
 import {
   getListini,
   createListino,
+  updateListino,
   getListinoCategorie,
   createListinoCategoria,
   updateListinoCategoria,
@@ -52,6 +54,11 @@ export function ListiniPage() {
   const [listinoNome, setListinoNome] = useState("");
   const [listinoCitta, setListinoCitta] = useState("");
   const [listinoIsDefault, setListinoIsDefault] = useState(false);
+
+  const [editListinoDialogOpen, setEditListinoDialogOpen] = useState(false);
+  const [editListinoNome, setEditListinoNome] = useState("");
+  const [editListinoIsDefault, setEditListinoIsDefault] = useState(false);
+  const [editListinoAttivo, setEditListinoAttivo] = useState(true);
 
   const [categoriaDialogOpen, setCategoriaDialogOpen] = useState(false);
   const [editingCategoria, setEditingCategoria] = useState<ListinoCategoriaOut | null>(null);
@@ -106,6 +113,20 @@ export function ListiniPage() {
       setListinoNome("");
       setListinoCitta("");
       setListinoIsDefault(false);
+    },
+  });
+
+  const updateListinoMutation = useMutation({
+    mutationFn: () =>
+      updateListino(selectedListinoId as number, {
+        nome: editListinoNome.trim(),
+        is_default: editListinoIsDefault,
+        attivo: editListinoAttivo,
+      }),
+    onSuccess: () => {
+      toast.success("Modifica salvata");
+      queryClient.invalidateQueries({ queryKey: ["admin-listini"] });
+      setEditListinoDialogOpen(false);
     },
   });
 
@@ -194,6 +215,15 @@ export function ListiniPage() {
   }
 
   const selectedCategoria = categorieQuery.data?.find((c) => c.id === selectedCategoriaId) ?? null;
+  const selectedListino = listiniQuery.data?.find((l) => l.id === selectedListinoId) ?? null;
+
+  function openEditListino() {
+    if (!selectedListino) return;
+    setEditListinoNome(selectedListino.nome);
+    setEditListinoIsDefault(selectedListino.is_default);
+    setEditListinoAttivo(selectedListino.attivo);
+    setEditListinoDialogOpen(true);
+  }
 
   return (
     <AdminLayout>
@@ -205,6 +235,10 @@ export function ListiniPage() {
             <Button type="button" variant="outline" onClick={() => setUploadOpen(true)}>
               <UploadCloud className="size-4" />
               Carica file
+            </Button>
+            <Button type="button" variant="outline" onClick={openEditListino} disabled={selectedListino === null}>
+              <Pencil className="size-4" />
+              Modifica listino
             </Button>
             <Button type="button" onClick={() => setListinoDialogOpen(true)}>
               Aggiungi listino
@@ -366,6 +400,53 @@ export function ListiniPage() {
         </div>
       </AdminCrudDialog>
 
+      {/* Modifica listino */}
+      <AdminCrudDialog
+        open={editListinoDialogOpen}
+        onOpenChange={setEditListinoDialogOpen}
+        entityLabel="listino"
+        title="Modifica listino"
+        onSubmit={() => updateListinoMutation.mutate()}
+        isSaving={updateListinoMutation.isPending}
+        errorMessage={updateListinoMutation.isError ? "Non siamo riusciti a salvare la modifica. Riprova." : null}
+      >
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="edit-listino-nome">Nome</Label>
+          <Input
+            id="edit-listino-nome"
+            value={editListinoNome}
+            onChange={(e) => setEditListinoNome(e.target.value)}
+            required
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label>Città di riferimento</Label>
+          <p className="rounded-md bg-muted px-3 py-2 text-sm text-foreground">
+            {selectedListino?.citta_riferimento}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            La città del listino non si cambia: crea un nuovo listino e sposta i comuni da Città e
+            testi.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Switch
+            id="edit-listino-default"
+            checked={editListinoIsDefault}
+            onCheckedChange={setEditListinoIsDefault}
+          />
+          <Label htmlFor="edit-listino-default" className="font-normal">
+            Predefinito (fallback)
+          </Label>
+        </div>
+        <div className="flex items-center gap-2">
+          <Switch id="edit-listino-attivo" checked={editListinoAttivo} onCheckedChange={setEditListinoAttivo} />
+          <Label htmlFor="edit-listino-attivo" className="font-normal">
+            Attivo
+          </Label>
+        </div>
+      </AdminCrudDialog>
+
       {/* Aggiungi/modifica categoria */}
       <AdminCrudDialog
         open={categoriaDialogOpen}
@@ -428,8 +509,21 @@ export function ListiniPage() {
         errorMessage={updateVoceMutation.isError ? "Non siamo riusciti a salvare la modifica. Riprova." : null}
       >
         <div className="flex flex-col gap-2">
+          <Label>Codice</Label>
+          <p className="rounded-md bg-muted px-3 py-2 text-sm text-foreground">
+            {editingVoce?.codice ?? "—"}
+          </p>
+        </div>
+        <div className="flex flex-col gap-2">
           <Label>Descrizione</Label>
           <p className="text-sm text-muted-foreground">{editingVoce?.descrizione}</p>
+          <p className="text-xs text-muted-foreground">
+            Codice e descrizione identificano la voce nel computo: si cambiano da{" "}
+            <Link to="/admin/dettaglio-pro" className="underline">
+              Voci dettaglio Pro
+            </Link>
+            .
+          </p>
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="voce-prezzo">Prezzo cliente</Label>

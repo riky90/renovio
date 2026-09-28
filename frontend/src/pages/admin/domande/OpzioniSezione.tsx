@@ -15,11 +15,14 @@ import { EMPTY_HEADING } from "@/lib/adminCopy";
 import {
   DOMANDE_QUERY_KEY,
   chiaveOpzioni,
+  chiaveEffetti,
   getOpzioni,
+  getEffetti,
   createOpzione,
   updateOpzione,
   type DomandaOut,
   type OpzioneOut,
+  type EffettoOut,
   type OpzioneCreateInput,
   type OpzionePatchInput,
 } from "@/api/admin/domande";
@@ -83,6 +86,17 @@ export function OpzioniSezione({
     queryKey: chiaveOpzioni(domanda.code),
     queryFn: () => getOpzioni(domanda.code),
   });
+
+  // Stessa chiave di EffettiSezione (chiaveEffetti(domanda.code)): cache
+  // condivisa, nessun fetch in piu' per mostrare il conteggio "Effetti (n)".
+  const effettiQuery = useQuery<EffettoOut[]>({
+    queryKey: chiaveEffetti(domanda.code),
+    queryFn: () => getEffetti(domanda.code),
+  });
+
+  function contaEffetti(opzioneId: number): number {
+    return (effettiQuery.data ?? []).filter((e) => e.opzione_id === opzioneId).length;
+  }
 
   const toggleMutation = useMutation({
     mutationFn: (row: OpzioneOut) => updateOpzione(row.id, { attiva: !row.attiva }),
@@ -192,11 +206,16 @@ export function OpzioniSezione({
               key="codice"
               onClick={selezionaRiga}
               aria-expanded={selected}
-              className="block w-full text-left"
+              className={`block w-full text-left ${selected ? "rounded-md bg-secondary px-1 -mx-1" : ""}`}
             >
               {row.code}
             </button>,
-            <button type="button" key="etichetta" onClick={selezionaRiga} className="block w-full text-left">
+            <button
+              type="button"
+              key="etichetta"
+              onClick={selezionaRiga}
+              className={`block w-full text-left ${selected ? "rounded-md bg-secondary px-1 -mx-1" : ""}`}
+            >
               {row.etichetta}
             </button>,
             row.is_default ? "Sì" : "",
@@ -204,6 +223,15 @@ export function OpzioniSezione({
               {row.attiva ? "Attiva" : "Non attiva"}
             </Badge>,
             <div className="flex gap-1" key="azioni">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                aria-expanded={selected}
+                onClick={selezionaRiga}
+              >
+                {effettiQuery.isLoading ? "Effetti" : `Effetti (${contaEffetti(row.id)})`}
+              </Button>
               <Button
                 type="button"
                 variant="ghost"
