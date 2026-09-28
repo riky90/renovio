@@ -3,22 +3,26 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: domande e motore parametrico
 status: executing
-last_updated: "2026-09-28T12:39:03.752Z"
+last_updated: "2026-09-28T21:00:00.000Z"
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 29
-  completed_plans: 23
-  percent: 79
+  completed_plans: 29
+  percent: 86
 ---
 
 # Project State — ristruttura-stima
 
 ## Current Position
 
-Phase: 09 (configuratore-pro) — COMPLETE (8/8 piani)
-Plan: 8 of 8
-Prossima: Fase 10 (`/gsd:plan-phase 10`). Push rimandato a fine milestone (fine Fase 10).
+Phase: 09 (configuratore-pro) — 14/14 piani eseguiti (8 originari + 6 di gap closure 09-09..09-14)
+Plan: 14 of 14
+Stato: verifica `human_needed` (G1..G4 chiusi a livello di codice, ri-collaudo di Riccardo in
+`09-HUMAN-UAT.md` sezione "Ri-collaudo gap G1..G4"); code review post-gap `issues_found`
+(1 Critical CR-01 sul PATCH listini, 7 Warning) in `09-REVIEW.md`. `dev.db` a `0023 (head)`,
+backup `dev.db.bak-pre-0023-20260928-191114`. Suite 849 passed / 5 skipped.
+Prossima: `/gsd:code-review 09 --fix`, poi ri-collaudo, poi Fase 10. Push a fine Fase 10.
 
 - **Milestone:** v2.0 (domande e motore parametrico), fasi **05-10**. La v1.0 (MVP, fasi
   01-04) e' **completa, verificata e in produzione dal 2026-09-09** — backend su Render,
