@@ -188,7 +188,7 @@ Plans:
 rialzo** su A-EDILE, B-FINITURE (tranne il gres), C-SERRAMENTI e D-PRODOTTI. È una scelta
 consapevole, non una dimenticanza.
 
-**Plans:** 11/14 plans executed
+**Plans:** 13/14 plans executed
 
 Plans:
 **Wave 1**
@@ -224,8 +224,8 @@ Plans:
 
 *Wave 2*
 
-- [ ] 09-10-PLAN.md — G1/G2 dati e prova: test CFG-02 a mondo aperto (rosso poi verde), nuove opzioni, seed/fixture/workbook rigenerati
-- [ ] 09-12-PLAN.md — G3 percorso: "Vai alla stima Pro" porta i dati, pavimento sempre visibile nel dettaglio
+- [x] 09-10-PLAN.md — G1/G2 dati e prova: test CFG-02 a mondo aperto (rosso poi verde), nuove opzioni, seed/fixture/workbook rigenerati
+- [x] 09-12-PLAN.md — G3 percorso: "Vai alla stima Pro" porta i dati, pavimento sempre visibile nel dettaglio
 
 *Wave 3*
 
