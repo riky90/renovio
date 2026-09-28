@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Pencil, Trash2, Download, Lock, UploadCloud } from "lucide-react";
+import { Link } from "react-router";
 import { AdminLayout } from "@/pages/admin/AdminLayout";
 import { FlatImportDialog } from "@/components/admin/FlatImportDialog";
 import { AdminTable } from "@/components/admin/AdminTable";
@@ -255,10 +256,13 @@ function MoltiplicatoriTab() {
         errorMessage={mutation.isError ? SAVE_ERROR : null}
       >
         <div className="flex flex-col gap-2">
-          <Label>Tipo × categoria</Label>
-          <p className="text-sm text-muted-foreground">
-            {editing?.tipo_code} × {editing?.categoria_code}
-          </p>
+          <Label>Tipo</Label>
+          <p className="rounded-md bg-muted px-3 py-2 text-sm text-foreground">{editing?.tipo_code}</p>
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label>Categoria</Label>
+          <p className="rounded-md bg-muted px-3 py-2 text-sm text-foreground">{editing?.categoria_code}</p>
+          <p className="text-xs text-muted-foreground">Sono la chiave del moltiplicatore.</p>
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="molt-valore">Moltiplicatore</Label>
@@ -283,7 +287,11 @@ function BaseTab() {
   return (
     <div className="flex flex-col gap-3 pt-4">
       <p className="text-sm text-muted-foreground">
-        Sola lettura — per modificare la base €/m² usa la sezione Listini e prezzi (categoria del listino).
+        Sola lettura — si modifica in{" "}
+        <Link to="/admin/listini" className="underline">
+          Listini e prezzi
+        </Link>
+        , nella categoria del listino.
       </p>
       <AdminTable
         columns={["Listino", "Categoria", "Base €/m²"]}
@@ -359,7 +367,12 @@ function IvaTab() {
       >
         <div className="flex flex-col gap-2">
           <Label>Categoria</Label>
-          <p className="text-sm text-muted-foreground">{editing?.nome}</p>
+          <p className="rounded-md bg-muted px-3 py-2 text-sm text-foreground">{editing?.code}</p>
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label>Nome</Label>
+          <p className="rounded-md bg-muted px-3 py-2 text-sm text-foreground">{editing?.nome}</p>
+          <p className="text-xs text-muted-foreground">Il nome della categoria non si modifica da qui.</p>
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="iva-pct">IVA (%)</Label>
@@ -624,10 +637,12 @@ function CoeffProTab() {
         errorMessage={mutation.isError ? SAVE_ERROR : null}
       >
         <div className="flex flex-col gap-2">
-          <Label>Voce × tipo</Label>
-          <p className="text-sm text-muted-foreground">
-            {editing?.voce_id} × {editing?.tipo_code}
-          </p>
+          <Label>Voce</Label>
+          <p className="rounded-md bg-muted px-3 py-2 text-sm text-foreground">{editing?.voce_id}</p>
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label>Tipo</Label>
+          <p className="rounded-md bg-muted px-3 py-2 text-sm text-foreground">{editing?.tipo_code}</p>
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="coeff-pro-valore">Quantità per m²</Label>
@@ -640,6 +655,19 @@ function CoeffProTab() {
             onChange={(e) => setValore(e.target.value)}
             required
           />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label>Domanda mirata</Label>
+          <p className="rounded-md bg-muted px-3 py-2 text-sm text-foreground">
+            {editing?.domanda_mirata_key ?? "—"}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Dalla Fase 09 la quantità per bagno, porta o condizionatore si governa da{" "}
+            <Link to="/admin/domande" className="underline">
+              Domande
+            </Link>{" "}
+            → Effetti (quantità per unità).
+          </p>
         </div>
       </AdminCrudDialog>
     </div>

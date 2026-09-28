@@ -268,17 +268,16 @@ function BonusSection() {
         isSaving={saveMutation.isPending}
         errorMessage={saveMutation.isError ? extractErrorMessage(saveMutation.error) : null}
       >
-        {!editing && (
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="bonus-code">Codice</Label>
-            <Input
-              id="bonus-code"
-              value={form.code}
-              placeholder="Es. RISTRUTTURAZIONE"
-              onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
-            />
-          </div>
-        )}
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="bonus-code">Codice</Label>
+          <Input
+            id="bonus-code"
+            value={form.code}
+            placeholder="Es. RISTRUTTURAZIONE"
+            disabled={!!editing}
+            onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
+          />
+        </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="bonus-nome">Nome</Label>
           <Input
@@ -475,7 +474,25 @@ function AliquoteSection() {
         isSaving={saveMutation.isPending}
         errorMessage={saveMutation.isError ? extractErrorMessage(saveMutation.error) : null}
       >
-        {!editing && (
+        {editing ? (
+          <>
+            <div className="flex flex-col gap-2">
+              <Label>Bonus</Label>
+              <p className="rounded-md bg-muted px-3 py-2 text-sm text-foreground">
+                {bonusQuery.data?.find((b) => b.code === editing.bonus_code)?.nome ?? editing.bonus_code}
+              </p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label>Destinazione</Label>
+              <p className="rounded-md bg-muted px-3 py-2 text-sm text-foreground">
+                {DESTINAZIONE_LABELS[editing.destinazione]}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Per un altro bonus o destinazione crea una nuova aliquota.
+              </p>
+            </div>
+          </>
+        ) : (
           <>
             <div className="flex flex-col gap-2">
               <Label htmlFor="aliquota-bonus">Bonus</Label>
@@ -702,7 +719,25 @@ function MappingCategorieSection() {
         isSaving={saveMutation.isPending}
         errorMessage={saveMutation.isError ? extractErrorMessage(saveMutation.error) : null}
       >
-        {!editing && (
+        {editing ? (
+          <>
+            <div className="flex flex-col gap-2">
+              <Label>Bonus</Label>
+              <p className="rounded-md bg-muted px-3 py-2 text-sm text-foreground">
+                {bonusQuery.data?.find((b) => b.code === bonusCode)?.nome ?? bonusCode}
+              </p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label>Categoria</Label>
+              <p className="rounded-md bg-muted px-3 py-2 text-sm text-foreground">
+                {nomiCategoria.get(categoriaCode) ?? categoriaCode}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Per un altro bonus o categoria crea una nuova mappatura.
+              </p>
+            </div>
+          </>
+        ) : (
           <>
             <div className="flex flex-col gap-2">
               <Label htmlFor="mapcat-bonus">Bonus</Label>
@@ -879,7 +914,25 @@ function MappingExtraSection() {
         isSaving={saveMutation.isPending}
         errorMessage={saveMutation.isError ? extractErrorMessage(saveMutation.error) : null}
       >
-        {!editing && (
+        {editing ? (
+          <>
+            <div className="flex flex-col gap-2">
+              <Label>Bonus</Label>
+              <p className="rounded-md bg-muted px-3 py-2 text-sm text-foreground">
+                {bonusQuery.data?.find((b) => b.code === bonusCode)?.nome ?? bonusCode}
+              </p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label>Extra</Label>
+              <p className="rounded-md bg-muted px-3 py-2 text-sm text-foreground">
+                {nomiExtra.get(extraCode) ?? extraCode}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Per un altro bonus o extra crea una nuova mappatura.
+              </p>
+            </div>
+          </>
+        ) : (
           <>
             <div className="flex flex-col gap-2">
               <Label htmlFor="mapextra-bonus">Bonus</Label>
