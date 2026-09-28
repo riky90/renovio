@@ -188,7 +188,7 @@ Plans:
 rialzo** su A-EDILE, B-FINITURE (tranne il gres), C-SERRAMENTI e D-PRODOTTI. È una scelta
 consapevole, non una dimenticanza.
 
-**Plans:** 13/14 plans executed
+**Plans:** 14/14 plans complete
 
 Plans:
 **Wave 1**
@@ -229,7 +229,7 @@ Plans:
 
 *Wave 3*
 
-- [ ] 09-14-PLAN.md — migrazione 0023 rumorosa, WR-02 sul downgrade 0021, dev.db a head, checklist di ri-collaudo
+- [x] 09-14-PLAN.md — migrazione 0023 rumorosa, WR-02 sul downgrade 0021, dev.db a head, checklist di ri-collaudo
 
 ### Phase 10: Risultato leggibile e tetto di budget
 
