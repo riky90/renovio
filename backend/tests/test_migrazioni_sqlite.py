@@ -1474,12 +1474,12 @@ def _semina_catalogo_reale(db_path: Path, monkeypatch: pytest.MonkeyPatch) -> No
     non lo riconfigura mai una volta importato)."""
     import app.models  # noqa: F401 — registra le entita' su Base.metadata
     from scripts.seed import seed as seed_reale
-    from sqlalchemy.orm import sessionmaker
+    from tests.session_factory import sessione_di_test
 
     config = _alembic_config(db_path, monkeypatch)
     command.upgrade(config, "0022")
     engine_dedicato = create_engine(f"sqlite:///{db_path}")
-    Sessione = sessionmaker(bind=engine_dedicato)
+    Sessione = sessione_di_test(engine_dedicato)
     session = Sessione()
     try:
         seed_reale(session)
