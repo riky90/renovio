@@ -74,6 +74,11 @@ class CategoriaLivelloOut(BaseModel):
 class OpzioniProOut(BaseModel):
     categorie: list[CategoriaLivelloOut]
     livelli: list[LivelloFinituraOut]
+    # Domande a scelta del configuratore (09-11): il wizard Pro le disegna allo
+    # step 4 accanto ai livelli, PRIMA che una stima esista — stesso motivo per
+    # cui `categorie`/`livelli` sono gia' qui. Escluse le numeriche (bagni/porte/
+    # condizionatori): quelle il wizard le chiede allo step 2 dal catalogo Free.
+    domande: list[DomandaProOut] = Field(default_factory=list)
 
 
 class OpzioneProOut(BaseModel):

@@ -16,7 +16,7 @@ from __future__ import annotations
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.schemas.stima import BonusOut, CategoriaOut, ExtraOut, StimaInputEcho, TotaleOut
 
@@ -42,6 +42,25 @@ class PreferenzeProIn(BaseModel):
 
     livelli: dict[str, str] | None = None
     risposte: RisposteProIn | None = None
+    # Scelte del configuratore Pro raccolte nel wizard (09-11, es.
+    # {"tipo_pavimento": "parquet"}). Come `RisposteDomandeRequest`
+    # (schemas/dettaglio_pro.py): lo schema garantisce solo la FORMA (<=20
+    # chiavi, chiavi/valori <=64 caratteri, ASVS V5), il CONTENUTO (quali
+    # codici sono ammessi, quali opzioni) lo valida il router contro il
+    # catalogo via `valida_risposte_pro`.
+    scelte: dict[str, str] | None = None
+
+    @field_validator("scelte")
+    @classmethod
+    def _valida_forma_scelte(cls, v: dict[str, str] | None) -> dict[str, str] | None:
+        if v is None:
+            return v
+        if len(v) > 20:
+            raise ValueError("scelte: massimo 20 chiavi")
+        for chiave, valore in v.items():
+            if len(chiave) > 64 or len(valore) > 64:
+                raise ValueError("scelte: chiavi e valori devono avere al massimo 64 caratteri")
+        return v
 
 
 class StimaSalvataCreate(BaseModel):
