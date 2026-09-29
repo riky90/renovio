@@ -16,14 +16,14 @@ progress:
 
 ## Current Position
 
-Phase: 10 (risultato leggibile e tetto di budget) — da discutere
+Phase: 10 (risultato leggibile e tetto di budget) — contesto raccolto il 2026-09-29 (`10-CONTEXT.md`, D-01..D-17), da pianificare
 Plan: —
 Stato: Fase 09 **chiusa il 2026-09-29**: code review post-gap corretta (CR-01, WR-01..07,
 `09-REVIEW-FIX.md` all_fixed), ri-collaudo dal vivo G1..G4 approvato da Riccardo
 (`.planning/checklists/2026-09-29-ricollaudo-09.md`), fix "Aggiungi listino" (`4e4b50a`).
 `dev.db` a `0023 (head)`, listino di prova "modena" rimosso (backup
 `dev.db.bak-pre-rimozione-modena-20260929`). Suite 858 passed / 5 skipped.
-Prossima: `/gsd:discuss-phase 10`. Prima del push (a fine Fase 10): taratura A.6.11, prova
+Prossima: `/gsd:plan-phase 10` (probabile `/gsd:ui-phase 10` prima: fase UI). Prima del push (a fine Fase 10): taratura A.6.11, prova
 delle migrazioni 0021-0023 su Postgres, `BACKEND_PUBLIC_URL` su Render.
 
 - **Milestone:** v2.0 (domande e motore parametrico), fasi **05-10**. La v1.0 (MVP, fasi
