@@ -176,6 +176,87 @@ def riepilogo_iva(categorie: list[dict], extra: list[dict], totale: dict) -> Rie
     )
 
 
+def riepilogo_iva_pro(
+    categorie: list[tuple[Decimal, Decimal, Decimal]], extra: list[dict]
+) -> Riepilogo:
+    """Riepilogo IVA del dettaglio Pro (A2, D-16), stessa forma di `Riepilogo`.
+
+    Il motore Pro somma prezzi cliente SENZA IVA ne' extra: qui l'IVA si applica per
+    categoria (`categorie` = (imponibile_min, imponibile_max, iva_pct), solo quelle
+    del totale lavori) e gli extra attivi entrano lordi, come nel Free
+    (importo x (1 + iva) all'euro, ROUND_HALF_UP). Nessuna aliquota cablata."""
+    gruppi: dict[Decimal, list[Decimal]] = {}
+
+    def riga(iva_pct: Decimal) -> list[Decimal]:
+        return gruppi.setdefault(iva_pct.normalize(), [Decimal(0), Decimal(0)])
+
+    imp_min = Decimal(0)
+    imp_max = Decimal(0)
+    for c_min, c_max, iva_pct in categorie:
+        c_min, c_max, aliq = _dec(c_min), _dec(c_max), _dec(iva_pct)
+        imp_min += c_min
+        imp_max += c_max
+        r = riga(aliq)
+        r[0] += (c_min * aliq).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+        r[1] += (c_max * aliq).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+
+    extra_totale = Decimal(0)
+    for e in extra:
+        importo = _dec(e["importo"])
+        aliq = _dec(e["iva_pct"])
+        lordo = (importo * (Decimal(1) + aliq)).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+        extra_totale += importo
+        r = riga(aliq)
+        r[0] += lordo - importo
+        r[1] += lordo - importo
+
+    chiavi = sorted(gruppi)
+    righe = [RigaIva(k, gruppi[k][0], gruppi[k][1]) for k in chiavi]
+    iva_min = sum((r.min for r in righe), Decimal(0))
+    iva_max = sum((r.max for r in righe), Decimal(0))
+    return Riepilogo(
+        imponibile_lavori_min=imp_min,
+        imponibile_lavori_max=imp_max,
+        righe_iva=righe,
+        extra=list(extra),
+        extra_totale=extra_totale,
+        totale_min=imp_min + iva_min + extra_totale,
+        totale_max=imp_max + iva_max + extra_totale,
+    )
+
+
+@dataclass(frozen=True)
+class LetturaCategoria:
+    code: str
+    eur_mq_min: int | None
+    eur_mq_max: int | None
+    peso_etichetta: str
+    peso_fill_pct: float
+
+
+def lettura_categorie_pro(
+    categorie: list[tuple[str, Decimal, Decimal]], mq
+) -> list[LetturaCategoria]:
+    """EUR/m2 (IVA esclusa) e peso sul valore medio per categoria (D-14, D-15, A3):
+    composizione di `incidenza_eur_mq`, `somma_medi` e `peso_categoria`; il
+    denominatore e' la somma dei medi delle sole categorie passate."""
+    somma = somma_medi([{"totale_min": mn, "totale_max": mx} for _, mn, mx in categorie])
+    out: list[LetturaCategoria] = []
+    for code, mn, mx in categorie:
+        inc = incidenza_eur_mq(mn, mx, mq)
+        peso = peso_categoria(mn, mx, somma)
+        out.append(
+            LetturaCategoria(
+                code=code,
+                eur_mq_min=inc[0] if inc else None,
+                eur_mq_max=inc[1] if inc else None,
+                peso_etichetta=peso.etichetta,
+                peso_fill_pct=peso.fill_pct,
+            )
+        )
+    return out
+
+
 def livello_corrente(opzioni: list[tuple[str, int, bool]], scelto: str | None) -> str | None:
     """Il livello effettivo: quello scelto se e' tra le opzioni, altrimenti il default.
 

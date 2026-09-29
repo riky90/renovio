@@ -22,7 +22,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.schemas.stima import Risposte
+from app.schemas.stima import ConfrontoFinitureOut, ExtraOut, Risposte
 
 
 class VoceOut(BaseModel):
@@ -104,10 +104,48 @@ class DomandaProOut(BaseModel):
     valore_etichetta: str | None = None
 
 
+class RigaIvaOut(BaseModel):
+    iva_pct: Decimal
+    min: Decimal
+    max: Decimal
+
+
+class RiepilogoIvaOut(BaseModel):
+    """Riepilogo D-16 del dettaglio Pro: imponibile lavori, IVA per aliquota,
+    extra, totale IVA inclusa. Solo valori lato cliente."""
+
+    imponibile_lavori_min: Decimal
+    imponibile_lavori_max: Decimal
+    righe_iva: list[RigaIvaOut]
+    extra: list[ExtraOut]
+    extra_totale: Decimal
+    totale_min: Decimal
+    totale_max: Decimal
+
+
+class LetturaCategoriaOut(BaseModel):
+    code: str
+    eur_mq_min: int | None = None
+    eur_mq_max: int | None = None
+    peso_etichetta: str
+    peso_fill_pct: float
+
+
 class DettaglioProOut(BaseModel):
     categorie: list[CategoriaDettagliataOut]
     totale_min: Decimal
     totale_max: Decimal
+    # Totale lavori Pro IVA inclusa + extra attivi: base di barra e budget (A2).
+    # totale_min/max restano il totale Pro IVA esclusa del motore.
+    totale_ivato_min: Decimal | None = None
+    totale_ivato_max: Decimal | None = None
+    riepilogo_iva: RiepilogoIvaOut | None = None
+    # EUR/m2 (IVA esclusa) e peso per categoria, solo categorie nel totale lavori.
+    lettura_categorie: list[LetturaCategoriaOut] = []
+    # Ricalcolo Pro con un livello di finitura sotto; IVA inclusa (D-10).
+    confronto_finiture: ConfrontoFinitureOut | None = None
+    finiture_al_minimo: bool = False
+    budget_eur: int | None = None
     # Eco delle risposte PERSISTITE ({codice: valore}), mai quelle del wizard
     # (che restano nel loro snapshot): un dict generico, non piu' tre campi
     # cablati (09-05).

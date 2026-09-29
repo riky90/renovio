@@ -8,8 +8,10 @@ import pytest
 
 from app.services.risultato import (
     incidenza_eur_mq,
+    lettura_categorie_pro,
     peso_categoria,
     riepilogo_iva,
+    riepilogo_iva_pro,
     scala_barra,
     somma_medi,
 )
@@ -164,3 +166,42 @@ class TestLivelloInferiore:
         assert livello_corrente(self.OPZ, None) == "medio"
         assert livello_corrente(self.OPZ, "alto") == "alto"
         assert livello_corrente(self.OPZ, "boh") == "medio"
+
+
+class TestRiepilogoIvaPro:
+    def test_iva_per_categoria_ed_extra_lordi(self):
+        D = Decimal
+        r = riepilogo_iva_pro(
+            [(D(1000), D(1200), D("0.10")), (D(2000), D(2400), D("0.22"))],
+            [{"code": "CSE", "nome": "CSE", "importo": D(500), "iva_pct": D("0.22")}],
+        )
+        assert (r.imponibile_lavori_min, r.imponibile_lavori_max) == (3000, 3600)
+        per_aliquota = {x.iva_pct: (x.min, x.max) for x in r.righe_iva}
+        assert per_aliquota[D("0.1")] == (100, 120)
+        assert per_aliquota[D("0.22")] == (550, 638)
+        assert r.extra_totale == 500
+        assert r.totale_min == 3000 + 100 + 550 + 500
+        assert r.totale_max == 3600 + 120 + 638 + 500
+
+    def test_extra_lordo_come_free(self):
+        from app.services.estimation import _eur
+
+        D = Decimal
+        importo, aliq = D("333.33"), D("0.22")
+        r = riepilogo_iva_pro([], [{"code": "X", "nome": "X", "importo": importo, "iva_pct": aliq}])
+        assert r.totale_min == _eur(importo * (1 + aliq)) - importo + importo
+
+
+class TestLetturaCategorieAPro:
+    def test_eur_mq_e_pesi(self):
+        D = Decimal
+        out = lettura_categorie_pro([("A", D(8500), D(10200)), ("B", D(1700), D(1700))], 85)
+        a, b = out
+        assert (a.eur_mq_min, a.eur_mq_max) == (100, 120)
+        assert (b.eur_mq_min, b.eur_mq_max) == (20, 20)
+        assert a.peso_etichetta == "85%"
+        assert b.peso_etichetta == "15%"
+
+    def test_mq_zero(self):
+        out = lettura_categorie_pro([("A", Decimal(100), Decimal(200))], 0)
+        assert out[0].eur_mq_min is None and out[0].eur_mq_max is None
