@@ -179,7 +179,7 @@ interface RawBonusDettaglioOut {
   rate_annuali: number;
   [key: string]: unknown;
 }
-interface RawBonusOut {
+export interface RawBonusOut {
   bonus: RawBonusDettaglioOut[];
   disclaimer: string;
   detrazione_lavori_min?: string | number | null;
@@ -277,7 +277,7 @@ function toNumber(value: unknown): number {
   return typeof value === "number" ? value : Number(value);
 }
 
-function normalizeBonus(raw: RawBonusOut | null | undefined): BonusOut | null {
+export function normalizeBonus(raw: RawBonusOut | null | undefined): BonusOut | null {
   if (raw == null) return null;
   const out = {
     bonus: raw.bonus.map((d) => {

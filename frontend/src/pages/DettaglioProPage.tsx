@@ -1,7 +1,6 @@
 import { Link, Navigate, useSearchParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { AccountMenu } from "@/components/AccountMenu";
-import { BonusPanel } from "@/components/BonusPanel";
 import { DettaglioProView } from "@/components/DettaglioProView";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -24,10 +23,8 @@ export function DettaglioProPage() {
   const stimaId = stimaIdParam ? Number(stimaIdParam) : NaN;
   const { user, isLoading: isAuthLoading } = useAuth();
 
-  // Le detrazioni si leggono dallo SNAPSHOT, non dal dettaglio Pro: i bonus si
-  // calcolano sui totali lordi del motore Free (il Pro non modella l'IVA), e
-  // `risultato_json` e' esattamente quel calcolo, congelato. Stessa fonte usata
-  // da SavedEstimateDetail, quindi i due punti d'ingresso non divergono.
+  // Dallo snapshot arriva solo l'arredo. I bonus del Pro (10-14) arrivano dal
+  // dettaglio Pro, calcolati server-side sui totali Pro dentro DettaglioProView.
   const snapshotQuery = useQuery({
     queryKey: ["stima-dettaglio", stimaId],
     queryFn: () => getStimaDettaglio(stimaId),
@@ -64,14 +61,6 @@ export function DettaglioProPage() {
       </div>
 
       <DettaglioProView stimaId={stimaId} />
-
-      {snapshotQuery.data?.bonus && (
-        <BonusPanel
-          bonus={snapshotQuery.data.bonus}
-          totaleMin={snapshotQuery.data.totale.totale_min}
-          totaleMax={snapshotQuery.data.totale.totale_max}
-        />
-      )}
 
       {/* L'arredo viene dallo snapshot per la stessa ragione dei bonus: e'
           calcolato dal motore Free e congelato in `risultato_json`. Sta QUI e

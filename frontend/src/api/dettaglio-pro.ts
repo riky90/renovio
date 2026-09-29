@@ -1,9 +1,12 @@
 import { apiGet, apiPost, ApiError } from "@/api/client";
 import { isNumerico, type TipoControllo, type ValoreRisposta } from "@/api/domande";
 import {
+  normalizeBonus,
   normalizeConfronto,
+  type BonusOut,
   type ConfrontoFinitureOut,
   type ExtraOut,
+  type RawBonusOut,
   type RawConfrontoFinitureOut,
 } from "@/api/stima";
 import type { RiepilogoIva } from "@/lib/risultato";
@@ -97,6 +100,8 @@ export interface DettaglioProOut {
   lettura_categorie: LetturaCategoriaOut[];
   confronto_finiture: ConfrontoFinitureOut | null;
   finiture_al_minimo: boolean;
+  /** Bonus calcolati server-side sui totali Pro (10-14): il client li mappa soltanto. */
+  bonus: BonusOut | null;
   budget_eur: number | null;
   /** Eco delle risposte PERSISTITE ({codice: valore}) — generico dal 09-05. */
   risposte: Record<string, number | string>;
@@ -185,6 +190,7 @@ interface RawDettaglioProOut {
   lettura_categorie?: RawLetturaCategoriaOut[];
   confronto_finiture?: RawConfrontoFinitureOut | null;
   finiture_al_minimo?: boolean;
+  bonus?: RawBonusOut | null;
   budget_eur?: number | null;
   risposte: Record<string, number | string>;
   risposte_salvate?: boolean;
@@ -262,6 +268,7 @@ function normalizeDettaglioPro(raw: RawDettaglioProOut): DettaglioProOut {
     })),
     confronto_finiture: normalizeConfronto(raw.confronto_finiture),
     finiture_al_minimo: raw.finiture_al_minimo ?? false,
+    bonus: normalizeBonus(raw.bonus),
     budget_eur: raw.budget_eur ?? null,
     categorie: raw.categorie.map((cat) => ({
       code: cat.code,

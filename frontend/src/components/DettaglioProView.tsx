@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Loader2 } from "lucide-react";
 import { DomandaField } from "@/components/DomandaField";
+import { BonusPanel } from "@/components/BonusPanel";
 import { BudgetAlert } from "@/components/BudgetAlert";
 import { RangeBar } from "@/components/RangeBar";
 import { RiepilogoIvaRighe } from "@/components/RiepilogoIvaRighe";
@@ -427,6 +428,15 @@ export function DettaglioProView({ stimaId, enabled = true }: DettaglioProViewPr
               await queryClient.invalidateQueries({ queryKey: ["dettaglio-pro", stimaId] });
             }}
           />
+          {/* I bonus arrivano gia' calcolati dal server sui totali Pro (G6):
+              qui si mappano soltanto, nessun calcolo fiscale nel client. */}
+          {dettaglio.bonus && (
+            <BonusPanel
+              bonus={dettaglio.bonus}
+              totaleMin={dettaglio.totale_ivato_min}
+              totaleMax={dettaglio.totale_ivato_max}
+            />
+          )}
         </div>
       )}
 
