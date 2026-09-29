@@ -246,7 +246,7 @@ Plans:
 4. Superato il budget dichiarato, compare un avviso con il confronto ricalcolato a finiture inferiori
 5. Il budget **non** muove il prezzo: due assi distinti, *finiture* sì e *budget* no
 
-**Plans:** 7/9 plans executed
+**Plans:** 8/9 plans executed
 
 Plans:
 **Wave 1**
@@ -273,7 +273,7 @@ Plans:
 **Wave 6** *(blocked on Wave 5 completion)*
 
 - [x] 10-07-PLAN.md — Vista Pro web: RangeBar con tacca, riepilogo IVA, €/m² e peso per categoria, BudgetAlert, componenti condivisi col Free (RIS-01..04)
-- [ ] 10-08-PLAN.md — PDF: budget e avviso nel Free, lettura completa e avviso nel Pro (RIS-01..04)
+- [x] 10-08-PLAN.md — PDF: budget e avviso nel Free, lettura completa e avviso nel Pro (RIS-01..04)
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
