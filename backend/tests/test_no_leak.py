@@ -126,6 +126,10 @@ def test_response_never_leaks_impresa_secret(client, citta, fallback_expected, t
             "rata_annua_min",
             "rata_annua_max",
             "disclaimer",
+            "detrazione_lavori_min",
+            "detrazione_lavori_max",
+            "netto_min",
+            "netto_max",
         }
         for dettaglio in bonus["bonus"]:
             assert set(dettaglio) == {

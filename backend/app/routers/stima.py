@@ -17,7 +17,6 @@ an approximation — see `_split_imponibile_iva`.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
 
 from fastapi import APIRouter, Request
@@ -27,8 +26,6 @@ from app.limiter import limiter
 from app.schemas.stima import (
     ArredoAmbienteOut,
     ArredoOut,
-    BonusDettaglioOut,
-    BonusOut,
     CategoriaOut,
     ConfrontoFinitureOut,
     ExtraOut,
@@ -38,7 +35,7 @@ from app.schemas.stima import (
     TotaleOut,
 )
 from app.services.arredo import ArredoService
-from app.services.bonus_service import BonusService
+from app.services.bonus_stima import bonus_out_per_stima
 from app.services.city_resolver import resolve_listino
 from app.models.domanda import Domanda, OpzioneDomanda
 from app.services.effetti import DOMANDA_LIVELLO_FINITURE
@@ -47,24 +44,6 @@ from app.services.risultato import livello_corrente, livello_inferiore
 from app.services.testo_service import get_testo
 
 router = APIRouter(prefix="/stima", tags=["stima"])
-
-#: Il codice della categoria arredo. Sta qui e non in un servizio perche' e'
-#: l'unico punto in cui il totale arredo viene PRESENTATO come se fosse una
-#: categoria — per la base dei bonus. Il calcolo dell'arredo, quello vero, non
-#: lo nomina mai (vedi `services/arredo.py`).
-CATEGORIA_ARREDO = "E-ARREDO"
-
-
-@dataclass(frozen=True)
-class _CategoriaArredoPerBonus:
-    """Il minimo che `BonusService.CategoriaConTotale` chiede: un codice e due
-    totali lordi. Non e' una categoria del motore Free — quella e' esclusa dal
-    totale lavori — ma per il calcolo della detrazione si comporta come tale."""
-
-    code: str
-    totale_min: Decimal
-    totale_max: Decimal
-
 
 def _split_imponibile_iva(totale: Decimal, iva_pct: Decimal) -> tuple[Decimal, Decimal]:
     """Exact split of a gross (imponibile+IVA) value back into its parts.
@@ -151,27 +130,17 @@ def crea_stima(payload: StimaRequest, request: Request) -> StimaResponse:
         # da mostrare — mai una sezione a zero.
         arredo_result = ArredoService.compute(session, payload.risposte)
 
-        # I bonus vedono l'arredo come una pseudo-categoria `E-ARREDO`, ed e'
-        # tutto cio' che serve per accendere il Bonus Mobili: `BonusService`
-        # costruisce la base da {codice categoria: (min, max)}, e la riga
-        # `bonus_categoria (MOBILI, E-ARREDO)` dice il resto. Nessuna riga di
-        # codice fiscale in piu', nessun ramo dedicato nel servizio.
-        basi_bonus: list = list(categorie_out)
-        if arredo_result is not None:
-            basi_bonus.append(
-                _CategoriaArredoPerBonus(
-                    code=CATEGORIA_ARREDO,
-                    totale_min=arredo_result.totale_min,
-                    totale_max=arredo_result.totale_max,
-                )
-            )
-
-        bonus_result = BonusService.compute(
+        # Il calcolo dei bonus (con l'arredo come pseudo-categoria E-ARREDO per
+        # il Bonus Mobili, la detrazione sui lavori e il netto) sta tutto in
+        # `bonus_out_per_stima`: il router non contiene logica fiscale.
+        bonus_out = bonus_out_per_stima(
             session,
-            basi_bonus,
+            categorie_lorde=categorie_out,
+            extra_lordi=result.extra,
+            arredo=(arredo_result.totale_min, arredo_result.totale_max) if arredo_result else None,
             destinazione=payload.destinazione.value,
-            disclaimer=get_testo(session, "disclaimer_bonus"),
-            extra=result.extra,
+            totale_min=result.totale_min,
+            totale_max=result.totale_max,
         )
 
         confronto, finiture_al_minimo = _confronto_finiture(session, listino, payload, result)
@@ -190,7 +159,7 @@ def crea_stima(payload: StimaRequest, request: Request) -> StimaResponse:
             categorie=categorie_out,
             extra=extra_out,
             totale=totale_out,
-            bonus=_bonus_out(bonus_result),
+            bonus=bonus_out,
             arredo=_arredo_out(session, arredo_result),
             confronto_finiture=confronto,
             finiture_al_minimo=finiture_al_minimo,
@@ -255,41 +224,8 @@ def _confronto_finiture(
     )
 
 
-def _bonus_out(result) -> BonusOut | None:
-    """Mappa campo-per-campo, come ovunque nei router: mai `model_validate` su
-    una dataclass interna."""
-    if result is None:
-        return None
-    return BonusOut(
-        bonus=[
-            BonusDettaglioOut(
-                code=d.code,
-                nome=d.nome,
-                descrizione=d.descrizione,
-                base_min=d.base_min,
-                base_max=d.base_max,
-                aliquota_pct=d.aliquota_pct,
-                tetto_spesa_eur=d.tetto_spesa_eur,
-                tetto_modalita=d.tetto_modalita,
-                tetto_raggiunto=d.tetto_raggiunto,
-                rate_annuali=d.rate_annuali,
-                detrazione_min=d.detrazione_min,
-                detrazione_max=d.detrazione_max,
-                rata_annua_min=d.rata_annua_min,
-                rata_annua_max=d.rata_annua_max,
-            )
-            for d in result.bonus
-        ],
-        detrazione_min=result.detrazione_min,
-        detrazione_max=result.detrazione_max,
-        rata_annua_min=result.rata_annua_min,
-        rata_annua_max=result.rata_annua_max,
-        disclaimer=result.disclaimer,
-    )
-
-
 def _arredo_out(session, result) -> ArredoOut | None:
-    """Mappa campo-per-campo, come `_bonus_out`. Il disclaimer si legge QUI e
+    """Mappa campo-per-campo, come `bonus_out_per_stima`. Il disclaimer si legge QUI e
     finisce dentro il payload, cosi' viaggia nello snapshot e nel PDF."""
     if result is None:
         return None

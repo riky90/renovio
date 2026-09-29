@@ -133,6 +133,11 @@ class BonusOut(BaseModel):
     rata_annua_min: Decimal
     rata_annua_max: Decimal
     disclaimer: str
+    # Assenti negli snapshot precedenti al gap G5 (default None).
+    detrazione_lavori_min: Decimal | None = None
+    detrazione_lavori_max: Decimal | None = None
+    netto_min: Decimal | None = None
+    netto_max: Decimal | None = None
 
 
 class ArredoAmbienteOut(BaseModel):
