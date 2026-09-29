@@ -37,6 +37,8 @@ stessa garanzia.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select
@@ -46,19 +48,24 @@ from app.db import SessionLocal
 from app.dependencies.auth import require_pro
 from app.models.stima_salvata import StimaSalvata
 from app.models.user import User
-from app.models.catalogo import Categoria, LivelloFinitura
+from app.models.catalogo import Categoria, Extra, LivelloFinitura
+from app.models.domanda import OpzioneDomanda
 from app.schemas.dettaglio_pro import (
     CategoriaDettagliataOut,
     CategoriaLivelloOut,
     DettaglioProOut,
     DomandaProOut,
+    LetturaCategoriaOut,
     LivelloFinituraOut,
     OpzioneProOut,
     OpzioniProOut,
+    RigaIvaOut,
+    RiepilogoIvaOut,
     RisposteDomandeRequest,
     SottocategoriaOut,
     VoceOut,
 )
+from app.schemas.stima import ConfrontoFinitureOut, ExtraOut
 from app.services.city_resolver import resolve_listino
 from app.services.dettaglio_pro import (
     DettaglioProResult,
@@ -70,7 +77,14 @@ from app.services.dettaglio_pro import (
     valida_risposte_pro,
     validate_livelli,
 )
-from app.services.effetti import CONTROLLI_NUMERICI
+from app.services.effetti import CONTROLLI_NUMERICI, DOMANDA_FINITURA
+from app.services.risultato import (
+    LetturaCategoria,
+    Riepilogo,
+    lettura_categorie_pro,
+    livello_inferiore,
+    riepilogo_iva_pro,
+)
 from app.services.pdf_service import PdfService, build_filename_pro
 
 router = APIRouter(prefix="/me", tags=["dettaglio-pro"])
@@ -100,13 +114,15 @@ def _domanda_out(d: DomandaConfiguratore) -> DomandaProOut:
 
 
 def _to_out(
-    result: DettaglioProResult,
-    risposte: dict,
+    calcolo: CalcoloDettaglioPro,
     livelli_disponibili: list[LivelloFinitura],
-    risposte_salvate: bool = False,
+    budget_eur: int | None = None,
 ) -> DettaglioProOut:
-    """Mappa campo-per-campo il risultato del servizio nel DTO chiuso — mai
-    `model_validate` su entita' ORM o dataclass interne."""
+    """Mappa campo-per-campo il calcolo nel DTO chiuso — mai `model_validate`
+    su entita' ORM o dataclass interne."""
+    result = calcolo.result
+    risposte = calcolo.risposte_eco
+    riepilogo = calcolo.riepilogo
     return DettaglioProOut(
         domande=[_domanda_out(d) for d in result.domande],
         categorie=[
@@ -144,8 +160,39 @@ def _to_out(
         ],
         totale_min=result.totale_min,
         totale_max=result.totale_max,
+        totale_ivato_min=riepilogo.totale_min,
+        totale_ivato_max=riepilogo.totale_max,
+        riepilogo_iva=RiepilogoIvaOut(
+            imponibile_lavori_min=riepilogo.imponibile_lavori_min,
+            imponibile_lavori_max=riepilogo.imponibile_lavori_max,
+            righe_iva=[
+                RigaIvaOut(iva_pct=r.iva_pct, min=r.min, max=r.max) for r in riepilogo.righe_iva
+            ],
+            extra=[
+                ExtraOut(
+                    code=e["code"], nome=e["nome"], importo=e["importo"], iva_pct=e["iva_pct"]
+                )
+                for e in riepilogo.extra
+            ],
+            extra_totale=riepilogo.extra_totale,
+            totale_min=riepilogo.totale_min,
+            totale_max=riepilogo.totale_max,
+        ),
+        lettura_categorie=[
+            LetturaCategoriaOut(
+                code=lc.code,
+                eur_mq_min=lc.eur_mq_min,
+                eur_mq_max=lc.eur_mq_max,
+                peso_etichetta=lc.peso_etichetta,
+                peso_fill_pct=lc.peso_fill_pct,
+            )
+            for lc in calcolo.lettura
+        ],
+        confronto_finiture=calcolo.confronto,
+        finiture_al_minimo=calcolo.finiture_al_minimo,
+        budget_eur=budget_eur,
         risposte=risposte,
-        risposte_salvate=risposte_salvate,
+        risposte_salvate=calcolo.risposte_salvate,
         # L'eco si ricostruisce dal RISULTATO, non dall'input: cosi' contiene i
         # livelli davvero applicati, default inclusi.
         livelli={
@@ -195,12 +242,119 @@ def _get_owned_stima(session: Session, stima_id: int, current_user: User) -> Sti
     return row
 
 
-def _compute_dettaglio(
-    session: Session, row: StimaSalvata
-) -> tuple[DettaglioProResult, dict, bool]:
+@dataclass(frozen=True)
+class CalcoloDettaglioPro:
+    """Esito unico di `_compute_dettaglio`: risultato del motore Pro piu' i
+    derivati di lettura (riepilogo IVA, EUR/m2 e peso, confronto finiture)."""
+
+    result: DettaglioProResult
+    risposte_eco: dict
+    risposte_salvate: bool
+    riepilogo: Riepilogo
+    lettura: list[LetturaCategoria]
+    confronto: ConfrontoFinitureOut | None
+    finiture_al_minimo: bool
+
+
+def _categorie_nel_totale(session: Session, result: DettaglioProResult) -> dict[str, Categoria]:
+    """Categorie del risultato che fanno parte del totale lavori (stesso filtro
+    di `opzioni_pro`): l'arredo non entra mai in IVA, pesi e confronto (D-08)."""
+    codici = [c.code for c in result.categorie]
+    if not codici:
+        return {}
+    rows = (
+        session.query(Categoria)
+        .filter(Categoria.code.in_(codici), Categoria.nel_totale_lavori.is_(True))
+        .all()
+    )
+    return {c.code: c for c in rows}
+
+
+def _riepilogo_pro(
+    session: Session, result: DettaglioProResult, nel_totale: dict[str, Categoria]
+) -> Riepilogo:
+    extra_rows = session.query(Extra).filter(Extra.attivo.is_(True)).order_by(Extra.code).all()
+    return riepilogo_iva_pro(
+        [
+            (c.totale_min, c.totale_max, nel_totale[c.code].iva_pct)
+            for c in result.categorie
+            if c.code in nel_totale
+        ],
+        [
+            {"code": e.code, "nome": e.nome, "importo": e.importo, "iva_pct": e.iva_pct}
+            for e in extra_rows
+        ],
+    )
+
+
+def _confronto_pro(
+    session: Session,
+    listino,
+    row: StimaSalvata,
+    risposte_motore: dict,
+    result: DettaglioProResult,
+    nel_totale: dict[str, Categoria],
+    riepilogo_attuale: Riepilogo,
+) -> tuple[ConfrontoFinitureOut | None, bool]:
+    """Ricalcolo vero del motore Pro con ogni categoria un livello sotto (D-10).
+    Ritorna (confronto, finiture_al_minimo)."""
+    livelli_db = _livelli_disponibili(session)
+    opzioni = [(lv.code, lv.ordine, lv.is_default) for lv in livelli_db]
+    ordine = {lv.code: lv.ordine for lv in livelli_db}
+    scelte = [
+        c for c in result.categorie if c.code in nel_totale and c.livello_scelto is not None
+    ]
+    if not scelte:
+        return None, False
+
+    livelli_conf: dict[str, str] = {}
+    scesi = 0
+    for c in scelte:
+        inf = livello_inferiore(opzioni, c.livello_scelto)
+        if inf is None:
+            livelli_conf[c.code] = c.livello_scelto
+        else:
+            livelli_conf[c.code] = inf
+            scesi += 1
+    if not scesi:
+        return None, True
+
+    conf = DettaglioProService.compute(
+        session, listino, row.mq, row.tipo, risposte_motore, livelli_conf
+    )
+    riepilogo_conf = _riepilogo_pro(session, conf, _categorie_nel_totale(session, conf))
+    if riepilogo_conf.totale_max >= riepilogo_attuale.totale_max:
+        return None, False
+
+    # A4: il livello mostrato e' l'inferiore della categoria col livello scelto piu' alto.
+    piu_alta = max(scelte, key=lambda c: ordine.get(c.livello_scelto, 0))
+    livello_code = livelli_conf[piu_alta.code]
+    etichetta = (
+        session.query(OpzioneDomanda.etichetta)
+        .filter(
+            OpzioneDomanda.domanda_code == DOMANDA_FINITURA,
+            OpzioneDomanda.code == livello_code,
+            OpzioneDomanda.attiva.is_(True),
+        )
+        .scalar()
+    )
+    nome = etichetta or next(lv.nome for lv in livelli_db if lv.code == livello_code)
+    return (
+        ConfrontoFinitureOut(
+            livello_code=livello_code,
+            livello_nome=nome,
+            totale_min=riepilogo_conf.totale_min,
+            totale_max=riepilogo_conf.totale_max,
+        ),
+        False,
+    )
+
+
+def _compute_dettaglio(session: Session, row: StimaSalvata) -> CalcoloDettaglioPro:
     """Unico punto di calcolo condiviso da GET dettaglio-pro, POST risposte e
     GET pdf-pro — garantisce parita' numerica by-construction tra schermata
-    e PDF (03-RESEARCH.md Pitfall 2): stessi argomenti (listino risolto da
+    e PDF (03-RESEARCH.md Pitfall 2), ora anche per IVA, lettura per categoria
+    e confronto finiture: stessi argomenti (listino risolto da
     `row.citta`, `row.mq`, `row.tipo`, `row.risposte_pro_json`,
     `row.livelli_pro_json`).
 
@@ -232,7 +386,24 @@ def _compute_dettaglio(
     result = DettaglioProService.compute(
         session, listino, row.mq, row.tipo, risposte_motore, livelli
     )
-    return result, risposte_eco, risposte_salvate
+    nel_totale = _categorie_nel_totale(session, result)
+    riepilogo = _riepilogo_pro(session, result, nel_totale)
+    lettura = lettura_categorie_pro(
+        [(c.code, c.totale_min, c.totale_max) for c in result.categorie if c.code in nel_totale],
+        row.mq,
+    )
+    confronto, al_minimo = _confronto_pro(
+        session, listino, row, risposte_motore, result, nel_totale, riepilogo
+    )
+    return CalcoloDettaglioPro(
+        result=result,
+        risposte_eco=risposte_eco,
+        risposte_salvate=risposte_salvate,
+        riepilogo=riepilogo,
+        lettura=lettura,
+        confronto=confronto,
+        finiture_al_minimo=al_minimo,
+    )
 
 
 def _livelli_disponibili(session: Session) -> list[LivelloFinitura]:
@@ -301,9 +472,9 @@ def dettaglio_pro(
     with SessionLocal() as session:
         row = _get_owned_stima(session, stima_id, current_user)
 
-        result, risposte, risposte_salvate = _compute_dettaglio(session, row)
+        calcolo = _compute_dettaglio(session, row)
 
-        return _to_out(result, risposte, _livelli_disponibili(session), risposte_salvate)
+        return _to_out(calcolo, _livelli_disponibili(session), row.budget_eur)
 
 
 @router.post("/stime/{stima_id}/dettaglio-pro/risposte", response_model=DettaglioProOut)
@@ -333,9 +504,9 @@ def salva_risposte_dettaglio_pro(
         session.commit()
         session.refresh(row)
 
-        result, risposte, risposte_salvate = _compute_dettaglio(session, row)
+        calcolo = _compute_dettaglio(session, row)
 
-        return _to_out(result, risposte, _livelli_disponibili(session), risposte_salvate)
+        return _to_out(calcolo, _livelli_disponibili(session), row.budget_eur)
 
 
 @router.get("/stime/{stima_id}/pdf-pro")
@@ -350,9 +521,9 @@ def scarica_pdf_pro(
     with SessionLocal() as session:
         row = _get_owned_stima(session, stima_id, current_user)
 
-        result, _risposte, _salvate = _compute_dettaglio(session, row)
+        calcolo = _compute_dettaglio(session, row)
 
-        pdf_bytes = PdfService.render_pro(result, row, current_user)
+        pdf_bytes = PdfService.render_pro(calcolo.result, row, current_user)
         filename = build_filename_pro(row)
 
         return StreamingResponse(

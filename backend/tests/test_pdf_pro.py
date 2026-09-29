@@ -192,9 +192,11 @@ class TestParitaSchermataPdf:
 
         with session_factory() as session:
             row = session.query(StimaSalvata).filter_by(id=stima_id).one()
-            result, risposte, _salvate = dettaglio_pro_router_module._compute_dettaglio(session, row)
+            calcolo = dettaglio_pro_router_module._compute_dettaglio(session, row)
             pdf_out = dettaglio_pro_router_module._to_out(
-                result, risposte, dettaglio_pro_router_module._livelli_disponibili(session)
+                calcolo,
+                dettaglio_pro_router_module._livelli_disponibili(session),
+                row.budget_eur,
             )
 
         assert pdf_out.model_dump(mode="json") == json_body
@@ -252,7 +254,7 @@ class TestPdfProPavimentoScelto:
 
         with session_factory() as session:
             row = session.query(StimaSalvata).filter_by(id=stima_id).one()
-            result, _risposte, _salvate = dettaglio_pro_router_module._compute_dettaglio(session, row)
+            result = dettaglio_pro_router_module._compute_dettaglio(session, row).result
             user = session.query(User).filter_by(id=row.user_id).one()
             nome, citta, mq, tipo = user.nome, row.citta, row.mq, row.tipo
 

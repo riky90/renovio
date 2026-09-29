@@ -325,3 +325,31 @@ def test_dettaglio_con_budget_e_patch_budget_non_leakano(pro_client):
         raw_text = json.dumps(response.json())
         for forbidden in FORBIDDEN_SUBSTRINGS:
             assert forbidden not in raw_text
+
+
+def test_dettaglio_pro_con_budget_e_confronto_non_leakano(pro_client):
+    """10-06: riepilogo IVA, lettura categorie e confronto Pro (livelli "alto")
+    sono DTO chiusi, senza chiavi ne' valori dell'area impresa."""
+    pro_client.post(
+        REGISTRAZIONE_URL,
+        json={"email": "noleak.confrontopro@example.com", "password": "Password123", "nome": "NoLeak4"},
+    )
+    pro_client.post(ATTIVA_PRO_URL)
+    payload = _stima_pro_payload()
+    payload["budget_eur"] = 40000
+    payload["preferenze_pro"] = {
+        "livelli": {"B-FINITURE": "alto", "C-SERRAMENTI": "alto", "D-PRODOTTI": "alto"}
+    }
+    stima_id = pro_client.post(STIME_URL, json=payload).json()["id"]
+
+    response = pro_client.get(f"{STIME_URL}/{stima_id}/dettaglio-pro")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["confronto_finiture"] is not None
+    assert body["budget_eur"] == 40000
+    _assert_no_forbidden_keys(body)
+    _assert_no_forbidden_key_substrings(body)
+    raw_text = json.dumps(body)
+    for forbidden in FORBIDDEN_SUBSTRINGS:
+        assert forbidden not in raw_text
