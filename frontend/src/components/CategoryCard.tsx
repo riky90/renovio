@@ -1,7 +1,8 @@
 import { Bath, DoorOpen, Hammer, Lock, Paintbrush, type LucideIcon } from "lucide-react";
 import { Link } from "react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatEurRange } from "@/lib/currency";
+import { formatEurRange, formatRangeEurMq } from "@/lib/currency";
+import { incidenzaEurMq, pesoCategoria } from "@/lib/risultato";
 import type { CategoriaOut } from "@/api/stima";
 
 const COVERAGE_NOTES: Record<string, string> = {
@@ -22,12 +23,18 @@ interface CategoryCardProps {
   categoria: CategoriaOut;
   /** Utente Free (non Pro): mostra la striscia teaser bloccata. Nessun teaser per Pro. */
   isPro?: boolean;
+  /** Superficie della stima, per l'incidenza €/m². */
+  mq: number;
+  /** Somma dei valori medi delle categorie, denominatore del peso. */
+  sommaMedi: number;
 }
 
 /** Card categoria — neutra; il range è IVA inclusa. */
-export function CategoryCard({ categoria, isPro = false }: CategoryCardProps) {
+export function CategoryCard({ categoria, isPro = false, mq, sommaMedi }: CategoryCardProps) {
   const nota = COVERAGE_NOTES[categoria.code];
   const Icon = CATEGORY_ICONS[categoria.code] ?? Hammer;
+  const inc = incidenzaEurMq(categoria.imponibile_min, categoria.imponibile_max, mq);
+  const peso = pesoCategoria(categoria, sommaMedi);
 
   return (
     <Card className="gap-0 border-border bg-card shadow-sm transition-shadow hover:shadow-md">
@@ -42,6 +49,20 @@ export function CategoryCard({ categoria, isPro = false }: CategoryCardProps) {
         <p className="font-display text-xl font-bold tabular-nums">
           {formatEurRange(categoria.totale_min, categoria.totale_max)}
         </p>
+        {inc && (
+          <p className="text-sm tabular-nums">
+            {formatRangeEurMq(inc.min, inc.max)}{" "}
+            <span className="text-xs text-muted-foreground">IVA esclusa</span>
+          </p>
+        )}
+        <div className="flex items-center justify-between gap-1">
+          <div aria-hidden className="h-1 w-full rounded-full bg-secondary">
+            <div className="h-1 rounded-full bg-primary" style={{ width: `${peso.fillPct}%` }} />
+          </div>
+          <span className="shrink-0 whitespace-nowrap pl-2 text-xs font-semibold tabular-nums">
+            {peso.etichetta} del totale
+          </span>
+        </div>
         {!isPro && (
           <div className="flex items-center gap-2 rounded-md border border-border bg-muted px-3 py-2">
             <Lock className="size-4 shrink-0 text-muted-foreground" aria-hidden />
