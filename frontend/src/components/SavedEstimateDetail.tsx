@@ -5,7 +5,7 @@ import { FallbackDisclaimer } from "@/components/FallbackDisclaimer";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { TotalCard } from "@/components/TotalCard";
 import { Badge } from "@/components/ui/badge";
-import { formatEur } from "@/lib/currency";
+import { sommaMediCategorie } from "@/lib/risultato";
 import type { StimaSalvataOut } from "@/api/stima";
 
 const TIPO_LABELS: Record<string, string> = {
@@ -33,6 +33,7 @@ interface SavedEstimateDetailProps {
  * l'unica azione e' "Scarica PDF".
  */
 export function SavedEstimateDetail({ stima, isPro = false }: SavedEstimateDetailProps) {
+  const sommaMedi = sommaMediCategorie(stima.categorie);
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-secondary px-4 py-3">
@@ -48,25 +49,19 @@ export function SavedEstimateDetail({ stima, isPro = false }: SavedEstimateDetai
         <FallbackDisclaimer disclaimer={stima.disclaimer} />
       )}
 
+      <TotalCard totale={stima.totale} categorie={stima.categorie} extra={stima.extra} />
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {stima.categorie.map((categoria) => (
-          <CategoryCard key={categoria.code} categoria={categoria} isPro={isPro} />
+          <CategoryCard
+            key={categoria.code}
+            categoria={categoria}
+            isPro={isPro}
+            mq={stima.input.mq}
+            sommaMedi={sommaMedi}
+          />
         ))}
       </div>
-
-      <div className="flex flex-col gap-2">
-        {stima.extra.map((extra) => (
-          <div
-            key={extra.code}
-            className="flex items-center justify-between text-sm text-muted-foreground"
-          >
-            <span>{extra.nome}</span>
-            <span className="tabular-nums">{formatEur(extra.importo)}</span>
-          </div>
-        ))}
-      </div>
-
-      <TotalCard totale={stima.totale} />
 
       {/* Assente sugli snapshot v1, salvati prima della feature: la vista si
           degrada senza il pannello invece di rompersi. */}

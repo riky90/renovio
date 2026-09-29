@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { formatEur } from "@/lib/currency";
+import { sommaMediCategorie } from "@/lib/risultato";
 import { postSalvaStima, postStima, type StimaRequest, type StimaResponse } from "@/api/stima";
 import type { EstimateFormValues } from "@/components/EstimateFormFields";
 import { useAuth } from "@/hooks/useAuth";
@@ -121,6 +121,7 @@ export function EstimatePage() {
   }
 
   const showResult = mutation.isSuccess && result;
+  const sommaMedi = result ? sommaMediCategorie(result.categorie) : 0;
   const showLoading = mutation.isPending;
   const showError = mutation.isError;
   const isIdle = !showResult && !showLoading && !showError;
@@ -235,29 +236,23 @@ export function EstimatePage() {
                       <FallbackDisclaimer disclaimer={result.disclaimer} />
                     )}
 
+                    <TotalCard
+                      totale={result.totale}
+                      categorie={result.categorie}
+                      extra={result.extra}
+                    />
+
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       {result.categorie.map((categoria) => (
                         <CategoryCard
                           key={categoria.code}
                           categoria={categoria}
                           isPro={!!user?.pro}
+                          mq={result.input.mq}
+                          sommaMedi={sommaMedi}
                         />
                       ))}
                     </div>
-
-                    <div className="flex flex-col gap-2 rounded-lg border border-border bg-secondary/50 px-4 py-3">
-                      {result.extra.map((extra) => (
-                        <div
-                          key={extra.code}
-                          className="flex items-center justify-between text-sm text-muted-foreground"
-                        >
-                          <span>{extra.nome}</span>
-                          <span className="tabular-nums">{formatEur(extra.importo)}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <TotalCard totale={result.totale} />
 
                     {result.bonus && <BonusPanel bonus={result.bonus} />}
 
