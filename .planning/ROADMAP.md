@@ -246,13 +246,13 @@ Plans:
 4. Superato il budget dichiarato, compare un avviso con il confronto ricalcolato a finiture inferiori
 5. Il budget **non** muove il prezzo: due assi distinti, *finiture* sì e *budget* no
 
-**Plans:** 1/9 plans executed
+**Plans:** 2/9 plans executed
 
 Plans:
 **Wave 1**
 
 - [x] 10-01-PLAN.md — Risultato leggibile sul web: RangeBar proporzionale, €/m² e peso nelle card, riepilogo IVA nella TotalCard (RIS-01..03)
-- [ ] 10-02-PLAN.md — Risultato leggibile nel PDF Free: services/risultato.py (mirror Python) e template con barra statica (RIS-01..03)
+- [x] 10-02-PLAN.md — Risultato leggibile nel PDF Free: services/risultato.py (mirror Python) e template con barra statica (RIS-01..03)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
