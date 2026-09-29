@@ -34,6 +34,13 @@ from jinja2 import Environment, FileSystemLoader
 
 from app.models.stima_salvata import StimaSalvata
 from app.models.user import User
+from app.services.risultato import (
+    incidenza_eur_mq,
+    peso_categoria,
+    riepilogo_iva,
+    scala_barra,
+    somma_medi,
+)
 
 if TYPE_CHECKING:
     from app.services.dettaglio_pro import DettaglioProResult
@@ -58,6 +65,14 @@ def _fmt_eur(value) -> str:
 
 
 _env.filters["eur"] = _fmt_eur
+
+
+def _fmt_pct(value) -> str:
+    """Float -> 2 decimali con il punto, per valori CSS (mai la virgola)."""
+    return f"{float(value):.2f}"
+
+
+_env.filters["pct"] = _fmt_pct
 
 
 def _slugify(value: str) -> str:
@@ -86,6 +101,37 @@ class PdfService:
     """Renders the branded Free PDF from an immutable `StimaSalvata` snapshot."""
 
     @staticmethod
+    def render_html(stima: StimaSalvata, user: User) -> str:
+        """HTML del PDF Free, calcolato SOLO dallo snapshot `risultato_json`
+        (piu' i derivati di presentazione di `services/risultato.py`).
+        Separato da `render()` cosi' e' testabile senza WeasyPrint."""
+        snap = stima.risultato_json
+        categorie = snap.get("categorie") or []
+        extra = snap.get("extra") or []
+        totale = snap["totale"]
+        mq = (snap.get("input") or {}).get("mq")
+
+        somma = somma_medi(categorie)
+        derivati = {
+            c["code"]: {
+                "incidenza": incidenza_eur_mq(c["imponibile_min"], c["imponibile_max"], mq),
+                "peso": peso_categoria(c["totale_min"], c["totale_max"], somma),
+            }
+            for c in categorie
+        }
+
+        template = _env.get_template("pdf_stima.html")
+        return template.render(
+            stima=snap,
+            nome=user.nome,
+            data_generazione=datetime.now().strftime("%d/%m/%Y"),
+            filename=build_filename(stima),
+            barra=scala_barra(totale["totale_min"], totale["totale_max"]),
+            riepilogo=riepilogo_iva(categorie, extra, totale),
+            derivati_categorie=derivati,
+        )
+
+    @staticmethod
     def render(stima: StimaSalvata, user: User) -> bytes:
         # Imported lazily: WeasyPrint's native GTK/Pango/Cairo runtime may be
         # missing in local dev (Windows, 02-RESEARCH.md Pitfall 3). Deferring
@@ -94,14 +140,7 @@ class PdfService:
         # attempt fails, not the whole process.
         from weasyprint import HTML
 
-        template = _env.get_template("pdf_stima.html")
-        filename = build_filename(stima)
-        html_content = template.render(
-            stima=stima.risultato_json,
-            nome=user.nome,
-            data_generazione=datetime.now().strftime("%d/%m/%Y"),
-            filename=filename,
-        )
+        html_content = PdfService.render_html(stima, user)
         return HTML(string=html_content, base_url=str(TEMPLATES_DIR)).write_pdf()
 
     @staticmethod

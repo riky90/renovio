@@ -190,15 +190,91 @@
         font-variant-numeric: tabular-nums;
       }
 
+      .categorie td.nome .sub {
+        font-weight: 400;
+        font-size: 8pt;
+        color: #78716a;
+        margin-top: 1mm;
+      }
+
+      .mini-traccia {
+        position: relative;
+        height: 4px;
+        width: 40mm;
+        background: #f3eee5;
+        border-radius: 2px;
+        margin-top: 1mm;
+      }
+
+      .mini-fill {
+        height: 4px;
+        background: #e8722a;
+        border-radius: 2px;
+      }
+
       .totale-block {
         background: #e8722a; /* blue-600 */
         color: #ffffff;
         border-radius: 4px;
         padding: 6mm 8mm;
         margin-bottom: 8mm;
+      }
+
+      .totale-head {
         display: flex;
         justify-content: space-between;
         align-items: baseline;
+        margin-bottom: 4mm;
+      }
+
+      .barra-traccia {
+        position: relative;
+        height: 8px;
+        background: #f3eee5;
+        border-radius: 4px;
+        margin-bottom: 2mm;
+      }
+
+      .barra-segmento {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, #f4b60e, #e8722a);
+        border-radius: 4px;
+      }
+
+      .barra-cifre {
+        display: flex;
+        justify-content: space-between;
+        font-size: 8pt;
+        margin-bottom: 4mm;
+      }
+
+      .riepilogo-iva {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 9pt;
+      }
+
+      .riepilogo-iva td {
+        padding: 1mm 0;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .riepilogo-iva td.val {
+        text-align: right;
+      }
+
+      .riepilogo-iva tr.sotto td {
+        padding-left: 4mm;
+        font-size: 8pt;
+        opacity: 0.85;
+      }
+
+      .riepilogo-iva tr.tot td {
+        font-weight: 700;
+        border-top: 1px solid rgba(255, 255, 255, 0.5);
+        padding-top: 2mm;
       }
 
       .totale-block .label {
@@ -272,7 +348,17 @@
       <tbody>
         {% for categoria in stima.categorie %}
         <tr>
-          <td class="nome">{{ categoria.nome }}</td>
+          {% set d = derivati_categorie[categoria.code] %}
+          <td class="nome">
+            {{ categoria.nome }}
+            {% if d.incidenza %}
+            <div class="sub">
+              {{ d.incidenza[0]|eur }} &ndash; {{ d.incidenza[1]|eur }} €/m² (IVA esclusa)
+            </div>
+            {% endif %}
+            <div class="sub">{{ d.peso.etichetta }} del totale</div>
+            <div class="mini-traccia"><div class="mini-fill" style="width:{{ d.peso.fill_pct|pct }}%"></div></div>
+          </td>
           <td class="range">
             {{ categoria.totale_min|eur }} &ndash; {{ categoria.totale_max|eur }} {{ stima.valuta }}
           </td>
@@ -282,10 +368,53 @@
     </table>
 
     <div class="totale-block">
-      <div class="label">Totale IVA inclusa</div>
-      <div class="range">
-        {{ stima.totale.totale_min|eur }} &ndash; {{ stima.totale.totale_max|eur }} {{ stima.valuta }}
+      <div class="totale-head">
+        <div class="label">Totale IVA inclusa</div>
+        <div class="range">
+          {{ stima.totale.totale_min|eur }} &ndash; {{ stima.totale.totale_max|eur }} {{ stima.valuta }}
+        </div>
       </div>
+      <div class="barra-traccia">
+        <div class="barra-segmento" style="left:{{ barra.left_pct|pct }}%; width:{{ barra.width_pct|pct }}%"></div>
+      </div>
+      <div class="barra-cifre">
+        <span>{{ stima.totale.totale_min|eur }}</span>
+        <span>fino a</span>
+        <span>{{ stima.totale.totale_max|eur }}</span>
+      </div>
+      <table class="riepilogo-iva">
+        <tr>
+          <td>Imponibile lavori</td>
+          <td class="val">
+            {{ riepilogo.imponibile_lavori_min|eur }} &ndash; {{ riepilogo.imponibile_lavori_max|eur }}
+            {{ stima.valuta }}
+          </td>
+        </tr>
+        {% for riga in riepilogo.righe_iva %}
+        <tr>
+          <td>{{ riga.etichetta }}</td>
+          <td class="val">{{ riga.min|eur }} &ndash; {{ riga.max|eur }} {{ stima.valuta }}</td>
+        </tr>
+        {% endfor %}
+        {% if riepilogo.extra %}
+        <tr>
+          <td>Costi extra</td>
+          <td class="val">{{ riepilogo.extra_totale|eur }} {{ stima.valuta }}</td>
+        </tr>
+        {% for e in riepilogo.extra %}
+        <tr class="sotto">
+          <td>{{ e.nome }}</td>
+          <td class="val">{{ e.importo|eur }} {{ stima.valuta }}</td>
+        </tr>
+        {% endfor %}
+        {% endif %}
+        <tr class="tot">
+          <td>Totale IVA inclusa</td>
+          <td class="val">
+            {{ riepilogo.totale_min|eur }} &ndash; {{ riepilogo.totale_max|eur }} {{ stima.valuta }}
+          </td>
+        </tr>
+      </table>
     </div>
 
     {% if stima.bonus %}

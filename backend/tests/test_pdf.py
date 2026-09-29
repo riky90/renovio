@@ -21,6 +21,7 @@ guards stay active regardless (they don't require a successful render).
 from __future__ import annotations
 
 import importlib.util
+import re
 
 import pytest
 from fastapi.testclient import TestClient
@@ -270,7 +271,8 @@ class TestPdfRenderHtml:
         assert "(IVA esclusa)" in html
         assert "% del totale" in html
         assert "Costi extra" in html
-        assert "transform" not in html
+        assert "text-transform" in html  # preesistente
+        assert not re.search(r"(?<!text-)transform\s*:", html)
         assert "calc(" not in html
 
     def test_left_pct_coerente_con_scala_barra(self):
