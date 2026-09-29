@@ -133,6 +133,10 @@ in `Note:` e prova su un ambiente con GTK3 (Render).
   Note:
 - [ ] **PDF di una stima salvata prima della Fase 10** — si genera senza errori; niente avviso budget, nessuna riga extra inventata.
   Note:
+- [ ] **PDF Free e PDF Pro: le cifre min e max sotto la barra stanno sotto gli estremi del segmento, dentro il riquadro (G1)** — verifica a occhio al go-live.
+  Note:
+- [ ] **PDF Free e PDF Pro: gli importi per categoria sono IVA esclusa e lo dicono in etichetta (Range (IVA esclusa), Totale <categoria> (IVA esclusa)) (G2)** — verifica a occhio al go-live.
+  Note:
 - [ ] **Cerca nei PDF (Free e Pro) le parole "coefficiente", "prezzo impresa", "impresa"** — non compaiono (T-10-25, regola di dominio 1). Usa la ricerca testo del lettore PDF.
   Note:
 - [ ] **Guarda nelle schermate web (Free e Pro) e nei dettagli di rete del browser (tab Rete, risposta di POST /stima e GET dettaglio Pro)** — nessun campo con nomi coefficiente / prezzo impresa / effettivo.
@@ -191,12 +195,16 @@ con `/gsd-plan-phase 10 --gaps`.
   reason: "Riccardo: le etichette sono ai bordi del box (flex justify-between in frontend/src/components/RangeBar.tsx), ma il segmento non occupa tutto il box."
   severity: major
   test: "Criterio 1, voce 'Guarda gli estremi della barra' (G1)"
+  fix: piano 10-10
+  retest: .planning/checklists/2026-09-29-ricollaudo-10.md
 
 - truth: "Ogni importo per categoria e' IVA esclusa, uguale in Free e Pro (importo categoria, €/m², anche nei PDF); il riepilogo mantiene imponibile + IVA per aliquota + extra + Totale IVA inclusa; le etichette dicono chiaramente 'IVA esclusa'"
   status: failed
   reason: "Riccardo: il totale della card Free sembra includere l'IVA (CategoryCard mostra totale_min/max IVA inclusa come titolo mentre €/m² usa l'imponibile); nel Pro 'Totale {categoria}' e' IVA esclusa. Base IVA incoerente."
   severity: major
   test: "Criterio 2 voce 'Controlla un €/m² a mano' e Criterio 4 voce 4n (G2)"
+  fix: piano 10-10
+  retest: .planning/checklists/2026-09-29-ricollaudo-10.md
   decision: "Decisione di Riccardo: tutto per categoria e' IVA ESCLUSA in Free e Pro e nei PDF."
 
 - truth: "'Con finiture medie' dell'avviso coincide con una stima rifatta da zero a finiture medie (ricalcolo vero)"
@@ -204,21 +212,30 @@ con `/gsd-plan-phase 10 --gaps`.
   reason: "Riccardo: partendo da 'lusso/alto' il confronto mostra 337.923, una stima nuova a 'medio' da' 336.111. Causa radice sconosciuta: da indagare (altri input/effetti diversi nel ricalcolo, extra calcolati su base diversa, arrotondamenti)."
   severity: major
   test: "Criterio 5, ultima voce (G3)"
+  fix: piano 10-11
+  fix_note: "G3 riprodotto lato client (wizard, default stepper per fascia di m2), non lato server: vedi 10-11-SUMMARY; caso numerico esatto non replicato"
+  retest: .planning/checklists/2026-09-29-ricollaudo-10.md
 
 - truth: "'Modifica' nella stima Free riapre il wizard precompilato con gli input correnti (budget incluso)"
   status: failed
   reason: "Riccardo: 'Modifica' riporta a un wizard vuoto; vuole modificare la stima gia' inserita."
   severity: major
   test: "Criterio 1, voce 'Rifai la stima con un altro tipo di intervento' (G4, feature)"
+  fix: piano 10-12
+  retest: .planning/checklists/2026-09-29-ricollaudo-10.md
 
 - truth: "Il pannello Bonus mostra la barra del costo totale con l'impatto di bonus/detrazioni evidenziato"
   status: failed
   reason: "Riccardo: vuole vedere la barra del costo totale con evidenziato l'impatto dei bonus (al posto di, o in aggiunta a, la barra detrazione autonoma)."
   severity: minor
   test: "Criterio 1, voce 'Apri il pannello Bonus' (G5, feature)"
+  fix: piano 10-13
+  retest: .planning/checklists/2026-09-29-ricollaudo-10.md
 
 - truth: "Il pannello Bonus e' presente anche nella versione Pro"
   status: failed
   reason: "Riccardo: aprendo una stima Pro non compare il bonus; va aggiunto."
   severity: major
   test: "Criterio 2, voce 'Riapri una stima salvata prima della Fase 10' (G6, feature)"
+  fix: piano 10-14
+  retest: .planning/checklists/2026-09-29-ricollaudo-10.md
