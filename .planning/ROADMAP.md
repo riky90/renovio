@@ -246,7 +246,7 @@ Plans:
 4. Superato il budget dichiarato, compare un avviso con il confronto ricalcolato a finiture inferiori
 5. Il budget **non** muove il prezzo: due assi distinti, *finiture* sì e *budget* no
 
-**Plans:** 2/9 plans executed
+**Plans:** 3/9 plans executed
 
 Plans:
 **Wave 1**
@@ -256,7 +256,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 10-03-PLAN.md — Budget nel wizard (step 3), tacca sulla barra, BudgetAlert a tre stati (RIS-04)
+- [x] 10-03-PLAN.md — Budget nel wizard (step 3), tacca sulla barra, BudgetAlert a tre stati (RIS-04)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 

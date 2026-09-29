@@ -59,7 +59,7 @@ farci*, senza che aggiungere una domanda costi un deploy.
 - [x] **RIS-01**: `RangeBar` proporzionale ai valori reali (oggi i pallini sono fissi a 12% e 88%, quindi una stima ±10% e una ±20% appaiono ugualmente incerte)
 - [x] **RIS-02**: Incidenza €/m² per categoria e peso relativo delle categorie
 - [x] **RIS-03**: Riepilogo imponibile / IVA / extra
-- [ ] **RIS-04**: Avviso di superamento del budget dichiarato, con il confronto ricalcolato a finiture inferiori
+- [x] **RIS-04**: Avviso di superamento del budget dichiarato, con il confronto ricalcolato a finiture inferiori
 
 ---
 
