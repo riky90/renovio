@@ -94,6 +94,20 @@ def test_seed_non_crea_un_secondo_predefinito(session):
     assert [p.nome for p in predefiniti] == ["Parma"]
 
 
+def test_seed_non_riattiva_il_listino_disattivato_dal_pannello(session):
+    """WR-01 review 09: `attivo` e' del pannello, il seed lo scrive solo alla
+    creazione del listino."""
+    data = load_seed_data()
+    seed(session, data)
+    listino = session.query(Listino).one()
+    listino.attivo = False
+    session.flush()
+
+    seed(session, data)
+
+    assert session.query(Listino).one().attivo is False
+
+
 def test_seed_is_idempotent(session):
     data = load_seed_data()
     seed(session, data)

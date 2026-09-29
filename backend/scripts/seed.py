@@ -832,7 +832,10 @@ def seed(session: Session, data: dict | None = None) -> Listino:
     )
     if altro_default is None:
         listino.is_default = True
-    listino.attivo = True
+    # `attivo` si scrive solo alla creazione (default del modello), come per
+    # `domanda`/`opzione_domanda` (D-41): e' un campo del pannello, e
+    # riscriverlo a ogni boot annullava in silenzio la disattivazione fatta
+    # da "Modifica listino" (WR-01 review 09).
 
     # 2. categoria (4)
     for code, iva in data["iva_categoria"].items():
