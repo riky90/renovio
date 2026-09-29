@@ -429,15 +429,28 @@ export function ListiniPage() {
             testi.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Switch
-            id="edit-listino-default"
-            checked={editListinoIsDefault}
-            onCheckedChange={setEditListinoIsDefault}
-          />
-          <Label htmlFor="edit-listino-default" className="font-normal">
-            Predefinito (fallback)
-          </Label>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <Switch
+              id="edit-listino-default"
+              checked={editListinoIsDefault}
+              onCheckedChange={setEditListinoIsDefault}
+              disabled={selectedListino?.is_default === true}
+            />
+            <Label htmlFor="edit-listino-default" className="font-normal">
+              Predefinito (fallback)
+            </Label>
+          </div>
+          {selectedListino?.is_default ? (
+            <p className="text-xs text-muted-foreground">
+              Serve sempre un listino predefinito: per cambiarlo, marca come predefinito un altro
+              listino.
+            </p>
+          ) : editListinoIsDefault ? (
+            <p className="text-xs text-muted-foreground">
+              Diventa il listino di fallback al posto di quello attuale.
+            </p>
+          ) : null}
         </div>
         <div className="flex items-center gap-2">
           <Switch id="edit-listino-attivo" checked={editListinoAttivo} onCheckedChange={setEditListinoAttivo} />

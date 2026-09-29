@@ -803,7 +803,17 @@ def seed(session: Session, data: dict | None = None) -> Listino:
     data = data or load_seed_data()
 
     # 1. listino (RE, is_default=True)
-    listino = session.query(Listino).filter_by(nome="Reggio Emilia").one_or_none()
+    # Il listino di seed si cerca per `citta_riferimento`, che il pannello
+    # mostra in sola lettura, e non per `nome`, che "Modifica listino" rende
+    # editabile (CR-01 review 09): cercandolo per nome, una rinomina da
+    # pannello faceva creare al boot un secondo listino RE predefinito e
+    # `seed_domande` falliva con MultipleResultsFound, bloccando uvicorn.
+    listino = (
+        session.query(Listino)
+        .filter_by(citta_riferimento="Reggio Emilia")
+        .order_by(Listino.id)
+        .first()
+    )
     if listino is None:
         listino = Listino(
             nome="Reggio Emilia",
@@ -812,7 +822,16 @@ def seed(session: Session, data: dict | None = None) -> Listino:
         )
         session.add(listino)
         session.flush()
-    listino.is_default = True
+    # Il listino RE diventa predefinito solo se nessun altro lo e': il seed
+    # non deve mai creare un secondo predefinito accanto a quello scelto
+    # dall'admin (invariante "esattamente un is_default").
+    altro_default = (
+        session.query(Listino.id)
+        .filter(Listino.is_default.is_(True), Listino.id != listino.id)
+        .first()
+    )
+    if altro_default is None:
+        listino.is_default = True
     listino.attivo = True
 
     # 2. categoria (4)

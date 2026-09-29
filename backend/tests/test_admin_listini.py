@@ -156,6 +156,39 @@ class TestCreazioneListinoECitta:
         assert response.status_code == 200
         assert response.json()["nome"] == "Modena (aggiornato)"
 
+    def test_patch_is_default_toglie_il_flag_agli_altri_listini(self, client):
+        """CR-01 review 09: marcare un listino come predefinito lascia un solo
+        predefinito, altrimenti resolve_listino/lead_service sollevano
+        MultipleResultsFound."""
+        _registra_admin(client)
+        created = client.post(LISTINI_URL, json={"nome": "Carpi", "citta_riferimento": "Carpi"}).json()
+
+        response = client.patch(f"{LISTINI_URL}/{created['id']}", json={"is_default": True})
+        assert response.status_code == 200
+        assert response.json()["is_default"] is True
+
+        predefiniti = [r for r in client.get(LISTINI_URL).json() if r["is_default"]]
+        assert [r["id"] for r in predefiniti] == [created["id"]]
+
+    def test_patch_non_toglie_il_flag_all_unico_predefinito(self, client):
+        _registra_admin(client)
+        re_row = next(r for r in client.get(LISTINI_URL).json() if r["is_default"])
+
+        response = client.patch(f"{LISTINI_URL}/{re_row['id']}", json={"is_default": False})
+        assert response.status_code == 409
+
+        predefiniti = [r for r in client.get(LISTINI_URL).json() if r["is_default"]]
+        assert [r["id"] for r in predefiniti] == [re_row["id"]]
+
+    def test_post_listino_predefinito_resta_unico(self, client):
+        _registra_admin(client)
+        created = client.post(
+            LISTINI_URL, json={"nome": "Sassuolo", "citta_riferimento": "Sassuolo", "is_default": True}
+        ).json()
+
+        predefiniti = [r for r in client.get(LISTINI_URL).json() if r["is_default"]]
+        assert [r["id"] for r in predefiniti] == [created["id"]]
+
     def test_patch_listino_inesistente_404(self, client):
         _registra_admin(client)
         response = client.patch(f"{LISTINI_URL}/999999", json={"nome": "X"})

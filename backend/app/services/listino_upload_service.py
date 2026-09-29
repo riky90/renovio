@@ -33,6 +33,7 @@ from decimal import Decimal
 import openpyxl
 from openpyxl.utils.exceptions import InvalidFileException
 from slugify import slugify
+from sqlalchemy import update
 from sqlalchemy.orm import Session
 
 from app.models.catalogo import ComuneListino
@@ -673,10 +674,15 @@ def apply_diff_idempotent(
             listino = Listino(
                 nome=target.citta,
                 citta_riferimento=target.citta,
-                is_default=target.is_default,
+                is_default=False,
             )
             db.add(listino)
             db.flush()
+            if target.is_default:
+                # Un solo listino predefinito alla volta (CR-01 review 09):
+                # due righe is_default rompono resolve_listino e il seed.
+                db.execute(update(Listino).where(Listino.id != listino.id).values(is_default=False))
+                listino.is_default = True
 
         _upsert_comune(db, target.citta, listino.id)
         listino_id = listino.id

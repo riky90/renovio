@@ -25,7 +25,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from slugify import slugify
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from app.dependencies.auth import get_db, require_admin
@@ -47,6 +47,19 @@ from app.services.export_excel.listino import build_workbook_listino
 from app.services.export_excel.workbook import MIME_XLSX, build_filename
 
 router = APIRouter(prefix="/listini", tags=["admin-listini"])
+
+
+def _rendi_unico_predefinito(db: Session, listino: Listino) -> None:
+    """Invariante "esattamente un listino predefinito" (CR-01 review 09).
+
+    `resolve_listino`, `lead_service` e `seed_domande` leggono il listino di
+    fallback con `filter_by(is_default=True).one()`/`.one_or_none()`: due righe
+    predefinite fanno rispondere 500 a ogni stima senza listino dedicato e
+    bloccano il seed al boot del container. Marcare un listino come
+    predefinito toglie quindi il flag a tutti gli altri, nella stessa
+    transazione."""
+    db.execute(update(Listino).where(Listino.id != listino.id).values(is_default=False))
+    listino.is_default = True
 
 
 def _to_listino_out(row: Listino) -> ListinoAdminOut:
@@ -100,10 +113,12 @@ def crea_listino(
     listino = Listino(
         nome=payload.nome,
         citta_riferimento=payload.citta_riferimento,
-        is_default=payload.is_default,
+        is_default=False,
     )
     db.add(listino)
     db.flush()
+    if payload.is_default:
+        _rendi_unico_predefinito(db, listino)
 
     slug = slugify(payload.citta_riferimento)
     comune = db.query(ComuneListino).filter_by(comune_slug=slug).one_or_none()
@@ -137,7 +152,15 @@ def modifica_listino(
     if payload.nome is not None:
         listino.nome = payload.nome
     if payload.is_default is not None:
-        listino.is_default = payload.is_default
+        if payload.is_default:
+            _rendi_unico_predefinito(db, listino)
+        elif listino.is_default:
+            # Togliere il flag all'unico predefinito lascerebbe il sistema
+            # senza fallback (NoResultFound in resolve_listino/lead_service).
+            raise HTTPException(
+                409,
+                "Serve sempre un listino predefinito: marca prima come predefinito un altro listino",
+            )
     if payload.attivo is not None:
         listino.attivo = payload.attivo
 

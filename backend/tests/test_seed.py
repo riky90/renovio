@@ -62,6 +62,38 @@ def test_seed_loads_full_re_dataset(session):
     assert lc_count == 4
 
 
+def test_seed_dopo_rinomina_del_listino_re_non_ne_crea_un_secondo(session):
+    """CR-01 review 09: il nome del listino si modifica dal pannello. Il seed
+    lo ritrova per `citta_riferimento`, quindi una rinomina non crea al boot
+    un secondo listino RE predefinito."""
+    data = load_seed_data()
+    seed(session, data)
+    listino = session.query(Listino).one()
+    listino.nome = "Reggio Emilia 2026"
+    session.flush()
+
+    seed(session, data)
+
+    assert session.query(Listino).count() == 1
+    assert session.query(Listino).filter_by(is_default=True).count() == 1
+
+
+def test_seed_non_crea_un_secondo_predefinito(session):
+    """Se l'admin ha scelto un altro listino come predefinito, il seed non
+    rimette il flag su RE: due predefiniti bloccano seed_domande al boot."""
+    data = load_seed_data()
+    seed(session, data)
+    re_listino = session.query(Listino).one()
+    re_listino.is_default = False
+    session.add(Listino(nome="Parma", citta_riferimento="Parma", is_default=True))
+    session.flush()
+
+    seed(session, data)
+
+    predefiniti = session.query(Listino).filter_by(is_default=True).all()
+    assert [p.nome for p in predefiniti] == ["Parma"]
+
+
 def test_seed_is_idempotent(session):
     data = load_seed_data()
     seed(session, data)
