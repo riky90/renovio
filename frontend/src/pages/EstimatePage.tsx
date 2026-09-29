@@ -258,6 +258,8 @@ export function EstimatePage() {
                       totaleMin={result.totale.totale_min}
                       totaleMax={result.totale.totale_max}
                       onSalva={async (v) => setBudget(v)}
+                      confronto={result.confronto_finiture}
+                      finitureAlMinimo={result.finiture_al_minimo}
                     />
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

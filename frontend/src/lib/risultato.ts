@@ -205,6 +205,10 @@ export const TESTI_AVVISO = {
     `Anche nel caso più alto della stima resti sotto ${budgetFormattato}.`,
   fuoriMenoLavori:
     "Per stare nel tuo budget servono meno lavori: prova a togliere qualche intervento.",
+  confrontoCorpo: (livello: string, range: string, delta: string) =>
+    `Con finiture ${livello} la stessa ristrutturazione costerebbe ${range} (IVA inclusa), circa ${delta} in meno.`,
+  fuoriEconomiche:
+    "Hai già scelto finiture economiche. Per stare nel tuo budget servono meno lavori: prova a togliere qualche intervento.",
   nota: "Il budget non cambia il prezzo della stima.",
   labelCampo: "Il tuo budget (IVA inclusa)",
   cta: "Aggiorna il confronto",
@@ -214,3 +218,20 @@ export const TESTI_AVVISO = {
   erroreInput: "Scrivi un importo in euro maggiore di zero.",
   erroreSalvataggio: "Non siamo riusciti a salvare il budget. Riprova tra qualche istante.",
 } as const;
+
+/**
+ * Quanto si risparmia col confronto, come range crescente. null se il confronto
+ * non fa risparmiare (entrambi i delta <= 0). I numeri del confronto arrivano
+ * dal server (D-09): qui si fa solo la differenza.
+ */
+export function deltaConfronto(
+  oraMin: number,
+  oraMax: number,
+  confMin: number,
+  confMax: number,
+): { min: number; max: number } | null {
+  const a = oraMin - confMin;
+  const b = oraMax - confMax;
+  if (a <= 0 && b <= 0) return null;
+  return { min: Math.min(a, b), max: Math.max(a, b) };
+}

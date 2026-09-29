@@ -109,6 +109,14 @@ export interface ArredoOut {
   disclaimer: string;
 }
 
+export interface ConfrontoFinitureOut {
+  livello_code: string;
+  livello_nome: string;
+  /** Totali lavori IVA inclusa, arredo escluso: calcolati dal server (D-09). */
+  totale_min: number;
+  totale_max: number;
+}
+
 export interface StimaResponse {
   input: StimaInputEcho;
   fallback: boolean;
@@ -128,6 +136,15 @@ export interface StimaResponse {
    * E' FRATELLO di `totale`, mai dentro: l'arredo non e' una lavorazione.
    */
   arredo: ArredoOut | null;
+  /** Stessa ristrutturazione con finiture un livello sotto; null se non c'e'. */
+  confronto_finiture: ConfrontoFinitureOut | null;
+  /** true quando le finiture scelte sono gia' al livello piu' basso. */
+  finiture_al_minimo: boolean;
+  /**
+   * Solo client: NON arriva da POST /stima. Lo aggiunge la pagina prima del
+   * salvataggio (piano 10-05).
+   */
+  budget_eur?: number | null;
 }
 
 /**
@@ -173,6 +190,12 @@ interface RawArredoOut {
   disclaimer: string;
   [key: string]: unknown;
 }
+interface RawConfrontoFinitureOut {
+  livello_code: string;
+  livello_nome: string;
+  totale_min: string | number;
+  totale_max: string | number;
+}
 interface RawStimaResponse {
   input: StimaInputEcho;
   fallback: boolean;
@@ -185,6 +208,9 @@ interface RawStimaResponse {
   bonus?: RawBonusOut | null;
   /** Idem: assente su ogni snapshot salvato prima della fase 07. */
   arredo?: RawArredoOut | null;
+  /** Assente sugli snapshot precedenti la fase 10. */
+  confronto_finiture?: RawConfrontoFinitureOut | null;
+  finiture_al_minimo?: boolean;
 }
 
 const NUMERIC_CATEGORIA_FIELDS = [
@@ -281,13 +307,26 @@ function normalizeArredo(raw: RawArredoOut | null | undefined): ArredoOut | null
   return out;
 }
 
+function normalizeConfronto(
+  raw: RawConfrontoFinitureOut | null | undefined,
+): ConfrontoFinitureOut | null {
+  if (raw == null) return null;
+  return {
+    livello_code: raw.livello_code,
+    livello_nome: raw.livello_nome,
+    totale_min: toNumber(raw.totale_min),
+    totale_max: toNumber(raw.totale_max),
+  };
+}
+
 /**
  * ATTENZIONE, PRIMA DI AGGIUNGERE UN CAMPO ALLA RISPOSTA: questa funzione
  * RICOSTRUISCE l'oggetto campo per campo, non fa spread. Tutto cio' che non e'
  * elencato qui viene scartato in silenzio — e `postSalvaStima()` rimanda al
  * backend PROPRIO QUESTO oggetto, non la risposta grezza. Un campo dimenticato
  * qui non manca solo alla UI: sparisce dallo snapshot congelato, per sempre,
- * senza un errore da nessuna parte. E' successo con `bonus`.
+ * senza un errore da nessuna parte. E' successo con `bonus`. Vale anche per
+ * `confronto_finiture` e `finiture_al_minimo`.
  */
 function normalizeResponse(raw: RawStimaResponse): StimaResponse {
   return {
@@ -315,6 +354,8 @@ function normalizeResponse(raw: RawStimaResponse): StimaResponse {
     }, {} as TotaleOut),
     bonus: normalizeBonus(raw.bonus),
     arredo: normalizeArredo(raw.arredo),
+    confronto_finiture: normalizeConfronto(raw.confronto_finiture),
+    finiture_al_minimo: raw.finiture_al_minimo ?? false,
   };
 }
 

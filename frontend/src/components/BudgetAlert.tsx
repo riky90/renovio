@@ -4,9 +4,10 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ImportoField } from "@/components/ImportoField";
-import { formatEur } from "@/lib/currency";
+import type { ConfrontoFinitureOut } from "@/api/stima";
+import { formatEur, formatEurRange } from "@/lib/currency";
 import { cn } from "@/lib/utils";
-import { statoBudget, TESTI_AVVISO, type StatoBudget } from "@/lib/risultato";
+import { deltaConfronto, statoBudget, TESTI_AVVISO, type StatoBudget } from "@/lib/risultato";
 
 interface BudgetAlertProps {
   budget: number | null;
@@ -14,6 +15,9 @@ interface BudgetAlertProps {
   totaleMin: number;
   totaleMax: number;
   onSalva: (budget: number | null) => Promise<void>;
+  /** Confronto a finiture inferiori calcolato dal server (D-09). */
+  confronto?: ConfrontoFinitureOut | null;
+  finitureAlMinimo?: boolean;
 }
 
 interface AspettoStato {
@@ -49,7 +53,14 @@ const ASPETTO: Record<StatoBudget, AspettoStato> = {
  * cliente gia' nel DTO: non tocca mai il prezzo e non usa la variante
  * destructive (sforare il budget non e' un errore).
  */
-export function BudgetAlert({ budget, totaleMin, totaleMax, onSalva }: BudgetAlertProps) {
+export function BudgetAlert({
+  budget,
+  totaleMin,
+  totaleMax,
+  onSalva,
+  confronto = null,
+  finitureAlMinimo = false,
+}: BudgetAlertProps) {
   const [aperto, setAperto] = useState(false);
 
   const stato = statoBudget(budget, totaleMin, totaleMax);
@@ -78,6 +89,24 @@ export function BudgetAlert({ budget, totaleMin, totaleMax, onSalva }: BudgetAle
 
   const { superficie, Icona, titolo, corpo } = ASPETTO[stato];
 
+  const delta =
+    stato === "fuori" && confronto
+      ? deltaConfronto(totaleMin, totaleMax, confronto.totale_min, confronto.totale_max)
+      : null;
+  const livello = confronto?.livello_nome.toLowerCase() ?? "";
+  let testoCorpo = corpo(budget);
+  if (stato === "fuori") {
+    if (confronto && delta) {
+      testoCorpo = TESTI_AVVISO.confrontoCorpo(
+        livello,
+        formatEurRange(confronto.totale_min, confronto.totale_max),
+        formatEurRange(delta.min, delta.max),
+      );
+    } else if (finitureAlMinimo) {
+      testoCorpo = TESTI_AVVISO.fuoriEconomiche;
+    }
+  }
+
   return (
     <Alert
       role="status"
@@ -92,7 +121,24 @@ export function BudgetAlert({ budget, totaleMin, totaleMax, onSalva }: BudgetAle
           <Icona className="size-5 shrink-0" aria-hidden />
           <p className="font-display text-xl font-semibold">{titolo}</p>
         </div>
-        <p className="text-sm">{corpo(budget)}</p>
+        <p className="text-sm">{testoCorpo}</p>
+        {confronto && delta && (
+          <dl className="flex flex-col gap-1 text-sm">
+            <div className="flex flex-wrap justify-between gap-x-4">
+              <dt>Ora (IVA inclusa)</dt>
+              <dd className="font-display tabular-nums">{formatEurRange(totaleMin, totaleMax)}</dd>
+            </div>
+            <div className="flex flex-wrap justify-between gap-x-4">
+              <dt>Con finiture {livello}</dt>
+              <dd className="font-display tabular-nums">
+                {formatEurRange(confronto.totale_min, confronto.totale_max)}
+              </dd>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              circa {formatEurRange(delta.min, delta.max)} in meno
+            </p>
+          </dl>
+        )}
       </div>
       <CampoModifica key={budget} valoreIniziale={budget} onSalva={onSalva} />
       <p className="text-xs text-muted-foreground">{TESTI_AVVISO.nota}</p>
