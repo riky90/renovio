@@ -160,3 +160,24 @@ class TestConfrontoPro:
         body = _get(c, _crea(c, {k: "base" for k in _livelli_selezionabili(sf)}))
         assert body["confronto_finiture"] is None
         assert body["finiture_al_minimo"] is True
+
+    def test_confronto_pro_coincide(self, client):
+        """G3 (10-11): il confronto e' il totale IVA inclusa di un dettaglio
+        ricalcolato con ogni categoria un livello sotto, anche con livelli misti."""
+        c, sf = client
+        _registra_pro(c)
+        codici = _livelli_selezionabili(sf)
+        sotto = {"alto": "medio", "medio": "base"}
+        casi = [
+            {k: "alto" for k in codici},
+            {**{k: "medio" for k in codici}, codici[0]: "alto"},
+            {**{k: "base" for k in codici}, codici[0]: "alto", codici[1]: "medio"},
+        ]
+        for livelli in casi:
+            corrente = _get(c, _crea(c, livelli))
+            conf = corrente["confronto_finiture"]
+            assert conf is not None, livelli
+            abbassati = {k: sotto.get(v, v) for k, v in livelli.items()}
+            fresco = _get(c, _crea(c, abbassati))
+            assert Decimal(conf["totale_min"]) == Decimal(fresco["totale_ivato_min"]), livelli
+            assert Decimal(conf["totale_max"]) == Decimal(fresco["totale_ivato_max"]), livelli

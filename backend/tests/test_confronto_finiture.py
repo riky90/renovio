@@ -35,7 +35,13 @@ def _seeded_db(tmp_path_factory):
 
 @pytest.fixture()
 def client():
-    return TestClient(app)
+    from app.limiter import limiter
+
+    # Il test parametrico G3 fa centinaia di POST: il rate limit non e' l'oggetto.
+    abilitato = limiter.enabled
+    limiter.enabled = False
+    yield TestClient(app)
+    limiter.enabled = abilitato
 
 
 def _post(client, risposte=None):
@@ -94,3 +100,61 @@ def test_codice_sconosciuto_nessun_confronto(client):
     body = _post(client, {"livello_finiture": "inesistente"})
     assert body["confronto_finiture"] is None
     assert body["finiture_al_minimo"] is False
+
+
+# --- G3 (10-11): il confronto deve coincidere con una stima fresca -----------
+
+
+def _default_catalogo(client, mq):
+    """Catalogo Free e risposte di default, come le estrae il client."""
+    r = client.get(f"/api/v1/domande?tier=free&mq={mq}")
+    assert r.status_code == 200
+    domande = r.json()["domande"]
+    base = {}
+    for d in domande:
+        v = d["valore_default"]
+        if v is None:
+            continue
+        base[d["code"]] = float(v) if d["tipo_controllo"] in ("stepper", "numero") else v
+    return domande, base
+
+
+def _varianti(domande, base):
+    """Insiemi di risposte non di default, una domanda alla volta."""
+    out = [dict(base)]
+    for d in domande:
+        code, tipo = d["code"], d["tipo_controllo"]
+        opz = [o["code"] for o in d["opzioni"]]
+        if code == "livello_finiture":
+            continue
+        if tipo == "scelta_singola":
+            for o in opz:
+                out.append({**base, code: o})
+        elif tipo == "scelta_multipla" and opz:
+            out.append({**base, code: opz})
+        elif tipo in ("stepper", "numero") and base.get(code) is not None:
+            for inc in (1,):
+                out.append({**base, code: base[code] + inc})
+    for code in ("muri_lavori", "efficientamento"):
+        out.append({**base, code: "si"})
+    return out
+
+
+@pytest.mark.parametrize("tipo", ["leggera", "moderata", "totale"])
+@pytest.mark.parametrize("mq", [85, 140, 300])
+def test_confronto_coincide_con_stima_fresca(client, tipo, mq):
+    domande, base = _default_catalogo(client, mq)
+    for risposte in _varianti(domande, base):
+        risposte = {**risposte, "livello_finiture": "alto"}
+        body = {"citta": "Reggio Emilia", "mq": mq, "tipo": tipo, "risposte": risposte}
+        r = client.post("/api/v1/stima", json=body)
+        assert r.status_code == 200, (risposte, r.text)
+        conf = r.json()["confronto_finiture"]
+        if conf is None:
+            continue
+        fresca = client.post(
+            "/api/v1/stima",
+            json={**body, "risposte": {**risposte, "livello_finiture": conf["livello_code"]}},
+        ).json()["totale"]
+        assert float(conf["totale_min"]) == float(fresca["totale_min"]), risposte
+        assert float(conf["totale_max"]) == float(fresca["totale_max"]), risposte
