@@ -326,91 +326,23 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    """Rimuove esattamente gli effetti che questa migrazione avrebbe creato.
+    """No-op documentato: il downgrade non tocca piu' nessuna riga.
 
     Non tocca `voce.livello` ne' `coefficiente_qta_voce.domanda_mirata_key`
-    (dato storico, mai scritto da questa migrazione).
+    (dato storico, mai scritto da questa migrazione), ne' `domanda`/
+    `opzione_domanda` di `finitura` (WR-02 della code review 09-08).
 
-    WR-02 (code review 09-08): non cancella piu' `domanda`/`opzione_domanda`
-    di `finitura`. `upgrade()` le crea SOLO se `riga_domanda is None` — su un
-    DB dove `finitura` preesisteva (es. gia' seminata dal seed su un DB
-    nuovo, D-41) l'upgrade e' un no-op per la sezione (A), ma il vecchio
-    downgrade cancellava comunque domanda/opzioni, distruggendo curatela che
-    l'upgrade non aveva mai scritto — un downgrade asimmetrico e non
-    idempotente. Ora la sezione (A) del downgrade rimuove SOLO gli effetti
-    `includi` il cui bersaglio e' una voce con `voce.livello == opzione.code`
-    — esattamente cio' che la sezione (A) dell'upgrade crea, stesso principio
-    della 0022 (il cui downgrade tocca solo effetti, mai domanda/opzione).
+    WR-02 della code review 09-14: nemmeno gli effetti si possono togliere in
+    modo simmetrico. L'upgrade salta ogni effetto che esiste gia'
+    (`_effetto_esiste`), e il seed crea con la STESSA chiave naturale sia gli
+    `includi` di `finitura` sia i `quantita_per_unita` sulle chiavi mirate
+    (D-41). Dopo l'upgrade quindi non c'e' modo di distinguere le righe scritte
+    da questa migrazione da quelle del seed o della curatela a mano: il vecchio
+    downgrade le cancellava tutte per chiave (`voce.livello == opzione.code`,
+    `domanda_mirata_key`), cioe' cancellava curatela che l'upgrade non aveva
+    mai scritto, e dipendeva da `voce.livello`, colonna vestigiale che il seed
+    non scrive. Stesso principio della 0022 per cio' che non puo' distinguere:
+    meglio lasciare righe in piu' (lo schema e' identico fra 0020 e 0021, e
+    un nuovo upgrade non le duplica) che perdere curatela in silenzio.
     """
-    bind = op.get_bind()
-    (
-        voce,
-        coefficiente,
-        domanda,
-        opzione,
-        effetto,
-        livello_finitura,
-        tipo_ristrutturazione,
-    ) = _tabelle()
-
-    # --- (B) quantita_per_unita sulle chiavi mirate ------------------------
-    chiavi_mirate = {
-        riga[0]
-        for riga in bind.execute(
-            sa.select(coefficiente.c.domanda_mirata_key).where(
-                coefficiente.c.domanda_mirata_key.isnot(None)
-            )
-        ).all()
-    }
-    for chiave in chiavi_mirate:
-        riga_opzione = bind.execute(
-            sa.select(opzione.c.id).where(
-                opzione.c.domanda_code == chiave,
-                opzione.c.code == OPZIONE_VALORE,
-            )
-        ).first()
-        if riga_opzione is None:
-            continue
-        opzione_id = riga_opzione[0]
-        voce_ids = {
-            riga[0]
-            for riga in bind.execute(
-                sa.select(coefficiente.c.voce_id).where(
-                    coefficiente.c.domanda_mirata_key == chiave
-                )
-            ).all()
-        }
-        if not voce_ids:
-            continue
-        bind.execute(
-            sa.delete(effetto).where(
-                effetto.c.opzione_id == opzione_id,
-                effetto.c.tipo_effetto == TIPO_QUANTITA_PER_UNITA,
-                effetto.c.valore == 1,
-                effetto.c.target_voce_id.in_(voce_ids),
-            )
-        )
-
-    # --- (A) solo gli effetti includi creati da QUESTA migrazione ----------
-    # Bersaglio: voce.livello == opzione.code — la stessa condizione che la
-    # sezione (A) dell'upgrade usa per crearli. Un `includi` curato a mano su
-    # una voce SENZA livello (bersaglio non prodotto dall'upgrade) non viene
-    # mai toccato; `domanda`/`opzione_domanda` restano sempre, anche se dopo
-    # questo downgrade non hanno piu' alcun effetto `includi` residuo.
-    opzioni_finitura = bind.execute(
-        sa.select(opzione.c.id, opzione.c.code).where(opzione.c.domanda_code == DOMANDA_FINITURA)
-    ).all()
-    for opzione_id, opzione_code in opzioni_finitura:
-        voci_del_livello = bind.execute(
-            sa.select(voce.c.id).where(voce.c.livello == opzione_code)
-        ).all()
-        voce_ids = [riga[0] for riga in voci_del_livello]
-        if not voce_ids:
-            continue
-        bind.execute(
-            sa.delete(effetto).where(
-                effetto.c.opzione_id == opzione_id,
-                effetto.c.tipo_effetto == TIPO_INCLUDI,
-                effetto.c.target_voce_id.in_(voce_ids),
-            )
-        )
+    return None
