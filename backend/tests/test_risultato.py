@@ -140,3 +140,27 @@ class TestRiepilogoIva:
         r = riepilogo_iva(cats, [], totale)
         assert len(r.righe_iva) == 1
         assert r.extra_totale == Decimal("0")
+
+
+class TestLivelloInferiore:
+    OPZ = [("alto", 3, False), ("base", 1, False), ("medio", 2, True)]
+
+    def test_scende_di_un_gradino(self):
+        from app.services.risultato import livello_inferiore
+
+        assert livello_inferiore(self.OPZ, "alto") == "medio"
+        assert livello_inferiore(self.OPZ, "medio") == "base"
+
+    def test_al_minimo_e_sconosciuto(self):
+        from app.services.risultato import livello_inferiore
+
+        assert livello_inferiore(self.OPZ, "base") is None
+        assert livello_inferiore(self.OPZ, "boh") is None
+
+    def test_scelto_none_parte_dal_default(self):
+        from app.services.risultato import livello_corrente, livello_inferiore
+
+        assert livello_inferiore(self.OPZ, None) == "base"
+        assert livello_corrente(self.OPZ, None) == "medio"
+        assert livello_corrente(self.OPZ, "alto") == "alto"
+        assert livello_corrente(self.OPZ, "boh") == "medio"

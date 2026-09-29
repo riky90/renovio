@@ -146,6 +146,28 @@ def test_response_never_leaks_impresa_secret(client, citta, fallback_expected, t
             }
 
 
+def test_confronto_finiture_non_leaka(client):
+    """10-04: il confronto a finiture inferiori e' un DTO chiuso di 4 campi."""
+    response = client.post(
+        "/api/v1/stima",
+        json={
+            "citta": "Reggio Emilia",
+            "mq": 85,
+            "tipo": "totale",
+            "risposte": {"livello_finiture": "alto"},
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    conf = body["confronto_finiture"]
+    assert conf is not None
+    assert set(conf) == {"livello_code", "livello_nome", "totale_min", "totale_max"}
+    _assert_no_forbidden_keys(body)
+    raw_text = json.dumps({k: v for k, v in body.items() if k != "bonus"})
+    for forbidden in FORBIDDEN_SUBSTRINGS:
+        assert forbidden not in raw_text
+
+
 # --- 09-05: GET/POST del dettaglio-pro (configuratore) ---------------------
 #
 # Il DTO generico (domande/opzioni/risposte) e' il punto piu' vicino agli

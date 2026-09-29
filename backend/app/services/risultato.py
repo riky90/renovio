@@ -174,3 +174,31 @@ def riepilogo_iva(categorie: list[dict], extra: list[dict], totale: dict) -> Rie
         totale_min=_dec(totale["totale_min"]),
         totale_max=_dec(totale["totale_max"]),
     )
+
+
+def livello_corrente(opzioni: list[tuple[str, int, bool]], scelto: str | None) -> str | None:
+    """Il livello effettivo: quello scelto se e' tra le opzioni, altrimenti il default.
+
+    `opzioni` = (code, ordine, is_default). Nessun livello e' cablato: l'ordine
+    arriva dai dati (`opzione_domanda.ordine`)."""
+    codici = {c for c, _, _ in opzioni}
+    if scelto in codici:
+        return scelto
+    for code, _, is_default in opzioni:
+        if is_default:
+            return code
+    return None
+
+
+def livello_inferiore(opzioni: list[tuple[str, int, bool]], scelto: str | None) -> str | None:
+    """Il livello un gradino sotto quello corrente; None se gia' al minimo o se
+    il codice scelto e' sconosciuto."""
+    ordinate = sorted(opzioni, key=lambda o: o[1])
+    codici = [c for c, _, _ in ordinate]
+    if scelto is not None and scelto not in codici:
+        return None
+    corrente = livello_corrente(opzioni, scelto)
+    if corrente is None:
+        return None
+    idx = codici.index(corrente)
+    return codici[idx - 1] if idx > 0 else None

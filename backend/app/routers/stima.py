@@ -30,6 +30,7 @@ from app.schemas.stima import (
     BonusDettaglioOut,
     BonusOut,
     CategoriaOut,
+    ConfrontoFinitureOut,
     ExtraOut,
     StimaInputEcho,
     StimaRequest,
@@ -39,7 +40,10 @@ from app.schemas.stima import (
 from app.services.arredo import ArredoService
 from app.services.bonus_service import BonusService
 from app.services.city_resolver import resolve_listino
+from app.models.domanda import Domanda, OpzioneDomanda
+from app.services.effetti import DOMANDA_LIVELLO_FINITURE
 from app.services.estimation import EstimationService
+from app.services.risultato import livello_corrente, livello_inferiore
 from app.services.testo_service import get_testo
 
 router = APIRouter(prefix="/stima", tags=["stima"])
@@ -170,6 +174,8 @@ def crea_stima(payload: StimaRequest, request: Request) -> StimaResponse:
             extra=result.extra,
         )
 
+        confronto, finiture_al_minimo = _confronto_finiture(session, listino, payload, result)
+
         return StimaResponse(
             input=StimaInputEcho(
                 citta=payload.citta,
@@ -186,7 +192,67 @@ def crea_stima(payload: StimaRequest, request: Request) -> StimaResponse:
             totale=totale_out,
             bonus=_bonus_out(bonus_result),
             arredo=_arredo_out(session, arredo_result),
+            confronto_finiture=confronto,
+            finiture_al_minimo=finiture_al_minimo,
         )
+
+
+def _confronto_finiture(
+    session, listino, payload: StimaRequest, result
+) -> tuple[ConfrontoFinitureOut | None, bool]:
+    """Ricalcolo vero del motore Free con il livello finiture un gradino sotto.
+
+    Guarda solo il totale lavori (l'arredo non entra, D-08). Ritorna
+    (confronto, finiture_al_minimo). None quando il layer parametrico e' spento,
+    non c'e' un livello inferiore o il ricalcolo non abbassa il massimo.
+    """
+    if payload.risposte is None:
+        return None, False
+    attiva = (
+        session.query(Domanda.code)
+        .filter(Domanda.code == DOMANDA_LIVELLO_FINITURE, Domanda.attiva.is_(True))
+        .first()
+    )
+    if attiva is None:
+        return None, False
+    righe = (
+        session.query(OpzioneDomanda)
+        .filter(
+            OpzioneDomanda.domanda_code == DOMANDA_LIVELLO_FINITURE,
+            OpzioneDomanda.attiva.is_(True),
+        )
+        .all()
+    )
+    if not righe:
+        return None, False
+    opzioni = [(o.code, o.ordine, o.is_default) for o in righe]
+    scelto = payload.risposte.get(DOMANDA_LIVELLO_FINITURE)
+    if not isinstance(scelto, str):
+        scelto = None
+    corrente = livello_corrente(opzioni, scelto)
+    inferiore = livello_inferiore(opzioni, scelto)
+    if inferiore is None:
+        return None, corrente is not None and (scelto is None or scelto == corrente)
+
+    conf = EstimationService.compute(
+        session,
+        listino,
+        mq=payload.mq,
+        tipo=payload.tipo.value,
+        risposte={**payload.risposte, DOMANDA_LIVELLO_FINITURE: inferiore},
+    )
+    if conf.totale_max >= result.totale_max:
+        return None, False
+    nome = next(o.etichetta for o in righe if o.code == inferiore)
+    return (
+        ConfrontoFinitureOut(
+            livello_code=inferiore,
+            livello_nome=nome,
+            totale_min=conf.totale_min,
+            totale_max=conf.totale_max,
+        ),
+        False,
+    )
 
 
 def _bonus_out(result) -> BonusOut | None:

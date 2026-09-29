@@ -145,6 +145,12 @@ OPZIONE_VALORE = "valore"
 #: categoria verso questa domanda.
 DOMANDA_FINITURA = "finitura"
 
+#: Per convenzione (non regola di business): la domanda del wizard che sceglie
+#: il livello di finiture (base/medio/alto). Il confronto "con finiture un
+#: gradino sotto" (10-04) ricalcola la stima cambiando la risposta a questa
+#: domanda; i livelli e il loro ordine vengono dal DB, mai da una lista nel codice.
+DOMANDA_LIVELLO_FINITURE = "livello_finiture"
+
 #: Per convenzione: il gruppo delle domande che si rispondono solo nel
 #: pannello del dettaglio Pro (D-06). Il wizard (`_domande_attive`) le esclude.
 GRUPPO_CONFIGURATORE_PRO = "configuratore_pro"

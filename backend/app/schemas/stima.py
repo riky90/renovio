@@ -161,6 +161,17 @@ class ArredoOut(BaseModel):
     disclaimer: str
 
 
+class ConfrontoFinitureOut(BaseModel):
+    """La stessa ristrutturazione con finiture un livello sotto (ricalcolo vero
+    del motore Free). Totali LAVORI, IVA inclusa, arredo escluso. DTO chiuso:
+    solo valori lato cliente."""
+
+    livello_code: str
+    livello_nome: str
+    totale_min: Decimal
+    totale_max: Decimal
+
+
 class StimaResponse(BaseModel):
     input: StimaInputEcho
     fallback: bool
@@ -175,3 +186,8 @@ class StimaResponse(BaseModel):
     # None = nessun ambiente da arredare scelto, nessun forfait curato, o
     # snapshot salvato prima di questa feature. Mai una sezione a zero.
     arredo: ArredoOut | None = None
+    # None = nessun confronto (layer spento, finiture gia' al minimo, o il
+    # ricalcolo non abbassa il massimo). Default per snapshot e client vecchi;
+    # sezione opzionale: None, mai a zero.
+    confronto_finiture: ConfrontoFinitureOut | None = None
+    finiture_al_minimo: bool = False
