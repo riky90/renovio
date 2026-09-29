@@ -246,7 +246,7 @@ Plans:
 4. Superato il budget dichiarato, compare un avviso con il confronto ricalcolato a finiture inferiori
 5. Il budget **non** muove il prezzo: due assi distinti, *finiture* sì e *budget* no
 
-**Plans:** 13/15 plans executed
+**Plans:** 14/15 plans executed
 
 Plans:
 **Wave 1**
@@ -293,7 +293,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 10-14-PLAN.md — G6 pannello Bonus nella vista Pro, dal DTO del dettaglio Pro (RIS-03)
+- [x] 10-14-PLAN.md — G6 pannello Bonus nella vista Pro, dal DTO del dettaglio Pro (RIS-03)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
