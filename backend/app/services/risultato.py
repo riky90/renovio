@@ -113,10 +113,11 @@ def incidenza_eur_mq(imp_min, imp_max, mq) -> tuple[int, int] | None:
 
 
 def somma_medi(categorie: list[dict]) -> Decimal:
-    """Denominatore del peso: solo categorie, senza extra ne' arredo."""
+    """Denominatore del peso: imponibile delle sole categorie, senza extra ne' arredo,
+    stessa base di €/m² e dell'importo mostrato (IVA esclusa)."""
     total = Decimal(0)
     for c in categorie:
-        total += (_dec(c["totale_min"]) + _dec(c["totale_max"])) / 2
+        total += (_dec(c["imponibile_min"]) + _dec(c["imponibile_max"])) / 2
     return total
 
 
@@ -240,7 +241,7 @@ def lettura_categorie_pro(
     """EUR/m2 (IVA esclusa) e peso sul valore medio per categoria (D-14, D-15, A3):
     composizione di `incidenza_eur_mq`, `somma_medi` e `peso_categoria`; il
     denominatore e' la somma dei medi delle sole categorie passate."""
-    somma = somma_medi([{"totale_min": mn, "totale_max": mx} for _, mn, mx in categorie])
+    somma = somma_medi([{"imponibile_min": mn, "imponibile_max": mx} for _, mn, mx in categorie])
     out: list[LetturaCategoria] = []
     for code, mn, mx in categorie:
         inc = incidenza_eur_mq(mn, mx, mq)

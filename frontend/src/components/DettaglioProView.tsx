@@ -386,7 +386,10 @@ export function DettaglioProView({ stimaId, enabled = true }: DettaglioProViewPr
       </div>
 
       <div className="flex flex-wrap items-baseline justify-between gap-3 rounded-lg border-2 border-primary bg-primary/5 px-5 py-4">
-        <span className="text-base font-semibold text-foreground">Totale generale stimato</span>
+        <span className="text-base font-semibold text-foreground">
+          Totale generale stimato
+          <span className="text-xs font-normal text-muted-foreground"> · IVA esclusa</span>
+        </span>
         <span className="text-xl font-bold tabular-nums text-primary">
           {formatEurRange(dettaglio.totale_min, dettaglio.totale_max)}
         </span>

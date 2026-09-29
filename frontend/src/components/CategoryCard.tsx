@@ -30,7 +30,7 @@ interface CategoryCardProps {
   sommaMedi: number;
 }
 
-/** Card categoria — neutra; il range è IVA inclusa. */
+/** Card categoria — neutra; il range è IVA esclusa (stessa base di €/m² e peso). */
 export function CategoryCard({ categoria, isPro = false, mq, sommaMedi }: CategoryCardProps) {
   const nota = COVERAGE_NOTES[categoria.code];
   const Icon = CATEGORY_ICONS[categoria.code] ?? Hammer;
@@ -48,7 +48,8 @@ export function CategoryCard({ categoria, isPro = false, mq, sommaMedi }: Catego
       </CardHeader>
       <CardContent className="flex flex-col gap-3 pt-4">
         <p className="font-display text-xl font-bold tabular-nums">
-          {formatEurRange(categoria.totale_min, categoria.totale_max)}
+          {formatEurRange(categoria.imponibile_min, categoria.imponibile_max)}{" "}
+          <span className="text-xs font-normal text-muted-foreground">IVA esclusa</span>
         </p>
         <LetturaCategoria incidenza={inc} peso={{ etichetta: peso.etichetta, fillPct: peso.fillPct }} />
         {!isPro && (

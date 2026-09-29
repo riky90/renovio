@@ -313,6 +313,9 @@ class TestPdfProLetturaEBudget:
         assert "Totale IVA inclusa" in html
         assert "Imponibile lavori" in html
         assert "(IVA esclusa)" in html
+        assert "Totale generale stimato (IVA esclusa)" in html
+        for cat in calcolo.result.categorie:
+            assert f"Totale {cat.nome} (IVA esclusa)" in html
         assert "% del totale" in html or "<1% del totale" in html
         riepilogo = calcolo.riepilogo
         from app.services.pdf_service import _fmt_eur

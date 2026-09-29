@@ -88,7 +88,10 @@ export function SottocategoriaAccordion({
         ))}
       </Accordion>
       <div className="flex items-baseline justify-between gap-3 px-4 text-sm font-semibold text-foreground">
-        <span>Totale {categoria.nome}</span>
+        <span>
+          Totale {categoria.nome}
+          <span className="text-xs font-normal text-muted-foreground"> · IVA esclusa</span>
+        </span>
         <span className="tabular-nums">
           {formatEurRange(categoria.totale_min, categoria.totale_max)}
         </span>

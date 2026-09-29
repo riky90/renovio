@@ -79,11 +79,22 @@ class TestPeso:
         assert (p.etichetta, p.fill_pct) == ("0%", 0)
 
     def test_somma_medi(self):
+        # Solo imponibile (IVA esclusa): i totali IVA inclusa non contano.
         cats = [
-            {"totale_min": "100.00", "totale_max": "200.00"},
-            {"totale_min": "300.00", "totale_max": "500.00"},
+            {
+                "imponibile_min": "100.00",
+                "imponibile_max": "200.00",
+                "totale_min": "110.00",
+                "totale_max": "220.00",
+            },
+            {
+                "imponibile_min": "300.00",
+                "imponibile_max": "400.00",
+                "totale_min": "366.00",
+                "totale_max": "488.00",
+            },
         ]
-        assert somma_medi(cats) == Decimal("550")
+        assert somma_medi(cats) == Decimal("500")
 
 
 def _cat(imp_min, imp_max, iva_pct, iva_min, iva_max):

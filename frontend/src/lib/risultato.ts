@@ -59,9 +59,9 @@ export function incidenzaEurMq(
   return { min: Math.round(imponibileMin / mq), max: Math.round(imponibileMax / mq) };
 }
 
-/** Denominatore del peso: solo categorie, senza extra ne' arredo. */
+/** Denominatore del peso: imponibile (IVA esclusa) delle sole categorie, senza extra ne' arredo. */
 export function sommaMediCategorie(categorie: CategoriaOut[]): number {
-  return categorie.reduce((acc, c) => acc + (c.totale_min + c.totale_max) / 2, 0);
+  return categorie.reduce((acc, c) => acc + (c.imponibile_min + c.imponibile_max) / 2, 0);
 }
 
 /** Peso della categoria sul valore medio (D-15). */
@@ -70,7 +70,7 @@ export function pesoCategoria(
   sommaMedi: number,
 ): { etichetta: string; fillPct: number } {
   if (sommaMedi <= 0) return { etichetta: "0%", fillPct: 0 };
-  const medio = (categoria.totale_min + categoria.totale_max) / 2;
+  const medio = (categoria.imponibile_min + categoria.imponibile_max) / 2;
   const raw = (medio / sommaMedi) * 100;
   return {
     etichetta: raw < 1 ? "<1%" : `${Math.round(raw)}%`,

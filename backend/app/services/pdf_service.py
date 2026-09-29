@@ -115,11 +115,21 @@ class PdfService:
         # stima pre-fase ha NULL e il PDF non emette ne' tacca ne' riquadro.
         budget = getattr(stima, "budget_eur", None)
 
-        somma = somma_medi(categorie)
+        # Base IVA esclusa (G2). Gli snapshot piu' vecchi senza imponibile_* per
+        # categoria ricadono su totale_* per non far fallire il PDF.
+        def _imp(c: dict) -> tuple:
+            return (
+                c.get("imponibile_min", c["totale_min"]),
+                c.get("imponibile_max", c["totale_max"]),
+            )
+
+        somma = somma_medi(
+            [{"imponibile_min": _imp(c)[0], "imponibile_max": _imp(c)[1]} for c in categorie]
+        )
         derivati = {
             c["code"]: {
                 "incidenza": incidenza_eur_mq(c["imponibile_min"], c["imponibile_max"], mq),
-                "peso": peso_categoria(c["totale_min"], c["totale_max"], somma),
+                "peso": peso_categoria(_imp(c)[0], _imp(c)[1], somma),
             }
             for c in categorie
         }
