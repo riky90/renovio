@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { useMutation } from "@tanstack/react-query";
 import { Gauge, MapPin, Zap, type LucideIcon } from "lucide-react";
@@ -10,6 +10,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SoftWallCta } from "@/components/SoftWallCta";
 import { TotalCard } from "@/components/TotalCard";
+import { BudgetAlert } from "@/components/BudgetAlert";
 import { BonusPanel } from "@/components/BonusPanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -81,6 +82,9 @@ export function EstimatePage() {
     mutationFn: postStima,
   });
   const { user } = useAuth();
+  // Il budget vive solo nello stato della pagina: non entra in POST /stima ne' in
+  // `risposte`. La persistenza sulla stima salvata arriva col piano 10-05.
+  const [budget, setBudget] = useState<number | null>(null);
 
   // Auto-save da loggato (D-07): nessun ricalcolo, si congela esattamente il
   // payload gia' mostrato dal risultato corrente.
@@ -108,7 +112,8 @@ export function EstimatePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mutation.isSuccess, result, user]);
 
-  function handleSubmit({ values, risposte }: EstimateWizardSubmit) {
+  function handleSubmit({ values, risposte, budget: budgetDichiarato }: EstimateWizardSubmit) {
+    setBudget(budgetDichiarato ?? null);
     // `risposte` viaggia SEMPRE, anche quando e' identico ai default: il
     // backend distingue "layer spento" (assente) da "tutte le domande sui
     // default" (presente e pieno), e la home ha appena chiesto quelle domande.
@@ -148,7 +153,12 @@ export function EstimatePage() {
             </div>
 
             <div className="mx-auto mt-10 max-w-xl rounded-2xl border border-border bg-card p-6 shadow-lg shadow-black/[0.03] sm:p-8">
-              <EstimateWizard tier="free" onSubmit={handleSubmit} isSubmitting={mutation.isPending} />
+              <EstimateWizard
+                tier="free"
+                onSubmit={handleSubmit}
+                isSubmitting={mutation.isPending}
+                budgetIniziale={budget}
+              />
             </div>
 
             <ul className="mx-auto mt-12 grid max-w-4xl grid-cols-1 gap-6 sm:grid-cols-3">
@@ -240,6 +250,14 @@ export function EstimatePage() {
                       totale={result.totale}
                       categorie={result.categorie}
                       extra={result.extra}
+                      budget={budget}
+                    />
+
+                    <BudgetAlert
+                      budget={budget}
+                      totaleMin={result.totale.totale_min}
+                      totaleMax={result.totale.totale_max}
+                      onSalva={async (v) => setBudget(v)}
                     />
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

@@ -8,6 +8,7 @@ interface TotalCardProps {
   totale: TotaleOut;
   categorie: CategoriaOut[];
   extra: ExtraOut[];
+  budget?: number | null;
 }
 
 function Riga({
@@ -34,7 +35,7 @@ function Riga({
 }
 
 /** Pannello di enfasi: la cifra più importante della schermata risultati, a range. */
-export function TotalCard({ totale, categorie, extra }: TotalCardProps) {
+export function TotalCard({ totale, categorie, extra, budget }: TotalCardProps) {
   const riepilogo = riepilogoIva(categorie, extra, totale);
   const sommaExtra = extra.reduce((acc, e) => acc + e.importo, 0);
 
@@ -50,6 +51,7 @@ export function TotalCard({ totale, categorie, extra }: TotalCardProps) {
             max={totale.totale_max}
             minLabel={formatEur(totale.totale_min)}
             maxLabel={formatEur(totale.totale_max)}
+            budget={budget}
           />
         </div>
       </div>
