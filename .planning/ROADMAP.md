@@ -246,7 +246,7 @@ Plans:
 4. Superato il budget dichiarato, compare un avviso con il confronto ricalcolato a finiture inferiori
 5. Il budget **non** muove il prezzo: due assi distinti, *finiture* sì e *budget* no
 
-**Plans:** 11/15 plans executed
+**Plans:** 12/15 plans executed
 
 Plans:
 **Wave 1**
@@ -285,7 +285,7 @@ Plans:
 
 - [x] 10-10-PLAN.md — G1 cifre della RangeBar sotto gli estremi del segmento (web e PDF) + G2 cifre per categoria IVA esclusa in Free, Pro e PDF (RIS-01, RIS-02)
 - [x] 10-11-PLAN.md — G3 diagnosi e correzione del confronto finiture, regressione Free e Pro (RIS-04)
-- [ ] 10-12-PLAN.md — G4 "Modifica" riapre il wizard precompilato, auto-save senza duplicati a vuoto (RIS-04)
+- [x] 10-12-PLAN.md — G4 "Modifica" riapre il wizard precompilato, auto-save senza duplicati a vuoto (RIS-04)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

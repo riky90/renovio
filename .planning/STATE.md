@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: domande e motore parametrico
 status: executing
-last_updated: "2026-09-29T15:04:08.036Z"
+last_updated: "2026-09-29T15:06:18.192Z"
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 44
-  completed_plans: 42
+  completed_plans: 43
   percent: 57
 ---
 
