@@ -38,6 +38,8 @@ export function BonusPanel({ bonus }: BonusPanelProps) {
         </p>
         <div className="mt-4">
           <RangeBar
+            min={bonus.detrazione_min}
+            max={bonus.detrazione_max}
             minLabel={formatEur(bonus.detrazione_min)}
             maxLabel={formatEur(bonus.detrazione_max)}
           />

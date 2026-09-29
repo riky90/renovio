@@ -12,6 +12,16 @@ export function formatEur(value: number): string {
   return formatter.format(value);
 }
 
+const numberFormatter = new Intl.NumberFormat("it-IT", {
+  maximumFractionDigits: 0,
+  useGrouping: "always",
+});
+
+/** Incidenza al metro quadro: "310–380 €/m²". */
+export function formatRangeEurMq(min: number, max: number): string {
+  return `${numberFormatter.format(min)}–${numberFormatter.format(max)} €/m²`;
+}
+
 export function formatEurRange(min: number, max: number): string {
   return `${formatEur(min)} – ${formatEur(max)}`;
 }

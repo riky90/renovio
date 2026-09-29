@@ -16,6 +16,8 @@ export function TotalCard({ totale }: TotalCardProps) {
         </p>
         <div className="mt-4">
           <RangeBar
+            min={totale.totale_min}
+            max={totale.totale_max}
             minLabel={formatEur(totale.totale_min)}
             maxLabel={formatEur(totale.totale_max)}
           />
