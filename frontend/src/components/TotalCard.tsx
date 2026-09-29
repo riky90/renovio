@@ -1,6 +1,7 @@
 import { RangeBar } from "@/components/RangeBar";
+import { RiepilogoIvaRighe } from "@/components/RiepilogoIvaRighe";
 import { Separator } from "@/components/ui/separator";
-import { formatEur, formatEurRange } from "@/lib/currency";
+import { formatEur } from "@/lib/currency";
 import { riepilogoIva } from "@/lib/risultato";
 import type { CategoriaOut, ExtraOut, TotaleOut } from "@/api/stima";
 
@@ -11,33 +12,9 @@ interface TotalCardProps {
   budget?: number | null;
 }
 
-function Riga({
-  label,
-  value,
-  strong = false,
-  muted = false,
-}: {
-  label: string;
-  value: string;
-  strong?: boolean;
-  muted?: boolean;
-}) {
-  return (
-    <div
-      className={`flex justify-between gap-2 text-sm ${strong ? "font-semibold" : ""} ${
-        muted ? "text-muted-foreground" : ""
-      }`}
-    >
-      <span className="min-w-0">{label}</span>
-      <span className="shrink-0 tabular-nums">{value}</span>
-    </div>
-  );
-}
-
 /** Pannello di enfasi: la cifra più importante della schermata risultati, a range. */
 export function TotalCard({ totale, categorie, extra, budget }: TotalCardProps) {
   const riepilogo = riepilogoIva(categorie, extra, totale);
-  const sommaExtra = extra.reduce((acc, e) => acc + e.importo, 0);
 
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
@@ -56,33 +33,7 @@ export function TotalCard({ totale, categorie, extra, budget }: TotalCardProps) 
         </div>
       </div>
       <Separator />
-      <div className="flex flex-col gap-2 px-6 py-4">
-        <Riga
-          label="Imponibile lavori"
-          value={formatEurRange(riepilogo.imponibileLavoriMin, riepilogo.imponibileLavoriMax)}
-        />
-        {riepilogo.righeIva.map((r) => (
-          <Riga
-            key={r.ivaPct}
-            label={`IVA ${Math.round(r.ivaPct * 100)}%`}
-            value={formatEurRange(r.min, r.max)}
-          />
-        ))}
-        {extra.length > 0 && (
-          <>
-            <Riga label="Costi extra" value={formatEur(sommaExtra)} />
-            {extra.map((e) => (
-              <Riga key={e.code} label={e.nome} value={formatEur(e.importo)} muted />
-            ))}
-          </>
-        )}
-        <Separator />
-        <Riga
-          label="Totale IVA inclusa"
-          value={formatEurRange(riepilogo.totaleMin, riepilogo.totaleMax)}
-          strong
-        />
-      </div>
+      <RiepilogoIvaRighe riepilogo={riepilogo} className="px-6 py-4" />
       <div className="space-y-1.5 px-6 pb-4 text-sm text-muted-foreground">
         <p>Il dettaglio degli extra è nel riepilogo qui sopra.</p>
         <p>

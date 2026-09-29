@@ -190,7 +190,7 @@ interface RawArredoOut {
   disclaimer: string;
   [key: string]: unknown;
 }
-interface RawConfrontoFinitureOut {
+export interface RawConfrontoFinitureOut {
   livello_code: string;
   livello_nome: string;
   totale_min: string | number;
@@ -307,7 +307,7 @@ function normalizeArredo(raw: RawArredoOut | null | undefined): ArredoOut | null
   return out;
 }
 
-function normalizeConfronto(
+export function normalizeConfronto(
   raw: RawConfrontoFinitureOut | null | undefined,
 ): ConfrontoFinitureOut | null {
   if (raw == null) return null;

@@ -1,5 +1,12 @@
 import { apiGet, apiPost, ApiError } from "@/api/client";
 import { isNumerico, type TipoControllo, type ValoreRisposta } from "@/api/domande";
+import {
+  normalizeConfronto,
+  type ConfrontoFinitureOut,
+  type ExtraOut,
+  type RawConfrontoFinitureOut,
+} from "@/api/stima";
+import type { RiepilogoIva } from "@/lib/risultato";
 
 export interface VoceOut {
   codice: string | null;
@@ -72,10 +79,25 @@ export interface DomandaProOut {
   valore_etichetta: string | null;
 }
 
+/** Lettura di una categoria (D-13..D-15): valori del server, mai ricalcolati. */
+export interface LetturaCategoriaOut {
+  code: string;
+  incidenza: { min: number; max: number } | null;
+  peso: { etichetta: string; fillPct: number };
+}
+
 export interface DettaglioProOut {
   categorie: CategoriaDettagliataOut[];
   totale_min: number;
   totale_max: number;
+  /** Totale lavori + extra IVA inclusa (base di barra e budget). */
+  totale_ivato_min: number | null;
+  totale_ivato_max: number | null;
+  riepilogo_iva: RiepilogoIva | null;
+  lettura_categorie: LetturaCategoriaOut[];
+  confronto_finiture: ConfrontoFinitureOut | null;
+  finiture_al_minimo: boolean;
+  budget_eur: number | null;
   /** Eco delle risposte PERSISTITE ({codice: valore}) — generico dal 09-05. */
   risposte: Record<string, number | string>;
   /**
@@ -136,10 +158,34 @@ interface RawDomandaProOut {
   valore_etichetta: string | null;
 }
 
+interface RawRiepilogoIvaOut {
+  imponibile_lavori_min: unknown;
+  imponibile_lavori_max: unknown;
+  righe_iva: { iva_pct: unknown; min: unknown; max: unknown }[];
+  extra: { code: string; nome: string; importo: unknown; iva_pct: unknown }[];
+  totale_min: unknown;
+  totale_max: unknown;
+}
+
+interface RawLetturaCategoriaOut {
+  code: string;
+  eur_mq_min: number | null;
+  eur_mq_max: number | null;
+  peso_etichetta: string;
+  peso_fill_pct: number;
+}
+
 interface RawDettaglioProOut {
   categorie: RawCategoriaDettagliataOut[];
   totale_min: unknown;
   totale_max: unknown;
+  totale_ivato_min?: unknown;
+  totale_ivato_max?: unknown;
+  riepilogo_iva?: RawRiepilogoIvaOut | null;
+  lettura_categorie?: RawLetturaCategoriaOut[];
+  confronto_finiture?: RawConfrontoFinitureOut | null;
+  finiture_al_minimo?: boolean;
+  budget_eur?: number | null;
   risposte: Record<string, number | string>;
   risposte_salvate?: boolean;
   domande?: RawDomandaProOut[];
@@ -175,8 +221,48 @@ function normalizeDomandaPro(raw: RawDomandaProOut): DomandaProOut {
   };
 }
 
+function toNumberOrNull(value: unknown): number | null {
+  return value == null ? null : toNumber(value);
+}
+
+function normalizeRiepilogoIva(raw: RawRiepilogoIvaOut | null | undefined): RiepilogoIva | null {
+  if (raw == null) return null;
+  const extra: ExtraOut[] = raw.extra.map((e) => ({
+    code: e.code,
+    nome: e.nome,
+    importo: toNumber(e.importo),
+    iva_pct: toNumber(e.iva_pct),
+  }));
+  return {
+    imponibileLavoriMin: toNumber(raw.imponibile_lavori_min),
+    imponibileLavoriMax: toNumber(raw.imponibile_lavori_max),
+    righeIva: raw.righe_iva.map((r) => ({
+      ivaPct: toNumber(r.iva_pct),
+      min: toNumber(r.min),
+      max: toNumber(r.max),
+    })),
+    extra,
+    totaleMin: toNumber(raw.totale_min),
+    totaleMax: toNumber(raw.totale_max),
+  };
+}
+
 function normalizeDettaglioPro(raw: RawDettaglioProOut): DettaglioProOut {
   return {
+    totale_ivato_min: toNumberOrNull(raw.totale_ivato_min),
+    totale_ivato_max: toNumberOrNull(raw.totale_ivato_max),
+    riepilogo_iva: normalizeRiepilogoIva(raw.riepilogo_iva),
+    lettura_categorie: (raw.lettura_categorie ?? []).map((l) => ({
+      code: l.code,
+      incidenza:
+        l.eur_mq_min != null && l.eur_mq_max != null
+          ? { min: l.eur_mq_min, max: l.eur_mq_max }
+          : null,
+      peso: { etichetta: l.peso_etichetta, fillPct: l.peso_fill_pct },
+    })),
+    confronto_finiture: normalizeConfronto(raw.confronto_finiture),
+    finiture_al_minimo: raw.finiture_al_minimo ?? false,
+    budget_eur: raw.budget_eur ?? null,
     categorie: raw.categorie.map((cat) => ({
       code: cat.code,
       nome: cat.nome,
