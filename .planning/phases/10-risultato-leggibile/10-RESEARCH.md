@@ -382,18 +382,21 @@ class BudgetIn(BaseModel):
 | A6 | Confronto non calcolabile/nullo (delta <= 0) cade sul testo "meno lavori" dell'avviso | Pitfall 3 | Copy non esattamente quella di UI-SPEC per quel caso limite |
 | A7 | WeasyPrint rende barra a `div` percentuali senza `transform` | Pattern 7 / Pitfall 6 | Barra PDF storta: verificabile solo con rendering reale (GTK spesso assente su Windows locale) |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Base IVA del confronto Pro (A2)**
    - Known: il motore Pro non ha IVA ne' extra; il budget e' IVA inclusa (D-03).
    - Unclear: se l'utente accetta che nell'avviso Pro la riga "Ora" sia un totale IVA-inclusa diverso dal "Totale generale stimato" (IVA esclusa) mostrato nella stessa pagina.
    - Recommendation: procedere con Pattern 6 ed esporre chiaramente "IVA inclusa" nella riga "Ora"; chiedere conferma in fase di plan-check.
+   - RESOLVED: A2 confermata dall'utente il 2026-09-29 (vedi "Decisioni confermate").
 
 2. **Dove mostrare il budget nel PDF Pro**
    - Known: `render_pro` e' live e non ha `risultato_json`.
    - Recommendation: budget da colonna + confronto Pro dallo stesso `_compute_dettaglio`; sezione omessa se `budget_eur is None`.
+   - RESOLVED: implementato cosi' nel piano 10-07.
 
 3. **Testo dell'avviso quando il confronto e' `None` per delta <= 0 ma finiture non economiche (A6)** — proposta: usare la variante "meno lavori"; confermare col design.
+   - RESOLVED: A6 alla discrezione del planner; piani 10-04 (`finiture_al_minimo`) e 10-07 usano il testo "meno lavori" quando il confronto e' nullo per altri motivi.
 
 ## Environment Availability
 

@@ -246,7 +246,7 @@ Plans:
 4. Superato il budget dichiarato, compare un avviso con il confronto ricalcolato a finiture inferiori
 5. Il budget **non** muove il prezzo: due assi distinti, *finiture* sì e *budget* no
 
-**Plans:** 8 plans
+**Plans:** 9 plans
 
 Plans:
 **Wave 1**
@@ -268,15 +268,16 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 10-06-PLAN.md — Budget nel dettaglio Pro su base IVA inclusa, confronto Pro per categoria (RIS-04)
+- [ ] 10-06-PLAN.md — Dettaglio Pro server-side: totale IVA inclusa, riepilogo per aliquota, €/m² e peso per categoria, confronto Pro ricalcolato, budget (RIS-01..04)
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 10-07-PLAN.md — PDF: budget e avviso nel Free, lettura completa e avviso nel Pro (RIS-01..04)
+- [ ] 10-07-PLAN.md — Vista Pro web: RangeBar con tacca, riepilogo IVA, €/m² e peso per categoria, BudgetAlert, componenti condivisi col Free (RIS-01..04)
+- [ ] 10-08-PLAN.md — PDF: budget e avviso nel Free, lettura completa e avviso nel Pro (RIS-01..04)
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
-- [ ] 10-08-PLAN.md — Suite completa, build e checklist di collaudo per Riccardo
+- [ ] 10-09-PLAN.md — Suite completa, build e checklist di collaudo per Riccardo
 
 ---
 
