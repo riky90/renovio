@@ -1848,3 +1848,78 @@ def test_0023_downgrade_toglie_solo_cio_che_upgrade_ha_scritto(tmp_path, monkeyp
     command.upgrade(config, "0023")
     dopo_riupgrade = _conta_effetti(db_path)
     assert dopo_riupgrade == dopo_upgrade
+
+
+def test_0023_downgrade_dopo_seed_conserva_effetti_ritarati_o_disattivati(tmp_path, monkeypatch):
+    """WR-04 (review 09): seed gia' passato -> upgrade (no-op) -> taratura a
+    mano -> downgrade. Un `fattore_quantita` ritarato e un effetto
+    disattivato dall'admin restano; le righe identiche alle costanti (qui
+    create dal seed, non dall'upgrade) tornano allo stato 0022."""
+    modulo = _importa_modulo_0023()
+    db_path = tmp_path / "downgrade_dopo_seed_0023.db"
+    _semina_catalogo_reale(db_path, monkeypatch)
+
+    config = _alembic_config(db_path, monkeypatch)
+    prima_upgrade = _conta_effetti(db_path)
+    command.upgrade(config, "0023")
+    assert _conta_effetti(db_path) == prima_upgrade  # seed gia' passato: no-op
+
+    def _id_effetto(connessione, riga) -> int:
+        domanda_code, opzione_code, tipo_effetto, categoria_code, sotto_key, voce_key, tipo_code, _v = riga
+        risultato = connessione.execute(
+            "SELECT e.id FROM effetto_opzione e"
+            " JOIN opzione_domanda o ON o.id = e.opzione_id"
+            " JOIN voce v ON v.id = e.target_voce_id"
+            " JOIN sottocategoria s ON s.id = v.sottocategoria_id"
+            " JOIN listino l ON l.id = s.listino_id AND l.is_default = 1"
+            " WHERE o.domanda_code = ? AND o.code = ? AND e.tipo_effetto = ?"
+            " AND s.categoria_code = ? AND (s.codice = ? OR (s.codice IS NULL AND s.nome = ?))"
+            " AND (v.codice = ? OR (v.codice IS NULL AND v.descrizione = ?))"
+            " AND (e.tipo_code = ? OR (e.tipo_code IS NULL AND ? IS NULL))",
+            (
+                domanda_code,
+                opzione_code,
+                tipo_effetto,
+                categoria_code,
+                sotto_key,
+                sotto_key,
+                voce_key,
+                voce_key,
+                tipo_code,
+                tipo_code,
+            ),
+        ).fetchall()
+        assert len(risultato) == 1, riga
+        return risultato[0][0]
+
+    riga_ritarata = next(r for r in modulo._EFFETTI_AGGIUNTI if r[2] == "fattore_quantita")
+    riga_disattivata = next(r for r in modulo._EFFETTI_AGGIUNTI if r[7] is None)
+    connessione = sqlite3.connect(db_path)
+    try:
+        id_ritarato = _id_effetto(connessione, riga_ritarata)
+        id_disattivato = _id_effetto(connessione, riga_disattivata)
+        connessione.execute(
+            "UPDATE effetto_opzione SET valore = ? WHERE id = ?",
+            (float(riga_ritarata[7]) + 0.03, id_ritarato),
+        )
+        connessione.execute("UPDATE effetto_opzione SET attivo = 0 WHERE id = ?", (id_disattivato,))
+        connessione.commit()
+    finally:
+        connessione.close()
+
+    command.downgrade(config, "0022")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        superstiti = {
+            riga[0]
+            for riga in connessione.execute(
+                "SELECT id FROM effetto_opzione WHERE id IN (?, ?)", (id_ritarato, id_disattivato)
+            ).fetchall()
+        }
+        assert connessione.execute("PRAGMA foreign_key_check").fetchall() == []
+    finally:
+        connessione.close()
+
+    assert superstiti == {id_ritarato, id_disattivato}
+    assert _conta_effetti(db_path) == prima_upgrade - len(modulo._EFFETTI_AGGIUNTI) + 2

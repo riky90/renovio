@@ -44,9 +44,14 @@ seed al boot.
 Idempotente: ogni scrittura e' create-if-missing sulla stessa chiave naturale
 del seed (`scripts/seed.py::_crea_effetto_se_manca`), cosi' un seed
 successivo o una riapplicazione della migrazione non duplica nulla.
-Reversibile: il downgrade toglie solo cio' che l'upgrade ha scritto (stesso
-principio del WR-02 applicato alla 0021 in questo stesso piano) — mai un
-DELETE di `domanda`/opzioni preesistenti, le tre opzioni nuove sono
+Reversibile, con un limite dichiarato (WR-04 review 09): l'upgrade salta gli
+effetti che esistono gia', quindi dopo l'upgrade le righe scritte da questa
+migrazione non si distinguono da quelle identiche create dal seed del
+09-09/09-10. Il downgrade toglie le righe IDENTICHE alle costanti (stessa
+chiave naturale, stesso `valore`, `attivo` vero), chiunque le abbia create:
+e' lo stato 0022 del catalogo, e il seed di quella versione non le ricrea.
+Le righe ritarate (`valore` diverso) o disattivate dall'admin restano. Mai
+un DELETE di `domanda`/opzioni preesistenti; le tre opzioni nuove sono
 cancellate solo se restano senza alcun effetto residuo.
 """
 from __future__ import annotations
@@ -350,12 +355,19 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    """Rimuove esattamente gli effetti che questa migrazione avrebbe creato,
+    """Rimuove gli effetti identici a quelli che questa migrazione scrive,
     ripristina quelli che avrebbe rimosso (nessuno, oggi) e cancella le tre
     opzioni nuove solo se restano senza alcun effetto residuo — tollerante
-    (nessun raise): una curatela fatta a mano dopo l'upgrade non deve
-    bloccare un downgrade, solo essere rispettata (le righe non toccate da
-    questa migrazione restano)."""
+    (nessun raise).
+
+    "Identici" (WR-04 review 09) vuol dire stessa chiave naturale, `valore`
+    uguale alla costante (con `_vicino`) e `attivo` vero. Non si puo' sapere
+    se una riga l'ha scritta l'upgrade o il seed (l'upgrade salta quelle gia'
+    presenti), quindi il downgrade riporta il catalogo allo stato 0022 anche
+    per le righe identiche create dal seed. Un effetto ritarato dall'admin
+    (`valore` diverso) o disattivato (`attivo` falso) e' curatela successiva
+    e resta: cancellarlo farebbe perdere la taratura al successivo upgrade o
+    seed, che lo ricreerebbe con il valore di seed."""
     bind = op.get_bind()
     adesso = datetime.now(timezone.utc).replace(tzinfo=None)
     domanda, opzione, sottocategoria, voce, effetto = _tabelle()
@@ -368,7 +380,7 @@ def downgrade() -> None:
         sottocategoria_key,
         voce_key,
         tipo_code,
-        _valore,
+        valore,
     ) in _EFFETTI_AGGIUNTI:
         opzione_id = _opzione_id(bind, opzione, domanda_code, opzione_code)
         voce_id = _risolvi_voce_id(bind, sottocategoria, voce, categoria_code, sottocategoria_key, voce_key)
@@ -377,14 +389,18 @@ def downgrade() -> None:
         cond_tipo_code = (
             effetto.c.tipo_code == tipo_code if tipo_code is not None else effetto.c.tipo_code.is_(None)
         )
-        bind.execute(
-            sa.delete(effetto).where(
+        righe = bind.execute(
+            sa.select(effetto.c.id, effetto.c.valore, effetto.c.attivo).where(
                 effetto.c.opzione_id == opzione_id,
                 effetto.c.tipo_effetto == tipo_effetto,
                 effetto.c.target_voce_id == voce_id,
                 cond_tipo_code,
             )
-        )
+        ).all()
+        for effetto_id, valore_attuale, attivo in righe:
+            if not attivo or not _vicino(valore_attuale, valore):
+                continue  # curatela successiva all'upgrade: resta
+            bind.execute(sa.delete(effetto).where(effetto.c.id == effetto_id))
 
     for (
         domanda_code,
