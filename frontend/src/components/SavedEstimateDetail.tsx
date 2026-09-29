@@ -1,4 +1,6 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { ArredoCard } from "@/components/ArredoCard";
+import { BudgetAlert } from "@/components/BudgetAlert";
 import { BonusPanel } from "@/components/BonusPanel";
 import { CategoryCard } from "@/components/CategoryCard";
 import { FallbackDisclaimer } from "@/components/FallbackDisclaimer";
@@ -6,7 +8,7 @@ import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { TotalCard } from "@/components/TotalCard";
 import { Badge } from "@/components/ui/badge";
 import { sommaMediCategorie } from "@/lib/risultato";
-import type { StimaSalvataOut } from "@/api/stima";
+import { patchBudgetStima, type StimaSalvataOut } from "@/api/stima";
 
 const TIPO_LABELS: Record<string, string> = {
   leggera: "Leggera",
@@ -34,6 +36,7 @@ interface SavedEstimateDetailProps {
  */
 export function SavedEstimateDetail({ stima, isPro = false }: SavedEstimateDetailProps) {
   const sommaMedi = sommaMediCategorie(stima.categorie);
+  const queryClient = useQueryClient();
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-secondary px-4 py-3">
@@ -49,7 +52,25 @@ export function SavedEstimateDetail({ stima, isPro = false }: SavedEstimateDetai
         <FallbackDisclaimer disclaimer={stima.disclaimer} />
       )}
 
-      <TotalCard totale={stima.totale} categorie={stima.categorie} extra={stima.extra} />
+      <TotalCard
+        totale={stima.totale}
+        categorie={stima.categorie}
+        extra={stima.extra}
+        budget={stima.budget_eur}
+      />
+
+      {/* Snapshot pre-fase: budget null -> solo "Aggiungi il tuo budget". */}
+      <BudgetAlert
+        budget={stima.budget_eur}
+        totaleMin={stima.totale.totale_min}
+        totaleMax={stima.totale.totale_max}
+        confronto={stima.confronto_finiture}
+        finitureAlMinimo={stima.finiture_al_minimo}
+        onSalva={async (v) => {
+          await patchBudgetStima(stima.id, v);
+          await queryClient.invalidateQueries({ queryKey: ["stima-dettaglio", stima.id] });
+        }}
+      />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {stima.categorie.map((categoria) => (

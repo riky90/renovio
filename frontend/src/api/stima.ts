@@ -1,4 +1,4 @@
-import { apiGet, apiPost, ApiError } from "@/api/client";
+import { apiGet, apiPatch, apiPost, ApiError } from "@/api/client";
 import type { Risposte } from "@/api/domande";
 import type { DomandaProOut } from "@/api/dettaglio-pro";
 import type { TipoRistrutturazione } from "@/components/EstimateFormFields";
@@ -429,12 +429,15 @@ export interface StimaSalvataOut extends StimaResponse {
   id: number;
   tier: StimaTier;
   created_at: string;
+  /** Budget dichiarato (EUR, IVA inclusa), dalla colonna: null = nessun budget. */
+  budget_eur: number | null;
 }
 
 interface RawStimaSalvataOut extends RawStimaResponse {
   id: number;
   tier: StimaTier;
   created_at: string;
+  budget_eur: number | null;
 }
 
 /**
@@ -443,13 +446,15 @@ interface RawStimaSalvataOut extends RawStimaResponse {
  * gia' mostrata all'utente.
  */
 export async function postSalvaStima(
-  payload: StimaResponse,
+  payload: StimaResponse & { budget_eur?: number | null },
   preferenzePro?: PreferenzePro
 ): Promise<{ id: number }> {
   // `preferenze_pro` viaggia ACCANTO allo snapshot, non dentro: il backend lo
   // esclude da `risultato_json` e lo scrive nelle sue colonne. Sono parametri
   // di ricalcolo, e lo snapshot deve restare la prova di cio' che l'utente ha
   // visto quel giorno.
+  // Idem `budget_eur` dentro il payload: e' un parametro, il backend lo esclude
+  // dallo snapshot e lo scrive nella colonna `stima.budget_eur`.
   const body = preferenzePro ? { ...payload, preferenze_pro: preferenzePro } : payload;
   return apiPost<{ id: number }>("/me/stime", body);
 }
@@ -504,7 +509,26 @@ export async function getStoricoStime(): Promise<StimaSalvataListItem[]> {
 export async function getStimaDettaglio(id: number): Promise<StimaSalvataOut> {
   const raw = await apiGet<RawStimaSalvataOut>(`/me/stime/${id}`);
   const normalized = normalizeResponse(raw);
-  return { ...normalized, id: raw.id, tier: raw.tier, created_at: raw.created_at };
+  return {
+    ...normalized,
+    id: raw.id,
+    tier: raw.tier,
+    created_at: raw.created_at,
+    budget_eur: raw.budget_eur ?? null,
+  };
+}
+
+/**
+ * PATCH /api/v1/me/stime/{id}/budget — aggiorna solo il budget della stima
+ * salvata (null = lo toglie). Non tocca snapshot ne' prezzo.
+ */
+export async function patchBudgetStima(
+  id: number,
+  budget: number | null
+): Promise<{ budget_eur: number | null }> {
+  return apiPatch<{ budget_eur: number | null }>(`/me/stime/${id}/budget`, {
+    budget_eur: budget,
+  });
 }
 
 /**

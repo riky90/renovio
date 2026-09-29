@@ -91,11 +91,11 @@ export function NuovaStimaProPage() {
   const stepIniziale = risposte ? 4 : undefined;
 
   const mutation = useMutation({
-    mutationFn: async ({ values, risposte, preferenze }: EstimateWizardSubmit) => {
+    mutationFn: async ({ values, risposte, preferenze, budget }: EstimateWizardSubmit) => {
       const risultato = await postStima({ ...values, risposte });
       // Le preferenze viaggiano al salvataggio, non al calcolo: il motore Free
       // non le usa, e il dettaglio Pro le rilegge dalle colonne della stima.
-      const { id } = await postSalvaStima(risultato, preferenze);
+      const { id } = await postSalvaStima({ ...risultato, budget_eur: budget ?? null }, preferenze);
       return id;
     },
     onSuccess: (id) => navigate(`/dettaglio-pro?stima=${id}`),

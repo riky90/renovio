@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useMutation } from "@tanstack/react-query";
 import { Gauge, MapPin, Zap, type LucideIcon } from "lucide-react";
@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { sommaMediCategorie } from "@/lib/risultato";
-import { postSalvaStima, postStima, type StimaRequest, type StimaResponse } from "@/api/stima";
+import { patchBudgetStima, postSalvaStima, postStima, type StimaRequest, type StimaResponse } from "@/api/stima";
 import type { EstimateFormValues } from "@/components/EstimateFormFields";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -82,9 +82,11 @@ export function EstimatePage() {
     mutationFn: postStima,
   });
   const { user } = useAuth();
-  // Il budget vive solo nello stato della pagina: non entra in POST /stima ne' in
-  // `risposte`. La persistenza sulla stima salvata arriva col piano 10-05.
+  // Il budget non entra in POST /stima ne' in `risposte`: sta nello stato della
+  // pagina e viaggia col salvataggio (auto-save o pendingStima) e col PATCH.
   const [budget, setBudget] = useState<number | null>(null);
+  // Budget inviato con l'auto-save: se nel frattempo e' cambiato, si sincronizza.
+  const budgetSalvato = useRef<number | null>(null);
 
   // Auto-save da loggato (D-07): nessun ricalcolo, si congela esattamente il
   // payload gia' mostrato dal risultato corrente.
@@ -92,7 +94,8 @@ export function EstimatePage() {
   // (`preferenze_pro`, usato dal form Pro) e react-query passerebbe lì il
   // proprio context. Qui la home non ha preferenze da mandare.
   const saveMutation = useMutation({
-    mutationFn: (payload: StimaResponse) => postSalvaStima(payload),
+    mutationFn: (payload: StimaResponse & { budget_eur: number | null }) =>
+      postSalvaStima(payload),
   });
 
   const result = mutation.data;
@@ -107,10 +110,33 @@ export function EstimatePage() {
       !saveMutation.isPending &&
       !saveMutation.isError
     ) {
-      saveMutation.mutate(result);
+      budgetSalvato.current = budget;
+      saveMutation.mutate({ ...result, budget_eur: budget });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mutation.isSuccess, result, user]);
+
+  // Budget cambiato mentre l'auto-save era in corso: appena c'e' l'id lo si allinea.
+  const savedId = saveMutation.data?.id;
+  useEffect(() => {
+    if (savedId !== undefined && budgetSalvato.current !== budget) {
+      const daInviare = budget;
+      budgetSalvato.current = daInviare;
+      patchBudgetStima(savedId, daInviare).catch(() => {
+        budgetSalvato.current = null;
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savedId]);
+
+  async function handleSalvaBudget(v: number | null) {
+    if (savedId !== undefined) {
+      // Se la PATCH fallisce l'errore risale al BudgetAlert, che lo mostra.
+      await patchBudgetStima(savedId, v);
+      budgetSalvato.current = v;
+    }
+    setBudget(v);
+  }
 
   function handleSubmit({ values, risposte, budget: budgetDichiarato }: EstimateWizardSubmit) {
     setBudget(budgetDichiarato ?? null);
@@ -257,7 +283,7 @@ export function EstimatePage() {
                       budget={budget}
                       totaleMin={result.totale.totale_min}
                       totaleMax={result.totale.totale_max}
-                      onSalva={async (v) => setBudget(v)}
+                      onSalva={handleSalvaBudget}
                       confronto={result.confronto_finiture}
                       finitureAlMinimo={result.finiture_al_minimo}
                     />
@@ -281,7 +307,7 @@ export function EstimatePage() {
                     {result.arredo && <ArredoCard arredo={result.arredo} />}
 
                     <SoftWallCta
-                      result={result}
+                      result={{ ...result, budget_eur: budget }}
                       isAuthenticated={!!user}
                       savedId={saveMutation.data?.id ?? null}
                       isSaving={saveMutation.isPending}
