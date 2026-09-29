@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -49,8 +49,8 @@ interface EstimateWizardProps {
   iniziali?: Partial<CampiBase>;
   /**
    * Risposte gia' note da cui ripartire (09-12, "Vai alla stima Pro" da una
-   * stima non salvata): quando presenti, `risposteToccate` parte `true` cosi'
-   * l'effetto che applica i default del catalogo non le sovrascrive.
+   * stima non salvata): le chiavi con valore diverso dal default del primo
+   * catalogo contano come toccate e i default non le sovrascrivono.
    */
   risposteDiPartenza?: Risposte;
   /**
@@ -106,9 +106,15 @@ export function EstimateWizard({
   const [budget, setBudget] = useState<number | null>(budgetIniziale ?? null);
   const [budgetErrore, setBudgetErrore] = useState(false);
   const [risposte, setRisposte] = useState<Risposte>(risposteDiPartenza ?? {});
-  // Se il chiamante manda gia' delle risposte, sono gia' "toccate": l'effetto
-  // che applica i default del catalogo non deve sovrascriverle.
-  const [risposteToccate, setRisposteToccate] = useState(risposteDiPartenza !== undefined);
+  // Codici delle risposte date davvero dall'utente (G3, 10-11). Per-codice e non
+  // un flag globale: al cambio di m2 i default della nuova fascia (bagni, porte,
+  // finestre...) vanno riapplicati alle domande lasciate al default, altrimenti
+  // due stime con gli stessi input visibili partono da risposte diverse.
+  // Per `risposteDiPartenza` contano come toccate solo le chiavi con valore
+  // diverso dal default del primo catalogo caricato (la richiesta ripassata da
+  // "Modifica" porta il valore di ogni domanda, default compresi).
+  const risposteToccate = useRef<Set<string>>(new Set());
+  const primoCatalogoGestito = useRef(false);
   const [livelli, setLivelli] = useState<Record<string, string>>({});
   const [scelte, setScelte] = useState<Record<string, string>>({});
   const [scelteToccate, setScelteToccate] = useState<Set<string>>(new Set());
@@ -139,8 +145,26 @@ export function EstimateWizard({
   // vede riportare al valore standard.
   useEffect(() => {
     if (!catalogo) return;
-    setRisposte((precedenti) => (risposteToccate ? precedenti : risposteIniziali(catalogo)));
-  }, [catalogo, risposteToccate]);
+    const defaults = risposteIniziali(catalogo);
+    if (!primoCatalogoGestito.current) {
+      primoCatalogoGestito.current = true;
+      for (const [code, valore] of Object.entries(risposteDiPartenza ?? {})) {
+        if (JSON.stringify(valore) !== JSON.stringify(defaults[code])) {
+          risposteToccate.current.add(code);
+        }
+      }
+    }
+    const toccate = risposteToccate.current;
+    setRisposte((precedenti) => {
+      const nuove: Risposte = { ...defaults };
+      for (const code of toccate) {
+        if (code in precedenti) nuove[code] = precedenti[code];
+      }
+      return nuove;
+    });
+    // risposteDiPartenza si legge solo al primo catalogo: e' un valore iniziale.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [catalogo]);
 
   // Stesso pattern delle risposte del catalogo Free: il default (D-07) arriva
   // gia' risolto dal server in `opzioni.domande[].valore`, si applica quando
@@ -176,7 +200,7 @@ export function EstimateWizard({
   }
 
   function handleRisposta(code: string, valore: ValoreRisposta) {
-    setRisposteToccate(true);
+    risposteToccate.current.add(code);
     setRisposte((prev) => ({ ...prev, [code]: valore }));
   }
 
@@ -187,7 +211,7 @@ export function EstimateWizard({
 
   function applicaValoriStandard() {
     if (!catalogo) return;
-    setRisposteToccate(true);
+    risposteToccate.current.clear();
     setRisposte(risposteIniziali(catalogo));
   }
 
