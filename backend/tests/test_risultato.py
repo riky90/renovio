@@ -7,6 +7,9 @@ from decimal import Decimal
 import pytest
 
 from app.services.risultato import (
+    TESTI_AVVISO,
+    avviso_budget,
+    stato_budget,
     incidenza_eur_mq,
     lettura_categorie_pro,
     peso_categoria,
@@ -205,3 +208,79 @@ class TestLetturaCategorieAPro:
     def test_mq_zero(self):
         out = lettura_categorie_pro([("A", Decimal(100), Decimal(200))], 0)
         assert out[0].eur_mq_min is None and out[0].eur_mq_max is None
+
+
+class TestStatoBudget:
+    def test_confini(self):
+        assert stato_budget(None, 100, 200) is None
+        assert stato_budget(99, 100, 200) == "fuori"
+        assert stato_budget(100, 100, 200) == "limite"
+        assert stato_budget(200, 100, 200) == "limite"
+        assert stato_budget(201, 100, 200) == "dentro"
+
+    def test_accetta_totali_stringa_dello_snapshot(self):
+        assert stato_budget(150, "100.00", "200.00") == "limite"
+
+
+_CONFRONTO = {
+    "livello_code": "base",
+    "livello_nome": "Medie",
+    "totale_min": "40000.00",
+    "totale_max": "48000.00",
+}
+
+
+class TestAvvisoBudget:
+    def test_senza_budget_none(self):
+        assert avviso_budget(None, 50000, 60000, _CONFRONTO, False) is None
+
+    def test_fuori_con_confronto(self):
+        a = avviso_budget(30000, 50000, 60000, _CONFRONTO, False)
+        assert a["stato"] == "fuori"
+        assert a["titolo"] == "La stima supera il tuo budget"
+        assert "Con finiture medie" in a["corpo"]
+        assert "in meno" in a["corpo"]
+        assert a["righe"] == [
+            ("Ora (IVA inclusa)", "50.000 – 60.000 €"),
+            ("Con finiture medie", "40.000 – 48.000 €"),
+        ]
+        assert "10.000 – 12.000 €" in a["corpo"]
+
+    def test_fuori_finiture_al_minimo(self):
+        a = avviso_budget(30000, 50000, 60000, None, True)
+        assert a["corpo"].startswith("Hai già scelto finiture economiche")
+        assert a["righe"] == []
+
+    def test_fuori_senza_confronto(self):
+        a = avviso_budget(30000, 50000, 60000, None, False)
+        assert a["corpo"].startswith("Per stare nel tuo budget servono meno lavori")
+
+    def test_limite_e_dentro(self):
+        assert avviso_budget(55000, 50000, 60000, None, False)["titolo"] == "Il tuo budget è al limite"
+        d = avviso_budget(70000, 50000, 60000, None, False)
+        assert d["titolo"] == "Rientri nel tuo budget"
+        assert "70.000" in d["corpo"]
+
+    def test_mostra_totale_in_ogni_stato(self):
+        a = avviso_budget(70000, 50000, 60000, None, False, mostra_totale=True)
+        assert a["righe"] == [("Ora (IVA inclusa)", "50.000 – 60.000 €")]
+
+
+class TestParitaTestiConWeb:
+    def test_ogni_testo_fisso_compare_in_risultato_ts(self):
+        from pathlib import Path
+
+        ts = (Path(__file__).resolve().parents[2] / "frontend/src/lib/risultato.ts").read_text(
+            encoding="utf-8"
+        )
+        for chiave, testo in TESTI_AVVISO.items():
+            if "{" in testo:
+                # template: ogni frammento fisso tra i segnaposto deve esistere
+                import re
+
+                for frammento in re.split(r"\{[a-z_]+\}", testo):
+                    frammento = frammento.strip()
+                    if frammento:
+                        assert frammento in ts, f"{chiave}: {frammento!r}"
+            else:
+                assert testo in ts, chiave

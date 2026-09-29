@@ -35,6 +35,7 @@ from jinja2 import Environment, FileSystemLoader
 from app.models.stima_salvata import StimaSalvata
 from app.models.user import User
 from app.services.risultato import (
+    avviso_budget,
     incidenza_eur_mq,
     peso_categoria,
     riepilogo_iva,
@@ -110,6 +111,9 @@ class PdfService:
         extra = snap.get("extra") or []
         totale = snap["totale"]
         mq = (snap.get("input") or {}).get("mq")
+        # Il budget vive in una colonna della stessa riga, non nel motore: la
+        # stima pre-fase ha NULL e il PDF non emette ne' tacca ne' riquadro.
+        budget = getattr(stima, "budget_eur", None)
 
         somma = somma_medi(categorie)
         derivati = {
@@ -126,9 +130,17 @@ class PdfService:
             nome=user.nome,
             data_generazione=datetime.now().strftime("%d/%m/%Y"),
             filename=build_filename(stima),
-            barra=scala_barra(totale["totale_min"], totale["totale_max"]),
+            barra=scala_barra(totale["totale_min"], totale["totale_max"], budget),
             riepilogo=riepilogo_iva(categorie, extra, totale),
             derivati_categorie=derivati,
+            budget_eur=budget,
+            avviso=avviso_budget(
+                budget,
+                totale["totale_min"],
+                totale["totale_max"],
+                snap.get("confronto_finiture"),
+                bool(snap.get("finiture_al_minimo", False)),
+            ),
         )
 
     @staticmethod

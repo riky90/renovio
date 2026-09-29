@@ -283,3 +283,114 @@ def livello_inferiore(opzioni: list[tuple[str, int, bool]], scelto: str | None) 
         return None
     idx = codici.index(corrente)
     return codici[idx - 1] if idx > 0 else None
+
+
+# --- budget (RIS-04) e avviso nel PDF ------------------------------------------
+
+
+def stato_budget(budget, min, max) -> str | None:  # noqa: A002
+    """Confini esatti D-06 (identici a statoBudget in risultato.ts): budget < min
+    fuori; min <= budget <= max limite; oltre dentro. Nessun budget -> None."""
+    if budget is None or budget <= 0:
+        return None
+    if budget < _dec(min):
+        return "fuori"
+    if budget <= _dec(max):
+        return "limite"
+    return "dentro"
+
+
+#: Testi dell'avviso: stesse stringhe di TESTI_AVVISO in frontend/src/lib/risultato.ts.
+#: Un test legge il sorgente TS e verifica che ogni testo fisso compaia li' (A5).
+TESTI_AVVISO = {
+    "titolo_fuori": "La stima supera il tuo budget",
+    "titolo_limite": "Il tuo budget è al limite",
+    "titolo_dentro": "Rientri nel tuo budget",
+    "corpo_limite": (
+        "Rientra nel range della stima, ma dipende dalle scelte che farai. "
+        "Le finiture sono la leva più semplice."
+    ),
+    "corpo_dentro": "Anche nel caso più alto della stima resti sotto {budget}.",
+    "fuori_meno_lavori": (
+        "Per stare nel tuo budget servono meno lavori: prova a togliere qualche intervento."
+    ),
+    "confronto_corpo": (
+        "Con finiture {livello} la stessa ristrutturazione costerebbe {range} "
+        "(IVA inclusa), circa {delta} in meno."
+    ),
+    "fuori_economiche": (
+        "Hai già scelto finiture economiche. Per stare nel tuo budget servono meno lavori: "
+        "prova a togliere qualche intervento."
+    ),
+    "nota": "Il budget non cambia il prezzo della stima.",
+}
+
+
+def _fmt_importo(value) -> str:
+    n = int(_dec(value).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+    return f"{n:,.0f}".replace(",", ".")
+
+
+def _fmt_range(a, b) -> str:
+    return f"{_fmt_importo(a)} – {_fmt_importo(b)} €"
+
+
+def avviso_budget(
+    budget,
+    totale_min,
+    totale_max,
+    confronto: dict | None,
+    finiture_al_minimo: bool,
+    mostra_totale: bool = False,
+) -> dict | None:
+    """Avviso budget per il PDF: {stato, titolo, corpo, righe, nota}. None senza budget.
+
+    `confronto` e' il dict del confronto finiture (totali anche come stringhe di
+    snapshot). Nessun calcolo di prezzo: solo differenze tra totali gia' calcolati."""
+    stato = stato_budget(budget, totale_min, totale_max)
+    if stato is None:
+        return None
+
+    t = TESTI_AVVISO
+    titolo = t[f"titolo_{stato}"]
+    if stato == "limite":
+        corpo = t["corpo_limite"]
+    elif stato == "dentro":
+        corpo = t["corpo_dentro"].format(budget=f"{_fmt_importo(budget)} €")
+    else:
+        corpo = t["fuori_meno_lavori"]
+
+    righe: list[tuple[str, str]] = []
+    delta_testo = None
+    livello = None
+    if stato == "fuori" and confronto:
+        a = _dec(totale_min) - _dec(confronto["totale_min"])
+        b = _dec(totale_max) - _dec(confronto["totale_max"])
+        if not (a <= 0 and b <= 0):
+            livello = str(confronto["livello_nome"]).lower()
+            delta_testo = _fmt_range(min_(a, b), max_(a, b))
+            corpo = t["confronto_corpo"].format(
+                livello=livello,
+                range=_fmt_range(confronto["totale_min"], confronto["totale_max"]),
+                delta=delta_testo,
+            )
+    if delta_testo is None and stato == "fuori" and finiture_al_minimo:
+        corpo = t["fuori_economiche"]
+
+    if mostra_totale or delta_testo is not None:
+        righe.append(("Ora (IVA inclusa)", _fmt_range(totale_min, totale_max)))
+    if delta_testo is not None:
+        righe.append(
+            (
+                f"Con finiture {livello}",
+                _fmt_range(confronto["totale_min"], confronto["totale_max"]),
+            )
+        )
+    return {
+        "stato": stato,
+        "titolo": titolo,
+        "corpo": corpo,
+        "righe": righe,
+        "delta": delta_testo,
+        "nota": t["nota"],
+    }

@@ -231,10 +231,11 @@ class TestPdfServiceNonRicalcola:
 
 
 class _FakeStima:
-    def __init__(self, risultato_json):
+    def __init__(self, risultato_json, budget_eur=None):
         from datetime import datetime
 
         self.risultato_json = risultato_json
+        self.budget_eur = budget_eur
         self.citta = "Reggio Emilia"
         self.created_at = datetime(2026, 9, 29)
 
@@ -298,3 +299,50 @@ class TestPdfRenderHtml:
         snap["extra"] = []
         html = PdfService.render_html(_FakeStima(snap), _FakeUser())
         assert "Costi extra" not in html
+
+
+class TestPdfBudget:
+    def test_budget_sotto_il_minimo_tacca_e_riquadro(self):
+        from app.services.pdf_service import PdfService
+        from app.services.risultato import scala_barra
+
+        snap = _snapshot_render()
+        html = PdfService.render_html(_FakeStima(snap, budget_eur=40000), _FakeUser())
+        assert "Il tuo budget" in html
+        assert "La stima supera il tuo budget" in html
+        assert "Il budget non cambia il prezzo della stima." in html
+        pct = scala_barra("50000", "55000", 40000).budget_pct
+        assert f"left:{pct:.2f}%" in html.replace(" ", "")
+        box = html[html.index('class="avviso-budget'):]
+        box = box[: box.index("avviso-nota")]
+        for vietato in ("<input", "<button", "href="):
+            assert vietato not in box
+
+    def test_righe_confronto_dallo_snapshot(self):
+        from app.services.pdf_service import PdfService
+
+        snap = _snapshot_render()
+        snap["confronto_finiture"] = {
+            "livello_code": "base",
+            "livello_nome": "Medie",
+            "totale_min": "45000.00",
+            "totale_max": "50000.00",
+        }
+        html = PdfService.render_html(_FakeStima(snap, budget_eur=40000), _FakeUser())
+        assert "Ora (IVA inclusa)" in html
+        assert "Con finiture medie" in html
+
+    def test_senza_budget_nessuna_sezione(self):
+        from app.services.pdf_service import PdfService
+
+        html = PdfService.render_html(_FakeStima(_snapshot_render()), _FakeUser())
+        assert "Il tuo budget" not in html
+        assert 'class="avviso-budget' not in html
+
+    def test_snapshot_pre_fase_senza_budget(self):
+        from app.services.pdf_service import PdfService
+
+        snap = _stima_payload()
+        snap.pop("extra")
+        html = PdfService.render_html(_FakeStima(snap), _FakeUser())
+        assert "Il tuo budget" not in html

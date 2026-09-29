@@ -290,6 +290,67 @@
         font-variant-numeric: tabular-nums;
       }
 
+      .budget-etichetta {
+        position: relative;
+        height: 5mm;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .budget-etichetta span {
+        position: absolute;
+        top: 0;
+      }
+
+      .budget-tacca {
+        position: absolute;
+        top: -8px;
+        width: 2px;
+        height: 24px;
+        margin-left: -1px;
+        background: #22201c;
+      }
+
+      .avviso-budget {
+        border-radius: 4px;
+        padding: 4mm 6mm;
+        margin-bottom: 6mm;
+        font-size: 9pt;
+        break-inside: avoid;
+      }
+
+      .avviso-budget.fuori,
+      .avviso-budget.limite {
+        background: #fffbeb;
+        border: 1px solid #fcd34d;
+        color: #92400e;
+      }
+
+      .avviso-budget.dentro {
+        background: #fbe9dc;
+        border: 1px solid #e8722a;
+        color: #22201c;
+      }
+
+      .avviso-budget .avviso-titolo {
+        font-size: 11pt;
+        font-weight: 700;
+        margin-bottom: 1mm;
+      }
+
+      .avviso-budget .avviso-riga {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5mm 0;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .avviso-budget .avviso-nota {
+        margin-top: 2mm;
+        font-size: 8pt;
+        opacity: 0.85;
+      }
+
       .footer {
         border-top: 1px solid #e9e1d4;
         padding-top: 4mm;
@@ -374,8 +435,22 @@
           {{ stima.totale.totale_min|eur }} &ndash; {{ stima.totale.totale_max|eur }} {{ stima.valuta }}
         </div>
       </div>
+      {% if barra.budget_pct is not none %}
+      <div class="budget-etichetta">
+        {% if barra.budget_pct < 15 %}
+        <span style="left:{{ barra.budget_pct|pct }}%">Il tuo budget</span>
+        {% elif barra.budget_pct > 85 %}
+        <span style="right:{{ (100 - barra.budget_pct)|pct }}%">Il tuo budget</span>
+        {% else %}
+        <span style="left:{{ barra.budget_pct|pct }}%; margin-left:-40px; width:80px; text-align:center">Il tuo budget</span>
+        {% endif %}
+      </div>
+      {% endif %}
       <div class="barra-traccia">
         <div class="barra-segmento" style="left:{{ barra.left_pct|pct }}%; width:{{ barra.width_pct|pct }}%"></div>
+        {% if barra.budget_pct is not none %}
+        <div class="budget-tacca" style="left:{{ barra.budget_pct|pct }}%"></div>
+        {% endif %}
       </div>
       <div class="barra-cifre">
         <span>{{ stima.totale.totale_min|eur }}</span>
@@ -416,6 +491,19 @@
         </tr>
       </table>
     </div>
+
+    {# Riquadro budget: assente senza budget e su ogni snapshot anteriore alla fase
+       (colonna budget_eur NULL). Solo testo: niente campi, bottoni o link. #}
+    {% if avviso %}
+    <div class="avviso-budget {{ avviso.stato }}">
+      <div class="avviso-titolo">{{ avviso.titolo }}</div>
+      <div>{{ avviso.corpo }}</div>
+      {% for etichetta, valore in avviso.righe %}
+      <div class="avviso-riga"><span>{{ etichetta }}</span><span>{{ valore }}</span></div>
+      {% endfor %}
+      <div class="avviso-nota">{{ avviso.nota }}</div>
+    </div>
+    {% endif %}
 
     {% if stima.bonus %}
     <div class="bonus-block">
