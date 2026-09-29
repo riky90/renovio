@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: domande e motore parametrico
 status: executing
-last_updated: "2026-09-29T11:33:05.120Z"
+last_updated: "2026-09-29T11:50:53.159Z"
 progress:
   total_phases: 7
   completed_phases: 4
@@ -16,8 +16,8 @@ progress:
 
 ## Current Position
 
-Phase: 10 (risultato leggibile e tetto di budget) — contesto raccolto e UI-SPEC approvato il 2026-09-29 (`10-CONTEXT.md` D-01..D-17, `10-UI-SPEC.md` 6/6), da pianificare
-Plan: —
+Phase: 10 (risultato-leggibile) — EXECUTING
+Plan: 1 of 9
 Stato: Fase 09 **chiusa il 2026-09-29**: code review post-gap corretta (CR-01, WR-01..07,
 `09-REVIEW-FIX.md` all_fixed), ri-collaudo dal vivo G1..G4 approvato da Riccardo
 (`.planning/checklists/2026-09-29-ricollaudo-09.md`), fix "Aggiungi listino" (`4e4b50a`).
