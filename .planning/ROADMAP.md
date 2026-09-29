@@ -171,7 +171,7 @@ Plans:
 
 ### Phase 09: Configuratore Pro e chiusura del bug dei cataloghi
 
-**Status:** pending
+**Status:** ✅ Complete (2026-09-29) — 14/14 piani (8 + 6 di gap closure), code review post-gap chiusa (CR-01, WR-01..07), ri-collaudo dal vivo approvato da Riccardo il 2026-09-29.
 **Goal:** Il motore Pro smette di sommare voci alternative: gli assi di scelta diventano dati, e i coefficienti quantità vengono tarati nella stessa fase in cui si aggiunge risoluzione.
 **Mode:** mvp
 **UI hint:** yes

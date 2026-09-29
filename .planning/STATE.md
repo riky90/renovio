@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: domande e motore parametrico
 status: executing
-last_updated: "2026-09-28T21:00:00.000Z"
+last_updated: "2026-09-29T12:00:00.000Z"
 progress:
   total_phases: 7
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 29
   completed_plans: 29
   percent: 86
@@ -16,13 +16,15 @@ progress:
 
 ## Current Position
 
-Phase: 09 (configuratore-pro) — 14/14 piani eseguiti (8 originari + 6 di gap closure 09-09..09-14)
-Plan: 14 of 14
-Stato: verifica `human_needed` (G1..G4 chiusi a livello di codice, ri-collaudo di Riccardo in
-`09-HUMAN-UAT.md` sezione "Ri-collaudo gap G1..G4"); code review post-gap `issues_found`
-(1 Critical CR-01 sul PATCH listini, 7 Warning) in `09-REVIEW.md`. `dev.db` a `0023 (head)`,
-backup `dev.db.bak-pre-0023-20260928-191114`. Suite 849 passed / 5 skipped.
-Prossima: `/gsd:code-review 09 --fix`, poi ri-collaudo, poi Fase 10. Push a fine Fase 10.
+Phase: 10 (risultato leggibile e tetto di budget) — da discutere
+Plan: —
+Stato: Fase 09 **chiusa il 2026-09-29**: code review post-gap corretta (CR-01, WR-01..07,
+`09-REVIEW-FIX.md` all_fixed), ri-collaudo dal vivo G1..G4 approvato da Riccardo
+(`.planning/checklists/2026-09-29-ricollaudo-09.md`), fix "Aggiungi listino" (`4e4b50a`).
+`dev.db` a `0023 (head)`, listino di prova "modena" rimosso (backup
+`dev.db.bak-pre-rimozione-modena-20260929`). Suite 858 passed / 5 skipped.
+Prossima: `/gsd:discuss-phase 10`. Prima del push (a fine Fase 10): taratura A.6.11, prova
+delle migrazioni 0021-0023 su Postgres, `BACKEND_PUBLIC_URL` su Render.
 
 - **Milestone:** v2.0 (domande e motore parametrico), fasi **05-10**. La v1.0 (MVP, fasi
   01-04) e' **completa, verificata e in produzione dal 2026-09-09** — backend su Render,

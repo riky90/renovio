@@ -1,8 +1,8 @@
 ---
 phase: 09-configuratore-pro
-verified: 2026-09-28T00:00:00Z
-status: human_needed
-score: 6/6 must-haves verified at code level (automated) — ri-collaudo dal vivo di Riccardo su G1..G4 ancora da fare
+verified: 2026-09-29T00:00:00Z
+status: passed
+score: 6/6 must-haves verified — ri-collaudo dal vivo G1..G4 approvato da Riccardo il 2026-09-29
 overrides_applied: 0
 re_verification:
   previous_status: human_needed
@@ -21,7 +21,7 @@ re_verification:
 
 **Phase Goal:** Il motore Pro smette di sommare voci alternative: gli assi di scelta diventano dati, e i coefficienti quantità vengono tarati nella stessa fase in cui si aggiunge risoluzione.
 **Verified:** 2026-09-28
-**Status:** human_needed
+**Status:** passed (2026-09-29, dopo il ri-collaudo dal vivo)
 **Re-verification:** Sì — dopo chiusura gap G1..G4 (piani 09-09..09-14), a seguito del collaudo di Riccardo del 2026-09-28 documentato in `09-HUMAN-UAT.md`
 
 ## Nota sulla verifica precedente
@@ -151,3 +151,15 @@ valori rivisti, via nuova migrazione Alembic.
 
 _Verified: 2026-09-28_
 _Verifier: Claude (gsd-verifier)_
+
+## Chiusura 2026-09-29
+
+- Code review post-gap: CR-01 e WR-01..07 corretti (`5a4df2e`..`0e16902`), report in
+  `09-REVIEW-FIX.md` (`all_fixed`). Suite backend 858 passed / 5 skipped (i 2 fallimenti
+  del worktree isolato dipendevano dall'assenza di `dev.db` e passano nel repo).
+- Ri-collaudo dal vivo di Riccardo (`.planning/checklists/2026-09-29-ricollaudo-09.md`):
+  G1..G4, CR-01, WR-07 passati; le cinque scelte del planner confermate. Emerso e corretto un
+  difetto della 04-08 ("Aggiungi listino" inviava la POST senza body, `4e4b50a`).
+- Restano fuori dalla verifica, per scelta di Riccardo: PDF Pro (solo in produzione, GTK3) e
+  plausibilita' dei totali (a fine Fase 10). Taratura A.6.11 e prova delle migrazioni
+  0021-0023 su Postgres restano aperte prima del push.
