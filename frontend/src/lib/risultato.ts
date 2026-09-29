@@ -150,3 +150,67 @@ export function riepilogoIva(
     totaleMax: totale.totale_max,
   };
 }
+
+// --- budget (RIS-04) ---------------------------------------------------------
+
+const MAX_CIFRE_IMPORTO = 9;
+
+/**
+ * Legge un importo in euro digitato dall'utente. Vuoto = nessun budget (valido).
+ * Zero, non numerico o oltre 9 cifre = errore: il valore non viene usato.
+ */
+export function parseImporto(testo: string): { valore: number | null; errore: boolean } {
+  const pulito = testo.replace(/[\s .€]/g, "");
+  if (pulito === "") return { valore: null, errore: false };
+  if (!/^\d+$/.test(pulito) || pulito.length > MAX_CIFRE_IMPORTO) {
+    return { valore: null, errore: true };
+  }
+  const valore = Number(pulito);
+  if (valore <= 0) return { valore: null, errore: true };
+  return { valore, errore: false };
+}
+
+const importoFormatter = new Intl.NumberFormat("it-IT", {
+  maximumFractionDigits: 0,
+  useGrouping: "always",
+});
+
+/** Importo con separatore di migliaia it-IT, senza simbolo. */
+export function formatImporto(valore: number): string {
+  return importoFormatter.format(valore);
+}
+
+export type StatoBudget = "fuori" | "limite" | "dentro";
+
+/** Confini esatti D-06: budget < min fuori; min <= budget <= max limite; oltre dentro. */
+export function statoBudget(
+  budget: number | null | undefined,
+  min: number,
+  max: number,
+): StatoBudget | null {
+  if (budget == null || budget <= 0) return null;
+  if (budget < min) return "fuori";
+  if (budget <= max) return "limite";
+  return "dentro";
+}
+
+/** Testi dell'avviso budget (UI-SPEC). Il PDF ne replica la parita' (10-08). */
+export const TESTI_AVVISO = {
+  titoloFuori: "La stima supera il tuo budget",
+  titoloLimite: "Il tuo budget è al limite",
+  titoloDentro: "Rientri nel tuo budget",
+  corpoLimite:
+    "Rientra nel range della stima, ma dipende dalle scelte che farai. Le finiture sono la leva più semplice.",
+  corpoDentro: (budgetFormattato: string) =>
+    `Anche nel caso più alto della stima resti sotto ${budgetFormattato}.`,
+  fuoriMenoLavori:
+    "Per stare nel tuo budget servono meno lavori: prova a togliere qualche intervento.",
+  nota: "Il budget non cambia il prezzo della stima.",
+  labelCampo: "Il tuo budget (IVA inclusa)",
+  cta: "Aggiorna il confronto",
+  ctaAggiorno: "Aggiorno…",
+  aggiungi: "Aggiungi il tuo budget",
+  togli: "Togli il budget",
+  erroreInput: "Scrivi un importo in euro maggiore di zero.",
+  erroreSalvataggio: "Non siamo riusciti a salvare il budget. Riprova tra qualche istante.",
+} as const;

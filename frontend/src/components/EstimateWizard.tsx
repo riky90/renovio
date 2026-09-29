@@ -18,6 +18,7 @@ import {
   type CampiBase,
   type EstimateFormValues,
 } from "@/components/EstimateFormFields";
+import { ImportoField } from "@/components/ImportoField";
 import { cn } from "@/lib/utils";
 import {
   domandeVisibili,
@@ -36,6 +37,8 @@ export interface EstimateWizardSubmit {
   risposte: Risposte;
   /** Solo in tier Pro: livelli di finitura e domande mirate del motore Pro. */
   preferenze?: PreferenzePro;
+  /** Budget dichiarato (facoltativo, IVA inclusa). Non e' una risposta di catalogo. */
+  budget?: number | null;
 }
 
 interface EstimateWizardProps {
@@ -57,6 +60,8 @@ interface EstimateWizardProps {
    * range degli step del tier.
    */
   stepIniziale?: number;
+  /** Budget da cui ripartire (es. "Modifica" dalla pagina risultato). */
+  budgetIniziale?: number | null;
 }
 
 /**
@@ -80,6 +85,7 @@ export function EstimateWizard({
   iniziali,
   risposteDiPartenza,
   stepIniziale,
+  budgetIniziale,
 }: EstimateWizardProps) {
   const [campi, setCampi] = useState<CampiBase>({ ...CAMPI_BASE_INIZIALI, ...iniziali });
   const [step, setStep] = useState(() => {
@@ -97,6 +103,8 @@ export function EstimateWizard({
     return 1;
   });
   const [touched, setTouched] = useState(false);
+  const [budget, setBudget] = useState<number | null>(budgetIniziale ?? null);
+  const [budgetErrore, setBudgetErrore] = useState(false);
   const [risposte, setRisposte] = useState<Risposte>(risposteDiPartenza ?? {});
   // Se il chiamante manda gia' delle risposte, sono gia' "toccate": l'effetto
   // che applica i default del catalogo non deve sovrascriverle.
@@ -213,6 +221,7 @@ export function EstimateWizard({
     onSubmit({
       values,
       risposte: soloVisibili(risposte, visibili),
+      budget: budgetErrore ? null : budget,
       ...(tier === "pro" ? { preferenze: preferenzePro(livelli, risposte, scelte) } : {}),
     });
   }
@@ -270,6 +279,24 @@ export function EstimateWizard({
               onChange={(valore) => handleRisposta(domanda.code, valore)}
             />
           ))}
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="budget-importo" className="text-sm font-semibold">
+              Qual è il tuo budget per la ristrutturazione?
+            </Label>
+            <p id="budget-help" className="text-sm text-muted-foreground">
+              Facoltativo. Scrivi la cifra che hai in mente, IVA inclusa: non cambia la stima, ci
+              serve per dirti se ci rientri.
+            </p>
+            <ImportoField
+              id="budget-importo"
+              valore={budget}
+              describedBy="budget-help"
+              onChange={(v, errore) => {
+                setBudget(v);
+                setBudgetErrore(errore);
+              }}
+            />
+          </div>
         </>
       )}
 
