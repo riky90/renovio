@@ -244,10 +244,15 @@
       }
 
       .barra-cifre {
-        display: flex;
-        justify-content: space-between;
+        width: 100%;
+        table-layout: auto;
+        border-collapse: collapse;
         font-size: 8pt;
         margin-bottom: 4mm;
+      }
+      .barra-cifre td {
+        padding: 0;
+        white-space: nowrap;
       }
 
       .riepilogo-iva {
@@ -403,7 +408,7 @@
       <thead>
         <tr>
           <th>Categoria</th>
-          <th style="text-align: right">Range (IVA inclusa)</th>
+          <th style="text-align: right">Range (IVA esclusa)</th>
         </tr>
       </thead>
       <tbody>
@@ -421,7 +426,7 @@
             <div class="mini-traccia"><div class="mini-fill" style="width:{{ d.peso.fill_pct|pct }}%"></div></div>
           </td>
           <td class="range">
-            {{ categoria.totale_min|eur }} &ndash; {{ categoria.totale_max|eur }} {{ stima.valuta }}
+            {{ categoria.imponibile_min|eur }} &ndash; {{ categoria.imponibile_max|eur }} {{ stima.valuta }}
           </td>
         </tr>
         {% endfor %}
@@ -452,11 +457,18 @@
         <div class="budget-tacca" style="left:{{ barra.budget_pct|pct }}%"></div>
         {% endif %}
       </div>
-      <div class="barra-cifre">
-        <span>{{ stima.totale.totale_min|eur }}</span>
-        <span>fino a</span>
-        <span>{{ stima.totale.totale_max|eur }}</span>
-      </div>
+      <table class="barra-cifre">
+        <tr>
+          <td style="width:{{ barra.left_pct|pct }}%"></td>
+          <td style="width:{{ barra.width_pct|pct }}%">
+            <table style="width:100%; border-collapse:collapse"><tr>
+              <td style="text-align:left">{{ stima.totale.totale_min|eur }}</td>
+              <td style="text-align:right">{{ stima.totale.totale_max|eur }}</td>
+            </tr></table>
+          </td>
+          <td style="width:{{ (100 - barra.left_pct - barra.width_pct)|pct }}%"></td>
+        </tr>
+      </table>
       <table class="riepilogo-iva">
         <tr>
           <td>Imponibile lavori</td>

@@ -65,12 +65,30 @@ export function RangeBar({ min, max, minLabel, maxLabel, budget, className }: Ra
           />
         )}
       </div>
-      <div className="flex items-baseline justify-between font-display tabular-nums">
-        <span className="text-lg font-bold text-foreground sm:text-xl">{minLabel}</span>
-        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          fino a
-        </span>
-        <span className="text-lg font-bold text-primary sm:text-xl">{maxLabel}</span>
+      {/* Le cifre stanno sotto gli estremi del segmento: due spaziatori comprimibili
+          + un blocco centrale largo quanto il segmento (mai piu' stretto delle cifre). */}
+      <div className="flex w-full items-baseline overflow-hidden font-display tabular-nums">
+        <div style={{ flexBasis: `${leftPct}%`, flexGrow: 0, flexShrink: 1, minWidth: 0 }} />
+        <div
+          className="flex items-baseline justify-between gap-2"
+          style={{
+            flexBasis: `${rightPct - leftPct}%`,
+            flexGrow: 0,
+            flexShrink: 0,
+            minWidth: "max-content",
+          }}
+        >
+          <span className="text-lg font-bold text-foreground sm:text-xl">{minLabel}</span>
+          {rightPct - leftPct >= 35 && (
+            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              fino a
+            </span>
+          )}
+          <span className="text-lg font-bold text-primary sm:text-xl">{maxLabel}</span>
+        </div>
+        <div
+          style={{ flexBasis: `${100 - rightPct}%`, flexGrow: 0, flexShrink: 1, minWidth: 0 }}
+        />
       </div>
     </div>
   );

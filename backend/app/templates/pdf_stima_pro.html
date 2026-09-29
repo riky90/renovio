@@ -317,10 +317,15 @@
       }
 
       .barra-cifre {
-        display: flex;
-        justify-content: space-between;
+        width: 100%;
+        table-layout: auto;
+        border-collapse: collapse;
         font-size: 8pt;
         margin-bottom: 4mm;
+      }
+      .barra-cifre td {
+        padding: 0;
+        white-space: nowrap;
       }
 
       .riepilogo-iva {
@@ -503,7 +508,7 @@
       {% endfor %}
 
       <div class="categoria-totale">
-        <span>Totale {{ categoria.nome }}</span>
+        <span>Totale {{ categoria.nome }} (IVA esclusa)</span>
         <span class="range">&euro; {{ categoria.totale_min|eur }} &ndash; &euro; {{ categoria.totale_max|eur }}</span>
       </div>
       {# €/m² e peso arrivano da calcolo.lettura (calcolati una volta dal router,
@@ -520,7 +525,7 @@
     {% endfor %}
 
     <div class="totale-generale">
-      <span class="label">Totale generale stimato</span>
+      <span class="label">Totale generale stimato (IVA esclusa)</span>
       <span class="range">&euro; {{ dettaglio.totale_min|eur }} &ndash; &euro; {{ dettaglio.totale_max|eur }}</span>
     </div>
 
@@ -545,11 +550,18 @@
         <div class="budget-tacca" style="left:{{ barra.budget_pct|pct }}%"></div>
         {% endif %}
       </div>
-      <div class="barra-cifre">
-        <span>{{ riepilogo.totale_min|eur }}</span>
-        <span>fino a</span>
-        <span>{{ riepilogo.totale_max|eur }}</span>
-      </div>
+      <table class="barra-cifre">
+        <tr>
+          <td style="width:{{ barra.left_pct|pct }}%"></td>
+          <td style="width:{{ barra.width_pct|pct }}%">
+            <table style="width:100%; border-collapse:collapse"><tr>
+              <td style="text-align:left">{{ riepilogo.totale_min|eur }}</td>
+              <td style="text-align:right">{{ riepilogo.totale_max|eur }}</td>
+            </tr></table>
+          </td>
+          <td style="width:{{ (100 - barra.left_pct - barra.width_pct)|pct }}%"></td>
+        </tr>
+      </table>
       <table class="riepilogo-iva">
         <tr>
           <td>Imponibile lavori</td>

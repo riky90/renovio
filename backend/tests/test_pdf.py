@@ -276,6 +276,37 @@ class TestPdfRenderHtml:
         assert not re.search(r"(?<!text-)transform\s*:", html)
         assert "calc(" not in html
 
+    def test_categorie_su_base_imponibile(self):
+        from app.services.pdf_service import PdfService
+        from app.services.risultato import peso_categoria, somma_medi
+
+        payload = _stima_payload()
+        html = PdfService.render_html(_FakeStima(payload), _FakeUser())
+        assert "Range (IVA esclusa)" in html
+        assert "Range (IVA inclusa)" not in html
+        assert "Totale IVA inclusa" in html  # riepilogo invariato
+        cats = payload["categorie"]
+        somma = somma_medi(cats)
+        fin = next(c for c in cats if c["code"] == "finiture")
+        su_imponibile = peso_categoria(fin["imponibile_min"], fin["imponibile_max"], somma)
+        somma_tot = somma_medi(
+            [{"imponibile_min": c["totale_min"], "imponibile_max": c["totale_max"]} for c in cats]
+        )
+        su_totale = peso_categoria(fin["totale_min"], fin["totale_max"], somma_tot)
+        assert su_imponibile.etichetta != su_totale.etichetta
+        assert f"{su_imponibile.etichetta} del totale" in html
+
+    def test_cifre_barra_seguono_il_segmento(self):
+        from app.services.pdf_service import PdfService
+
+        html = PdfService.render_html(_FakeStima(_snapshot_render()), _FakeUser())
+        compatto = html.replace(" ", "")
+        assert 'class="barra-cifre"' in html
+        assert "<tdstyle=\"width:75.76%\"></td>" in compatto
+        assert "space-between" not in html.split(".barra-cifre")[1].split("}")[0]
+        assert not re.search(r"(?<!text-)transform\s*:", html)
+        assert "calc(" not in html
+
     def test_left_pct_coerente_con_scala_barra(self):
         from app.services.pdf_service import PdfService
 
