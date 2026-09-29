@@ -4,13 +4,21 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { LetturaCategoria } from "@/components/LetturaCategoria";
 import { formatEurRange } from "@/lib/currency";
-import type { CategoriaDettagliataOut, SottocategoriaOut, VoceOut } from "@/api/dettaglio-pro";
+import type {
+  CategoriaDettagliataOut,
+  LetturaCategoriaOut,
+  SottocategoriaOut,
+  VoceOut,
+} from "@/api/dettaglio-pro";
 
 const EMPTY_COPY = "Nessuna voce stimata per questa sottocategoria con i dati inseriti.";
 
 interface SottocategoriaAccordionProps {
   categoria: CategoriaDettagliataOut;
+  /** €/m² e peso della categoria (dal server); assente = nessuna riga di lettura. */
+  lettura?: Pick<LetturaCategoriaOut, "incidenza" | "peso">;
 }
 
 /**
@@ -27,6 +35,7 @@ type NomiLivelli = Record<string, string>;
  */
 export function SottocategoriaAccordion({
   categoria,
+  lettura,
   nomiLivelli = {},
 }: SottocategoriaAccordionProps & { nomiLivelli?: NomiLivelli }) {
   return (
@@ -84,6 +93,13 @@ export function SottocategoriaAccordion({
           {formatEurRange(categoria.totale_min, categoria.totale_max)}
         </span>
       </div>
+      {lettura && (
+        <LetturaCategoria
+          className="px-4"
+          incidenza={lettura.incidenza}
+          peso={lettura.peso}
+        />
+      )}
     </div>
   );
 }

@@ -18,6 +18,11 @@ interface BudgetAlertProps {
   /** Confronto a finiture inferiori calcolato dal server (D-09). */
   confronto?: ConfrontoFinitureOut | null;
   finitureAlMinimo?: boolean;
+  /**
+   * Mostra sempre la riga "Ora (IVA inclusa)": nel Pro il totale a schermo e'
+   * IVA esclusa, quindi la base del confronto va resa esplicita (A2).
+   */
+  mostraTotaleConfrontato?: boolean;
 }
 
 interface AspettoStato {
@@ -60,6 +65,7 @@ export function BudgetAlert({
   onSalva,
   confronto = null,
   finitureAlMinimo = false,
+  mostraTotaleConfrontato = false,
 }: BudgetAlertProps) {
   const [aperto, setAperto] = useState(false);
 
@@ -122,21 +128,25 @@ export function BudgetAlert({
           <p className="font-display text-xl font-semibold">{titolo}</p>
         </div>
         <p className="text-sm">{testoCorpo}</p>
-        {confronto && delta && (
+        {(mostraTotaleConfrontato || (confronto && delta)) && (
           <dl className="flex flex-col gap-1 text-sm">
             <div className="flex flex-wrap justify-between gap-x-4">
               <dt>Ora (IVA inclusa)</dt>
               <dd className="font-display tabular-nums">{formatEurRange(totaleMin, totaleMax)}</dd>
             </div>
-            <div className="flex flex-wrap justify-between gap-x-4">
-              <dt>Con finiture {livello}</dt>
-              <dd className="font-display tabular-nums">
-                {formatEurRange(confronto.totale_min, confronto.totale_max)}
-              </dd>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              circa {formatEurRange(delta.min, delta.max)} in meno
-            </p>
+            {confronto && delta && (
+              <>
+                <div className="flex flex-wrap justify-between gap-x-4">
+                  <dt>Con finiture {livello}</dt>
+                  <dd className="font-display tabular-nums">
+                    {formatEurRange(confronto.totale_min, confronto.totale_max)}
+                  </dd>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  circa {formatEurRange(delta.min, delta.max)} in meno
+                </p>
+              </>
+            )}
           </dl>
         )}
       </div>

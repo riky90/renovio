@@ -2,12 +2,16 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Loader2 } from "lucide-react";
 import { DomandaField } from "@/components/DomandaField";
+import { BudgetAlert } from "@/components/BudgetAlert";
+import { RangeBar } from "@/components/RangeBar";
+import { RiepilogoIvaRighe } from "@/components/RiepilogoIvaRighe";
 import { SottocategoriaAccordion } from "@/components/SottocategoriaAccordion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatEurRange } from "@/lib/currency";
+import { formatEur, formatEurRange } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { isNumerico, type ValoreRisposta } from "@/api/domande";
 import {
@@ -17,6 +21,7 @@ import {
   type DomandaProOut,
   type LivelliPerCategoria,
 } from "@/api/dettaglio-pro";
+import { patchBudgetStima } from "@/api/stima";
 
 const DOMANDE_SUBHEADING =
   "Rispondi per affinare le quantità stimate (facoltativo: se salti, usiamo una stima prudente in base ai metri quadri).";
@@ -220,6 +225,7 @@ export function DettaglioProView({ stimaId, enabled = true }: DettaglioProViewPr
   // Ordine del riepilogo (UI-SPEC §Copywriting): le numeriche (bagni/porte/
   // condizionatori) prima, le domande a scelta (pavimento) dopo — anche se
   // il catalogo le ordina diversamente (pavimento ha `ordine` minore).
+  const letturaPerCodice = new Map(dettaglio.lettura_categorie.map((l) => [l.code, l]));
   const domandeNumeriche = dettaglio.domande.filter((d) => isNumerico(d.tipo_controllo));
   const domandeScelta = dettaglio.domande.filter((d) => !isNumerico(d.tipo_controllo));
   const riepilogoDomande = [...domandeNumeriche, ...domandeScelta]
@@ -373,6 +379,7 @@ export function DettaglioProView({ stimaId, enabled = true }: DettaglioProViewPr
           <SottocategoriaAccordion
             key={categoria.code}
             categoria={categoria}
+            lettura={letturaPerCodice.get(categoria.code)}
             nomiLivelli={nomiLivelli}
           />
         ))}
@@ -384,6 +391,41 @@ export function DettaglioProView({ stimaId, enabled = true }: DettaglioProViewPr
           {formatEurRange(dettaglio.totale_min, dettaglio.totale_max)}
         </span>
       </div>
+
+      {dettaglio.totale_ivato_min != null && dettaglio.totale_ivato_max != null && (
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4 rounded-lg border bg-card px-5 py-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-accent-foreground">
+              Totale stimato · IVA inclusa
+            </p>
+            <RangeBar
+              min={dettaglio.totale_ivato_min}
+              max={dettaglio.totale_ivato_max}
+              minLabel={formatEur(dettaglio.totale_ivato_min)}
+              maxLabel={formatEur(dettaglio.totale_ivato_max)}
+              budget={dettaglio.budget_eur}
+            />
+            {dettaglio.riepilogo_iva && (
+              <>
+                <Separator />
+                <RiepilogoIvaRighe riepilogo={dettaglio.riepilogo_iva} />
+              </>
+            )}
+          </div>
+          <BudgetAlert
+            budget={dettaglio.budget_eur}
+            totaleMin={dettaglio.totale_ivato_min}
+            totaleMax={dettaglio.totale_ivato_max}
+            confronto={dettaglio.confronto_finiture}
+            finitureAlMinimo={dettaglio.finiture_al_minimo}
+            mostraTotaleConfrontato
+            onSalva={async (v) => {
+              await patchBudgetStima(stimaId, v);
+              await queryClient.invalidateQueries({ queryKey: ["dettaglio-pro", stimaId] });
+            }}
+          />
+        </div>
+      )}
 
       <div className="flex flex-col gap-2">
         <Button
