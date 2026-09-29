@@ -523,7 +523,7 @@ def scarica_pdf_pro(
 
         calcolo = _compute_dettaglio(session, row)
 
-        pdf_bytes = PdfService.render_pro(calcolo.result, row, current_user)
+        pdf_bytes = PdfService.render_pro(calcolo, row, current_user)
         filename = build_filename_pro(row)
 
         return StreamingResponse(

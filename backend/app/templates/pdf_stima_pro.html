@@ -243,6 +243,152 @@
         white-space: nowrap;
       }
 
+      .lettura-sub {
+        font-size: 8pt;
+        color: #78716a;
+        margin-top: 1mm;
+        font-weight: 400;
+      }
+
+      .mini-traccia {
+        position: relative;
+        height: 4px;
+        width: 40mm;
+        background: #f3eee5;
+        border-radius: 2px;
+        margin-top: 1mm;
+      }
+
+      .mini-fill {
+        height: 4px;
+        background: #e8722a;
+        border-radius: 2px;
+      }
+
+      .lettura-totale {
+        break-inside: avoid;
+        border: 1px solid #e9e1d4;
+        border-radius: 4px;
+        padding: 5mm 6mm;
+        margin-bottom: 6mm;
+      }
+
+      .lettura-totale .lettura-titolo {
+        font-size: 10pt;
+        font-weight: 700;
+        margin-bottom: 3mm;
+      }
+
+      .budget-etichetta {
+        position: relative;
+        height: 5mm;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .budget-etichetta span {
+        position: absolute;
+        top: 0;
+      }
+
+      .barra-traccia {
+        position: relative;
+        height: 8px;
+        background: #f3eee5;
+        border-radius: 4px;
+        margin-bottom: 2mm;
+      }
+
+      .barra-segmento {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, #f4b60e, #e8722a);
+        border-radius: 4px;
+      }
+
+      .budget-tacca {
+        position: absolute;
+        top: -8px;
+        width: 2px;
+        height: 24px;
+        margin-left: -1px;
+        background: #22201c;
+      }
+
+      .barra-cifre {
+        display: flex;
+        justify-content: space-between;
+        font-size: 8pt;
+        margin-bottom: 4mm;
+      }
+
+      .riepilogo-iva {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 9pt;
+      }
+
+      .riepilogo-iva td {
+        padding: 1mm 0;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .riepilogo-iva td.val {
+        text-align: right;
+      }
+
+      .riepilogo-iva tr.sotto td {
+        padding-left: 4mm;
+        font-size: 8pt;
+      }
+
+      .riepilogo-iva tr.tot td {
+        font-weight: 700;
+        border-top: 1px solid #e9e1d4;
+        padding-top: 2mm;
+      }
+
+      .avviso-budget {
+        border-radius: 4px;
+        padding: 4mm 6mm;
+        margin-bottom: 6mm;
+        font-size: 9pt;
+        break-inside: avoid;
+      }
+
+      .avviso-budget.fuori,
+      .avviso-budget.limite {
+        background: #fffbeb;
+        border: 1px solid #fcd34d;
+        color: #92400e;
+      }
+
+      .avviso-budget.dentro {
+        background: #fbe9dc;
+        border: 1px solid #e8722a;
+        color: #22201c;
+      }
+
+      .avviso-budget .avviso-titolo {
+        font-size: 11pt;
+        font-weight: 700;
+        margin-bottom: 1mm;
+      }
+
+      .avviso-budget .avviso-riga {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5mm 0;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .avviso-budget .avviso-nota {
+        margin-top: 2mm;
+        font-size: 8pt;
+        opacity: 0.85;
+      }
+
       .footer {
         border-top: 1px solid #e9e1d4;
         padding-top: 4mm;
@@ -360,6 +506,16 @@
         <span>Totale {{ categoria.nome }}</span>
         <span class="range">&euro; {{ categoria.totale_min|eur }} &ndash; &euro; {{ categoria.totale_max|eur }}</span>
       </div>
+      {# €/m² e peso arrivano da calcolo.lettura (calcolati una volta dal router,
+         gli stessi della vista Pro a schermo): il PDF non ricalcola. #}
+      {% set l = lettura.get(categoria.code) %}
+      {% if l %}
+      {% if l.eur_mq_min is not none %}
+      <div class="lettura-sub">{{ l.eur_mq_min|eur }} &ndash; {{ l.eur_mq_max|eur }} €/m² (IVA esclusa)</div>
+      {% endif %}
+      <div class="lettura-sub">{{ l.peso_etichetta }} del totale</div>
+      <div class="mini-traccia"><div class="mini-fill" style="width:{{ l.peso_fill_pct|pct }}%"></div></div>
+      {% endif %}
     </div>
     {% endfor %}
 
@@ -367,6 +523,74 @@
       <span class="label">Totale generale stimato</span>
       <span class="range">&euro; {{ dettaglio.totale_min|eur }} &ndash; &euro; {{ dettaglio.totale_max|eur }}</span>
     </div>
+
+    {# Lettura sul totale IVA INCLUSA (A2): barra proporzionale, riepilogo per aliquota
+       e riquadro budget. Il totale generale qui sopra resta IVA esclusa. #}
+    <div class="lettura-totale">
+      <div class="lettura-titolo">Totale IVA inclusa: {{ riepilogo.totale_min|eur }} &ndash; {{ riepilogo.totale_max|eur }} €</div>
+      {% if barra.budget_pct is not none %}
+      <div class="budget-etichetta">
+        {% if barra.budget_pct < 15 %}
+        <span style="left:{{ barra.budget_pct|pct }}%">Il tuo budget</span>
+        {% elif barra.budget_pct > 85 %}
+        <span style="right:{{ (100 - barra.budget_pct)|pct }}%">Il tuo budget</span>
+        {% else %}
+        <span style="left:{{ barra.budget_pct|pct }}%; margin-left:-40px; width:80px; text-align:center">Il tuo budget</span>
+        {% endif %}
+      </div>
+      {% endif %}
+      <div class="barra-traccia">
+        <div class="barra-segmento" style="left:{{ barra.left_pct|pct }}%; width:{{ barra.width_pct|pct }}%"></div>
+        {% if barra.budget_pct is not none %}
+        <div class="budget-tacca" style="left:{{ barra.budget_pct|pct }}%"></div>
+        {% endif %}
+      </div>
+      <div class="barra-cifre">
+        <span>{{ riepilogo.totale_min|eur }}</span>
+        <span>fino a</span>
+        <span>{{ riepilogo.totale_max|eur }}</span>
+      </div>
+      <table class="riepilogo-iva">
+        <tr>
+          <td>Imponibile lavori</td>
+          <td class="val">{{ riepilogo.imponibile_lavori_min|eur }} &ndash; {{ riepilogo.imponibile_lavori_max|eur }} €</td>
+        </tr>
+        {% for riga in riepilogo.righe_iva %}
+        <tr>
+          <td>{{ riga.etichetta }}</td>
+          <td class="val">{{ riga.min|eur }} &ndash; {{ riga.max|eur }} €</td>
+        </tr>
+        {% endfor %}
+        {% if riepilogo.extra %}
+        <tr>
+          <td>Costi extra</td>
+          <td class="val">{{ riepilogo.extra_totale|eur }} €</td>
+        </tr>
+        {% for e in riepilogo.extra %}
+        <tr class="sotto">
+          <td>{{ e.nome }}</td>
+          <td class="val">{{ e.importo|eur }} €</td>
+        </tr>
+        {% endfor %}
+        {% endif %}
+        <tr class="tot">
+          <td>Totale IVA inclusa</td>
+          <td class="val">{{ riepilogo.totale_min|eur }} &ndash; {{ riepilogo.totale_max|eur }} €</td>
+        </tr>
+      </table>
+    </div>
+
+    {# Riquadro budget: solo testo, niente campi, bottoni o link. #}
+    {% if avviso %}
+    <div class="avviso-budget {{ avviso.stato }}">
+      <div class="avviso-titolo">{{ avviso.titolo }}</div>
+      <div>{{ avviso.corpo }}</div>
+      {% for etichetta, valore in avviso.righe %}
+      <div class="avviso-riga"><span>{{ etichetta }}</span><span>{{ valore }}</span></div>
+      {% endfor %}
+      <div class="avviso-nota">{{ avviso.nota }}</div>
+    </div>
+    {% endif %}
 
     <div class="footer">
       Stima indicativa dettagliata, non sostituisce un sopralluogo professionale.<br />

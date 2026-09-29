@@ -241,10 +241,8 @@ class TestPdfProPavimentoScelto:
         import app.routers.dettaglio_pro as dettaglio_pro_router_module
         from app.models.stima_salvata import StimaSalvata
         from app.models.user import User
-        # Riusa l'Environment del servizio (registra il filtro custom `eur`)
-        # invece di ricrearne uno: qui serve solo per rendere l'HTML senza
-        # passare da WeasyPrint, non per duplicarne la configurazione.
-        from app.services.pdf_service import _env as pdf_env
+        # Solo HTML (`render_html_pro`): non passa da WeasyPrint.
+        from app.services.pdf_service import PdfService
 
         if risposte is not None:
             client.post(
@@ -254,20 +252,9 @@ class TestPdfProPavimentoScelto:
 
         with session_factory() as session:
             row = session.query(StimaSalvata).filter_by(id=stima_id).one()
-            result = dettaglio_pro_router_module._compute_dettaglio(session, row).result
+            calcolo = dettaglio_pro_router_module._compute_dettaglio(session, row)
             user = session.query(User).filter_by(id=row.user_id).one()
-            nome, citta, mq, tipo = user.nome, row.citta, row.mq, row.tipo
-
-        template = pdf_env.get_template("pdf_stima_pro.html")
-        return template.render(
-            dettaglio=result,
-            nome=nome,
-            data_generazione="01/01/2026",
-            citta=citta,
-            mq=mq,
-            tipo=tipo,
-            filename="test.pdf",
-        )
+            return PdfService.render_html_pro(calcolo, row, user)
 
     def test_pavimento_parquet_scelto_compare_nel_riepilogo(self, client):
         c, session_factory = client
@@ -296,3 +283,65 @@ class TestPdfServiceRenderProRicalcolaLive:
 
         source = inspect.getsource(pdf_service_module)
         assert "EstimationService" not in source
+
+
+class TestPdfProLetturaEBudget:
+    """10-08: barra, EUR/m2, peso, riepilogo IVA e riquadro budget nel PDF Pro,
+    verificati sull'HTML (nessun runtime nativo necessario)."""
+
+    def _html_e_calcolo(self, client, budget):
+        c, session_factory = client
+        stima_id = _crea_stima_pro(c)
+
+        import app.routers.dettaglio_pro as router
+        from app.models.stima_salvata import StimaSalvata
+        from app.models.user import User
+        from app.services.pdf_service import PdfService
+
+        with session_factory() as session:
+            row = session.query(StimaSalvata).filter_by(id=stima_id).one()
+            row.budget_eur = budget
+            calcolo = router._compute_dettaglio(session, row)
+            user = session.query(User).filter_by(id=row.user_id).one()
+            html = PdfService.render_html_pro(calcolo, row, user)
+            session.rollback()
+        return html, calcolo
+
+    def test_lettura_categorie_e_riepilogo_dal_calcolo(self, client):
+        html, calcolo = self._html_e_calcolo(client, None)
+
+        assert "Totale IVA inclusa" in html
+        assert "Imponibile lavori" in html
+        assert "(IVA esclusa)" in html
+        assert "% del totale" in html or "<1% del totale" in html
+        riepilogo = calcolo.riepilogo
+        from app.services.pdf_service import _fmt_eur
+
+        assert _fmt_eur(riepilogo.totale_min) in html
+        assert _fmt_eur(riepilogo.totale_max) in html
+        for lc in calcolo.lettura:
+            if lc.eur_mq_min is not None:
+                assert f"{_fmt_eur(lc.eur_mq_min)} &ndash; {_fmt_eur(lc.eur_mq_max)} €/m²" in html
+            assert f"{lc.peso_etichetta} del totale" in html
+        assert "Il tuo budget" not in html
+
+    def test_budget_sotto_il_minimo_riquadro_su_base_iva_inclusa(self, client):
+        html, calcolo = self._html_e_calcolo(client, 1000)
+
+        assert "Il tuo budget" in html
+        assert "La stima supera il tuo budget" in html
+        assert "Ora (IVA inclusa)" in html
+        assert "Il budget non cambia il prezzo della stima." in html
+        assert "&lt;input" not in html and "<input" not in html and "<button" not in html
+
+    def test_budget_alto_stato_dentro_con_riga_ora(self, client):
+        html, _ = self._html_e_calcolo(client, 900000000)
+
+        assert "Rientri nel tuo budget" in html
+        assert "Ora (IVA inclusa)" in html
+
+    def test_nessun_dato_impresa_nel_html(self, client):
+        html, _ = self._html_e_calcolo(client, 1000)
+        for forbidden in FORBIDDEN_SUBSTRINGS:
+            assert forbidden not in html
+        assert "coefficiente" not in html.lower()
