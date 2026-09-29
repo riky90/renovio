@@ -246,7 +246,7 @@ Plans:
 4. Superato il budget dichiarato, compare un avviso con il confronto ricalcolato a finiture inferiori
 5. Il budget **non** muove il prezzo: due assi distinti, *finiture* sì e *budget* no
 
-**Plans:** 5/9 plans executed
+**Plans:** 6/9 plans executed
 
 Plans:
 **Wave 1**
@@ -268,7 +268,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 10-06-PLAN.md — Dettaglio Pro server-side: totale IVA inclusa, riepilogo per aliquota, €/m² e peso per categoria, confronto Pro ricalcolato, budget (RIS-01..04)
+- [x] 10-06-PLAN.md — Dettaglio Pro server-side: totale IVA inclusa, riepilogo per aliquota, €/m² e peso per categoria, confronto Pro ricalcolato, budget (RIS-01..04)
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
