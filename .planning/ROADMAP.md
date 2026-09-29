@@ -246,7 +246,7 @@ Plans:
 4. Superato il budget dichiarato, compare un avviso con il confronto ricalcolato a finiture inferiori
 5. Il budget **non** muove il prezzo: due assi distinti, *finiture* sì e *budget* no
 
-**Plans:** 12/15 plans executed
+**Plans:** 13/15 plans executed
 
 Plans:
 **Wave 1**
@@ -289,7 +289,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 10-13-PLAN.md — G5 pannello Bonus con barra del costo totale e netto dopo le detrazioni, calcolati server-side (RIS-01, RIS-03)
+- [x] 10-13-PLAN.md — G5 pannello Bonus con barra del costo totale e netto dopo le detrazioni, calcolati server-side (RIS-01, RIS-03)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
