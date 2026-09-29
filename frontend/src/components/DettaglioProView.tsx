@@ -90,28 +90,56 @@ export function DettaglioProView({ stimaId, enabled = true }: DettaglioProViewPr
   });
 
   const risposteMutation = useMutation({
-    mutationFn: (risposte: Record<string, number | string>) =>
-      postRisposteDettaglioPro(stimaId, risposte, livelliInput),
+    mutationFn: ({
+      risposte,
+      livelli,
+    }: {
+      risposte: Record<string, number | string>;
+      livelli: LivelliPerCategoria;
+    }) => postRisposteDettaglioPro(stimaId, risposte, livelli),
     onSuccess: (data) => {
       queryClient.setQueryData(["dettaglio-pro", stimaId], data);
-      setDomandeCollassate(true);
     },
   });
 
   /**
    * Cambio di una domanda a scelta (es. pavimento), sempre visibile fuori dal
    * pannello collassato (09-12, gap G3): ricalcola SUBITO, senza passare da
-   * "Modifica"/"Calcola il dettaglio" (D-06). `onSuccess` ricollassa comunque
-   * il pannello — il blocco del pavimento resta visibile lo stesso, e' fuori
-   * dall'alternativa collassato/espanso.
+   * "Modifica"/"Calcola il dettaglio" (D-06).
+   *
+   * WR-07 (review 09): si inviano le risposte e i livelli SALVATI (quelli del
+   * dettaglio corrente) piu' la sola scelta cambiata, mai le modifiche non
+   * confermate del pannello espanso (bagni/porte/livelli toccati senza
+   * "Calcola il dettaglio"). Per lo stesso motivo il pannello non viene
+   * ricollassato: le modifiche in corso restano dove l'utente le ha lasciate.
+   * Se la mutation fallisce, la card torna all'opzione precedente, cosi' non
+   * mostra una scelta diversa da quella di totali, riepilogo e PDF.
    */
   function handleSceltaChange(code: string, valore: ValoreRisposta) {
     // Nessun invio concorrente (T-09-52): finche' una mutation e' in corso, un
     // secondo click su un'altra opzione non parte.
-    if (risposteMutation.isPending) return;
-    const aggiornate = { ...risposteInput, [code]: valore };
-    setRisposteInput(aggiornate);
-    risposteMutation.mutate(aggiornate as Record<string, number | string>);
+    if (risposteMutation.isPending || !dettaglioQuery.data) return;
+    const salvato = dettaglioQuery.data;
+    const precedente = risposteInput[code];
+    setRisposteInput((prev) => ({ ...prev, [code]: valore }));
+    risposteMutation.mutate(
+      {
+        risposte: { ...risposteIniziali(salvato.domande), [code]: valore } as Record<string, number | string>,
+        livelli: salvato.livelli,
+      },
+      {
+        onError: () =>
+          setRisposteInput((prev) => {
+            const ripristinate = { ...prev };
+            if (precedente === undefined) {
+              delete ripristinate[code];
+            } else {
+              ripristinate[code] = precedente;
+            }
+            return ripristinate;
+          }),
+      }
+    );
   }
 
   const pdfMutation = useMutation({ mutationFn: () => scaricaPdfPro(stimaId) });
@@ -136,11 +164,17 @@ export function DettaglioProView({ stimaId, enabled = true }: DettaglioProViewPr
   }
 
   function handleCalcola() {
-    risposteMutation.mutate(risposteInput as Record<string, number | string>);
+    risposteMutation.mutate(
+      { risposte: risposteInput as Record<string, number | string>, livelli: livelliInput },
+      { onSuccess: () => setDomandeCollassate(true) }
+    );
   }
 
   function handleSalta() {
-    risposteMutation.mutate({});
+    risposteMutation.mutate(
+      { risposte: {}, livelli: livelliInput },
+      { onSuccess: () => setDomandeCollassate(true) }
+    );
   }
 
   if (dettaglioQuery.isLoading || !enabled) {
