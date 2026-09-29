@@ -716,6 +716,31 @@ class TestAggiornaFoglioAssi:
             assert r[idx_agg["decisione"]] == "OK"
             assert r[idx_agg["note"]] == _NOTE_BOZZA_ACCETTATA
 
+    def test_finitura_da_livello_sparita_fallisce_invece_di_perdere_le_decisioni(self, session):
+        """WR-06 (review 09): il foglio vecchio ha righe 'finitura' derivate da
+        voce.livello, la nuova proposta (DB con livello vuoto) nessuna ->
+        ValueError, niente riscrittura silenziosa."""
+        from scripts.genera_excel_taratura import _carica_voci_taratura
+
+        wb = costruisci_workbook_taratura(session)
+        bozza = accetta_bozza(wb)
+        ws = bozza["assi_proposti"]
+        header = [c.value for c in next(ws.iter_rows(min_row=1, max_row=1))]
+        riga_finitura = [None] * len(header)
+        riga_finitura[header.index("voce_id")] = 999999
+        riga_finitura[header.index("livello_attuale")] = "medio"
+        riga_finitura[header.index("asse_proposto")] = "finitura"
+        riga_finitura[header.index("opzione_proposta")] = "medio"
+        riga_finitura[header.index("decisione")] = "OK"
+        ws.append(riga_finitura)
+
+        info = _carica_voci_taratura(session)
+        righe_nuove = proponi_assegnazione(list(info.values()))
+        assert not any(r.asse_proposto == "finitura" and r.livello_attuale for r in righe_nuove)
+
+        with pytest.raises(ValueError, match="voce.livello"):
+            aggiorna_foglio_assi(bozza, righe_nuove)
+
     def test_coefficienti_pro_invariato_byte_per_byte_nei_valori(self, session):
         from scripts.genera_excel_taratura import _carica_voci_taratura
 

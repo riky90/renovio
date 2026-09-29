@@ -946,7 +946,16 @@ def aggiorna_foglio_assi(wb: Workbook, righe: list[PropostaAsse]) -> Workbook:
     'bozza-accettata', vuote altrimenti. Se lo stato e' 'compilato' e una
     riga VECCHIA con decisione diversa da OK sparisce dalla nuova proposta,
     stampa un avviso e la riaggiunge in coda (non la cancella in silenzio).
-    Non tocca `coefficienti_pro`, `dati_richiesti`, `LEGGIMI_TARATURA`."""
+    Non tocca `coefficienti_pro`, `dati_richiesti`, `LEGGIMI_TARATURA`.
+
+    WR-06 (review 09): l'asse `finitura` del ramo 1 di `proponi_assegnazione`
+    nasce solo da `voce.livello`, colonna vestigiale che il seed non scrive.
+    Se il foglio vecchio ha righe `finitura` con `livello_attuale` e la nuova
+    proposta non ne ha nessuna, `voce.livello` e' stato svuotato: si solleva
+    `ValueError` PRIMA di toccare il workbook, invece di far sparire in
+    silenzio le decisioni OK (e poi, con `applica_taratura --solo-assi`, gli
+    `includi` di finitura dal seed). Ogni altra riga vecchia sparita dalla
+    proposta viene almeno segnalata con un avviso."""
     buffer = io.BytesIO()
     wb.save(buffer)
     buffer.seek(0)
@@ -970,6 +979,23 @@ def aggiorna_foglio_assi(wb: Workbook, righe: list[PropostaAsse]) -> Workbook:
         ): (riga[idx_vecchio["decisione"]], riga[idx_vecchio["note"]])
         for riga in righe_vecchie
     }
+
+    def _finitura_da_livello(asse, livello) -> bool:
+        return asse == "finitura" and bool(livello)
+
+    n_finitura_vecchie = sum(
+        1
+        for riga in righe_vecchie
+        if _finitura_da_livello(riga[idx_vecchio["asse_proposto"]], riga[idx_vecchio["livello_attuale"]])
+    )
+    n_finitura_nuove = sum(1 for r in righe if _finitura_da_livello(r.asse_proposto, r.livello_attuale))
+    if n_finitura_vecchie and not n_finitura_nuove:
+        raise ValueError(
+            f"aggiorna_foglio_assi: il foglio {FOGLIO_ASSI} ha {n_finitura_vecchie} righe "
+            "'finitura' derivate da voce.livello, la nuova proposta nessuna. voce.livello "
+            "e' vuoto nel DB: ripopolalo prima di --aggiorna-assi, altrimenti le decisioni "
+            "sull'asse finitura sparirebbero in silenzio."
+        )
 
     del copia[FOGLIO_ASSI]
     ws = copia.create_sheet(FOGLIO_ASSI)
@@ -1009,22 +1035,33 @@ def aggiorna_foglio_assi(wb: Workbook, righe: list[PropostaAsse]) -> Workbook:
         )
 
     n_rimosse = 0
-    if stato == "compilato":
-        for riga in righe_vecchie:
-            chiave = (
-                riga[idx_vecchio["voce_id"]],
-                riga[idx_vecchio["asse_proposto"]],
-                riga[idx_vecchio["opzione_proposta"]],
+    sparite_non_riaggiunte: list[tuple] = []
+    for riga in righe_vecchie:
+        chiave = (
+            riga[idx_vecchio["voce_id"]],
+            riga[idx_vecchio["asse_proposto"]],
+            riga[idx_vecchio["opzione_proposta"]],
+        )
+        if chiave in chiavi_nuove:
+            continue
+        decisione_vecchia = riga[idx_vecchio["decisione"]]
+        if stato == "compilato" and decisione_vecchia not in (None, "", "OK"):
+            n_rimosse += 1
+            print(
+                f"AVVISO aggiorna_foglio_assi: riga {chiave} con decisione "
+                f"{decisione_vecchia!r} sparita dalla nuova proposta, "
+                "riaggiunta in coda (non cancellata in silenzio)."
             )
-            decisione_vecchia = riga[idx_vecchio["decisione"]]
-            if chiave not in chiavi_nuove and decisione_vecchia not in (None, "", "OK"):
-                n_rimosse += 1
-                print(
-                    f"AVVISO aggiorna_foglio_assi: riga {chiave} con decisione "
-                    f"{decisione_vecchia!r} sparita dalla nuova proposta, "
-                    "riaggiunta in coda (non cancellata in silenzio)."
-                )
-                ws.append(list(riga))
+            ws.append(list(riga))
+        else:
+            sparite_non_riaggiunte.append(chiave)
+
+    if sparite_non_riaggiunte:
+        print(
+            f"AVVISO aggiorna_foglio_assi: {len(sparite_non_riaggiunte)} righe vecchie "
+            "(decisione OK o vuota) sono sparite dalla nuova proposta e non sono "
+            f"riaggiunte; prime: {sparite_non_riaggiunte[:5]}"
+        )
 
     print(
         f"assi_proposti: {len(righe)} righe nuove, {n_conservate} decisioni "
