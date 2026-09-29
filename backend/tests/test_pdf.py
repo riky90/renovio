@@ -227,3 +227,72 @@ class TestPdfServiceNonRicalcola:
 
         source = inspect.getsource(pdf_service_module)
         assert "EstimationService" not in source
+
+
+class _FakeStima:
+    def __init__(self, risultato_json):
+        from datetime import datetime
+
+        self.risultato_json = risultato_json
+        self.citta = "Reggio Emilia"
+        self.created_at = datetime(2026, 9, 29)
+
+
+class _FakeUser:
+    nome = "Utente Test"
+
+
+def _snapshot_render() -> dict:
+    payload = _stima_payload()
+    payload["totale"] = {
+        "imponibile_min": "50000.00",
+        "imponibile_max": "55000.00",
+        "iva_min": "0.00",
+        "iva_max": "0.00",
+        "totale_min": "50000.00",
+        "totale_max": "55000.00",
+    }
+    return payload
+
+
+class TestPdfRenderHtml:
+    """Rendering HTML dallo snapshot: non richiede WeasyPrint."""
+
+    def test_barra_proporzionale_e_riepilogo(self):
+        from app.services.pdf_service import PdfService
+
+        html = PdfService.render_html(_FakeStima(_stima_payload()), _FakeUser())
+        assert "Imponibile lavori" in html
+        assert "Totale IVA inclusa" in html
+        assert "IVA 10%" in html
+        assert "IVA 22%" in html
+        assert "€/m²" in html
+        assert "(IVA esclusa)" in html
+        assert "% del totale" in html
+        assert "Costi extra" in html
+        assert "transform" not in html
+        assert "calc(" not in html
+
+    def test_left_pct_coerente_con_scala_barra(self):
+        from app.services.pdf_service import PdfService
+
+        html = PdfService.render_html(_FakeStima(_snapshot_render()), _FakeUser())
+        assert "left:75.76%" in html.replace(" ", "")
+
+    def test_snapshot_pre_fase_si_rende(self):
+        from app.services.pdf_service import PdfService
+
+        snap = _stima_payload()
+        snap.pop("extra")
+        snap["input"].pop("mq")
+        html = PdfService.render_html(_FakeStima(snap), _FakeUser())
+        assert "Costi extra" not in html
+        assert "Totale IVA inclusa" in html
+
+    def test_extra_vuoti_nessuna_riga(self):
+        from app.services.pdf_service import PdfService
+
+        snap = _stima_payload()
+        snap["extra"] = []
+        html = PdfService.render_html(_FakeStima(snap), _FakeUser())
+        assert "Costi extra" not in html
