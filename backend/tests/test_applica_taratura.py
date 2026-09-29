@@ -1320,6 +1320,52 @@ class TestTemplateGuardiaCatalogoPresente:
         with pytest.raises(RuntimeError, match="risolte"):
             command.upgrade(config, revisione)
 
+    def test_soli_coefficienti_con_voce_bersaglio_alterata_solleva_runtime_error(self, tmp_path, monkeypatch):
+        """WR-05 (review 09): una migrazione che tocca solo `_COEFFICIENTI`
+        non cita domande, ma con il catalogo voci presente una chiave non
+        risolta deve comunque fallire rumorosamente."""
+        from alembic import command
+
+        alembic_tmp, config, db_path = _versions_root_e_config(tmp_path, monkeypatch)
+
+        connessione = sqlite3.connect(db_path)
+        try:
+            connessione.execute(
+                "INSERT INTO categoria (code, nome, ordine, iva_pct, livello_selezionabile, nel_totale_lavori)"
+                " VALUES ('A-EDILE', 'Edile', 1, 0.10, 0, 1)"
+            )
+            connessione.execute(
+                "INSERT INTO listino (id, nome, citta_riferimento, valuta, is_default, attivo)"
+                " VALUES (1, 'Reggio Emilia', 'Reggio Emilia', 'EUR', 1, 1)"
+            )
+            connessione.execute(
+                "INSERT INTO sottocategoria (id, listino_id, categoria_code, codice, nome, famiglia, ordine)"
+                " VALUES (1, 1, 'A-EDILE', 'A.6', 'A.6', 'catalogo', 1)"
+            )
+            # voce bersaglio con il codice alterato (drift): 'A.6.1' non si risolve
+            connessione.execute(
+                "INSERT INTO voce (sottocategoria_id, codice, descrizione, um, prezzo_unitario_cliente, ordine)"
+                " VALUES (1, 'A.6.1-alterata', 'Posa pavimentazione', 'mq', 20.00, 1)"
+            )
+            connessione.commit()
+        finally:
+            connessione.close()
+
+        domande = _domande_con_effetti(includi_opzione="medio", quantita_valore=1.0, con_escludi=False)
+        percorso = emetti_migrazione(
+            _dettaglio_con_coefficiente(0.6),
+            _dettaglio_con_coefficiente(0.9),
+            domande,
+            domande,
+            alembic_tmp / "versions",
+            "soli_coefficienti",
+        )
+        assert percorso is not None
+        revisione = percorso.stem.split("_")[0]
+
+        with pytest.raises(RuntimeError, match="risolte"):
+            command.upgrade(config, revisione)
+
     def test_nessuna_domanda_citata_presente_e_no_op(self, tmp_path, monkeypatch):
         from alembic import command
 

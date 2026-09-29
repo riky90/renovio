@@ -820,12 +820,19 @@ def _domande_citate() -> set[str]:
     return domande
 
 
-def _catalogo_presente(bind, opzione) -> bool:
-    """True se almeno una delle domande citate da questa migrazione ha gia'
-    righe in opzione_domanda (il seed e' gia' girato su questo DB). Su un DB
-    vergine (nessun boot ancora eseguito) e' False: il seed create-if-missing
-    creera' tutto da zero, questa migrazione diventa un no-op silenzioso
-    invece di far fallire il primo boot."""
+def _catalogo_presente(bind, opzione, voce) -> bool:
+    """True se il catalogo che questa migrazione tocca e' gia' seminato su
+    questo DB. Su un DB vergine (nessun boot ancora eseguito) e' False: il
+    seed create-if-missing creera' tutto da zero, questa migrazione diventa
+    un no-op silenzioso invece di far fallire il primo boot.
+
+    I coefficienti dipendono dal catalogo VOCI, non dal catalogo domande
+    (WR-05 review 09): se la migrazione tocca `_COEFFICIENTI` e la tabella
+    `voce` ha righe, il catalogo e' presente anche quando nessuna domanda e'
+    citata. Senza questo controllo una migrazione di soli coefficienti
+    restava sempre silenziosa sulle chiavi non risolte (lezione 09-06)."""
+    if _COEFFICIENTI and bind.execute(sa.select(voce.c.id).limit(1)).first() is not None:
+        return True
     domande = _domande_citate()
     if not domande:
         return False
@@ -889,7 +896,7 @@ def upgrade() -> None:
         n_ok += 1
         risolti_effetti_rimossi.append((opzione_id, voce_id, tipo_effetto, tipo_code, valore))
 
-    if non_risolte and _catalogo_presente(bind, opzione):
+    if non_risolte and _catalogo_presente(bind, opzione, voce):
         raise RuntimeError(
             f"migrazione {{revision}}: risolte {{n_ok}}/{{n_tot}} chiavi naturali, "
             f"non risolte: {{non_risolte}}"
