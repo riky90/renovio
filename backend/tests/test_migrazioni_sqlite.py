@@ -1233,6 +1233,65 @@ def test_0022_aggiorna_solo_le_righe_in_bozza(tmp_path, monkeypatch):
     assert valore_curato == pytest.approx(1.23)  # invariata: non era al valore di bozza (0.6)
 
 
+def test_0022_risolve_le_voci_solo_sul_listino_predefinito(tmp_path, monkeypatch):
+    """WR-03 (review 09): con un secondo listino che ha gli stessi codici, la
+    migrazione risolve la voce sul listino PREDEFINITO, come il seed, e non
+    sulla prima sottocategoria che capita (qui quella del listino 1, non piu'
+    predefinito e con id piu' basso)."""
+    db_path = tmp_path / "due_listini.db"
+    config = _alembic_config_0022_sintetica(
+        db_path,
+        tmp_path,
+        monkeypatch,
+        coefficienti=((CHIAVE_A[0], CHIAVE_A[1], CHIAVE_A[2], "totale", "coefficiente_qta_per_mq", 0.6, 0.85),),
+    )
+    command.upgrade(config, "0021")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        id_ = _semina_curatela_09_06(connessione)
+        connessione.execute("UPDATE listino SET is_default = 0 WHERE id = 1")
+        connessione.execute(
+            "INSERT INTO listino (id, nome, citta_riferimento, valuta, is_default, attivo)"
+            " VALUES (2, 'Listino Parma', 'Parma', 'EUR', 1, 1)"
+        )
+        connessione.execute(
+            "INSERT INTO sottocategoria (id, listino_id, categoria_code, nome, famiglia, ordine)"
+            " VALUES (2, 2, 'finiture', 'GRES', 'catalogo', 1)"
+        )
+        cursore = connessione.execute(
+            "INSERT INTO voce (sottocategoria_id, descrizione, um, prezzo_unitario_cliente, ordine)"
+            " VALUES (2, 'Voce coefficiente', 'mq', 40.00, 1)"
+        )
+        voce_default_id = cursore.lastrowid
+        connessione.execute(
+            "INSERT INTO coefficiente_qta_voce (voce_id, tipo_code, coefficiente_qta_per_mq)"
+            " VALUES (?, 'totale', 0.6)",
+            (voce_default_id,),
+        )
+        connessione.commit()
+    finally:
+        connessione.close()
+
+    command.upgrade(config, "0022")
+
+    connessione = sqlite3.connect(db_path)
+    try:
+        (valore_default,) = connessione.execute(
+            "SELECT coefficiente_qta_per_mq FROM coefficiente_qta_voce WHERE voce_id = ? AND tipo_code = 'totale'",
+            (voce_default_id,),
+        ).fetchone()
+        (valore_altro,) = connessione.execute(
+            "SELECT coefficiente_qta_per_mq FROM coefficiente_qta_voce WHERE voce_id = ? AND tipo_code = 'totale'",
+            (id_["voce_coeff"],),
+        ).fetchone()
+    finally:
+        connessione.close()
+
+    assert valore_default == pytest.approx(0.85)
+    assert valore_altro == pytest.approx(0.6)  # listino non predefinito: intatto
+
+
 def test_0022_aggiorna_valori_effetto_ancora_alla_base(tmp_path, monkeypatch):
     """Un effetto `quantita_per_unita` viene aggiornato solo se vale ancora
     il valore base; una riga gia' curata a un valore diverso resta

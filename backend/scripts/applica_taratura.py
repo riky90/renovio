@@ -688,6 +688,7 @@ def _tabelle():
     sottocategoria = sa.table(
         "sottocategoria",
         sa.column("id"),
+        sa.column("listino_id"),
         sa.column("categoria_code"),
         sa.column("codice"),
         sa.column("nome"),
@@ -728,38 +729,66 @@ def _tabelle():
     return sottocategoria, voce, coefficiente, opzione, effetto
 
 
+def _listino_default_id(bind):
+    """id del listino predefinito, o None se manca (catalogo non seminato).
+
+    `sottocategoria` e' per listino: il seed risolve i bersagli naturali solo
+    sul listino predefinito (`scripts/seed.py::seed_domande`) e la migrazione
+    fa lo stesso. Senza questo filtro, con un secondo listino con gli stessi
+    codici, `.first()` senza ORDER BY su Postgres poteva agganciare le voci
+    del listino sbagliato (WR-03 review 09)."""
+    listino = sa.table("listino", sa.column("id"), sa.column("is_default"))
+    riga = bind.execute(
+        sa.select(listino.c.id).where(listino.c.is_default.is_(True)).order_by(listino.c.id).limit(1)
+    ).first()
+    return riga[0] if riga is not None else None
+
+
 def _risolvi_voce_id(bind, sottocategoria, voce, categoria_code, sottocategoria_key, voce_key):
     """Chiave naturale -> voce.id (codice se esiste, altrimenti nome/descrizione
     esatta — stessa regola del seed/09-02). `None` se non risolta: la riga
     del diff viene saltata, mai un'eccezione (dato di curatela rotto non deve
     bloccare il boot)."""
+    listino_id = _listino_default_id(bind)
+    if listino_id is None:
+        return None
     riga_sotto = bind.execute(
-        sa.select(sottocategoria.c.id).where(
+        sa.select(sottocategoria.c.id)
+        .where(
+            sottocategoria.c.listino_id == listino_id,
             sottocategoria.c.categoria_code == categoria_code,
             sottocategoria.c.codice == sottocategoria_key,
         )
+        .order_by(sottocategoria.c.id)
     ).first()
     if riga_sotto is None:
         riga_sotto = bind.execute(
-            sa.select(sottocategoria.c.id).where(
+            sa.select(sottocategoria.c.id)
+            .where(
+                sottocategoria.c.listino_id == listino_id,
                 sottocategoria.c.categoria_code == categoria_code,
                 sottocategoria.c.codice.is_(None),
                 sottocategoria.c.nome == sottocategoria_key,
             )
+            .order_by(sottocategoria.c.id)
         ).first()
     if riga_sotto is None:
         return None
     sotto_id = riga_sotto[0]
     riga_voce = bind.execute(
-        sa.select(voce.c.id).where(voce.c.sottocategoria_id == sotto_id, voce.c.codice == voce_key)
+        sa.select(voce.c.id)
+        .where(voce.c.sottocategoria_id == sotto_id, voce.c.codice == voce_key)
+        .order_by(voce.c.id)
     ).first()
     if riga_voce is None:
         riga_voce = bind.execute(
-            sa.select(voce.c.id).where(
+            sa.select(voce.c.id)
+            .where(
                 voce.c.sottocategoria_id == sotto_id,
                 voce.c.codice.is_(None),
                 voce.c.descrizione == voce_key,
             )
+            .order_by(voce.c.id)
         ).first()
     return riga_voce[0] if riga_voce is not None else None
 
