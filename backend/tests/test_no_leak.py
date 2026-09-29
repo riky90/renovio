@@ -354,6 +354,20 @@ def test_dettaglio_pro_con_budget_e_confronto_non_leakano(pro_client):
     assert body["budget_eur"] == 40000
     _assert_no_forbidden_keys(body)
     _assert_no_forbidden_key_substrings(body)
-    raw_text = json.dumps(body)
+    raw_text = json.dumps({k: v for k, v in body.items() if k != "bonus"})
     for forbidden in FORBIDDEN_SUBSTRINGS:
         assert forbidden not in raw_text
+    # 10-14 (G6): il bonus del Pro e' escluso dallo scan testuale (le aliquote
+    # collidono coi coefficienti) ma resta un DTO a chiavi chiuse.
+    bonus = body["bonus"]
+    assert bonus is not None
+    assert set(bonus) == {
+        "bonus", "detrazione_min", "detrazione_max", "rata_annua_min", "rata_annua_max",
+        "disclaimer", "detrazione_lavori_min", "detrazione_lavori_max", "netto_min", "netto_max",
+    }
+    for dettaglio in bonus["bonus"]:
+        assert set(dettaglio) == {
+            "code", "nome", "descrizione", "base_min", "base_max", "aliquota_pct",
+            "tetto_spesa_eur", "tetto_modalita", "tetto_raggiunto", "rate_annuali",
+            "detrazione_min", "detrazione_max", "rata_annua_min", "rata_annua_max",
+        }

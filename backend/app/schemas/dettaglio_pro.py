@@ -22,7 +22,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.schemas.stima import ConfrontoFinitureOut, ExtraOut, Risposte
+from app.schemas.stima import BonusOut, ConfrontoFinitureOut, ExtraOut, Risposte
 
 
 class VoceOut(BaseModel):
@@ -145,6 +145,8 @@ class DettaglioProOut(BaseModel):
     # Ricalcolo Pro con un livello di finitura sotto; IVA inclusa (D-10).
     confronto_finiture: ConfrontoFinitureOut | None = None
     finiture_al_minimo: bool = False
+    # Bonus fiscali calcolati sui totali Pro (10-14, G6), stesso DTO del Free.
+    bonus: BonusOut | None = None
     budget_eur: int | None = None
     # Eco delle risposte PERSISTITE ({codice: valore}), mai quelle del wizard
     # (che restano nel loro snapshot): un dict generico, non piu' tre campi

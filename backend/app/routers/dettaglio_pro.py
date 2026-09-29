@@ -38,6 +38,7 @@ stessa garanzia.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from decimal import ROUND_HALF_UP, Decimal
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
@@ -65,7 +66,8 @@ from app.schemas.dettaglio_pro import (
     SottocategoriaOut,
     VoceOut,
 )
-from app.schemas.stima import ConfrontoFinitureOut, ExtraOut
+from app.schemas.stima import BonusOut, ConfrontoFinitureOut, ExtraOut
+from app.services.bonus_stima import CategoriaPerBonus, ExtraPerBonus, bonus_out_per_stima
 from app.services.city_resolver import resolve_listino
 from app.services.dettaglio_pro import (
     DettaglioProResult,
@@ -190,6 +192,7 @@ def _to_out(
         ],
         confronto_finiture=calcolo.confronto,
         finiture_al_minimo=calcolo.finiture_al_minimo,
+        bonus=calcolo.bonus,
         budget_eur=budget_eur,
         risposte=risposte,
         risposte_salvate=calcolo.risposte_salvate,
@@ -254,6 +257,7 @@ class CalcoloDettaglioPro:
     lettura: list[LetturaCategoria]
     confronto: ConfrontoFinitureOut | None
     finiture_al_minimo: bool
+    bonus: BonusOut | None = None
 
 
 def _categorie_nel_totale(session: Session, result: DettaglioProResult) -> dict[str, Categoria]:
@@ -350,6 +354,61 @@ def _confronto_pro(
     )
 
 
+def _bonus_pro(
+    session: Session,
+    row: StimaSalvata,
+    result: DettaglioProResult,
+    nel_totale: dict[str, Categoria],
+    riepilogo: Riepilogo,
+) -> BonusOut | None:
+    """Bonus del Pro, calcolati sugli stessi importi del riepilogo IVA Pro:
+    stessa fonte dati, nessun secondo punto di calcolo. Basi lorde per
+    categoria con l'IVA arrotondata all'euro come in `riepilogo_iva_pro`, cosi'
+    la somma delle basi riconcilia col Totale IVA inclusa. Arredo e destinazione
+    vengono dallo snapshot (lettura difensiva)."""
+    uno = Decimal("1")
+
+    def lordo(importo: Decimal, iva_pct: Decimal) -> Decimal:
+        return importo + (importo * iva_pct).quantize(uno, rounding=ROUND_HALF_UP)
+
+    categorie = [
+        CategoriaPerBonus(
+            c.code,
+            lordo(c.totale_min, nel_totale[c.code].iva_pct),
+            lordo(c.totale_max, nel_totale[c.code].iva_pct),
+        )
+        for c in result.categorie
+        if c.code in nel_totale
+    ]
+    extra = [
+        ExtraPerBonus(
+            e["code"], (e["importo"] * (1 + e["iva_pct"])).quantize(uno, rounding=ROUND_HALF_UP)
+        )
+        for e in riepilogo.extra
+    ]
+
+    snap = row.risultato_json if isinstance(row.risultato_json, dict) else {}
+    arredo = None
+    blocco = snap.get("arredo")
+    if isinstance(blocco, dict):
+        try:
+            arredo = (Decimal(str(blocco["totale_min"])), Decimal(str(blocco["totale_max"])))
+        except (KeyError, ArithmeticError, ValueError):
+            arredo = None
+    input_snap = snap.get("input")
+    destinazione = (input_snap.get("destinazione") if isinstance(input_snap, dict) else None) or "prima_casa"
+
+    return bonus_out_per_stima(
+        session,
+        categorie_lorde=categorie,
+        extra_lordi=extra,
+        arredo=arredo,
+        destinazione=destinazione,
+        totale_min=riepilogo.totale_min,
+        totale_max=riepilogo.totale_max,
+    )
+
+
 def _compute_dettaglio(session: Session, row: StimaSalvata) -> CalcoloDettaglioPro:
     """Unico punto di calcolo condiviso da GET dettaglio-pro, POST risposte e
     GET pdf-pro — garantisce parita' numerica by-construction tra schermata
@@ -403,6 +462,7 @@ def _compute_dettaglio(session: Session, row: StimaSalvata) -> CalcoloDettaglioP
         lettura=lettura,
         confronto=confronto,
         finiture_al_minimo=al_minimo,
+        bonus=_bonus_pro(session, row, result, nel_totale, riepilogo),
     )
 
 
