@@ -246,7 +246,7 @@ Plans:
 4. Superato il budget dichiarato, compare un avviso con il confronto ricalcolato a finiture inferiori
 5. Il budget **non** muove il prezzo: due assi distinti, *finiture* sì e *budget* no
 
-**Plans:** 9/9 plans complete
+**Plans:** 9/15 plans complete (6 gap closure)
 
 Plans:
 **Wave 1**
@@ -278,6 +278,26 @@ Plans:
 **Wave 7** *(blocked on Wave 6 completion)*
 
 - [x] 10-09-PLAN.md — Suite completa, build e checklist di collaudo per Riccardo
+
+**Gap closure (collaudo 10-HUMAN-UAT, G1-G6)**
+
+**Wave 1**
+
+- [ ] 10-10-PLAN.md — G1 cifre della RangeBar sotto gli estremi del segmento (web e PDF) + G2 cifre per categoria IVA esclusa in Free, Pro e PDF (RIS-01, RIS-02)
+- [ ] 10-11-PLAN.md — G3 diagnosi e correzione del confronto finiture, regressione Free e Pro (RIS-04)
+- [ ] 10-12-PLAN.md — G4 "Modifica" riapre il wizard precompilato, auto-save senza duplicati a vuoto (RIS-04)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 10-13-PLAN.md — G5 pannello Bonus con barra del costo totale e netto dopo le detrazioni, calcolati server-side (RIS-01, RIS-03)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 10-14-PLAN.md — G6 pannello Bonus nella vista Pro, dal DTO del dettaglio Pro (RIS-03)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 10-15-PLAN.md — Suite completa, build/lint e checklist di ri-collaudo G1-G6 per Riccardo
 
 ---
 
