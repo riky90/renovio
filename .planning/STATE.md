@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: domande e motore parametrico
 status: executing
-last_updated: "2026-09-29T11:50:53.159Z"
+last_updated: "2026-09-29T11:53:35.538Z"
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 38
-  completed_plans: 31
+  completed_plans: 32
   percent: 57
 ---
 
@@ -17,7 +17,7 @@ progress:
 ## Current Position
 
 Phase: 10 (risultato-leggibile) — EXECUTING
-Plan: 1 of 9
+Plan: 2 of 9
 Stato: Fase 09 **chiusa il 2026-09-29**: code review post-gap corretta (CR-01, WR-01..07,
 `09-REVIEW-FIX.md` all_fixed), ri-collaudo dal vivo G1..G4 approvato da Riccardo
 (`.planning/checklists/2026-09-29-ricollaudo-09.md`), fix "Aggiungi listino" (`4e4b50a`).
