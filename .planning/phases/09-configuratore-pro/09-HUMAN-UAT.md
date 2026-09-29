@@ -1,10 +1,10 @@
 ---
-status: pending
+status: partial
 phase: 09-configuratore-pro
 requirement: WIZ-04
 source: [09-08-PLAN.md, 09-14-PLAN.md]
 started: 2026-09-28T00:00:00Z
-updated: 2026-09-28T00:00:00Z
+updated: 2026-09-29T00:00:00Z
 ---
 
 ## Stato
@@ -239,3 +239,26 @@ qui): A.6.11 "Taglio porta blindata" (um `ac`) esce con quantita' 72,25
 perche' ha il coefficiente per m² invece che a conteggio — e' un difetto di
 taratura (`09-TARATURA-TODO.md`), non un'alternativa sommata: segnalato,
 non corretto in questo piano.
+
+## Esito ri-collaudo 2026-09-29
+
+Ri-collaudo di Riccardo sulla checklist
+`.planning/checklists/2026-09-29-ricollaudo-09.md` (22 voci: G1..G4, fix della
+review CR-01/WR-07, scelte del planner, voci residue del 28/09).
+
+- **G1, G2, G3, G4: passati.** Le due domande nelle note (gres a 7,14 m² con
+  parquet; posa battiscopa con LVT/moquette) sono comportamenti voluti: quota
+  bagno D-02 e battiscopa legno A.6.7.
+- **CR-01 e WR-07: passati** (switch predefinito bloccato, rinomina di RE con
+  riavvio pulito, cambio pavimento con rollback offline).
+- **Voce 15:** "Aggiungi listino" falliva con 422 (POST senza body, difetto
+  presente dalla 04-08). Corretto in `4e4b50a`, ripetuta: passa.
+- **Scelte del planner:** tutte e cinque confermate (battiscopa legno con
+  laminato/vinilico/moquette, moquette su A.6.1, A.6.3 Entry/Medio e A.6.4
+  Lusso, fornitura gres con id piu' basso per livello, sottofondo Unilin solo
+  con laminato).
+- **Voce 14 del 28/09** (riapertura da "Le mie stime"): passata.
+- **Ancora aperte:** voce 12 del 28/09 (PDF, solo in produzione) e voce 13
+  (plausibilita' dei totali, rinviata da Riccardo a fine Fase 10).
+
+Stato: gap G1..G4 chiusi e approvati dal vivo.
