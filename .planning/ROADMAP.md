@@ -246,6 +246,38 @@ Plans:
 4. Superato il budget dichiarato, compare un avviso con il confronto ricalcolato a finiture inferiori
 5. Il budget **non** muove il prezzo: due assi distinti, *finiture* sì e *budget* no
 
+**Plans:** 8 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 10-01-PLAN.md — Risultato leggibile sul web: RangeBar proporzionale, €/m² e peso nelle card, riepilogo IVA nella TotalCard (RIS-01..03)
+- [ ] 10-02-PLAN.md — Risultato leggibile nel PDF Free: services/risultato.py (mirror Python) e template con barra statica (RIS-01..03)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 10-03-PLAN.md — Budget nel wizard (step 3), tacca sulla barra, BudgetAlert a tre stati (RIS-04)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 10-04-PLAN.md — Confronto a finiture inferiori ricalcolato in POST /stima e mostrato nell'avviso (RIS-04)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 10-05-PLAN.md — Budget salvato (colonna 0024), PATCH dalla pagina risultato, riapertura da "Le mie stime" (RIS-04)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 10-06-PLAN.md — Budget nel dettaglio Pro su base IVA inclusa, confronto Pro per categoria (RIS-04)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 10-07-PLAN.md — PDF: budget e avviso nel Free, lettura completa e avviso nel Pro (RIS-01..04)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 10-08-PLAN.md — Suite completa, build e checklist di collaudo per Riccardo
+
 ---
 
 ## Dopo la v2
