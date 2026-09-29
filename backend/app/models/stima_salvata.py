@@ -60,4 +60,10 @@ class StimaSalvata(Base):
     # `row.tier or "free"`.
     tier: Mapped[str | None] = mapped_column(String(16), nullable=True)
 
+    # Budget dichiarato dall'utente (EUR, IVA inclusa). E' un parametro, non un
+    # risultato: sta FUORI da `risultato_json` (che e' scritto una volta) cosi'
+    # si puo' cambiare con un PATCH senza toccare lo snapshot. Mai letto dal
+    # motore di stima. NULL = nessun budget.
+    budget_eur: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.now())

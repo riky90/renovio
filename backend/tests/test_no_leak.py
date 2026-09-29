@@ -295,3 +295,33 @@ def test_opzioni_pro_non_leaka_effetti_ne_coefficienti(pro_client):
     assert response.status_code == 200
     _assert_no_forbidden_keys(response.json())
     _assert_no_forbidden_key_substrings(response.json())
+
+
+def test_dettaglio_con_budget_e_patch_budget_non_leakano(pro_client):
+    """10-05: GET dettaglio con budget/confronto e risposta PATCH budget sono
+    DTO chiusi, senza chiavi ne' valori dell'area impresa."""
+    pro_client.post(
+        REGISTRAZIONE_URL,
+        json={"email": "noleak.budget@example.com", "password": "Password123", "nome": "NoLeak3"},
+    )
+    payload = _stima_pro_payload()
+    payload["budget_eur"] = 40000
+    payload["confronto_finiture"] = {
+        "livello_code": "medio",
+        "livello_nome": "Medio",
+        "totale_min": "9000.00",
+        "totale_max": "14000.00",
+    }
+    stima_id = pro_client.post(STIME_URL, json=payload).json()["id"]
+
+    get_response = pro_client.get(f"{STIME_URL}/{stima_id}")
+    patch_response = pro_client.patch(f"{STIME_URL}/{stima_id}/budget", json={"budget_eur": 50000})
+
+    assert get_response.status_code == 200
+    assert patch_response.status_code == 200
+    assert get_response.json()["budget_eur"] == 40000
+    for response in (get_response, patch_response):
+        _assert_no_forbidden_keys(response.json())
+        raw_text = json.dumps(response.json())
+        for forbidden in FORBIDDEN_SUBSTRINGS:
+            assert forbidden not in raw_text

@@ -18,7 +18,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, Field, field_validator
 
-from app.schemas.stima import BonusOut, CategoriaOut, ExtraOut, StimaInputEcho, TotaleOut
+from app.schemas.stima import BonusOut, CategoriaOut, ConfrontoFinitureOut, ExtraOut, StimaInputEcho, TotaleOut
 
 
 class RisposteProIn(BaseModel):
@@ -68,8 +68,8 @@ class StimaSalvataCreate(BaseModel):
     payload the client received a moment earlier from `POST /api/v1/stima`.
     Frozen as-is into `risultato_json`; never re-derived server-side.
 
-    Unica eccezione: `preferenze_pro`, che e' un parametro e non un risultato —
-    va nelle sue colonne, mai nello snapshot."""
+    Uniche eccezioni: `preferenze_pro` e `budget_eur`, che sono parametri e non
+    risultati — vanno nelle loro colonne, mai nello snapshot."""
 
     input: StimaInputEcho
     fallback: bool
@@ -79,7 +79,13 @@ class StimaSalvataCreate(BaseModel):
     extra: list[ExtraOut]
     totale: TotaleOut
     bonus: BonusOut | None = None
+    # Risultati calcolati dal motore (10-04): finiscono nello snapshot.
+    confronto_finiture: ConfrontoFinitureOut | None = None
+    finiture_al_minimo: bool = False
     preferenze_pro: PreferenzeProIn | None = None
+    # Come `preferenze_pro`: parametro, non risultato. Va nella colonna
+    # `budget_eur`, mai nello snapshot.
+    budget_eur: int | None = Field(default=None, ge=1, le=999_999_999)
 
 
 class StimaSalvataListItem(BaseModel):
@@ -110,3 +116,17 @@ class StimaSalvataOut(BaseModel):
     # Assente negli snapshot v1 (salvati prima dei bonus): il router lo legge
     # con `.get()`, mai con `[]`.
     bonus: BonusOut | None = None
+    # Assenti negli snapshot salvati prima del 10-04: il router li legge con
+    # `.get()`, default None/False.
+    confronto_finiture: ConfrontoFinitureOut | None = None
+    finiture_al_minimo: bool = False
+    # Dalla colonna `stima.budget_eur`, non dallo snapshot. None = nessun budget.
+    budget_eur: int | None = None
+
+
+class BudgetIn(BaseModel):
+    budget_eur: int | None = Field(default=None, ge=1, le=999_999_999)
+
+
+class BudgetOut(BaseModel):
+    budget_eur: int | None

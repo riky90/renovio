@@ -24,8 +24,10 @@ from app.db import SessionLocal
 from app.dependencies.auth import get_current_user, subscription_is_active
 from app.models.stima_salvata import StimaSalvata
 from app.models.user import User
-from app.schemas.stima import BonusOut, CategoriaOut, ExtraOut, StimaInputEcho, TotaleOut
+from app.schemas.stima import BonusOut, CategoriaOut, ConfrontoFinitureOut, ExtraOut, StimaInputEcho, TotaleOut
 from app.schemas.stima_salvata import (
+    BudgetIn,
+    BudgetOut,
     StimaSalvataCreate,
     StimaSalvataListItem,
     StimaSalvataOut,
@@ -63,7 +65,9 @@ def salva_stima(
         # finirebbero DENTRO lo snapshot immutabile, che per contratto ha la
         # forma di `StimaResponse` — cioe' cio' che l'utente ha visto. La forma
         # dello snapshot resta identica a prima di questa feature.
-        risultato_json = payload.model_dump(mode="json", exclude={"preferenze_pro"})
+        # Idem `budget_eur`: e' un parametro modificabile con PATCH, se restasse
+        # nello snapshot ci sarebbero due verita' dopo la prima modifica.
+        risultato_json = payload.model_dump(mode="json", exclude={"preferenze_pro", "budget_eur"})
         risultato_json["schema_version"] = SCHEMA_VERSION
 
         # Il tier si congela QUI, una volta sola: e' il piano attivo adesso, non
@@ -114,6 +118,7 @@ def salva_stima(
             totale_max=payload.totale.totale_max,
             fallback=payload.fallback,
             risultato_json=risultato_json,
+            budget_eur=payload.budget_eur,
             livelli_pro_json=livelli or None,
             risposte_pro_json=risposte_pro or None,
         )
@@ -180,7 +185,38 @@ def dettaglio_stima(
             # TUTTO lo storico di TUTTI gli utenti, perche' nessuna riga salvata
             # prima di questa feature ha la chiave.
             bonus=BonusOut(**snapshot["bonus"]) if snapshot.get("bonus") else None,
+            # Stesso motivo: assenti negli snapshot precedenti al 10-04.
+            confronto_finiture=(
+                ConfrontoFinitureOut(**snapshot["confronto_finiture"])
+                if snapshot.get("confronto_finiture")
+                else None
+            ),
+            finiture_al_minimo=bool(snapshot.get("finiture_al_minimo", False)),
+            budget_eur=row.budget_eur,
         )
+
+
+@router.patch("/stime/{stima_id}/budget", response_model=BudgetOut)
+def aggiorna_budget(
+    stima_id: int,
+    payload: BudgetIn,
+    current_user: User = Depends(get_current_user),
+) -> BudgetOut:
+    """Aggiorna SOLO la colonna `budget_eur` (Free e Pro). Lo snapshot non si
+    tocca e nessun motore viene chiamato: il budget non muove il prezzo.
+    404 (mai 403) su stima altrui o inesistente (anti-IDOR)."""
+    with SessionLocal() as session:
+        stmt = select(StimaSalvata).where(
+            StimaSalvata.id == stima_id,
+            StimaSalvata.user_id == current_user.id,
+        )
+        row = session.execute(stmt).scalar_one_or_none()
+        if row is None:
+            raise HTTPException(404, "Stima non trovata")
+
+        row.budget_eur = payload.budget_eur
+        session.commit()
+        return BudgetOut(budget_eur=row.budget_eur)
 
 
 @router.get("/stime/{stima_id}/pdf")
