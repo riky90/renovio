@@ -104,7 +104,12 @@ export function ListiniPage() {
   });
 
   const createListinoMutation = useMutation({
-    mutationFn: createListino,
+    mutationFn: () =>
+      createListino({
+        nome: listinoNome.trim(),
+        citta_riferimento: listinoCitta.trim(),
+        is_default: listinoIsDefault,
+      }),
     onSuccess: (row) => {
       toast.success("Modifica salvata");
       queryClient.invalidateQueries({ queryKey: ["admin-listini"] });
