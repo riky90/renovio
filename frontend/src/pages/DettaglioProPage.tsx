@@ -65,7 +65,13 @@ export function DettaglioProPage() {
 
       <DettaglioProView stimaId={stimaId} />
 
-      {snapshotQuery.data?.bonus && <BonusPanel bonus={snapshotQuery.data.bonus} />}
+      {snapshotQuery.data?.bonus && (
+        <BonusPanel
+          bonus={snapshotQuery.data.bonus}
+          totaleMin={snapshotQuery.data.totale.totale_min}
+          totaleMax={snapshotQuery.data.totale.totale_max}
+        />
+      )}
 
       {/* L'arredo viene dallo snapshot per la stessa ragione dei bonus: e'
           calcolato dal motore Free e congelato in `risultato_json`. Sta QUI e

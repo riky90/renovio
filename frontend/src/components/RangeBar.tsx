@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { formatEur } from "@/lib/currency";
-import { scalaBarra } from "@/lib/risultato";
+import { LARGHEZZA_MINIMA_PCT, pctSuScala, scalaBarra } from "@/lib/risultato";
 
 interface RangeBarProps {
   min: number;
@@ -9,6 +9,8 @@ interface RangeBarProps {
   maxLabel: string;
   /** Budget dichiarato: disegna la tacca a budget/tetto e alza il tetto se serve. */
   budget?: number | null;
+  /** Secondo segmento sulla stessa scala (es. costo dopo le detrazioni). */
+  evidenza?: { min: number; max: number; etichetta: string } | null;
   className?: string;
 }
 
@@ -16,8 +18,23 @@ interface RangeBarProps {
  * Motivo-firma: la barra min–max su un asse 0 -> tetto (D-11). La larghezza del
  * segmento riflette l'incertezza reale: +-10% e +-20% sono visibilmente diversi.
  */
-export function RangeBar({ min, max, minLabel, maxLabel, budget, className }: RangeBarProps) {
-  const { leftPct, rightPct, budgetPct } = scalaBarra(min, max, budget);
+export function RangeBar({
+  min,
+  max,
+  minLabel,
+  maxLabel,
+  budget,
+  evidenza,
+  className,
+}: RangeBarProps) {
+  const { tetto, leftPct, rightPct, budgetPct } = scalaBarra(min, max, budget);
+  let evLeft = 0;
+  let evWidth = 0;
+  if (evidenza) {
+    evLeft = pctSuScala(evidenza.min, tetto);
+    evWidth = Math.max(pctSuScala(evidenza.max, tetto) - evLeft, LARGHEZZA_MINIMA_PCT);
+    evLeft = Math.min(evLeft, 100 - evWidth);
+  }
   // L'etichetta segue la tacca ma non esce dai bordi: a sinistra sotto il 15%,
   // a destra sopra l'85%, altrimenti centrata.
   const traslaEtichetta =
@@ -39,9 +56,19 @@ export function RangeBar({ min, max, minLabel, maxLabel, budget, className }: Ra
         role="img"
         aria-label={`Stima da ${formatEur(min)} a ${formatEur(max)}${
           typeof budget === "number" && budget > 0 ? ` · budget ${formatEur(budget)}` : ""
+        }${
+          evidenza
+            ? ` · ${evidenza.etichetta} da ${formatEur(evidenza.min)} a ${formatEur(evidenza.max)}`
+            : ""
         }`}
         className="relative h-2 w-full rounded-full bg-secondary"
       >
+        {evidenza && (
+          <div
+            className="absolute inset-y-0 rounded-full border border-gold bg-gold/40"
+            style={{ left: `${evLeft}%`, width: `${evWidth}%` }}
+          />
+        )}
         <div
           className="absolute inset-y-0 rounded-full"
           style={{

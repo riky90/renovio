@@ -49,6 +49,12 @@ export function scalaBarra(min: number, max: number, budget?: number | null): Sc
   return { tetto, leftPct, rightPct, budgetPct };
 }
 
+/** Posizione in % di un valore sull'asse 0 -> tetto, limitata a 0..100. Solo geometria. */
+export function pctSuScala(valore: number, tetto: number): number {
+  if (!(tetto > 0)) return 0;
+  return Math.min(100, Math.max(0, (valore / tetto) * 100));
+}
+
 /** Incidenza €/m² su imponibile (IVA esclusa), D-14. */
 export function incidenzaEurMq(
   imponibileMin: number,

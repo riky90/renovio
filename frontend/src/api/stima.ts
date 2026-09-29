@@ -90,6 +90,12 @@ export interface BonusOut {
   rata_annua_max: number;
   /** Viaggia nel payload, non nella UI: non e' rimovibile lato client. */
   disclaimer: string;
+  /** Detrazione sui soli lavori (senza la base arredo). null negli snapshot precedenti a G5. */
+  detrazione_lavori_min: number | null;
+  detrazione_lavori_max: number | null;
+  /** Totale IVA inclusa - detrazione sui lavori, calcolato dal server. */
+  netto_min: number | null;
+  netto_max: number | null;
 }
 
 export interface ArredoAmbienteOut {
@@ -176,6 +182,10 @@ interface RawBonusDettaglioOut {
 interface RawBonusOut {
   bonus: RawBonusDettaglioOut[];
   disclaimer: string;
+  detrazione_lavori_min?: string | number | null;
+  detrazione_lavori_max?: string | number | null;
+  netto_min?: string | number | null;
+  netto_max?: string | number | null;
   [key: string]: unknown;
 }
 interface RawArredoAmbienteOut {
@@ -232,6 +242,13 @@ const NUMERIC_BONUS_FIELDS = [
   "rata_annua_max",
 ] as const;
 
+const NUMERIC_BONUS_OPZIONALI = [
+  "detrazione_lavori_min",
+  "detrazione_lavori_max",
+  "netto_min",
+  "netto_max",
+] as const;
+
 /**
  * `tetto_spesa_eur` NON e' in questa lista: e' nullable, e passarlo da
  * toNumber() trasformerebbe "nessun tetto" in 0, cioe' in "tetto a zero
@@ -282,6 +299,11 @@ function normalizeBonus(raw: RawBonusOut | null | undefined): BonusOut | null {
   } as BonusOut;
   for (const field of NUMERIC_BONUS_FIELDS) {
     out[field] = toNumber(raw[field]);
+  }
+  // Campi opzionali (G5): assenti negli snapshot vecchi -> null, mai 0.
+  for (const field of NUMERIC_BONUS_OPZIONALI) {
+    const valore = raw[field];
+    out[field] = valore == null ? null : toNumber(valore);
   }
   return out;
 }
