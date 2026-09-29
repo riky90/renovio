@@ -77,6 +77,25 @@ const STEPS: { n: string; title: string; body: string }[] = [
   },
 ];
 
+function normalizzaRisposte(r: StimaRequest["risposte"]): string {
+  const ordinate: Record<string, unknown> = {};
+  for (const k of Object.keys(r ?? {}).sort()) {
+    const v = (r as Record<string, unknown>)[k];
+    ordinate[k] = Array.isArray(v) ? [...v].sort() : v;
+  }
+  return JSON.stringify(ordinate);
+}
+
+function stessaRichiesta(a: StimaRequest, b: StimaRequest): boolean {
+  return (
+    a.citta.trim() === b.citta.trim() &&
+    a.mq === b.mq &&
+    a.tipo === b.tipo &&
+    (a.destinazione ?? "prima_casa") === (b.destinazione ?? "prima_casa") &&
+    normalizzaRisposte(a.risposte) === normalizzaRisposte(b.risposte)
+  );
+}
+
 export function EstimatePage() {
   const mutation = useMutation<StimaResponse, Error, StimaRequest>({
     mutationFn: postStima,
@@ -90,6 +109,12 @@ export function EstimatePage() {
   // Richiesta della stima corrente, ripassata al wizard da "Modifica" (G4).
   const [bozza, setBozza] = useState<StimaRequest | null>(null);
   const [wizardKey, setWizardKey] = useState(0);
+  // Ultima stima salvata da loggato con la richiesta che l'ha prodotta: sopravvive
+  // a "Modifica" per riconoscere un ricalcolo identico.
+  const [ultimoSalvataggio, setUltimoSalvataggio] = useState<{
+    id: number;
+    richiesta: StimaRequest;
+  } | null>(null);
 
   // Auto-save da loggato (D-07): nessun ricalcolo, si congela esattamente il
   // payload gia' mostrato dal risultato corrente.
@@ -104,38 +129,54 @@ export function EstimatePage() {
   const result = mutation.data;
   const input = mutation.variables;
 
+  // Regola: stessa richiesta = stessa stima, niente secondo record (si riusa l'id
+  // gia' salvato, al massimo si allinea il budget con la PATCH); input diversi =
+  // stima nuova, quindi nuovo record come per l'auto-save normale.
+  const richiestaIdentica =
+    !!ultimoSalvataggio && !!input && stessaRichiesta(ultimoSalvataggio.richiesta, input);
+
   useEffect(() => {
     if (
       mutation.isSuccess &&
       result &&
       user &&
+      !richiestaIdentica &&
       saveMutation.data === undefined &&
       !saveMutation.isPending &&
       !saveMutation.isError
     ) {
       budgetSalvato.current = budget;
-      saveMutation.mutate({ ...result, budget_eur: budget });
+      const richiesta = mutation.variables;
+      saveMutation.mutate(
+        { ...result, budget_eur: budget },
+        {
+          onSuccess: (salvata) => {
+            if (richiesta) setUltimoSalvataggio({ id: salvata.id, richiesta });
+          },
+        }
+      );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mutation.isSuccess, result, user]);
 
   // Budget cambiato mentre l'auto-save era in corso: appena c'e' l'id lo si allinea.
-  const savedId = saveMutation.data?.id;
+  const idSalvato =
+    saveMutation.data?.id ?? (richiestaIdentica ? ultimoSalvataggio?.id : undefined);
   useEffect(() => {
-    if (savedId !== undefined && budgetSalvato.current !== budget) {
+    if (idSalvato !== undefined && budgetSalvato.current !== budget) {
       const daInviare = budget;
       budgetSalvato.current = daInviare;
-      patchBudgetStima(savedId, daInviare).catch(() => {
+      patchBudgetStima(idSalvato, daInviare).catch(() => {
         budgetSalvato.current = null;
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [savedId]);
+  }, [idSalvato]);
 
   async function handleSalvaBudget(v: number | null) {
-    if (savedId !== undefined) {
+    if (idSalvato !== undefined) {
       // Se la PATCH fallisce l'errore risale al BudgetAlert, che lo mostra.
-      await patchBudgetStima(savedId, v);
+      await patchBudgetStima(idSalvato, v);
       budgetSalvato.current = v;
     }
     setBudget(v);
@@ -330,7 +371,7 @@ export function EstimatePage() {
                     <SoftWallCta
                       result={{ ...result, budget_eur: budget }}
                       isAuthenticated={!!user}
-                      savedId={saveMutation.data?.id ?? null}
+                      savedId={idSalvato ?? null}
                       isSaving={saveMutation.isPending}
                       isPro={!!user?.pro}
                     />
