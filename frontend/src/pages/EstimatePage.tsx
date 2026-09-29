@@ -87,6 +87,9 @@ export function EstimatePage() {
   const [budget, setBudget] = useState<number | null>(null);
   // Budget inviato con l'auto-save: se nel frattempo e' cambiato, si sincronizza.
   const budgetSalvato = useRef<number | null>(null);
+  // Richiesta della stima corrente, ripassata al wizard da "Modifica" (G4).
+  const [bozza, setBozza] = useState<StimaRequest | null>(null);
+  const [wizardKey, setWizardKey] = useState(0);
 
   // Auto-save da loggato (D-07): nessun ricalcolo, si congela esattamente il
   // payload gia' mostrato dal risultato corrente.
@@ -147,8 +150,13 @@ export function EstimatePage() {
   }
 
   function handleModifica() {
+    // G4: la richiesta corrente diventa la bozza che precompila il wizard.
+    // Il wizard inizializza lo stato alla mount, quindi lo si rimonta con `key`.
+    if (mutation.variables) setBozza(mutation.variables);
+    setWizardKey((k) => k + 1);
     mutation.reset();
     saveMutation.reset();
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   const showResult = mutation.isSuccess && result;
@@ -180,7 +188,20 @@ export function EstimatePage() {
 
             <div className="mx-auto mt-10 max-w-xl rounded-2xl border border-border bg-card p-6 shadow-lg shadow-black/[0.03] sm:p-8">
               <EstimateWizard
+                key={wizardKey}
                 tier="free"
+                iniziali={
+                  bozza
+                    ? {
+                        citta: bozza.citta,
+                        mqRaw: String(bozza.mq),
+                        tipo: bozza.tipo,
+                        destinazione: bozza.destinazione ?? "prima_casa",
+                      }
+                    : undefined
+                }
+                risposteDiPartenza={bozza?.risposte}
+                stepIniziale={bozza ? 1 : undefined}
                 onSubmit={handleSubmit}
                 isSubmitting={mutation.isPending}
                 budgetIniziale={budget}
