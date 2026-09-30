@@ -246,7 +246,7 @@ Plans:
 4. Superato il budget dichiarato, compare un avviso con il confronto ricalcolato a finiture inferiori
 5. Il budget **non** muove il prezzo: due assi distinti, *finiture* sì e *budget* no
 
-**Plans:** 20/24 plans executed
+**Plans:** 21/24 plans executed
 
 Plans:
 **Wave 1**
@@ -319,7 +319,7 @@ Plans:
 **Wave 8** *(blocked on Wave 7 completion)*
 
 - [x] 10-20-PLAN.md — G13 cifre della barra ai bordi nei PDF Free e Pro + Bonus Mobili nel blocco Arredo del PDF Free (RIS-01, RIS-03)
-- [ ] 10-21-PLAN.md — G10 Bonus Mobili nella card Arredo e pannello Bonus sui soli lavori + G11 card Arredo nella vista Pro da "Le mie stime" (RIS-01, RIS-03)
+- [x] 10-21-PLAN.md — G10 Bonus Mobili nella card Arredo e pannello Bonus sui soli lavori + G11 card Arredo nella vista Pro da "Le mie stime" (RIS-01, RIS-03)
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
