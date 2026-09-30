@@ -368,7 +368,7 @@ export function EstimatePage() {
 
                     {/* Dopo il totale e i bonus: l'arredo e' un'informazione
                         in piu', non parte della cifra che l'utente confronta. */}
-                    {result.arredo && <ArredoCard arredo={result.arredo} />}
+                    {result.arredo && <ArredoCard arredo={result.arredo} bonus={result.bonus} />}
 
                     <SoftWallCta
                       result={{ ...result, budget_eur: budget }}

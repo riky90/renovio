@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Loader2 } from "lucide-react";
 import { DomandaField } from "@/components/DomandaField";
+import { ArredoCard } from "@/components/ArredoCard";
 import { BonusPanel } from "@/components/BonusPanel";
 import { BudgetAlert } from "@/components/BudgetAlert";
 import { RangeBar } from "@/components/RangeBar";
@@ -22,7 +23,7 @@ import {
   type DomandaProOut,
   type LivelliPerCategoria,
 } from "@/api/dettaglio-pro";
-import { patchBudgetStima } from "@/api/stima";
+import { getStimaDettaglio, patchBudgetStima } from "@/api/stima";
 
 const DOMANDE_SUBHEADING =
   "Rispondi per affinare le quantità stimate (facoltativo: se salti, usiamo una stima prudente in base ai metri quadri).";
@@ -92,6 +93,15 @@ export function DettaglioProView({ stimaId, enabled = true }: DettaglioProViewPr
   const dettaglioQuery = useQuery({
     queryKey: ["dettaglio-pro", stimaId],
     queryFn: () => getDettaglioPro(stimaId),
+    enabled: enabled && Number.isFinite(stimaId),
+  });
+
+  // L'arredo arriva dallo snapshot (motore Free, congelato in `risultato_json`),
+  // i bonus dal dettaglio Pro (calcolati sui totali Pro). Stessa queryKey di
+  // LeMieStimePage: dato gia' in cache, nessuna richiesta doppia.
+  const snapshotQuery = useQuery({
+    queryKey: ["stima-dettaglio", stimaId],
+    queryFn: () => getStimaDettaglio(stimaId),
     enabled: enabled && Number.isFinite(stimaId),
   });
 
@@ -436,6 +446,13 @@ export function DettaglioProView({ stimaId, enabled = true }: DettaglioProViewPr
             />
           )}
         </div>
+      )}
+
+      {/* G11: la card Arredo sta qui, nella vista condivisa, cosi' "Le mie
+          stime" e /dettaglio-pro mostrano la stessa cosa e nessuna la duplica.
+          Non dipende dal blocco IVA: vale anche per dettagli Pro vecchi. */}
+      {snapshotQuery.data?.arredo && (
+        <ArredoCard arredo={snapshotQuery.data.arredo} bonus={dettaglio.bonus} />
       )}
 
       <div className="flex flex-col gap-2">

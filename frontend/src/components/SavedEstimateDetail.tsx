@@ -92,8 +92,9 @@ export function SavedEstimateDetail({ stima, isPro = false }: SavedEstimateDetai
         />
       )}
 
-      {/* Idem per l'arredo: assente su ogni snapshot anteriore alla fase 07. */}
-      {stima.arredo && <ArredoCard arredo={stima.arredo} />}
+      {/* Idem per l'arredo: assente su ogni snapshot anteriore alla fase 07.
+          G10: il Bonus Mobili (voci su_arredo) sta nella card, non nel pannello Bonus. */}
+      {stima.arredo && <ArredoCard arredo={stima.arredo} bonus={stima.bonus} />}
 
       <PdfDownloadButton stimaId={stima.id} />
     </div>
