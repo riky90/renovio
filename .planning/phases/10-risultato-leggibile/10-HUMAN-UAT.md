@@ -298,3 +298,10 @@ con `/gsd-plan-phase 10 --gaps`.
   severity: cosmetic
   test: "Ri-collaudo, scelta G8 (G13)"
   retest: .planning/checklists/2026-09-30-ricollaudo-10-g7-g9.md
+
+- truth: "'Modifica' seguita da ricalcolo aggiorna la stima salvata da cui si e' partiti (stesso id in 'Le mie stime'), anche con input cambiati; non nasce una stima nuova"
+  status: failed
+  reason: "Riccardo (chat 2026-09-30, chiarendo la nota G9c 'non modificato la mia attuale'): 'Aggiorna l'attuale'. Supera la regola di 10-12 (input diversi = stima nuova, la precedente resta), approvata il 2026-09-29."
+  severity: major
+  test: "Ri-collaudo G9(c) e chat (G14)"
+  retest: .planning/checklists/2026-09-30-ricollaudo-10-g7-g9.md
