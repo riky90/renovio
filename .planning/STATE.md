@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: domande e motore parametrico
 status: executing
-last_updated: "2026-09-29T15:26:12.741Z"
+last_updated: "2026-09-30T07:20:38.937Z"
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 44
-  completed_plans: 45
+  total_plans: 47
+  completed_plans: 47
   percent: 57
 ---
 
@@ -294,3 +294,4 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 ### Blockers
 
 - Nessuno. Fase 09 chiusa (8/8 piani). I limiti d'ambiente noti (Google OAuth proxy TLS, PDF GTK3 su Windows) restano accettati e rimandati alla verifica in produzione — non bloccanti. Collaudo dal vivo WIZ-04 pending (non bloccante, vincolo di Riccardo).
+- [Phase 10-risultato-leggibile P16]: pannello Bonus a barra singola sulla detrazione complessiva (G7); cifre RangeBar ai bordi (G8); il server manda ancora netto_*, il client non lo disegna. STATE.md aggiornato a mano oltre advance-plan (handler state inaffidabili).
