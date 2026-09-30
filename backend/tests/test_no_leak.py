@@ -130,6 +130,8 @@ def test_response_never_leaks_impresa_secret(client, citta, fallback_expected, t
             "detrazione_lavori_max",
             "netto_min",
             "netto_max",
+            "rata_annua_lavori_min",
+            "rata_annua_lavori_max",
         }
         for dettaglio in bonus["bonus"]:
             assert set(dettaglio) == {
@@ -147,6 +149,7 @@ def test_response_never_leaks_impresa_secret(client, citta, fallback_expected, t
                 "detrazione_max",
                 "rata_annua_min",
                 "rata_annua_max",
+                "su_arredo",
             }
 
 
@@ -364,10 +367,12 @@ def test_dettaglio_pro_con_budget_e_confronto_non_leakano(pro_client):
     assert set(bonus) == {
         "bonus", "detrazione_min", "detrazione_max", "rata_annua_min", "rata_annua_max",
         "disclaimer", "detrazione_lavori_min", "detrazione_lavori_max", "netto_min", "netto_max",
+        "rata_annua_lavori_min", "rata_annua_lavori_max",
     }
     for dettaglio in bonus["bonus"]:
         assert set(dettaglio) == {
             "code", "nome", "descrizione", "base_min", "base_max", "aliquota_pct",
             "tetto_spesa_eur", "tetto_modalita", "tetto_raggiunto", "rate_annuali",
             "detrazione_min", "detrazione_max", "rata_annua_min", "rata_annua_max",
+            "su_arredo",
         }

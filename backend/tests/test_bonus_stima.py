@@ -108,7 +108,67 @@ class TestNetto:
         assert out is None
 
 
+class TestSuArredo:
+    def test_senza_arredo_nessuna_voce_su_arredo(self, session):
+        _, out = _out(session)
+        assert out is not None
+        assert out.bonus and all(b.su_arredo is False for b in out.bonus)
+        assert out.rata_annua_lavori_min == out.rata_annua_min
+        assert out.rata_annua_lavori_max == out.rata_annua_max
+
+    def test_con_arredo_solo_mobili_e_su_arredo(self, session):
+        _, out = _out(session, arredo=_arredo_acceso(session))
+        mobili = [b for b in out.bonus if b.code == "MOBILI"]
+        assert len(mobili) == 1 and mobili[0].su_arredo is True
+        lavori = [b for b in out.bonus if not b.su_arredo]
+        assert lavori and all(b.code != "MOBILI" for b in lavori)
+        assert out.detrazione_lavori_min == sum(b.detrazione_min for b in lavori)
+        assert out.detrazione_lavori_max == sum(b.detrazione_max for b in lavori)
+        assert out.rata_annua_lavori_min == sum(b.rata_annua_min for b in lavori)
+        assert out.rata_annua_lavori_max == sum(b.rata_annua_max for b in lavori)
+        assert out.detrazione_min == out.detrazione_lavori_min + mobili[0].detrazione_min
+
+    def test_solo_mobili_attivo_tutto_su_arredo(self, session):
+        for b in session.query(BonusFiscale).all():
+            b.attivo = b.code == "MOBILI"
+        session.flush()
+        a = ArredoService.compute(session, {"ambienti_arredo": ["cucina"]})
+        _, out = _out(session, arredo=(a.totale_min, a.totale_max))
+        assert out is not None
+        assert out.bonus and all(b.su_arredo is True for b in out.bonus)
+        assert out.rata_annua_lavori_min == 0 and out.rata_annua_lavori_max == 0
+        assert out.detrazione_lavori_min == 0 and out.detrazione_lavori_max == 0
+
+
 def test_snapshot_senza_campi_nuovi_si_valida():
+    voce_vecchia = {
+        "code": "X",
+        "nome": "X",
+        "descrizione": None,
+        "base_min": "1",
+        "base_max": "2",
+        "aliquota_pct": "0.5",
+        "tetto_spesa_eur": None,
+        "tetto_modalita": None,
+        "tetto_raggiunto": False,
+        "rate_annuali": 10,
+        "detrazione_min": "1",
+        "detrazione_max": "2",
+        "rata_annua_min": "1",
+        "rata_annua_max": "2",
+    }
+    vecchio = BonusOut.model_validate(
+        {
+            "bonus": [voce_vecchia],
+            "detrazione_min": "1",
+            "detrazione_max": "2",
+            "rata_annua_min": "1",
+            "rata_annua_max": "2",
+            "disclaimer": "d",
+        }
+    )
+    assert vecchio.bonus[0].su_arredo is False
+    assert vecchio.rata_annua_lavori_min is None and vecchio.rata_annua_lavori_max is None
     out = BonusOut.model_validate(
         {
             "bonus": [],
@@ -158,3 +218,7 @@ def test_post_stima_con_arredo_espone_netto(client):
         assert bonus[chiave] is not None
     assert Decimal(bonus["detrazione_lavori_max"]) < Decimal(bonus["detrazione_max"])
     assert Decimal(bonus["netto_max"]) == Decimal("70575") - Decimal(bonus["detrazione_lavori_max"])
+    mobili = [b for b in bonus["bonus"] if b["code"] == "MOBILI"]
+    assert mobili and mobili[0]["su_arredo"] is True
+    assert bonus["rata_annua_lavori_min"] is not None
+    assert bonus["rata_annua_lavori_max"] is not None

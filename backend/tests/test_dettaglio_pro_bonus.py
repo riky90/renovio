@@ -100,6 +100,8 @@ class TestBonusPro:
         assert con["netto_min"] == base["netto_min"]
         mobili = [b for b in con["bonus"] if b["code"] == "MOBILI"]
         assert mobili and Decimal(mobili[0]["base_min"]) == Decimal("5000")
+        assert mobili[0]["su_arredo"] is True
+        assert all(b["su_arredo"] is False for b in con["bonus"] if b["code"] != "MOBILI")
 
     def test_nessuna_chiave_vietata(self, client):
         c, _ = client

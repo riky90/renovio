@@ -279,6 +279,48 @@ class TestArredoNelloSnapshot:
             assert vietata not in r.text
         _assert_no_forbidden_keys(body)
 
+    def test_bonus_con_su_arredo_e_rata_lavori_round_trip(self, client):
+        _registra(client)
+        voce = {
+            "code": "MOBILI",
+            "nome": "Bonus Mobili",
+            "descrizione": None,
+            "base_min": "4500.00",
+            "base_max": "6700.00",
+            "aliquota_pct": "0.50",
+            "tetto_spesa_eur": None,
+            "tetto_modalita": None,
+            "tetto_raggiunto": False,
+            "rate_annuali": 10,
+            "detrazione_min": "2250.00",
+            "detrazione_max": "3350.00",
+            "rata_annua_min": "225.00",
+            "rata_annua_max": "335.00",
+            "su_arredo": True,
+        }
+        payload = _stima_payload()
+        payload["arredo"] = _arredo_payload()
+        payload["bonus"] = {
+            "bonus": [voce],
+            "detrazione_min": "2250.00",
+            "detrazione_max": "3350.00",
+            "rata_annua_min": "225.00",
+            "rata_annua_max": "335.00",
+            "disclaimer": "d",
+            "detrazione_lavori_min": "0",
+            "detrazione_lavori_max": "0",
+            "netto_min": "100.00",
+            "netto_max": "200.00",
+            "rata_annua_lavori_min": "0",
+            "rata_annua_lavori_max": "0",
+        }
+        r = client.post(STIME_URL, json=payload)
+        assert r.status_code == 201
+        body = client.get(f"{STIME_URL}/{r.json()['id']}").json()
+        assert body["bonus"]["bonus"][0]["su_arredo"] is True
+        assert body["bonus"]["rata_annua_lavori_min"] is not None
+        assert body["bonus"]["rata_annua_lavori_max"] is not None
+
     def test_post_senza_arredo_da_arredo_null(self, client):
         _registra(client)
         sid = client.post(STIME_URL, json=_stima_payload()).json()["id"]
