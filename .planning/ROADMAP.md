@@ -246,7 +246,7 @@ Plans:
 4. Superato il budget dichiarato, compare un avviso con il confronto ricalcolato a finiture inferiori
 5. Il budget **non** muove il prezzo: due assi distinti, *finiture* sì e *budget* no
 
-**Plans:** 17/18 plans executed
+**Plans:** 18/18 plans complete
 
 Plans:
 **Wave 1**
@@ -308,7 +308,7 @@ Plans:
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 10-18-PLAN.md — Suite completa, build/lint e checklist di ri-collaudo G7-G9 per Riccardo
+- [x] 10-18-PLAN.md — Suite completa, build/lint e checklist di ri-collaudo G7-G9 per Riccardo
 
 ---
 
