@@ -225,3 +225,79 @@ class TestAntiIdorEAntiSpoofing:
         response = client.post(STIME_URL, json=_stima_payload())
 
         assert response.status_code == 401
+
+
+def _arredo_payload() -> dict:
+    return {
+        "livello_code": "medio",
+        "livello_nome": "Medio",
+        "ambienti": [
+            {"code": "cucina", "nome": "Cucina", "eur_min": "3000.00", "eur_max": "4500.00"},
+            {"code": "bagno", "nome": "Bagno", "eur_min": "1500.00", "eur_max": "2200.00"},
+        ],
+        "totale_min": "4500.00",
+        "totale_max": "6700.00",
+        "disclaimer": "Stima indicativa dell'arredo, esclusa dal totale dei lavori.",
+    }
+
+
+class TestArredoNelloSnapshot:
+    def test_post_con_arredo_lo_salva_nello_snapshot(self, client):
+        from decimal import Decimal
+
+        import app.db as db_module
+        from app.models.stima_salvata import StimaSalvata
+
+        _registra(client)
+        payload = _stima_payload()
+        payload["arredo"] = _arredo_payload()
+        r = client.post(STIME_URL, json=payload)
+        assert r.status_code == 201
+        with db_module.SessionLocal() as s:
+            riga = s.get(StimaSalvata, r.json()["id"])
+            arredo = riga.risultato_json.get("arredo")
+        assert arredo is not None
+        assert Decimal(str(arredo["totale_min"])) == Decimal("4500.00")
+        assert Decimal(str(arredo["totale_max"])) == Decimal("6700.00")
+
+    def test_get_restituisce_l_arredo(self, client):
+        from decimal import Decimal
+
+        _registra(client)
+        payload = _stima_payload()
+        payload["arredo"] = _arredo_payload()
+        sid = client.post(STIME_URL, json=payload).json()["id"]
+        r = client.get(f"{STIME_URL}/{sid}")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["arredo"] is not None
+        assert body["arredo"]["livello_nome"] == "Medio"
+        assert [a["code"] for a in body["arredo"]["ambienti"]] == ["cucina", "bagno"]
+        assert Decimal(body["arredo"]["totale_min"]) == Decimal("4500.00")
+        assert Decimal(body["arredo"]["totale_max"]) == Decimal("6700.00")
+        for vietata in FORBIDDEN_SUBSTRINGS:
+            assert vietata not in r.text
+        _assert_no_forbidden_keys(body)
+
+    def test_post_senza_arredo_da_arredo_null(self, client):
+        _registra(client)
+        sid = client.post(STIME_URL, json=_stima_payload()).json()["id"]
+        body = client.get(f"{STIME_URL}/{sid}").json()
+        assert "arredo" in body and body["arredo"] is None
+
+    def test_snapshot_vecchio_senza_chiave_arredo_si_apre(self, client):
+        import app.db as db_module
+        from app.models.stima_salvata import StimaSalvata
+
+        _registra(client)
+        sid = client.post(STIME_URL, json=_stima_payload()).json()["id"]
+        with db_module.SessionLocal() as s:
+            riga = s.get(StimaSalvata, sid)
+            snap = dict(riga.risultato_json)
+            snap.pop("arredo", None)
+            snap["schema_version"] = 2
+            riga.risultato_json = snap
+            s.commit()
+        r = client.get(f"{STIME_URL}/{sid}")
+        assert r.status_code == 200
+        assert r.json()["arredo"] is None

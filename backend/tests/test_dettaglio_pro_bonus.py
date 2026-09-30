@@ -5,7 +5,6 @@ from __future__ import annotations
 from decimal import Decimal
 
 from app.models.bonus import BonusFiscale
-from app.models.stima_salvata import StimaSalvata
 from tests.test_dettaglio_pro_budget import _crea, _get, _livelli_selezionabili
 from tests.test_dettaglio_pro_livelli import (  # noqa: F401  (fixture `client` inclusa)
     STIME_URL,
@@ -81,15 +80,17 @@ class TestBonusPro:
             s.get(BonusFiscale, "MOBILI").attivo = True
             s.commit()
         base = _get(c, _crea(c))["bonus"]
-        sid = _crea(c)
-        # L'arredo si inserisce direttamente nello snapshot: `StimaSalvataCreate`
-        # non lo accetta ancora (vedi deferred-items.md).
-        with sf() as s:
-            riga = s.get(StimaSalvata, sid)
-            snap = dict(riga.risultato_json)
-            snap["arredo"] = {"totale_min": "5000", "totale_max": "8000"}
-            riga.risultato_json = snap
-            s.commit()
+        # L'arredo arriva col salvataggio (POST /me/stime), come fa il client (G9).
+        payload = _stima_payload()
+        payload["arredo"] = {
+            "livello_code": "medio",
+            "livello_nome": "Medio",
+            "ambienti": [{"code": "cucina", "nome": "Cucina", "eur_min": "5000", "eur_max": "8000"}],
+            "totale_min": "5000",
+            "totale_max": "8000",
+            "disclaimer": "Stima indicativa dell'arredo.",
+        }
+        sid = c.post(STIME_URL, json=payload).json()["id"]
         con = _get(c, sid)["bonus"]
         # la detrazione complessiva puo' crescere (Bonus Mobili), quella sui lavori no
         assert [(b["code"], b["base_min"]) for b in con["bonus"]] != [
@@ -97,6 +98,8 @@ class TestBonusPro:
         ], "l'arredo dello snapshot deve entrare nella base dei bonus"
         assert con["detrazione_lavori_min"] == base["detrazione_lavori_min"]
         assert con["netto_min"] == base["netto_min"]
+        mobili = [b for b in con["bonus"] if b["code"] == "MOBILI"]
+        assert mobili and Decimal(mobili[0]["base_min"]) == Decimal("5000")
 
     def test_nessuna_chiave_vietata(self, client):
         c, _ = client
