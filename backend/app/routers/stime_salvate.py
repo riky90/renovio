@@ -24,7 +24,7 @@ from app.db import SessionLocal
 from app.dependencies.auth import get_current_user, subscription_is_active
 from app.models.stima_salvata import StimaSalvata
 from app.models.user import User
-from app.schemas.stima import BonusOut, CategoriaOut, ConfrontoFinitureOut, ExtraOut, StimaInputEcho, TotaleOut
+from app.schemas.stima import ArredoOut, BonusOut, CategoriaOut, ConfrontoFinitureOut, ExtraOut, StimaInputEcho, TotaleOut
 from app.schemas.stima_salvata import (
     BudgetIn,
     BudgetOut,
@@ -44,7 +44,8 @@ from app.services.pdf_service import PdfService, build_filename
 
 router = APIRouter(prefix="/me", tags=["stime"])
 
-# v2: lo snapshot puo' contenere la chiave `bonus` e `input.destinazione`.
+# v2: lo snapshot puo' contenere le chiavi opzionali `bonus`, `arredo` e
+# `input.destinazione`.
 # Gli snapshot v1 restano leggibili e non vengono mai riscritti — si leggono
 # con `.get()` e i default degli schemi.
 SCHEMA_VERSION = 2
@@ -185,6 +186,8 @@ def dettaglio_stima(
             # TUTTO lo storico di TUTTI gli utenti, perche' nessuna riga salvata
             # prima di questa feature ha la chiave.
             bonus=BonusOut(**snapshot["bonus"]) if snapshot.get("bonus") else None,
+            # Snapshot precedenti a G9: niente chiave `arredo`, da qui il `.get()`.
+            arredo=ArredoOut(**snapshot["arredo"]) if snapshot.get("arredo") else None,
             # Stesso motivo: assenti negli snapshot precedenti al 10-04.
             confronto_finiture=(
                 ConfrontoFinitureOut(**snapshot["confronto_finiture"])

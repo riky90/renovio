@@ -18,7 +18,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, Field, field_validator
 
-from app.schemas.stima import BonusOut, CategoriaOut, ConfrontoFinitureOut, ExtraOut, StimaInputEcho, TotaleOut
+from app.schemas.stima import ArredoOut, BonusOut, CategoriaOut, ConfrontoFinitureOut, ExtraOut, StimaInputEcho, TotaleOut
 
 
 class RisposteProIn(BaseModel):
@@ -79,6 +79,9 @@ class StimaSalvataCreate(BaseModel):
     extra: list[ExtraOut]
     totale: TotaleOut
     bonus: BonusOut | None = None
+    # Risultato del motore come `bonus`: entra nello snapshot. Prima di G9 pydantic
+    # lo scartava in silenzio perche' il campo non esisteva.
+    arredo: ArredoOut | None = None
     # Risultati calcolati dal motore (10-04): finiscono nello snapshot.
     confronto_finiture: ConfrontoFinitureOut | None = None
     finiture_al_minimo: bool = False
@@ -116,6 +119,8 @@ class StimaSalvataOut(BaseModel):
     # Assente negli snapshot v1 (salvati prima dei bonus): il router lo legge
     # con `.get()`, mai con `[]`.
     bonus: BonusOut | None = None
+    # Assente negli snapshot salvati prima di G9: il router lo legge con `.get()`.
+    arredo: ArredoOut | None = None
     # Assenti negli snapshot salvati prima del 10-04: il router li legge con
     # `.get()`, default None/False.
     confronto_finiture: ConfrontoFinitureOut | None = None
