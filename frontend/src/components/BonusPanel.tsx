@@ -7,28 +7,12 @@ import type { BonusOut } from "@/api/stima";
 
 interface BonusPanelProps {
   bonus: BonusOut;
-  /** Totale IVA inclusa della stima: la stessa base della barra del totale. */
-  totaleMin: number;
-  totaleMax: number;
 }
 
-function RigaLegenda({
-  label,
-  min,
-  max,
-  swatch,
-}: {
-  label: string;
-  min: number;
-  max: number;
-  swatch?: React.ReactNode;
-}) {
+function RigaLegenda({ label, min, max }: { label: string; min: number; max: number }) {
   return (
     <div className="flex justify-between gap-2 text-sm">
-      <span className="flex min-w-0 items-center gap-2">
-        {swatch}
-        {label}
-      </span>
+      <span className="flex min-w-0 items-center gap-2">{label}</span>
       <span className="shrink-0 tabular-nums">
         {formatEur(min)} – {formatEur(max)}
       </span>
@@ -42,14 +26,10 @@ function formatAliquota(pct: number): string {
 }
 
 /**
- * "Quanto mi costa davvero dopo le detrazioni". La barra e' quella del COSTO
- * TOTALE (Totale IVA inclusa, stessa scala e stesse cifre della barra del
- * totale) con un secondo segmento: il costo al netto delle detrazioni. Lo
- * spazio fra i due e' cio' che si recupera.
- *
- * Il client non calcola valori fiscali: netto e detrazione sui lavori arrivano
- * dal server (`BonusOut`). Negli snapshot precedenti a G5 mancano: si mostra
- * la barra del totale senza il segmento netto.
+ * "Quanto recuperi con le detrazioni". Una sola barra: il range della detrazione
+ * (`detrazione_min` – `detrazione_max`, Bonus Mobili incluso quando c'e' arredo).
+ * Il netto non si mostra piu' (G7, ri-collaudo 2026-09-30) anche se il server lo
+ * manda ancora: il client non disegna ne' calcola valori fiscali.
  *
  * Due scelte non estetiche:
  *
@@ -59,71 +39,34 @@ function formatAliquota(pct: number): string {
  * 2. **Sempre a range**, come il resto della stima. Un numero secco qui
  *    sarebbe una promessa, e la detrazione dipende dalla spesa effettiva.
  */
-export function BonusPanel({ bonus, totaleMin, totaleMax }: BonusPanelProps) {
+export function BonusPanel({ bonus }: BonusPanelProps) {
   const [dettaglioAperto, setDettaglioAperto] = useState(false);
 
-  const nettoMin = bonus.netto_min;
-  const nettoMax = bonus.netto_max;
-  const haNetto = nettoMin !== null && nettoMax !== null;
   const lavoriMin = bonus.detrazione_lavori_min;
   const lavoriMax = bonus.detrazione_lavori_max;
   const haLavori = lavoriMin !== null && lavoriMax !== null;
-  // Un bonus la cui detrazione non entra nel netto (es. Bonus Mobili).
+  // Detrazione che comprende anche un bonus non sui lavori (es. Bonus Mobili).
   const detrazioneEsclusa = haLavori && bonus.detrazione_max > lavoriMax;
 
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
       <div className="border-l-4 border-gold bg-secondary/60 px-6 py-5">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Costo totale e detrazioni
+          Quanto recuperi con le detrazioni
         </p>
         <div className="mt-4">
           <RangeBar
-            min={totaleMin}
-            max={totaleMax}
-            minLabel={formatEur(totaleMin)}
-            maxLabel={formatEur(totaleMax)}
-            evidenza={
-              haNetto ? { min: nettoMin, max: nettoMax, etichetta: "Dopo le detrazioni" } : null
-            }
+            min={bonus.detrazione_min}
+            max={bonus.detrazione_max}
+            minLabel={formatEur(bonus.detrazione_min)}
+            maxLabel={formatEur(bonus.detrazione_max)}
           />
         </div>
-        <div className="mt-4 flex flex-col gap-2">
-          <RigaLegenda
-            label="Costo totale IVA inclusa"
-            min={totaleMin}
-            max={totaleMax}
-            swatch={
-              <span
-                className="size-3 shrink-0 rounded-full"
-                style={{ background: "linear-gradient(90deg, var(--gold), var(--primary))" }}
-                aria-hidden
-              />
-            }
-          />
-          {haNetto && (
-            <RigaLegenda
-              label="Dopo le detrazioni"
-              min={nettoMin}
-              max={nettoMax}
-              swatch={
-                <span
-                  className="size-3 shrink-0 rounded-full border border-gold bg-gold/40"
-                  aria-hidden
-                />
-              }
-            />
-          )}
-          {haLavori ? (
+        {haLavori && (
+          <div className="mt-4 flex flex-col gap-2">
             <RigaLegenda label="Recuperi in detrazione sui lavori" min={lavoriMin} max={lavoriMax} />
-          ) : (
-            <RigaLegenda
-              label="Detrazioni fiscali stimate"
-              min={bonus.detrazione_min}
-              max={bonus.detrazione_max}
-            />
-          )}
-        </div>
+          </div>
+        )}
         <p className="mt-3 text-sm text-muted-foreground">
           Che tornano indietro come{" "}
           <span className="font-medium text-foreground tabular-nums">
@@ -133,7 +76,7 @@ export function BonusPanel({ bonus, totaleMin, totaleMax }: BonusPanelProps) {
         </p>
         {detrazioneEsclusa && (
           <p className="mt-2 text-xs text-muted-foreground">
-            La detrazione sull'arredo non riduce il costo dei lavori: l'arredo è stimato a parte.
+            La detrazione comprende anche l'arredo (Bonus Mobili), che è stimato a parte dal totale lavori.
           </p>
         )}
       </div>

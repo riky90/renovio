@@ -433,8 +433,6 @@ export function DettaglioProView({ stimaId, enabled = true }: DettaglioProViewPr
           {dettaglio.bonus && (
             <BonusPanel
               bonus={dettaglio.bonus}
-              totaleMin={dettaglio.totale_ivato_min}
-              totaleMax={dettaglio.totale_ivato_max}
             />
           )}
         </div>

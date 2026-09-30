@@ -89,8 +89,6 @@ export function SavedEstimateDetail({ stima, isPro = false }: SavedEstimateDetai
       {stima.bonus && (
         <BonusPanel
           bonus={stima.bonus}
-          totaleMin={stima.totale.totale_min}
-          totaleMax={stima.totale.totale_max}
         />
       )}
 

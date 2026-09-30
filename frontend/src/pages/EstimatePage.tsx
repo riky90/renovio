@@ -364,8 +364,6 @@ export function EstimatePage() {
 
                     {result.bonus && <BonusPanel
                         bonus={result.bonus}
-                        totaleMin={result.totale.totale_min}
-                        totaleMax={result.totale.totale_max}
                       />}
 
                     {/* Dopo il totale e i bonus: l'arredo e' un'informazione
