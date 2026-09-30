@@ -133,7 +133,9 @@ in `Note:` e prova su un ambiente con GTK3 (Render).
   Note:
 - [ ] **PDF di una stima salvata prima della Fase 10** — si genera senza errori; niente avviso budget, nessuna riga extra inventata.
   Note:
-- [ ] **PDF Free e PDF Pro: le cifre min e max sotto la barra stanno sotto gli estremi del segmento, dentro il riquadro (G1)** — verifica a occhio al go-live.
+- [ ] **PDF Free e PDF Pro: le cifre min e max sotto la barra stanno sotto gli estremi del segmento, dentro il riquadro (G1)** — verifica a occhio al go-live. Vedi G8: nel web le cifre sono tornate ai bordi; decidere se allineare il PDF.
+  Note:
+- [ ] **PDF Free di una stima salvata con ambienti da arredare** — compare la sezione Arredo con gli stessi importi della card web (G9).
   Note:
 - [ ] **PDF Free e PDF Pro: gli importi per categoria sono IVA esclusa e lo dicono in etichetta (Range (IVA esclusa), Totale <categoria> (IVA esclusa)) (G2)** — verifica a occhio al go-live.
   Note:
@@ -247,18 +249,21 @@ con `/gsd-plan-phase 10 --gaps`.
   reason: "Riccardo (ri-collaudo 2026-09-30, G1d e G5a): due barre (totale e netto) non sono cio' che vuole; dopo averci ripensato: 'togli il totale, lascia la barra solo del valore del bonus'."
   severity: minor
   test: "Ri-collaudo G1(d), G5(a) (G7)"
-  retest: .planning/checklists/2026-09-29-ricollaudo-10.md
+  fix: piano 10-16
+  retest: .planning/checklists/2026-09-30-ricollaudo-10-g7-g9.md
 
 - truth: "Le cifre min/max della RangeBar stanno ai bordi del contenitore, come prima di 10-10"
   status: failed
   reason: "Riccardo (ri-collaudo 2026-09-30, G1a): 'lo preferivo prima'; confermato in chat: tornare ai bordi."
   severity: cosmetic
   test: "Ri-collaudo G1(a) (G8)"
-  retest: .planning/checklists/2026-09-29-ricollaudo-10.md
+  fix: piano 10-16
+  retest: .planning/checklists/2026-09-30-ricollaudo-10-g7-g9.md
 
 - truth: "Lo snapshot di una stima salvata contiene l'arredo (StimaSalvataCreate ha il campo), cosi' ArredoCard e la base Bonus Mobili del Pro usano dati reali"
   status: failed
   reason: "Difetto trovato in 10-14 e differito; Riccardo (2026-09-30): correggerlo ora, dentro la Fase 10."
   severity: major
   test: "Scelte di Claude, ultima voce del ri-collaudo (G9)"
-  retest: .planning/checklists/2026-09-29-ricollaudo-10.md
+  fix: piano 10-17
+  retest: .planning/checklists/2026-09-30-ricollaudo-10-g7-g9.md
