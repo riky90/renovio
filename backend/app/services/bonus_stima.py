@@ -3,6 +3,13 @@ detrazione sui lavori e costo netto a range.
 
 Sta in un servizio e non nel router perche' lo riusano sia il Free (POST /stima)
 sia il Pro. Il client non calcola nessun valore fiscale: mappa i campi del DTO.
+
+Marcatura `su_arredo` (G10): quando c'e' arredo il calcolo gira due volte,
+`completo` (con la pseudo-categoria E-ARREDO) e `lavori` (senza). Una voce di
+`completo` e' `su_arredo` se il suo codice NON compare fra le voci di `lavori`:
+esiste solo grazie alla base arredo. Nessun codice bonus e' cablato qui. Caso
+limite: un bonus configurato su lavori E arredo insieme compare in `lavori` e
+resta quindi fra i lavori (non presente nei dati seed).
 """
 
 from __future__ import annotations
@@ -61,7 +68,9 @@ def bonus_out_per_stima(
     min, max con max), mai sotto zero. La detrazione sui lavori e' il calcolo
     fatto SENZA la pseudo-categoria E-ARREDO: l'arredo sta accanto al totale
     lavori, non dentro, quindi la detrazione sull'arredo (Bonus Mobili) non
-    puo' ridurne il costo. Il dettaglio per bonus resta quello completo.
+    puo' ridurne il costo. Il dettaglio per bonus resta quello completo, con ogni
+    voce marcata `su_arredo` se assente dal calcolo sui lavori; la rata annua dei
+    soli lavori (`rata_annua_lavori_*`) e' quella del calcolo sui lavori.
     """
     categorie = list(categorie_lorde)
     extra = list(extra_lordi)
@@ -83,15 +92,30 @@ def bonus_out_per_stima(
         )
         if lavori is None:
             detr_lavori_min = detr_lavori_max = Decimal("0")
+            rata_lavori_min = rata_lavori_max = Decimal("0")
+            codici_lavori: set[str] = set()
         else:
             detr_lavori_min, detr_lavori_max = lavori.detrazione_min, lavori.detrazione_max
+            rata_lavori_min, rata_lavori_max = lavori.rata_annua_min, lavori.rata_annua_max
+            codici_lavori = {d.code for d in lavori.bonus}
     else:
         detr_lavori_min, detr_lavori_max = completo.detrazione_min, completo.detrazione_max
+        rata_lavori_min, rata_lavori_max = completo.rata_annua_min, completo.rata_annua_max
+        codici_lavori = {d.code for d in completo.bonus}
 
     netto_min = _eur(max(Decimal("0"), totale_min - detr_lavori_min))
     netto_max = _eur(max(Decimal("0"), totale_max - detr_lavori_max))
 
-    return _mappa(completo, detr_lavori_min, detr_lavori_max, netto_min, netto_max)
+    return _mappa(
+        completo,
+        detr_lavori_min,
+        detr_lavori_max,
+        netto_min,
+        netto_max,
+        codici_lavori,
+        rata_lavori_min,
+        rata_lavori_max,
+    )
 
 
 def _mappa(
@@ -100,6 +124,9 @@ def _mappa(
     detr_lavori_max: Decimal,
     netto_min: Decimal,
     netto_max: Decimal,
+    codici_lavori: set[str],
+    rata_lavori_min: Decimal,
+    rata_lavori_max: Decimal,
 ) -> BonusOut:
     """Mappa campo-per-campo: mai `model_validate` su una dataclass interna."""
     return BonusOut(
@@ -119,6 +146,7 @@ def _mappa(
                 detrazione_max=d.detrazione_max,
                 rata_annua_min=d.rata_annua_min,
                 rata_annua_max=d.rata_annua_max,
+                su_arredo=d.code not in codici_lavori,
             )
             for d in result.bonus
         ],
@@ -131,4 +159,6 @@ def _mappa(
         detrazione_lavori_max=detr_lavori_max,
         netto_min=netto_min,
         netto_max=netto_max,
+        rata_annua_lavori_min=rata_lavori_min,
+        rata_annua_lavori_max=rata_lavori_max,
     )

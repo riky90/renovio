@@ -120,6 +120,10 @@ class BonusDettaglioOut(BaseModel):
     detrazione_max: Decimal
     rata_annua_min: Decimal
     rata_annua_max: Decimal
+    # G10: True quando la voce esiste solo grazie alla base arredo (es. Bonus
+    # Mobili): il client la mostra nella card Arredo e non nel pannello Bonus.
+    # Assente negli snapshot precedenti a G10 = False.
+    su_arredo: bool = False
 
 
 class BonusOut(BaseModel):
@@ -138,6 +142,9 @@ class BonusOut(BaseModel):
     detrazione_lavori_max: Decimal | None = None
     netto_min: Decimal | None = None
     netto_max: Decimal | None = None
+    # G10: rata annua dei soli lavori (senza le voci su_arredo). Assente prima di G10.
+    rata_annua_lavori_min: Decimal | None = None
+    rata_annua_lavori_max: Decimal | None = None
 
 
 class ArredoAmbienteOut(BaseModel):

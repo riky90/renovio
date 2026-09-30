@@ -24,6 +24,8 @@ CHIAVI_BONUS = {
     "detrazione_lavori_max",
     "netto_min",
     "netto_max",
+    "rata_annua_lavori_min",
+    "rata_annua_lavori_max",
 }
 
 
