@@ -246,7 +246,7 @@ Plans:
 4. Superato il budget dichiarato, compare un avviso con il confronto ricalcolato a finiture inferiori
 5. Il budget **non** muove il prezzo: due assi distinti, *finiture* sì e *budget* no
 
-**Plans:** 18/18 plans complete
+**Plans:** 18/23 plans complete
 
 Plans:
 **Wave 1**
@@ -309,6 +309,25 @@ Plans:
 **Wave 6** *(blocked on Wave 5 completion)*
 
 - [x] 10-18-PLAN.md — Suite completa, build/lint e checklist di ri-collaudo G7-G9 per Riccardo
+
+**Gap closure (ri-collaudo 2026-09-30 pomeriggio, G10-G13)**
+
+**Wave 7**
+
+- [ ] 10-19-PLAN.md — G10 server: voci bonus marcate `su_arredo` e rata annua sui soli lavori in BonusOut (RIS-03)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [ ] 10-20-PLAN.md — G13 cifre della barra ai bordi nei PDF Free e Pro + Bonus Mobili nel blocco Arredo del PDF Free (RIS-01, RIS-03)
+- [ ] 10-21-PLAN.md — G10 Bonus Mobili nella card Arredo e pannello Bonus sui soli lavori + G11 card Arredo nella vista Pro da "Le mie stime" (RIS-01, RIS-03)
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
+- [ ] 10-22-PLAN.md — G12 diagnosi e correzione del doppio salvataggio dopo Modifica, confronto provato con script node (RIS-04)
+
+**Wave 10** *(blocked on Wave 9 completion)*
+
+- [ ] 10-23-PLAN.md — Suite completa, build/lint e checklist di ri-collaudo G10-G13 per Riccardo
 
 ---
 
