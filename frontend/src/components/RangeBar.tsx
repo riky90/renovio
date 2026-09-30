@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { formatEur } from "@/lib/currency";
-import { LARGHEZZA_MINIMA_PCT, pctSuScala, scalaBarra } from "@/lib/risultato";
+import { scalaBarra } from "@/lib/risultato";
 
 interface RangeBarProps {
   min: number;
@@ -9,8 +9,6 @@ interface RangeBarProps {
   maxLabel: string;
   /** Budget dichiarato: disegna la tacca a budget/tetto e alza il tetto se serve. */
   budget?: number | null;
-  /** Secondo segmento sulla stessa scala (es. costo dopo le detrazioni). */
-  evidenza?: { min: number; max: number; etichetta: string } | null;
   className?: string;
 }
 
@@ -24,17 +22,9 @@ export function RangeBar({
   minLabel,
   maxLabel,
   budget,
-  evidenza,
   className,
 }: RangeBarProps) {
-  const { tetto, leftPct, rightPct, budgetPct } = scalaBarra(min, max, budget);
-  let evLeft = 0;
-  let evWidth = 0;
-  if (evidenza) {
-    evLeft = pctSuScala(evidenza.min, tetto);
-    evWidth = Math.max(pctSuScala(evidenza.max, tetto) - evLeft, LARGHEZZA_MINIMA_PCT);
-    evLeft = Math.min(evLeft, 100 - evWidth);
-  }
+  const { leftPct, rightPct, budgetPct } = scalaBarra(min, max, budget);
   // L'etichetta segue la tacca ma non esce dai bordi: a sinistra sotto il 15%,
   // a destra sopra l'85%, altrimenti centrata.
   const traslaEtichetta =
@@ -56,19 +46,9 @@ export function RangeBar({
         role="img"
         aria-label={`Stima da ${formatEur(min)} a ${formatEur(max)}${
           typeof budget === "number" && budget > 0 ? ` · budget ${formatEur(budget)}` : ""
-        }${
-          evidenza
-            ? ` · ${evidenza.etichetta} da ${formatEur(evidenza.min)} a ${formatEur(evidenza.max)}`
-            : ""
         }`}
         className="relative h-2 w-full rounded-full bg-secondary"
       >
-        {evidenza && (
-          <div
-            className="absolute inset-y-0 rounded-full border border-gold bg-gold/40"
-            style={{ left: `${evLeft}%`, width: `${evWidth}%` }}
-          />
-        )}
         <div
           className="absolute inset-y-0 rounded-full"
           style={{
@@ -92,30 +72,13 @@ export function RangeBar({
           />
         )}
       </div>
-      {/* Le cifre stanno sotto gli estremi del segmento: due spaziatori comprimibili
-          + un blocco centrale largo quanto il segmento (mai piu' stretto delle cifre). */}
-      <div className="flex w-full items-baseline overflow-hidden font-display tabular-nums">
-        <div style={{ flexBasis: `${leftPct}%`, flexGrow: 0, flexShrink: 1, minWidth: 0 }} />
-        <div
-          className="flex items-baseline justify-between gap-2"
-          style={{
-            flexBasis: `${rightPct - leftPct}%`,
-            flexGrow: 0,
-            flexShrink: 0,
-            minWidth: "max-content",
-          }}
-        >
-          <span className="text-lg font-bold text-foreground sm:text-xl">{minLabel}</span>
-          {rightPct - leftPct >= 35 && (
-            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              fino a
-            </span>
-          )}
-          <span className="text-lg font-bold text-primary sm:text-xl">{maxLabel}</span>
-        </div>
-        <div
-          style={{ flexBasis: `${100 - rightPct}%`, flexGrow: 0, flexShrink: 1, minWidth: 0 }}
-        />
+      {/* Cifre ai bordi del box per scelta di Riccardo (G8, ri-collaudo 2026-09-30). */}
+      <div className="flex items-baseline justify-between gap-2 font-display tabular-nums">
+        <span className="text-lg font-bold text-foreground sm:text-xl">{minLabel}</span>
+        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          fino a
+        </span>
+        <span className="text-lg font-bold text-primary sm:text-xl">{maxLabel}</span>
       </div>
     </div>
   );
