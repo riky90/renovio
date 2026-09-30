@@ -80,6 +80,8 @@ export interface BonusDettaglioOut {
   detrazione_max: number;
   rata_annua_min: number;
   rata_annua_max: number;
+  /** G10: voce che esiste solo per la base arredo (es. Bonus Mobili), decisa dal server. Assente negli snapshot vecchi = false. */
+  su_arredo: boolean;
 }
 
 export interface BonusOut {
@@ -96,6 +98,9 @@ export interface BonusOut {
   /** Totale IVA inclusa - detrazione sui lavori, calcolato dal server. */
   netto_min: number | null;
   netto_max: number | null;
+  /** Rata annua sui soli lavori (G10). null negli snapshot precedenti a G10. */
+  rata_annua_lavori_min: number | null;
+  rata_annua_lavori_max: number | null;
 }
 
 export interface ArredoAmbienteOut {
@@ -186,6 +191,8 @@ export interface RawBonusOut {
   detrazione_lavori_max?: string | number | null;
   netto_min?: string | number | null;
   netto_max?: string | number | null;
+  rata_annua_lavori_min?: string | number | null;
+  rata_annua_lavori_max?: string | number | null;
   [key: string]: unknown;
 }
 interface RawArredoAmbienteOut {
@@ -247,6 +254,8 @@ const NUMERIC_BONUS_OPZIONALI = [
   "detrazione_lavori_max",
   "netto_min",
   "netto_max",
+  "rata_annua_lavori_min",
+  "rata_annua_lavori_max",
 ] as const;
 
 /**
@@ -289,6 +298,7 @@ export function normalizeBonus(raw: RawBonusOut | null | undefined): BonusOut | 
         tetto_modalita: d.tetto_modalita,
         tetto_raggiunto: d.tetto_raggiunto,
         rate_annuali: d.rate_annuali,
+        su_arredo: d.su_arredo === true,
       } as BonusDettaglioOut;
       for (const field of NUMERIC_BONUS_DETTAGLIO_FIELDS) {
         dettaglio[field] = toNumber(d[field]);

@@ -1,4 +1,19 @@
-import type { CategoriaOut, ExtraOut, TotaleOut } from "@/api/stima";
+import type { BonusDettaglioOut, BonusOut, CategoriaOut, ExtraOut, TotaleOut } from "@/api/stima";
+
+/** Voci bonus sui lavori (G10): il server marca con `su_arredo` quelle che vivono solo sulla base arredo. */
+export function vociBonusLavori(bonus: BonusOut | null): BonusDettaglioOut[] {
+  return bonus ? bonus.bonus.filter((v) => !v.su_arredo) : [];
+}
+
+/** Voci bonus sull'arredo (es. Bonus Mobili), da mostrare nella card Arredo (G10). */
+export function vociBonusArredo(bonus: BonusOut | null): BonusDettaglioOut[] {
+  return bonus ? bonus.bonus.filter((v) => v.su_arredo) : [];
+}
+
+/** 0.5 -> "50%". Le aliquote arrivano come frazione, mai come percentuale. */
+export function formatAliquota(pct: number): string {
+  return `${Math.round(pct * 100)}%`;
+}
 
 // Funzioni pure di presentazione del risultato Free. Nessun prezzo qui: il fattore
 // del tetto e i passi di arrotondamento sono geometria della barra (D-11), non

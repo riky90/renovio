@@ -3,6 +3,7 @@ import { ChevronDown, Info } from "lucide-react";
 import { RangeBar } from "@/components/RangeBar";
 import { formatEur } from "@/lib/currency";
 import { cn } from "@/lib/utils";
+import { formatAliquota, vociBonusArredo, vociBonusLavori } from "@/lib/risultato";
 import type { BonusOut } from "@/api/stima";
 
 interface BonusPanelProps {
@@ -20,14 +21,11 @@ function RigaLegenda({ label, min, max }: { label: string; min: number; max: num
   );
 }
 
-/** 0.5 -> "50%". Le aliquote arrivano come frazione, mai come percentuale. */
-function formatAliquota(pct: number): string {
-  return `${Math.round(pct * 100)}%`;
-}
-
 /**
  * "Quanto recuperi con le detrazioni". Una sola barra: il range della detrazione
- * (`detrazione_min` – `detrazione_max`, Bonus Mobili incluso quando c'e' arredo).
+ * sui lavori (`detrazione_lavori_*`, ripiego su `detrazione_*` per gli snapshot
+ * precedenti a G5). Le voci sull'arredo (`su_arredo`, es. Bonus Mobili) non sono
+ * qui: stanno nella card Arredo, perche' l'arredo non e' nel totale lavori (G10).
  * Il netto non si mostra piu' (G7, ri-collaudo 2026-09-30) anche se il server lo
  * manda ancora: il client non disegna ne' calcola valori fiscali.
  *
@@ -42,11 +40,17 @@ function formatAliquota(pct: number): string {
 export function BonusPanel({ bonus }: BonusPanelProps) {
   const [dettaglioAperto, setDettaglioAperto] = useState(false);
 
+  const voci = vociBonusLavori(bonus);
+  if (voci.length === 0) return null;
+
   const lavoriMin = bonus.detrazione_lavori_min;
   const lavoriMax = bonus.detrazione_lavori_max;
   const haLavori = lavoriMin !== null && lavoriMax !== null;
-  // Detrazione che comprende anche un bonus non sui lavori (es. Bonus Mobili).
-  const detrazioneEsclusa = haLavori && bonus.detrazione_max > lavoriMax;
+  const min = bonus.detrazione_lavori_min ?? bonus.detrazione_min;
+  const max = bonus.detrazione_lavori_max ?? bonus.detrazione_max;
+  const rataMin = bonus.rata_annua_lavori_min ?? bonus.rata_annua_min;
+  const rataMax = bonus.rata_annua_lavori_max ?? bonus.rata_annua_max;
+  const haArredo = vociBonusArredo(bonus).length > 0;
 
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
@@ -56,10 +60,10 @@ export function BonusPanel({ bonus }: BonusPanelProps) {
         </p>
         <div className="mt-4">
           <RangeBar
-            min={bonus.detrazione_min}
-            max={bonus.detrazione_max}
-            minLabel={formatEur(bonus.detrazione_min)}
-            maxLabel={formatEur(bonus.detrazione_max)}
+            min={min}
+            max={max}
+            minLabel={formatEur(min)}
+            maxLabel={formatEur(max)}
           />
         </div>
         {haLavori && (
@@ -70,19 +74,19 @@ export function BonusPanel({ bonus }: BonusPanelProps) {
         <p className="mt-3 text-sm text-muted-foreground">
           Che tornano indietro come{" "}
           <span className="font-medium text-foreground tabular-nums">
-            {formatEur(bonus.rata_annua_min)} – {formatEur(bonus.rata_annua_max)}
+            {formatEur(rataMin)} – {formatEur(rataMax)}
           </span>{" "}
           all'anno.
         </p>
-        {detrazioneEsclusa && (
+        {haArredo && (
           <p className="mt-2 text-xs text-muted-foreground">
-            La detrazione comprende anche l'arredo (Bonus Mobili), che è stimato a parte dal totale lavori.
+            La detrazione sull'arredo è indicata nella card Arredo, perché l'arredo non è compreso nel totale lavori.
           </p>
         )}
       </div>
 
       <div className="divide-y divide-border">
-        {bonus.bonus.map((dettaglio) => (
+        {voci.map((dettaglio) => (
           <div key={dettaglio.code} className="px-6 py-4">
             <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
               <span className="text-sm font-semibold">{dettaglio.nome}</span>
