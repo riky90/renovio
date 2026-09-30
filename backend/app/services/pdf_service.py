@@ -98,6 +98,30 @@ def build_filename_pro(stima: StimaSalvata) -> str:
     return f"stima-ristrutturazione-{citta_slug}-dettaglio-{data_str}.pdf"
 
 
+def _bonus_pdf(bonus: dict | None) -> dict | None:
+    """Presentazione del blocco bonus per il PDF Free (G10): separa le voci sui
+    lavori da quelle sull'arredo (`su_arredo`, decisa dal server) e sceglie i
+    totali sui soli lavori, con ripiego sui totali complessivi per gli snapshot
+    precedenti a G5/G10. Nessun calcolo: solo scelta di campi gia' congelati."""
+    if not bonus:
+        return None
+    voci = bonus.get("bonus") or []
+
+    def _pick(preferito: str, ripiego: str):
+        v = bonus.get(preferito)
+        return v if v is not None else bonus.get(ripiego)
+
+    return {
+        "lavori": [v for v in voci if not v.get("su_arredo")],
+        "arredo": [v for v in voci if v.get("su_arredo")],
+        "detrazione_min": _pick("detrazione_lavori_min", "detrazione_min"),
+        "detrazione_max": _pick("detrazione_lavori_max", "detrazione_max"),
+        "rata_min": _pick("rata_annua_lavori_min", "rata_annua_min"),
+        "rata_max": _pick("rata_annua_lavori_max", "rata_annua_max"),
+        "disclaimer": bonus.get("disclaimer"),
+    }
+
+
 class PdfService:
     """Renders the branded Free PDF from an immutable `StimaSalvata` snapshot."""
 
@@ -137,6 +161,7 @@ class PdfService:
         template = _env.get_template("pdf_stima.html")
         return template.render(
             stima=snap,
+            bonus_pdf=_bonus_pdf(snap.get("bonus")),
             nome=user.nome,
             data_generazione=datetime.now().strftime("%d/%m/%Y"),
             filename=build_filename(stima),

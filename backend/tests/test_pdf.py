@@ -337,6 +337,100 @@ class TestPdfRenderHtml:
         assert "Costi extra" not in html
 
 
+def _payload_bonus(voci, extra_bonus=None, con_arredo=True):
+    snap = _stima_payload()
+    if con_arredo:
+        snap["arredo"] = {
+            "livello_nome": "Medio",
+            "ambienti": [{"nome": "Soggiorno", "eur_min": "1000.00", "eur_max": "2000.00"}],
+            "totale_min": "1000.00",
+            "totale_max": "2000.00",
+            "disclaimer": "Disclaimer arredo",
+        }
+    bonus = {
+        "bonus": voci,
+        "detrazione_min": "7777.00",
+        "detrazione_max": "8888.00",
+        "rata_annua_min": "777.00",
+        "rata_annua_max": "888.00",
+        "disclaimer": "Disclaimer bonus fiscale",
+    }
+    bonus.update(extra_bonus or {})
+    snap["bonus"] = bonus
+    return snap
+
+
+def _voce(nome, dmin, dmax, su_arredo=None):
+    v = {
+        "nome": nome,
+        "aliquota_pct": "0.50",
+        "tetto_spesa_eur": None,
+        "detrazione_min": dmin,
+        "detrazione_max": dmax,
+    }
+    if su_arredo is not None:
+        v["su_arredo"] = su_arredo
+    return v
+
+
+class TestPdfBonusArredo:
+    def test_voce_arredo_spostata_nel_blocco_arredo(self):
+        from app.services.pdf_service import PdfService, _fmt_eur
+
+        snap = _payload_bonus(
+            [
+                _voce("Bonus Lavori X", "3000.00", "4000.00", False),
+                _voce("Bonus Arredo Y", "500.00", "600.00", True),
+            ],
+            {
+                "detrazione_lavori_min": "3000.00",
+                "detrazione_lavori_max": "4000.00",
+                "rata_annua_lavori_min": "300.00",
+                "rata_annua_lavori_max": "400.00",
+            },
+        )
+        html = PdfService.render_html(_FakeStima(snap), _FakeUser())
+        i_tot_arredo = html.index("Totale arredo")
+        assert html.index("Bonus Lavori X") < i_tot_arredo
+        assert html.count("Bonus Arredo Y") == 1
+        assert html.index("Bonus Arredo Y") > i_tot_arredo
+        assert "Detrazione sui lavori" in html
+        assert "Totale detraibile" not in html
+        assert f"{_fmt_eur('3000.00')} &ndash; {_fmt_eur('4000.00')}" in html
+        assert f"{_fmt_eur('300.00')} &ndash; {_fmt_eur('400.00')}" in html
+        assert f"{_fmt_eur('500.00')} &ndash; {_fmt_eur('600.00')}" in html
+        assert _fmt_eur("7777.00") not in html
+
+    def test_ripiego_snapshot_pre_g5(self):
+        from app.services.pdf_service import PdfService, _fmt_eur
+
+        snap = _payload_bonus(
+            [_voce("Bonus A", "3000.00", "4000.00"), _voce("Bonus B", "10.00", "20.00")]
+        )
+        html = PdfService.render_html(_FakeStima(snap), _FakeUser())
+        assert "Bonus A" in html and "Bonus B" in html
+        assert f"{_fmt_eur('7777.00')} &ndash; {_fmt_eur('8888.00')}" in html
+        assert f"{_fmt_eur('777.00')} &ndash; {_fmt_eur('888.00')}" in html
+
+    def test_solo_voci_arredo(self):
+        from app.services.pdf_service import PdfService
+
+        snap = _payload_bonus([_voce("Bonus Arredo Y", "500.00", "600.00", True)])
+        html = PdfService.render_html(_FakeStima(snap), _FakeUser())
+        assert "Detrazioni fiscali stimate" not in html
+        assert html.index("Bonus Arredo Y") > html.index("Totale arredo")
+        assert "Disclaimer bonus fiscale" in html
+
+    def test_senza_arredo_e_senza_bonus_nessun_errore(self):
+        from app.services.pdf_service import PdfService
+
+        snap = _payload_bonus([_voce("Bonus A", "1.00", "2.00", False)], con_arredo=False)
+        html = PdfService.render_html(_FakeStima(snap), _FakeUser())
+        assert "Bonus A" in html
+        html2 = PdfService.render_html(_FakeStima(_stima_payload()), _FakeUser())
+        assert "Detrazioni fiscali stimate" not in html2
+
+
 class TestPdfBudget:
     def test_budget_sotto_il_minimo_tacca_e_riquadro(self):
         from app.services.pdf_service import PdfService
