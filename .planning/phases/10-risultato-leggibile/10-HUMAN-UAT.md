@@ -191,15 +191,16 @@ con `/gsd-plan-phase 10 --gaps`.
 ## Gaps
 
 - truth: "Le etichette min/max della RangeBar stanno sotto gli estremi del segmento, dentro il contenitore"
-  status: failed
+  status: superseded
   reason: "Riccardo: le etichette sono ai bordi del box (flex justify-between in frontend/src/components/RangeBar.tsx), ma il segmento non occupa tutto il box."
   severity: major
   test: "Criterio 1, voce 'Guarda gli estremi della barra' (G1)"
   fix: piano 10-10
+  superseded_by: G8 (ri-collaudo 2026-09-30: Riccardo preferisce le cifre ai bordi)
   retest: .planning/checklists/2026-09-29-ricollaudo-10.md
 
 - truth: "Ogni importo per categoria e' IVA esclusa, uguale in Free e Pro (importo categoria, €/m², anche nei PDF); il riepilogo mantiene imponibile + IVA per aliquota + extra + Totale IVA inclusa; le etichette dicono chiaramente 'IVA esclusa'"
-  status: failed
+  status: resolved
   reason: "Riccardo: il totale della card Free sembra includere l'IVA (CategoryCard mostra totale_min/max IVA inclusa come titolo mentre €/m² usa l'imponibile); nel Pro 'Totale {categoria}' e' IVA esclusa. Base IVA incoerente."
   severity: major
   test: "Criterio 2 voce 'Controlla un €/m² a mano' e Criterio 4 voce 4n (G2)"
@@ -208,7 +209,7 @@ con `/gsd-plan-phase 10 --gaps`.
   decision: "Decisione di Riccardo: tutto per categoria e' IVA ESCLUSA in Free e Pro e nei PDF."
 
 - truth: "'Con finiture medie' dell'avviso coincide con una stima rifatta da zero a finiture medie (ricalcolo vero)"
-  status: failed
+  status: resolved
   reason: "Riccardo: partendo da 'lusso/alto' il confronto mostra 337.923, una stima nuova a 'medio' da' 336.111. Causa radice sconosciuta: da indagare (altri input/effetti diversi nel ricalcolo, extra calcolati su base diversa, arrotondamenti)."
   severity: major
   test: "Criterio 5, ultima voce (G3)"
@@ -217,7 +218,7 @@ con `/gsd-plan-phase 10 --gaps`.
   retest: .planning/checklists/2026-09-29-ricollaudo-10.md
 
 - truth: "'Modifica' nella stima Free riapre il wizard precompilato con gli input correnti (budget incluso)"
-  status: failed
+  status: resolved
   reason: "Riccardo: 'Modifica' riporta a un wizard vuoto; vuole modificare la stima gia' inserita."
   severity: major
   test: "Criterio 1, voce 'Rifai la stima con un altro tipo di intervento' (G4, feature)"
@@ -225,17 +226,39 @@ con `/gsd-plan-phase 10 --gaps`.
   retest: .planning/checklists/2026-09-29-ricollaudo-10.md
 
 - truth: "Il pannello Bonus mostra la barra del costo totale con l'impatto di bonus/detrazioni evidenziato"
-  status: failed
+  status: superseded
   reason: "Riccardo: vuole vedere la barra del costo totale con evidenziato l'impatto dei bonus (al posto di, o in aggiunta a, la barra detrazione autonoma)."
   severity: minor
   test: "Criterio 1, voce 'Apri il pannello Bonus' (G5, feature)"
   fix: piano 10-13
+  superseded_by: G7 (ri-collaudo 2026-09-30: solo la barra della detrazione)
   retest: .planning/checklists/2026-09-29-ricollaudo-10.md
 
 - truth: "Il pannello Bonus e' presente anche nella versione Pro"
-  status: failed
+  status: resolved
   reason: "Riccardo: aprendo una stima Pro non compare il bonus; va aggiunto."
   severity: major
   test: "Criterio 2, voce 'Riapri una stima salvata prima della Fase 10' (G6, feature)"
   fix: piano 10-14
+  retest: .planning/checklists/2026-09-29-ricollaudo-10.md
+
+- truth: "Il pannello Bonus mostra una sola barra: il range del valore della detrazione (quanto si recupera), senza barra del costo totale e senza segmento 'Dopo le detrazioni'"
+  status: failed
+  reason: "Riccardo (ri-collaudo 2026-09-30, G1d e G5a): due barre (totale e netto) non sono cio' che vuole; dopo averci ripensato: 'togli il totale, lascia la barra solo del valore del bonus'."
+  severity: minor
+  test: "Ri-collaudo G1(d), G5(a) (G7)"
+  retest: .planning/checklists/2026-09-29-ricollaudo-10.md
+
+- truth: "Le cifre min/max della RangeBar stanno ai bordi del contenitore, come prima di 10-10"
+  status: failed
+  reason: "Riccardo (ri-collaudo 2026-09-30, G1a): 'lo preferivo prima'; confermato in chat: tornare ai bordi."
+  severity: cosmetic
+  test: "Ri-collaudo G1(a) (G8)"
+  retest: .planning/checklists/2026-09-29-ricollaudo-10.md
+
+- truth: "Lo snapshot di una stima salvata contiene l'arredo (StimaSalvataCreate ha il campo), cosi' ArredoCard e la base Bonus Mobili del Pro usano dati reali"
+  status: failed
+  reason: "Difetto trovato in 10-14 e differito; Riccardo (2026-09-30): correggerlo ora, dentro la Fase 10."
+  severity: major
+  test: "Scelte di Claude, ultima voce del ri-collaudo (G9)"
   retest: .planning/checklists/2026-09-29-ricollaudo-10.md

@@ -246,7 +246,7 @@ Plans:
 4. Superato il budget dichiarato, compare un avviso con il confronto ricalcolato a finiture inferiori
 5. Il budget **non** muove il prezzo: due assi distinti, *finiture* sì e *budget* no
 
-**Plans:** 14/15 plans executed
+**Plans:** 15/18 plans executed
 
 Plans:
 **Wave 1**
@@ -297,7 +297,18 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 10-15-PLAN.md — Suite completa, build/lint e checklist di ri-collaudo G1-G6 per Riccardo
+- [x] 10-15-PLAN.md — Suite completa, build/lint e checklist di ri-collaudo G1-G6 per Riccardo
+
+**Gap closure (ri-collaudo 2026-09-30, G7-G9)**
+
+**Wave 5**
+
+- [ ] 10-16-PLAN.md — G7 pannello Bonus con la sola barra della detrazione + G8 cifre della RangeBar di nuovo ai bordi del box (RIS-01, RIS-03)
+- [ ] 10-17-PLAN.md — G9 arredo persistito nello snapshot delle stime salvate (StimaSalvataCreate/Out), senza migrazione (RIS-03)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 10-18-PLAN.md — Suite completa, build/lint e checklist di ri-collaudo G7-G9 per Riccardo
 
 ---
 
