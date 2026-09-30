@@ -246,7 +246,7 @@ Plans:
 4. Superato il budget dichiarato, compare un avviso con il confronto ricalcolato a finiture inferiori
 5. Il budget **non** muove il prezzo: due assi distinti, *finiture* sì e *budget* no
 
-**Plans:** 16/18 plans executed
+**Plans:** 17/18 plans executed
 
 Plans:
 **Wave 1**
@@ -304,7 +304,7 @@ Plans:
 **Wave 5**
 
 - [x] 10-16-PLAN.md — G7 pannello Bonus con la sola barra della detrazione + G8 cifre della RangeBar di nuovo ai bordi del box (RIS-01, RIS-03)
-- [ ] 10-17-PLAN.md — G9 arredo persistito nello snapshot delle stime salvate (StimaSalvataCreate/Out), senza migrazione (RIS-03)
+- [x] 10-17-PLAN.md — G9 arredo persistito nello snapshot delle stime salvate (StimaSalvataCreate/Out), senza migrazione (RIS-03)
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
