@@ -246,7 +246,7 @@ Plans:
 4. Superato il budget dichiarato, compare un avviso con il confronto ricalcolato a finiture inferiori
 5. Il budget **non** muove il prezzo: due assi distinti, *finiture* sì e *budget* no
 
-**Plans:** 18/24 plans complete
+**Plans:** 19/24 plans executed
 
 Plans:
 **Wave 1**
@@ -314,7 +314,7 @@ Plans:
 
 **Wave 7**
 
-- [ ] 10-19-PLAN.md — G10 server: voci bonus marcate `su_arredo` e rata annua sui soli lavori in BonusOut (RIS-03)
+- [x] 10-19-PLAN.md — G10 server: voci bonus marcate `su_arredo` e rata annua sui soli lavori in BonusOut (RIS-03)
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
