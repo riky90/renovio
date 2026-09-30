@@ -550,16 +550,12 @@
         <div class="budget-tacca" style="left:{{ barra.budget_pct|pct }}%"></div>
         {% endif %}
       </div>
+      {# G13: cifre ai bordi come la RangeBar web (decisione di Riccardo 2026-09-30); il segmento resta proporzionale #}
       <table class="barra-cifre">
         <tr>
-          <td style="width:{{ barra.left_pct|pct }}%"></td>
-          <td style="width:{{ barra.width_pct|pct }}%">
-            <table style="width:100%; border-collapse:collapse"><tr>
-              <td style="text-align:left">{{ riepilogo.totale_min|eur }}</td>
-              <td style="text-align:right">{{ riepilogo.totale_max|eur }}</td>
-            </tr></table>
-          </td>
-          <td style="width:{{ (100 - barra.left_pct - barra.width_pct)|pct }}%"></td>
+          <td style="text-align:left">{{ riepilogo.totale_min|eur }}</td>
+          <td style="text-align:center; color:#8a8178">fino a</td>
+          <td style="text-align:right">{{ riepilogo.totale_max|eur }}</td>
         </tr>
       </table>
       <table class="riepilogo-iva">

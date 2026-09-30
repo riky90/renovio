@@ -296,14 +296,19 @@ class TestPdfRenderHtml:
         assert su_imponibile.etichetta != su_totale.etichetta
         assert f"{su_imponibile.etichetta} del totale" in html
 
-    def test_cifre_barra_seguono_il_segmento(self):
+    def test_cifre_barra_ai_bordi(self):
         from app.services.pdf_service import PdfService
 
         html = PdfService.render_html(_FakeStima(_snapshot_render()), _FakeUser())
-        compatto = html.replace(" ", "")
         assert 'class="barra-cifre"' in html
-        assert "<tdstyle=\"width:75.76%\"></td>" in compatto
-        assert "space-between" not in html.split(".barra-cifre")[1].split("}")[0]
+        frammento = html.split('<table class="barra-cifre">')[1].split("</table>")[0]
+        compatto = frammento.replace(" ", "")
+        assert "width:75.76%" not in compatto
+        i_min = frammento.index("text-align:left")
+        i_fino = frammento.index("fino a")
+        i_max = frammento.index("text-align:right")
+        assert i_min < i_fino < i_max
+        assert "text-align:center" in frammento
         assert not re.search(r"(?<!text-)transform\s*:", html)
         assert "calc(" not in html
 

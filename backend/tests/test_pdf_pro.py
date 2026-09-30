@@ -307,6 +307,17 @@ class TestPdfProLetturaEBudget:
             session.rollback()
         return html, calcolo
 
+    def test_cifre_barra_ai_bordi(self, client):
+        html, calcolo = self._html_e_calcolo(client, None)
+        frammento = html.split('<table class="barra-cifre">')[1].split("</table>")[0]
+        assert "barra.left_pct" not in frammento
+        assert "width:" not in frammento.replace(" ", "")
+        i_min = frammento.index("text-align:left")
+        i_fino = frammento.index("fino a")
+        i_max = frammento.index("text-align:right")
+        assert i_min < i_fino < i_max
+        assert "calc(" not in html
+
     def test_lettura_categorie_e_riepilogo_dal_calcolo(self, client):
         html, calcolo = self._html_e_calcolo(client, None)
 
