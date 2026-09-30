@@ -245,25 +245,56 @@ con `/gsd-plan-phase 10 --gaps`.
   retest: .planning/checklists/2026-09-29-ricollaudo-10.md
 
 - truth: "Il pannello Bonus mostra una sola barra: il range del valore della detrazione (quanto si recupera), senza barra del costo totale e senza segmento 'Dopo le detrazioni'"
-  status: failed
+  status: resolved
   reason: "Riccardo (ri-collaudo 2026-09-30, G1d e G5a): due barre (totale e netto) non sono cio' che vuole; dopo averci ripensato: 'togli il totale, lascia la barra solo del valore del bonus'."
   severity: minor
   test: "Ri-collaudo G1(d), G5(a) (G7)"
   fix: piano 10-16
   retest: .planning/checklists/2026-09-30-ricollaudo-10-g7-g9.md
 
+  resolved_note: "ri-collaudo 2026-09-30 pomeriggio: passa; il Bonus Mobili si sposta nella card Arredo (G10)"
 - truth: "Le cifre min/max della RangeBar stanno ai bordi del contenitore, come prima di 10-10"
-  status: failed
+  status: resolved
   reason: "Riccardo (ri-collaudo 2026-09-30, G1a): 'lo preferivo prima'; confermato in chat: tornare ai bordi."
   severity: cosmetic
   test: "Ri-collaudo G1(a) (G8)"
   fix: piano 10-16
   retest: .planning/checklists/2026-09-30-ricollaudo-10-g7-g9.md
 
+  resolved_note: "ri-collaudo 2026-09-30 pomeriggio: passa sul web; PDF in G13"
 - truth: "Lo snapshot di una stima salvata contiene l'arredo (StimaSalvataCreate ha il campo), cosi' ArredoCard e la base Bonus Mobili del Pro usano dati reali"
-  status: failed
+  status: partial
   reason: "Difetto trovato in 10-14 e differito; Riccardo (2026-09-30): correggerlo ora, dentro la Fase 10."
   severity: major
   test: "Scelte di Claude, ultima voce del ri-collaudo (G9)"
   fix: piano 10-17
+  retest: .planning/checklists/2026-09-30-ricollaudo-10-g7-g9.md
+  resolved_note: "Free ok; Pro da Le mie stime no (G11); Modifica duplica la stima (G12)"
+
+- truth: "Il Bonus Mobili compare dentro la card Arredo (range), non nel pannello Bonus; la barra del pannello Bonus mostra solo la detrazione sui lavori"
+  status: failed
+  reason: "Riccardo (ri-collaudo 2026-09-30 pomeriggio, G7c): 'metterlo non insieme agli altri bonus ma dopo gli arredi, essendo che gli arredi non sono inclusi'; in chat: dentro la card Arredo."
+  severity: minor
+  test: "Ri-collaudo G7(c) (G10)"
+  retest: .planning/checklists/2026-09-30-ricollaudo-10-g7-g9.md
+
+- truth: "Con account Pro, la stima aperta da 'Le mie stime' mostra la card Arredo e il Bonus Mobili come /dettaglio-pro"
+  status: failed
+  reason: "Riccardo (G9b, G9d): con account free la card Arredo c'e', con account pro no; 'se faccio vedi dettaglio pro si, se lo guardo dalle mie stime no'."
+  severity: major
+  test: "Ri-collaudo G9(b), G9(d) (G11)"
+  retest: .planning/checklists/2026-09-30-ricollaudo-10-g7-g9.md
+
+- truth: "Modifica + ricalcolo senza cambiare nulla non crea una seconda stima salvata (si riusa l'id)"
+  status: failed
+  reason: "Riccardo (G9c): 'se premo modifica poi vado a vedere le stime mi ha creato 2 stime'. Regressione rispetto a G4c. Causa radice da trovare (stessaRichiesta in EstimatePage.tsx, default del wizard dopo Modifica, arredo nella richiesta?)."
+  severity: major
+  test: "Ri-collaudo G9(c) (G12)"
+  retest: .planning/checklists/2026-09-30-ricollaudo-10-g7-g9.md
+
+- truth: "Nei PDF (Free e Pro) le cifre min/max della barra stanno ai bordi, come sul web"
+  status: failed
+  reason: "Riccardo (scelta G8 sul PDF): 'Si, ai bordi'. Verifica a occhio al go-live (WeasyPrint assente in locale)."
+  severity: cosmetic
+  test: "Ri-collaudo, scelta G8 (G13)"
   retest: .planning/checklists/2026-09-30-ricollaudo-10-g7-g9.md
