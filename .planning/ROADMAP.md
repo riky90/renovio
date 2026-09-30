@@ -246,7 +246,7 @@ Plans:
 4. Superato il budget dichiarato, compare un avviso con il confronto ricalcolato a finiture inferiori
 5. Il budget **non** muove il prezzo: due assi distinti, *finiture* sì e *budget* no
 
-**Plans:** 18/23 plans complete
+**Plans:** 18/24 plans complete
 
 Plans:
 **Wave 1**
@@ -310,7 +310,7 @@ Plans:
 
 - [x] 10-18-PLAN.md — Suite completa, build/lint e checklist di ri-collaudo G7-G9 per Riccardo
 
-**Gap closure (ri-collaudo 2026-09-30 pomeriggio, G10-G13)**
+**Gap closure (ri-collaudo 2026-09-30 pomeriggio, G10-G14)**
 
 **Wave 7**
 
@@ -323,11 +323,15 @@ Plans:
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
-- [ ] 10-22-PLAN.md — G12 diagnosi e correzione del doppio salvataggio dopo Modifica, confronto provato con script node (RIS-04)
+- [ ] 10-22-PLAN.md — G12 diagnosi del doppio salvataggio dopo Modifica con prova (script node), prefill corretto se causa, auto-save irrobustito (RIS-04)
 
 **Wave 10** *(blocked on Wave 9 completion)*
 
-- [ ] 10-23-PLAN.md — Suite completa, build/lint e checklist di ri-collaudo G10-G13 per Riccardo
+- [ ] 10-23-PLAN.md — G14 "Modifica" aggiorna la stima salvata (PUT /me/stime/{id}, stesso id, tier invariato), niente doppioni sul percorso Modifica (RIS-04)
+
+**Wave 11** *(blocked on Wave 10 completion)*
+
+- [ ] 10-24-PLAN.md — Suite completa, build/lint e checklist di ri-collaudo G10-G14 per Riccardo
 
 ---
 
