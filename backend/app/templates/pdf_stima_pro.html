@@ -400,6 +400,58 @@
         font-size: 8pt;
         color: #78716a;
       }
+
+      /* Detrazioni e arredo: stesse regole del PDF Free (_pdf_bonus_arredo.html). */
+      .bonus-block {
+        border: 1px solid #e5e0d8;
+        border-radius: 4px;
+        padding: 4mm 6mm;
+        margin-bottom: 6mm;
+      }
+
+      .bonus-block .titolo {
+        font-size: 11pt;
+        font-weight: 700;
+        color: #22201c;
+        margin-bottom: 2mm;
+      }
+
+      .bonus-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 10pt;
+        padding: 1mm 0;
+        border-bottom: 1px solid #f0ece5;
+      }
+
+      .bonus-row:last-of-type {
+        border-bottom: none;
+      }
+
+      .bonus-row .nome {
+        color: #5a544a;
+      }
+
+      .bonus-totale {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11pt;
+        font-weight: 700;
+        color: #22201c;
+        padding-top: 2mm;
+        margin-top: 1mm;
+        border-top: 1px solid #e5e0d8;
+      }
+
+      .bonus-disclaimer {
+        font-size: 8pt;
+        color: #92400e;
+        background: #fffbeb;
+        border: 1px solid #fcd34d;
+        border-radius: 4px;
+        padding: 3mm 4mm;
+        margin-top: 3mm;
+      }
     </style>
   </head>
   <body>
@@ -599,6 +651,10 @@
       <div class="avviso-nota">{{ avviso.nota }}</div>
     </div>
     {% endif %}
+
+    {% with valuta="€" %}
+    {% include "_pdf_bonus_arredo.html" %}
+    {% endwith %}
 
     <div class="footer">
       Stima indicativa dettagliata, non sostituisce un sopralluogo professionale.<br />

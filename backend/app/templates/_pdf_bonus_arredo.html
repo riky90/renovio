@@ -1,0 +1,78 @@
+{#- Detrazioni sui lavori e blocco arredo, condivisi dal PDF Free e dal PDF
+    Pro: due copie divergerebbero (audit v2.0, M1: il Pro li aveva persi).
+    Variabili attese: `bonus_pdf` (da `_bonus_pdf`), `arredo` (blocco
+    congelato nello snapshot, assente prima della fase 07), `valuta`. -#}
+{% if bonus_pdf and bonus_pdf.lavori %}
+<div class="bonus-block">
+  <div class="titolo">Detrazioni fiscali stimate</div>
+  {% for b in bonus_pdf.lavori %}
+  <div class="bonus-row">
+    <span class="nome">
+      {{ b.nome }} &mdash; {{ (b.aliquota_pct|float * 100)|round(0)|int }}%{% if b.tetto_spesa_eur %},
+      tetto {{ b.tetto_spesa_eur|eur }} {{ valuta }}{% endif %}{% if b.rate_annuali %},
+      in {{ b.rate_annuali }} rate annue{% endif %}
+    </span>
+    <span>{{ b.detrazione_min|eur }} &ndash; {{ b.detrazione_max|eur }} {{ valuta }}</span>
+  </div>
+  {% endfor %}
+  <div class="bonus-totale">
+    <span>Detrazione sui lavori</span>
+    <span>
+      {{ bonus_pdf.detrazione_min|eur }} &ndash; {{ bonus_pdf.detrazione_max|eur }}
+      {{ valuta }}
+    </span>
+  </div>
+  <div class="bonus-row">
+    <span class="nome">{{ bonus_pdf.etichetta_rata }}</span>
+    <span>
+      {{ bonus_pdf.rata_min|eur }} &ndash; {{ bonus_pdf.rata_max|eur }}
+      {{ valuta }}
+    </span>
+  </div>
+  <div class="bonus-disclaimer">{{ bonus_pdf.disclaimer }}</div>
+</div>
+{% endif %}
+
+{# L'arredo sta DOPO il totale e dopo i bonus, e lo dice in chiaro nel
+   titolo: non e' una lavorazione e non va sommato al totale lavori.
+   `arredo` manca su ogni snapshot salvato prima della fase 07 —
+   l'`if` non e' difensivo, e' la retrocompatibilita' dello storico.
+   G10: dopo "Totale arredo" le detrazioni sull'arredo (voci `su_arredo`),
+   come nella card Arredo del web. #}
+{% if arredo %}
+<div class="bonus-block">
+  <div class="titolo">
+    Arredo &mdash; non compreso nel totale lavori (finiture {{ arredo.livello_nome }})
+  </div>
+  {% for a in arredo.ambienti %}
+  <div class="bonus-row">
+    <span class="nome">{{ a.nome }}</span>
+    <span>{{ a.eur_min|eur }} &ndash; {{ a.eur_max|eur }} {{ valuta }}</span>
+  </div>
+  {% endfor %}
+  <div class="bonus-totale">
+    <span>Totale arredo</span>
+    <span>
+      {{ arredo.totale_min|eur }} &ndash; {{ arredo.totale_max|eur }}
+      {{ valuta }}
+    </span>
+  </div>
+  {% if bonus_pdf and bonus_pdf.arredo %}
+  {% for b in bonus_pdf.arredo %}
+  <div class="bonus-row">
+    <span class="nome">
+      {{ b.nome }} &mdash; {{ (b.aliquota_pct|float * 100)|round(0)|int }}%{% if b.tetto_spesa_eur %},
+      tetto {{ b.tetto_spesa_eur|eur }} {{ valuta }}{% endif %}{% if b.rate_annuali %},
+      in {{ b.rate_annuali }} rate annue{% endif %}
+      (detrazione sull'arredo, non riduce il totale lavori)
+    </span>
+    <span>{{ b.detrazione_min|eur }} &ndash; {{ b.detrazione_max|eur }} {{ valuta }}</span>
+  </div>
+  {% endfor %}
+  {% if not bonus_pdf.lavori %}
+  <div class="bonus-disclaimer">{{ bonus_pdf.disclaimer }}</div>
+  {% endif %}
+  {% endif %}
+  <div class="bonus-disclaimer">{{ arredo.disclaimer }}</div>
+</div>
+{% endif %}

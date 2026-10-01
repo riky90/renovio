@@ -215,8 +215,14 @@ class PdfService:
         Pro a schermo; qui non si chiama nessun motore."""
         riepilogo = calcolo.riepilogo
         confronto = calcolo.confronto.model_dump(mode="json") if calcolo.confronto else None
+        bonus = calcolo.bonus.model_dump(mode="json") if calcolo.bonus else None
+        # L'arredo non passa dal motore Pro: e' il blocco congelato nello
+        # snapshot del wizard, lo stesso che `_bonus_pro` e la vista Pro leggono.
+        snap = stima.risultato_json if isinstance(stima.risultato_json, dict) else {}
         template = _env.get_template("pdf_stima_pro.html")
         return template.render(
+            bonus_pdf=_bonus_pdf(bonus),
+            arredo=snap.get("arredo"),
             dettaglio=calcolo.result,
             riepilogo=riepilogo,
             lettura={lc.code: lc for lc in calcolo.lettura},

@@ -21,6 +21,7 @@ Copre:
 from __future__ import annotations
 
 import importlib.util
+from html import unescape
 
 import pytest
 from fastapi.testclient import TestClient
@@ -359,3 +360,76 @@ class TestPdfProLetturaEBudget:
         for forbidden in FORBIDDEN_SUBSTRINGS:
             assert forbidden not in html
         assert "coefficiente" not in html.lower()
+
+
+class TestPdfProBonusEArredo:
+    """Audit v2.0, M1 (WR-04): il PDF Pro aveva perso detrazioni e arredo che
+    la vista Pro mostra. Ora i due PDF condividono `_pdf_bonus_arredo.html`."""
+
+    ARREDO = {
+        "livello_code": "medio",
+        "livello_nome": "Medio",
+        "ambienti": [{"code": "cucina", "nome": "Cucina", "eur_min": "5000", "eur_max": "8000"}],
+        "totale_min": "5000",
+        "totale_max": "8000",
+        "disclaimer": "Stima indicativa dell'arredo.",
+    }
+
+    def _html(self, client, *, arredo=None, mobili_attivo=False):
+        c, session_factory = client
+        _registra(c)
+        c.post(ATTIVA_PRO_URL)
+
+        import app.routers.dettaglio_pro as router
+        from app.models.bonus import BonusFiscale
+        from app.models.stima_salvata import StimaSalvata
+        from app.models.user import User
+        from app.services.pdf_service import PdfService
+
+        if mobili_attivo:
+            with session_factory() as s:
+                s.get(BonusFiscale, "MOBILI").attivo = True
+                s.commit()
+        payload = _stima_payload()
+        if arredo is not None:
+            payload["arredo"] = arredo
+        stima_id = c.post(STIME_URL, json=payload).json()["id"]
+
+        with session_factory() as session:
+            row = session.query(StimaSalvata).filter_by(id=stima_id).one()
+            calcolo = router._compute_dettaglio(session, row)
+            user = session.query(User).filter_by(id=row.user_id).one()
+            html = PdfService.render_html_pro(calcolo, row, user)
+        # Le asserzioni leggono il testo come lo stampa il PDF, non l'escape.
+        return unescape(html), calcolo
+
+    def test_detrazioni_sui_lavori_nel_pdf_pro(self, client):
+        html, calcolo = self._html(client)
+
+        assert calcolo.bonus is not None
+        assert "Detrazioni fiscali stimate" in html
+        assert calcolo.bonus.disclaimer in html
+        voci_lavori = [b for b in calcolo.bonus.bonus if not getattr(b, "su_arredo", False)]
+        for b in voci_lavori:
+            assert b.nome in html
+
+    def test_arredo_e_bonus_mobili_nel_pdf_pro(self, client):
+        html, calcolo = self._html(client, arredo=self.ARREDO, mobili_attivo=True)
+
+        assert "Arredo — non compreso nel totale lavori" in html
+        assert "Cucina" in html
+        assert "Totale arredo" in html
+        assert "Stima indicativa dell'arredo." in html
+        assert "detrazione sull'arredo" in html
+        # L'arredo sta dopo il totale lavori, come nel PDF Free.
+        assert html.index("Totale IVA inclusa") < html.index("Totale arredo")
+
+    def test_senza_arredo_nello_snapshot_nessun_blocco(self, client):
+        html, _ = self._html(client)
+
+        assert "Totale arredo" not in html
+
+    def test_nessun_dato_impresa_con_bonus_e_arredo(self, client):
+        html, _ = self._html(client, arredo=self.ARREDO, mobili_attivo=True)
+        for forbidden in FORBIDDEN_SUBSTRINGS:
+            assert forbidden not in html
