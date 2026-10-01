@@ -246,7 +246,7 @@ Plans:
 4. Superato il budget dichiarato, compare un avviso con il confronto ricalcolato a finiture inferiori
 5. Il budget **non** muove il prezzo: due assi distinti, *finiture* sì e *budget* no
 
-**Plans:** 21/24 plans executed
+**Plans:** 22/24 plans executed
 
 Plans:
 **Wave 1**
@@ -323,7 +323,7 @@ Plans:
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
-- [ ] 10-22-PLAN.md — G12 diagnosi del doppio salvataggio dopo Modifica con prova (script node), prefill corretto se causa, auto-save irrobustito (RIS-04)
+- [x] 10-22-PLAN.md — G12 diagnosi del doppio salvataggio dopo Modifica con prova (script node), prefill corretto se causa, auto-save irrobustito (RIS-04)
 
 **Wave 10** *(blocked on Wave 9 completion)*
 
