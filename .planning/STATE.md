@@ -26,8 +26,11 @@ La v2.0 e' **chiusa ma non ancora in produzione**: `origin/main` e' fermo a `f01
 (v1.0), con circa 350 commit da pushare. Il push deploya su Render e migra il DB di
 produzione dalla `0013` alla `0024`. Prima del push:
 
-1. Prova su Postgres delle migrazioni 0014-0024 (in particolare 0021-0024) e della
-   validazione WR-06.
+1. ~~Prova su Postgres delle migrazioni 0014-0024 e della validazione WR-06.~~ **Fatta il
+   2026-10-01**: passano da uno stato v1.0 con dati utente, smoke 39/39, valori identici a
+   `dev.db` (`.planning/prove/2026-10-01-postgres/README.md`). Da decidere prima del go-live:
+   il totale Pro e' circa 8 volte il Free per coefficienti in bozza su voci a corpo (non solo
+   A.6.11, osservazione 1 del report).
 2. Taratura di A.6.11 "Taglio porta blindata" (coefficiente per m² invece che a conteggio,
    vedi `09-TARATURA-TODO.md`).
 3. `BACKEND_PUBLIC_URL` impostata su Render (storage avatar su DB).
