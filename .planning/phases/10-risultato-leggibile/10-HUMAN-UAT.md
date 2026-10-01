@@ -313,3 +313,12 @@ con `/gsd-plan-phase 10 --gaps`.
   test: "Ri-collaudo G9(c) e chat (G14)"
   fix: piano 10-23
   retest: .planning/checklists/2026-09-30-ricollaudo-10-g10-g14.md
+
+- truth: "Una stima salvata da Free, aperta da 'Le mie stime' da un utente diventato Pro, resta visibilmente Free: banner 'creata con il piano Free' e lucchetto 'Dettaglio con Pro' sulle card categoria"
+  status: failed
+  reason: "Riccardo (ri-collaudo 2026-10-01, G14f): 'quando la riapro dalle mie stime anche se era free la vedo pro, non va bene'. Chiarito in chat: la stima non aveva il badge Pro (tier in DB rimasto free), ma dentro mancava il lucchetto sulle card."
+  severity: minor
+  test: "Ri-collaudo G14(f) (G15)"
+  root_cause: "LeMieStimePage passava a SavedEstimateDetail il piano dell'UTENTE (isPro={isUtentePro}) invece di quello della STIMA. Era il fix P5 del 2026-08-27, quando anche le stime Pro si aprivano nella vista snapshot; dalla Fase 03 le stime Pro aprono DettaglioProView, quindi la vista snapshot mostra solo stime Free e il teaser va sempre mostrato."
+  fix: "inline 2026-10-01 (nessun piano): il lucchetto resta sempre; per un utente Pro il link diventa 'Rifai in versione Pro' (stessa destinazione del banner) invece di 'Passa a Pro'. Verificato nel browser con l'utente 9: stima Free con lucchetto e link a /nuova-stima, stima Pro sempre su DettaglioProView senza teaser."
+  retest: "voce G14(f) della checklist 2026-09-30-ricollaudo-10-g10-g14"
