@@ -16,7 +16,7 @@ farci*, senza che aggiungere una domanda costi un deploy.
 - [x] **QST-02**: `tipo_effetto` è un insieme **chiuso** di sette valori con aritmetica nota al motore: nessuna espressione o formula libera in tabella
 - [x] **QST-03**: `attesa_immobile` (valore atteso per attributo e fascia di m²) alimenta sia i **default** del wizard sia la **baseline** dello scostamento, da una sola fonte
 - [x] **QST-04**: Il catalogo servito al client **non pubblica gli effetti**: la taratura resta server-side
-- [ ] **QST-05**: Ogni chiave consumata dal motore Pro (`domanda_mirata_key`) ha una domanda corrispondente nel catalogo
+- [x] **QST-05**: Ogni chiave consumata dal motore Pro (`domanda_mirata_key`) ha una domanda corrispondente nel catalogo
 
 ### Motore parametrico (PAR)
 
@@ -49,10 +49,10 @@ farci*, senza che aggiungere una domanda costi un deploy.
 
 ### Configuratore Pro (CFG)
 
-- [ ] **CFG-01**: Il motore Pro risolve gli effetti `includi` / `escludi` / `fattore_quantita` / `quantita_per_unita` dallo stesso catalogo del Free
-- [ ] **CFG-02**: **Nessuna sottocategoria di tipo `catalogo` contiene più di una famiglia di alternative** nello stesso computo, verificato da un test che *conta* le voci incluse per sottocategoria
-- [ ] **CFG-03**: Migrazione senza perdita: `voce.livello` diventa l'asse `finitura`, le `domanda_mirata_key` diventano domande `stepper`. Nessuna riga di dato si perde
-- [ ] **CFG-04**: I coefficienti quantità sono tarati **nella stessa fase** in cui si aggiungono gli assi, non dopo
+- [x] **CFG-01**: Il motore Pro risolve gli effetti `includi` / `escludi` / `fattore_quantita` / `quantita_per_unita` dallo stesso catalogo del Free
+- [x] **CFG-02**: **Nessuna sottocategoria di tipo `catalogo` contiene più di una famiglia di alternative** nello stesso computo, verificato da un test che *conta* le voci incluse per sottocategoria
+- [x] **CFG-03**: Migrazione senza perdita: `voce.livello` diventa l'asse `finitura`, le `domanda_mirata_key` diventano domande `stepper`. Nessuna riga di dato si perde
+- [x] **CFG-04**: I coefficienti quantità sono tarati **nella stessa fase** in cui si aggiungono gli assi, non dopo
 
 ### Risultato leggibile (RIS)
 
@@ -100,7 +100,7 @@ farci*, senza che aggiungere una domanda costi un deploy.
 | QST-02 | 05 | fatto |
 | QST-03 | 05 | fatto |
 | QST-04 | 05 | fatto |
-| QST-05 | 09 | da fare |
+| QST-05 | 09 | fatto |
 | PAR-01 | 05 | fatto |
 | PAR-02 | 05 | fatto |
 | PAR-03 | 05 | fatto |
