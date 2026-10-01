@@ -1,10 +1,10 @@
 ---
-status: diagnosed
+status: resolved
 phase: 10-risultato-leggibile
 requirement: RIS-01, RIS-02, RIS-03, RIS-04
 source: [10-09-PLAN.md]
 started: 2026-09-29T00:00:00Z
-updated: 2026-09-29T12:00:00Z
+updated: 2026-10-01T12:00:00Z
 ---
 
 # Collaudo Fase 10: risultato leggibile e tetto di budget
@@ -188,6 +188,14 @@ Non approvato: 6 gap trovati. Tutto il resto e' passato; le "Scelte di Claude da
 sono tutte confermate. Decisione di Riccardo sullo scope: G1-G6 si fanno ora, dentro la Fase 10,
 con `/gsd-plan-phase 10 --gaps`.
 
+## Esito del ri-collaudo G10-G14 (2026-10-01)
+
+Approvato. Tutte le voci della checklist `2026-09-30-ricollaudo-10-g10-g14` passano tranne
+G14(f), che ha aperto il gap G15; corretto lo stesso giorno (`f06bd43`) e ri-collaudato da
+Riccardo: passa. Le tre "Scelte di Claude da confermare" sono confermate (nessun backfill degli
+snapshot vecchi; la stima modificata tiene data e posizione; il piano della stima si fissa al
+primo salvataggio). Le voci PDF (G13) restano differite al go-live su Render.
+
 ## Differito
 
 - PDF (intera sezione): da verificare al go-live su Render (WeasyPrint/GTK3 assenti in locale). Non fallito.
@@ -265,60 +273,67 @@ con `/gsd-plan-phase 10 --gaps`.
 
   resolved_note: "ri-collaudo 2026-09-30 pomeriggio: passa sul web; PDF in G13"
 - truth: "Lo snapshot di una stima salvata contiene l'arredo (StimaSalvataCreate ha il campo), cosi' ArredoCard e la base Bonus Mobili del Pro usano dati reali"
-  status: partial
+  status: resolved
   reason: "Difetto trovato in 10-14 e differito; Riccardo (2026-09-30): correggerlo ora, dentro la Fase 10."
   severity: major
   test: "Scelte di Claude, ultima voce del ri-collaudo (G9)"
   fix: piano 10-17
   retest: .planning/checklists/2026-09-30-ricollaudo-10-g7-g9.md
   resolved_note: "Free ok; Pro da Le mie stime no (G11); Modifica duplica la stima (G12)"
+  resolved_note: "ri-collaudo 2026-10-01: chiuso con G11 e G12 (card Arredo da Le mie stime anche Pro, niente doppioni)"
 
 - truth: "Il Bonus Mobili compare dentro la card Arredo (range), non nel pannello Bonus; la barra del pannello Bonus mostra solo la detrazione sui lavori"
-  status: failed
+  status: resolved
   reason: "Riccardo (ri-collaudo 2026-09-30 pomeriggio, G7c): 'metterlo non insieme agli altri bonus ma dopo gli arredi, essendo che gli arredi non sono inclusi'; in chat: dentro la card Arredo."
   severity: minor
   test: "Ri-collaudo G7(c) (G10)"
   fix: piani 10-19, 10-20, 10-21
   retest: .planning/checklists/2026-09-30-ricollaudo-10-g10-g14.md
+  resolved_note: "ri-collaudo 2026-10-01: passa"
 
 - truth: "Con account Pro, la stima aperta da 'Le mie stime' mostra la card Arredo e il Bonus Mobili come /dettaglio-pro"
-  status: failed
+  status: resolved
   reason: "Riccardo (G9b, G9d): con account free la card Arredo c'e', con account pro no; 'se faccio vedi dettaglio pro si, se lo guardo dalle mie stime no'."
   severity: major
   test: "Ri-collaudo G9(b), G9(d) (G11)"
   fix: piano 10-21
   retest: .planning/checklists/2026-09-30-ricollaudo-10-g10-g14.md
+  resolved_note: "ri-collaudo 2026-10-01: passa"
 
 - truth: "Modifica + ricalcolo senza cambiare nulla non crea una seconda stima salvata (si riusa l'id)"
-  status: failed
+  status: resolved
   reason: "Riccardo (G9c): 'se premo modifica poi vado a vedere le stime mi ha creato 2 stime'. Regressione rispetto a G4c. Causa radice da trovare (stessaRichiesta in EstimatePage.tsx, default del wizard dopo Modifica, arredo nella richiesta?)."
   severity: major
   test: "Ri-collaudo G9(c) (G12)"
   fix: piani 10-22, 10-23
   root_cause: "race su reset() in TanStack Query v5: il callback per-call di mutate non parte se Modifica e' premuto con il POST in volo, ultimoSalvataggio resta null e il ricalcolo salva due volte (10-22); sul percorso Modifica i doppioni sono esclusi per costruzione dal flusso G14, che fa PUT e mai POST"
   retest: .planning/checklists/2026-09-30-ricollaudo-10-g10-g14.md
+  resolved_note: "ri-collaudo 2026-10-01: passa"
 
 - truth: "Nei PDF (Free e Pro) le cifre min/max della barra stanno ai bordi, come sul web"
-  status: failed
+  status: resolved
   reason: "Riccardo (scelta G8 sul PDF): 'Si, ai bordi'. Verifica a occhio al go-live (WeasyPrint assente in locale)."
   severity: cosmetic
   test: "Ri-collaudo, scelta G8 (G13)"
   fix: piano 10-20
   retest: .planning/checklists/2026-09-30-ricollaudo-10-g10-g14.md
+  resolved_note: "ri-collaudo 2026-10-01: implementato in 10-20; verifica visiva dei PDF differita al go-live su Render"
 
 - truth: "'Modifica' seguita da ricalcolo aggiorna la stima salvata da cui si e' partiti (stesso id in 'Le mie stime'), anche con input cambiati; non nasce una stima nuova"
-  status: failed
+  status: resolved
   reason: "Riccardo (chat 2026-09-30, chiarendo la nota G9c 'non modificato la mia attuale'): 'Aggiorna l'attuale'. Supera la regola di 10-12 (input diversi = stima nuova, la precedente resta), approvata il 2026-09-29."
   severity: major
   test: "Ri-collaudo G9(c) e chat (G14)"
   fix: piano 10-23
   retest: .planning/checklists/2026-09-30-ricollaudo-10-g10-g14.md
+  resolved_note: "ri-collaudo 2026-10-01: passa"
 
 - truth: "Una stima salvata da Free, aperta da 'Le mie stime' da un utente diventato Pro, resta visibilmente Free: banner 'creata con il piano Free' e lucchetto 'Dettaglio con Pro' sulle card categoria"
-  status: failed
+  status: resolved
   reason: "Riccardo (ri-collaudo 2026-10-01, G14f): 'quando la riapro dalle mie stime anche se era free la vedo pro, non va bene'. Chiarito in chat: la stima non aveva il badge Pro (tier in DB rimasto free), ma dentro mancava il lucchetto sulle card."
   severity: minor
   test: "Ri-collaudo G14(f) (G15)"
   root_cause: "LeMieStimePage passava a SavedEstimateDetail il piano dell'UTENTE (isPro={isUtentePro}) invece di quello della STIMA. Era il fix P5 del 2026-08-27, quando anche le stime Pro si aprivano nella vista snapshot; dalla Fase 03 le stime Pro aprono DettaglioProView, quindi la vista snapshot mostra solo stime Free e il teaser va sempre mostrato."
   fix: "inline 2026-10-01 (nessun piano): il lucchetto resta sempre; per un utente Pro il link diventa 'Rifai in versione Pro' (stessa destinazione del banner) invece di 'Passa a Pro'. Verificato nel browser con l'utente 9: stima Free con lucchetto e link a /nuova-stima, stima Pro sempre su DettaglioProView senza teaser."
   retest: "voce G14(f) della checklist 2026-09-30-ricollaudo-10-g10-g14"
+  resolved_note: "ri-collaudo 2026-10-01: passa dopo il fix f06bd43"

@@ -246,7 +246,7 @@ Plans:
 4. Superato il budget dichiarato, compare un avviso con il confronto ricalcolato a finiture inferiori
 5. Il budget **non** muove il prezzo: due assi distinti, *finiture* sì e *budget* no
 
-**Plans:** 23/24 plans executed
+**Plans:** 24/24 plans executed
 
 Plans:
 **Wave 1**
@@ -331,7 +331,7 @@ Plans:
 
 **Wave 11** *(blocked on Wave 10 completion)*
 
-- [ ] 10-24-PLAN.md — Suite completa, build/lint e checklist di ri-collaudo G10-G14 per Riccardo
+- [x] 10-24-PLAN.md — Suite completa, build/lint e checklist di ri-collaudo G10-G14 per Riccardo
 
 ---
 
