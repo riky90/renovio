@@ -98,6 +98,22 @@ def build_filename_pro(stima: StimaSalvata) -> str:
     return f"stima-ristrutturazione-{citta_slug}-dettaglio-{data_str}.pdf"
 
 
+def _etichetta_rata(voci: list[dict]) -> str:
+    """Etichetta della rata annua aggregata, derivata dal `rate_annuali` di
+    ogni voce (dato admin, mai cablato: WR-05). Con durate diverse la rata
+    aggregata e' la somma delle rate solo finche' tutte le voci sono attive,
+    cioe' nei primi N anni con N = durata piu' breve. Snapshot senza
+    `rate_annuali` sulle voci: nessuna durata dichiarata."""
+    durate = sorted({int(v["rate_annuali"]) for v in voci if v.get("rate_annuali")})
+    if not durate:
+        return "Rata annua"
+    n = durate[0]
+    periodo = "1 anno" if n == 1 else f"{n} anni"
+    if len(durate) == 1:
+        return f"Rata annua ({periodo})"
+    return "Rata annua (primo anno)" if n == 1 else f"Rata annua (primi {periodo})"
+
+
 def _bonus_pdf(bonus: dict | None) -> dict | None:
     """Presentazione del blocco bonus per il PDF Free (G10): separa le voci sui
     lavori da quelle sull'arredo (`su_arredo`, decisa dal server) e sceglie i
@@ -111,9 +127,11 @@ def _bonus_pdf(bonus: dict | None) -> dict | None:
         v = bonus.get(preferito)
         return v if v is not None else bonus.get(ripiego)
 
+    lavori = [v for v in voci if not v.get("su_arredo")]
     return {
-        "lavori": [v for v in voci if not v.get("su_arredo")],
+        "lavori": lavori,
         "arredo": [v for v in voci if v.get("su_arredo")],
+        "etichetta_rata": _etichetta_rata(lavori),
         "detrazione_min": _pick("detrazione_lavori_min", "detrazione_min"),
         "detrazione_max": _pick("detrazione_lavori_max", "detrazione_max"),
         "rata_min": _pick("rata_annua_lavori_min", "rata_annua_min"),

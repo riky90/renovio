@@ -431,6 +431,51 @@ class TestPdfBonusArredo:
         assert "Detrazioni fiscali stimate" not in html2
 
 
+def _voce_con_rate(nome, rate, su_arredo=False):
+    v = _voce(nome, "1000.00", "2000.00", su_arredo)
+    v["rate_annuali"] = rate
+    return v
+
+
+class TestPdfDurataRate:
+    """WR-05: la durata delle rate viene dal dato `rate_annuali`, mai cablata."""
+
+    def test_durata_unica_dal_dato(self):
+        from app.services.pdf_service import PdfService
+
+        snap = _payload_bonus([_voce_con_rate("Bonus A", 5), _voce_con_rate("Bonus B", 5)])
+        html = PdfService.render_html(_FakeStima(snap), _FakeUser())
+        assert "Rata annua (5 anni)" in html
+        assert "10 anni" not in html
+        assert html.count("in 5 rate annue") == 2
+
+    def test_durate_diverse_primi_anni(self):
+        from app.services.pdf_service import PdfService
+
+        snap = _payload_bonus([_voce_con_rate("Bonus A", 10), _voce_con_rate("Bonus B", 5)])
+        html = PdfService.render_html(_FakeStima(snap), _FakeUser())
+        assert "Rata annua (primi 5 anni)" in html
+        assert "in 10 rate annue" in html and "in 5 rate annue" in html
+
+    def test_durata_arredo_non_entra_nell_etichetta_lavori(self):
+        from app.services.pdf_service import PdfService
+
+        snap = _payload_bonus(
+            [_voce_con_rate("Bonus A", 10), _voce_con_rate("Bonus Arredo Y", 4, su_arredo=True)]
+        )
+        html = PdfService.render_html(_FakeStima(snap), _FakeUser())
+        assert "Rata annua (10 anni)" in html
+        assert "in 4 rate annue" in html
+
+    def test_snapshot_senza_rate_annuali_nessuna_durata(self):
+        from app.services.pdf_service import PdfService
+
+        snap = _payload_bonus([_voce("Bonus A", "1.00", "2.00", False)])
+        html = PdfService.render_html(_FakeStima(snap), _FakeUser())
+        assert "Rata annua</span>" in html
+        assert "rate annue" not in html
+
+
 class TestPdfBudget:
     def test_budget_sotto_il_minimo_tacca_e_riquadro(self):
         from app.services.pdf_service import PdfService

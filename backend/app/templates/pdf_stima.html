@@ -520,7 +520,8 @@
       <div class="bonus-row">
         <span class="nome">
           {{ b.nome }} &mdash; {{ (b.aliquota_pct|float * 100)|round(0)|int }}%{% if b.tetto_spesa_eur %},
-          tetto {{ b.tetto_spesa_eur|eur }} {{ stima.valuta }}{% endif %}
+          tetto {{ b.tetto_spesa_eur|eur }} {{ stima.valuta }}{% endif %}{% if b.rate_annuali %},
+          in {{ b.rate_annuali }} rate annue{% endif %}
         </span>
         <span>{{ b.detrazione_min|eur }} &ndash; {{ b.detrazione_max|eur }} {{ stima.valuta }}</span>
       </div>
@@ -533,7 +534,7 @@
         </span>
       </div>
       <div class="bonus-row">
-        <span class="nome">Rata annua (10 anni)</span>
+        <span class="nome">{{ bonus_pdf.etichetta_rata }}</span>
         <span>
           {{ bonus_pdf.rata_min|eur }} &ndash; {{ bonus_pdf.rata_max|eur }}
           {{ stima.valuta }}
@@ -572,7 +573,8 @@
       <div class="bonus-row">
         <span class="nome">
           {{ b.nome }} &mdash; {{ (b.aliquota_pct|float * 100)|round(0)|int }}%{% if b.tetto_spesa_eur %},
-          tetto {{ b.tetto_spesa_eur|eur }} {{ stima.valuta }}{% endif %}
+          tetto {{ b.tetto_spesa_eur|eur }} {{ stima.valuta }}{% endif %}{% if b.rate_annuali %},
+          in {{ b.rate_annuali }} rate annue{% endif %}
           (detrazione sull'arredo, non riduce il totale lavori)
         </span>
         <span>{{ b.detrazione_min|eur }} &ndash; {{ b.detrazione_max|eur }} {{ stima.valuta }}</span>
