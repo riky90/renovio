@@ -86,3 +86,9 @@ status: all_fixed
 _Data: 2026-10-01_
 _Fixer: Claude (gsd-code-fixer)_
 _Iterazione: 1_
+
+## Conferma di Riccardo (2026-10-01)
+
+Collaudo manuale di WR-01 e WR-03 eseguito da Riccardo: passa. Confermata la scelta su WR-03:
+dopo un salvataggio fallito PDF e dettaglio Pro restano disabilitati finche' "Riprova a salvare"
+non riesce (lo snapshot salvato deve coincidere con lo schermo, D-09).
