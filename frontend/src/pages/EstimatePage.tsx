@@ -112,8 +112,12 @@ export function EstimatePage() {
   // Risultato per cui l'auto-save e' gia' partito: l'effetto agisce una volta
   // sola per risultato, qualunque dipendenza lo faccia rieseguire.
   const ultimoResultInviato = useRef<StimaResponse | null>(null);
-  // Contatore che fa rieseguire l'effetto quando un POST finisce (anche in
-  // errore): chi aspettava l'id puo' ripiegare sul POST.
+  // WR-01: true mentre un PUT e' in volo. Un ref e non `updateMutation.isPending`
+  // perche' `reset()` (handleModifica) stacca l'observer ma NON annulla la
+  // richiesta: il PUT successivo deve aspettare che questa si concluda davvero.
+  const putInVolo = useRef(false);
+  // Contatore che fa rieseguire l'effetto quando un POST o un PUT finisce
+  // (anche in errore): chi aspettava l'id, o la fine del PUT, puo' ripartire.
   const [postConclusi, setPostConclusi] = useState(0);
   const queryClient = useQueryClient();
 
@@ -160,6 +164,11 @@ export function EstimatePage() {
       void queryClient.invalidateQueries({ queryKey: ["dettaglio-pro", id] });
       void queryClient.invalidateQueries({ queryKey: ["storico-stime"] });
     },
+    // Nelle opzioni, non per-call: parte anche dopo un reset() (vedi G12 sopra).
+    onSettled: () => {
+      putInVolo.current = false;
+      setPostConclusi((n) => n + 1);
+    },
   });
 
   const result = mutation.data;
@@ -175,12 +184,15 @@ export function EstimatePage() {
       stimaInModifica,
       idEsistente: ultimoSalvataggio?.id ?? null,
       postInVolo: richiestaInSalvataggio.current !== null,
+      putInVolo: putInVolo.current,
     });
     if (azione === "attendi") return;
 
     if (azione === "put" && ultimoSalvataggio) {
       ultimoResultInviato.current = result;
       budgetSalvato.current = budget;
+      // Sincrono, prima di mutate(): nessuna finestra in cui parta un secondo PUT.
+      putInVolo.current = true;
       updateMutation.mutate({
         id: ultimoSalvataggio.id,
         payload: { ...result, budget_eur: budget },

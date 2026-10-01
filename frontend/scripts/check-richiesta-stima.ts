@@ -168,6 +168,21 @@ async function attesa(ms: number) {
     "post",
     "Modifica ma primo POST fallito: ripiego sul POST"
   );
+  assert.equal(
+    azioneSalvataggio({ ...base, putInVolo: true }),
+    "attendi",
+    "WR-01: PUT gia' in volo sulla stessa stima: attendi, mai due PUT paralleli"
+  );
+  assert.equal(
+    azioneSalvataggio({ ...base, putInVolo: false }),
+    "put",
+    "WR-01: PUT precedente concluso: PUT"
+  );
+  assert.equal(
+    azioneSalvataggio({ stimaInModifica: false, idEsistente: null, postInVolo: false, putInVolo: true }),
+    "post",
+    "senza Modifica un PUT in volo non blocca il POST di una stima nuova"
+  );
 }
 
 console.log("check-richiesta-stima: OK");

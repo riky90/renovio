@@ -75,7 +75,10 @@ export function risposteDopoCatalogo(
  * - `put`: dopo "Modifica" esiste gia' una stima salvata: si aggiorna quella,
  *   identica o no, e MAI un POST (niente doppioni, G12).
  * - `attendi`: dopo "Modifica" il primo POST e' ancora in volo, l'id non c'e'
- *   ancora: si rimanda l'invio a quando arriva.
+ *   ancora: si rimanda l'invio a quando arriva. Oppure c'e' gia' un PUT in volo
+ *   sulla stessa stima (WR-01): i PUT si serializzano, altrimenti due richieste
+ *   parallele arrivano in ordine qualsiasi e il server tiene l'ultima ARRIVATA,
+ *   non l'ultima mostrata. Si rimanda a quando il PUT in volo si conclude.
  */
 export type AzioneSalvataggio = "post" | "put" | "attendi";
 
@@ -83,9 +86,10 @@ export function azioneSalvataggio(stato: {
   stimaInModifica: boolean;
   idEsistente: number | null;
   postInVolo: boolean;
+  putInVolo?: boolean;
 }): AzioneSalvataggio {
   if (!stato.stimaInModifica) return "post";
-  if (stato.idEsistente !== null) return "put";
+  if (stato.idEsistente !== null) return stato.putInVolo ? "attendi" : "put";
   if (stato.postInVolo) return "attendi";
   return "post";
 }
