@@ -49,6 +49,10 @@ export function LeMieStimePage() {
   // c'e' un frame in cui si mostra la vista sbagliata mentre il dettaglio carica.
   const selected = storicoQuery.data?.find((item) => item.id === selectedId);
   const isStimaPro = selected?.tier === "pro";
+  // Stessa destinazione del banner e del lucchetto sulle card (G14(f)).
+  const rifaiProHref = selected
+    ? `/nuova-stima?citta=${encodeURIComponent(selected.citta)}&mq=${selected.mq}&tipo=${selected.tipo}`
+    : undefined;
 
   // Snapshot base immutabile della stima selezionata. Per il Pro il dettaglio
   // è ricalcolato da DettaglioProView, ma lo snapshot base serve comunque come
@@ -93,9 +97,7 @@ export function LeMieStimePage() {
                         Resta com'è: per il dettaglio voce per voce rifalla in versione Pro.
                       </p>
                       <Button asChild size="sm" className="shrink-0">
-                        <Link
-                          to={`/nuova-stima?citta=${encodeURIComponent(selected.citta)}&mq=${selected.mq}&tipo=${selected.tipo}`}
-                        >
+                        <Link to={rifaiProHref ?? "/nuova-stima"}>
                           <Sparkles className="size-4" /> Rifai in versione Pro
                         </Link>
                       </Button>
@@ -115,7 +117,10 @@ export function LeMieStimePage() {
                   )}
 
                   {dettaglioQuery.isSuccess && dettaglioQuery.data && (
-                    <SavedEstimateDetail stima={dettaglioQuery.data} isPro={isUtentePro} />
+                    <SavedEstimateDetail
+                      stima={dettaglioQuery.data}
+                      rifaiProHref={isUtentePro ? rifaiProHref : undefined}
+                    />
                   )}
                 </>
               )}

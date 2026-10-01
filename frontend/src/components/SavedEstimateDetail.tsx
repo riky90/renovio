@@ -23,8 +23,13 @@ const DESTINAZIONE_LABELS: Record<string, string> = {
 
 interface SavedEstimateDetailProps {
   stima: StimaSalvataOut;
-  /** Utente Pro: nessun teaser di upgrade sulle card categoria (fix bug teaser). */
-  isPro?: boolean;
+  /**
+   * G14(f): la vista snapshot mostra solo stime Free (le Pro si aprono in
+   * DettaglioProView), quindi le card hanno sempre il lucchetto, anche se
+   * l'utente oggi e' Pro. Per un utente Pro il link del lucchetto porta qui
+   * ("Rifai in versione Pro") invece che a "Passa a Pro" (P5, fix bug teaser).
+   */
+  rifaiProHref?: string;
 }
 
 /**
@@ -34,7 +39,7 @@ interface SavedEstimateDetailProps {
  * ricalcolato. Nessun bottone soft-wall: l'utente e' gia' autenticato,
  * l'unica azione e' "Scarica PDF".
  */
-export function SavedEstimateDetail({ stima, isPro = false }: SavedEstimateDetailProps) {
+export function SavedEstimateDetail({ stima, rifaiProHref }: SavedEstimateDetailProps) {
   const sommaMedi = sommaMediCategorie(stima.categorie);
   const queryClient = useQueryClient();
   return (
@@ -77,7 +82,7 @@ export function SavedEstimateDetail({ stima, isPro = false }: SavedEstimateDetai
           <CategoryCard
             key={categoria.code}
             categoria={categoria}
-            isPro={isPro}
+            rifaiProHref={rifaiProHref}
             mq={stima.input.mq}
             sommaMedi={sommaMedi}
           />

@@ -24,6 +24,11 @@ interface CategoryCardProps {
   categoria: CategoriaOut;
   /** Utente Free (non Pro): mostra la striscia teaser bloccata. Nessun teaser per Pro. */
   isPro?: boolean;
+  /**
+   * G14(f): stima Free aperta da un utente gia' Pro. Il lucchetto resta (la stima
+   * non ha il dettaglio), ma il link porta a rifarla in Pro invece che a "Passa a Pro".
+   */
+  rifaiProHref?: string;
   /** Superficie della stima, per l'incidenza €/m². */
   mq: number;
   /** Somma dei valori medi delle categorie, denominatore del peso. */
@@ -31,7 +36,7 @@ interface CategoryCardProps {
 }
 
 /** Card categoria — neutra; il range è IVA esclusa (stessa base di €/m² e peso). */
-export function CategoryCard({ categoria, isPro = false, mq, sommaMedi }: CategoryCardProps) {
+export function CategoryCard({ categoria, isPro = false, rifaiProHref, mq, sommaMedi }: CategoryCardProps) {
   const nota = COVERAGE_NOTES[categoria.code];
   const Icon = CATEGORY_ICONS[categoria.code] ?? Hammer;
   const inc = incidenzaEurMq(categoria.imponibile_min, categoria.imponibile_max, mq);
@@ -58,10 +63,10 @@ export function CategoryCard({ categoria, isPro = false, mq, sommaMedi }: Catego
             <p className="text-sm text-muted-foreground">
               Dettaglio con Pro ·{" "}
               <Link
-                to="/passa-a-pro"
+                to={rifaiProHref ?? "/passa-a-pro"}
                 className="font-medium text-primary underline-offset-4 hover:underline"
               >
-                Passa a Pro
+                {rifaiProHref ? "Rifai in versione Pro" : "Passa a Pro"}
               </Link>
             </p>
           </div>
