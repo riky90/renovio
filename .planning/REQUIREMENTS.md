@@ -118,14 +118,14 @@ farci*, senza che aggiungere una domanda costi un deploy.
 | CUR-02 | 08, 08.1 | fatto |
 | CUR-03 | 08 | fatto |
 | CUR-04 | 08 | fatto |
-| CFG-01 | 09 | da fare |
-| CFG-02 | 09 | da fare |
-| CFG-03 | 09 | da fare |
-| CFG-04 | 09 | da fare |
-| RIS-01 | 10 | da fare |
-| RIS-02 | 10 | da fare |
-| RIS-03 | 10 | da fare |
-| RIS-04 | 10 | da fare |
+| CFG-01 | 09 | fatto |
+| CFG-02 | 09 | fatto |
+| CFG-03 | 09 | fatto |
+| CFG-04 | 09 | fatto |
+| RIS-01 | 10 | fatto |
+| RIS-02 | 10 | fatto |
+| RIS-03 | 10 | fatto |
+| RIS-04 | 10 | fatto |
 | D-01 | tutte (vincolo permanente) | vincolo |
 
 Copertura: 27/27 requisiti v2 mappati. CUR-01/02 sono nati nella 08 (listino e parametri) e chiusi per il catalogo domande nella 08.1. D-01 e' un vincolo che vale per ogni fase.
