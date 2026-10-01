@@ -119,6 +119,9 @@ export function EstimatePage() {
   // Contatore che fa rieseguire l'effetto quando un POST o un PUT finisce
   // (anche in errore): chi aspettava l'id, o la fine del PUT, puo' ripartire.
   const [postConclusi, setPostConclusi] = useState(0);
+  // WR-03: la PATCH del budget partita dall'effetto e' fallita (budget mostrato
+  // ma non persistito): lo si dice e si offre un nuovo tentativo.
+  const [erroreBudget, setErroreBudget] = useState(false);
   const queryClient = useQueryClient();
 
   // Auto-save da loggato (D-07): nessun ricalcolo, si congela esattamente il
@@ -221,6 +224,7 @@ export function EstimatePage() {
       budgetSalvato.current = daInviare;
       patchBudgetStima(idSalvato, daInviare).catch(() => {
         budgetSalvato.current = null;
+        setErroreBudget(true);
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -231,8 +235,45 @@ export function EstimatePage() {
       // Se la PATCH fallisce l'errore risale al BudgetAlert, che lo mostra.
       await patchBudgetStima(idSalvato, v);
       budgetSalvato.current = v;
+      setErroreBudget(false);
     }
     setBudget(v);
+  }
+
+  async function riprovaBudget() {
+    if (idSalvato === undefined) return;
+    const daInviare = budget;
+    try {
+      await patchBudgetStima(idSalvato, daInviare);
+      budgetSalvato.current = daInviare;
+      setErroreBudget(false);
+    } catch {
+      setErroreBudget(true);
+    }
+  }
+
+  // WR-03: un salvataggio fallito non resta silenzioso. Si ritenta la STESSA
+  // operazione (PUT sulla stima in modifica, altrimenti il POST) con il budget
+  // attuale: il payload e' il risultato mostrato, mai ricalcolato (D-07/D-09).
+  // Niente ripiego sull'id dell'ultimo salvataggio riuscito per PDF e dettaglio
+  // Pro: quello snapshot non e' cio' che l'utente sta guardando.
+  const salvataggioFallito = !!user && (saveMutation.isError || updateMutation.isError);
+
+  function riprovaSalvataggio() {
+    if (!user) return;
+    const put = updateMutation.variables;
+    if (updateMutation.isError && put && put.userId === user.id) {
+      budgetSalvato.current = budget;
+      putInVolo.current = true;
+      updateMutation.mutate({ ...put, payload: { ...put.payload, budget_eur: budget } });
+      return;
+    }
+    const post = saveMutation.variables;
+    if (saveMutation.isError && post && post.userId === user.id) {
+      budgetSalvato.current = budget;
+      richiestaInSalvataggio.current = post.richiesta;
+      saveMutation.mutate({ ...post, payload: { ...post.payload, budget_eur: budget } });
+    }
   }
 
   function handleSubmit({ values, risposte, budget: budgetDichiarato }: EstimateWizardSubmit) {
@@ -256,6 +297,7 @@ export function EstimatePage() {
     mutation.reset();
     saveMutation.reset();
     updateMutation.reset();
+    setErroreBudget(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -383,10 +425,29 @@ export function EstimatePage() {
               <>
                 <SummaryPanel input={input} onModifica={handleModifica} />
 
-                {updateMutation.isError && (
+                {salvataggioFallito && (
                   <Alert variant="destructive">
-                    <AlertDescription>
-                      Non siamo riusciti ad aggiornare la stima salvata. Riprova a ricalcolare.
+                    <AlertDescription className="flex flex-col items-start gap-3">
+                      <span>
+                        {updateMutation.isError
+                          ? "Non siamo riusciti ad aggiornare la stima salvata."
+                          : "Non siamo riusciti a salvare la stima nel tuo account."}{" "}
+                        PDF e dettaglio Pro saranno disponibili appena il salvataggio riesce.
+                      </span>
+                      <Button type="button" variant="outline" size="sm" onClick={riprovaSalvataggio}>
+                        Riprova a salvare
+                      </Button>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {erroreBudget && idSalvato !== undefined && (
+                  <Alert variant="destructive">
+                    <AlertDescription className="flex flex-col items-start gap-3">
+                      <span>Non siamo riusciti a salvare il budget nella stima salvata.</span>
+                      <Button type="button" variant="outline" size="sm" onClick={() => void riprovaBudget()}>
+                        Riprova
+                      </Button>
                     </AlertDescription>
                   </Alert>
                 )}
@@ -441,7 +502,14 @@ export function EstimatePage() {
                       result={{ ...result, budget_eur: budget }}
                       isAuthenticated={!!user}
                       savedId={idSalvato ?? null}
-                      isSaving={saveMutation.isPending || updateMutation.isPending}
+                      // Loggato, senza id e senza errore = salvataggio in corso o
+                      // in attesa del PUT precedente (WR-01): mai "Scarica PDF" muto.
+                      isSaving={
+                        saveMutation.isPending ||
+                        updateMutation.isPending ||
+                        (!!user && idSalvato === undefined && !salvataggioFallito)
+                      }
+                      saveFailed={salvataggioFallito}
                       isPro={!!user?.pro}
                     />
                 </>

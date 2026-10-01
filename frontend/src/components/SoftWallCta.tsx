@@ -14,6 +14,8 @@ interface SoftWallCtaProps {
   /** id della stima gia' salvata (auto-save da loggato) — null finche' il salvataggio e' in corso. */
   savedId?: number | null;
   isSaving?: boolean;
+  /** Il salvataggio automatico e' fallito: niente "Salvataggio in corso…" infinito (WR-03). */
+  saveFailed?: boolean;
   /** Stato Pro derivato da useAuth().user?.pro in EstimatePage — nessuna fetch aggiuntiva. */
   isPro?: boolean;
 }
@@ -29,6 +31,7 @@ export function SoftWallCta({
   isAuthenticated,
   savedId,
   isSaving,
+  saveFailed = false,
   isPro = false,
 }: SoftWallCtaProps) {
   const navigate = useNavigate();
@@ -67,7 +70,11 @@ export function SoftWallCta({
           disabled={savedId == null}
           className="h-11 w-full bg-primary text-base font-semibold text-primary-foreground hover:bg-primary/90"
         >
-          {savedId == null ? "Salvataggio in corso…" : "Vedi dettaglio Pro"}
+          {savedId != null
+            ? "Vedi dettaglio Pro"
+            : saveFailed
+              ? "Stima non salvata"
+              : "Salvataggio in corso…"}
         </Button>
       ) : (
         <Button
