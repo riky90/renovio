@@ -2,8 +2,8 @@
 
 Every endpoint sits behind `Depends(get_current_user)` (T-07-04/T-08-04, 401
 without a session). POST freezes the client-supplied `StimaResponse`-shaped
-payload as-is into `risultato_json` (+ `schema_version`) — it NEVER calls
-`EstimationService` (D-09/Pitfall 5, no recompute). GET list/detail/pdf are
+payload as-is into `risultato_json` (+ `schema_version`); PUT /stime/{id} (G14) replaces it wholesale. Neither
+EVER calls `EstimationService` (D-09/Pitfall 5, no recompute). GET list/detail/pdf are
 filtered by `user_id == current_user.id`; detail/pdf return 404 (not 403)
 when the row belongs to another user or doesn't exist, so ownership is
 never leaked (T-07-01/T-08-02, anti-IDOR, ASVS V4). The pdf endpoint reads
@@ -28,6 +28,7 @@ from app.schemas.stima import ArredoOut, BonusOut, CategoriaOut, ConfrontoFinitu
 from app.schemas.stima_salvata import (
     BudgetIn,
     BudgetOut,
+    PreferenzeProIn,
     StimaSalvataCreate,
     StimaSalvataListItem,
     StimaSalvataOut,
@@ -56,58 +57,71 @@ class StimaSalvataCreatedOut(BaseModel):
     created_at: datetime
 
 
+def _snapshot(payload: StimaSalvataCreate) -> dict:
+    """Snapshot immutabile di cio' che l'utente ha visto.
+
+    `exclude={"preferenze_pro", "budget_eur"}`: senza `preferenze_pro` i
+    parametri di ricalcolo finirebbero DENTRO lo snapshot, che per contratto ha
+    la forma di `StimaResponse`. Idem `budget_eur`: e' un parametro modificabile
+    con PATCH, se restasse nello snapshot ci sarebbero due verita' dopo la
+    prima modifica."""
+    risultato_json = payload.model_dump(mode="json", exclude={"preferenze_pro", "budget_eur"})
+    risultato_json["schema_version"] = SCHEMA_VERSION
+    return risultato_json
+
+
+def _colonne_preferenze(
+    session: Session, preferenze: PreferenzeProIn | None
+) -> tuple[dict | None, dict | None]:
+    """Valida le preferenze Pro e le traduce nelle due colonne
+    `(livelli_pro_json, risposte_pro_json)`. 400 su contenuto non valido."""
+    livelli = preferenze.livelli if preferenze else None
+    if livelli:
+        try:
+            validate_livelli(session, livelli)
+        except LivelliNonValidi as exc:
+            raise HTTPException(400, str(exc)) from exc
+
+    # Scelte del configuratore Pro raccolte nel wizard (09-11, es.
+    # tipo_pavimento): validate contro il catalogo, poi unite alle
+    # risposte mirate nella STESSA colonna che il pannello del dettaglio
+    # gia' usa (`risposte_pro_json`), cosi' schermata e wizard restano
+    # allineati.
+    scelte_grezze = preferenze.scelte if preferenze else None
+    scelte_valide: dict = {}
+    if scelte_grezze:
+        try:
+            scelte_valide = valida_risposte_pro(session, dict(scelte_grezze))
+        except RisposteNonValide as exc:
+            raise HTTPException(400, str(exc)) from exc
+        domande_catalogo = {d.code: d for d in domande_configuratore(session, mq=1, risposte={})}
+        for codice in scelte_valide:
+            domanda = domande_catalogo.get(codice)
+            if domanda is None or domanda.tipo_controllo in CONTROLLI_NUMERICI:
+                raise HTTPException(400, f"'{codice}' non e' una scelta")
+
+    risposte_pro: dict = {}
+    if preferenze and preferenze.risposte is not None:
+        risposte_pro.update(preferenze.risposte.model_dump())
+    if scelte_valide:
+        risposte_pro.update(scelte_valide)
+
+    return (livelli or None, risposte_pro or None)
+
+
 @router.post("/stime", response_model=StimaSalvataCreatedOut, status_code=201)
 def salva_stima(
     payload: StimaSalvataCreate,
     current_user: User = Depends(get_current_user),
 ) -> StimaSalvataCreatedOut:
     with SessionLocal() as session:
-        # `exclude={"preferenze_pro"}`: senza questo, i parametri di ricalcolo
-        # finirebbero DENTRO lo snapshot immutabile, che per contratto ha la
-        # forma di `StimaResponse` — cioe' cio' che l'utente ha visto. La forma
-        # dello snapshot resta identica a prima di questa feature.
-        # Idem `budget_eur`: e' un parametro modificabile con PATCH, se restasse
-        # nello snapshot ci sarebbero due verita' dopo la prima modifica.
-        risultato_json = payload.model_dump(mode="json", exclude={"preferenze_pro", "budget_eur"})
-        risultato_json["schema_version"] = SCHEMA_VERSION
+        risultato_json = _snapshot(payload)
 
         # Il tier si congela QUI, una volta sola: e' il piano attivo adesso, non
         # quello che l'utente avra' in futuro (vedi models/stima_salvata.py).
         tier = "pro" if subscription_is_active(session, current_user) else "free"
 
-        preferenze = payload.preferenze_pro
-        livelli = preferenze.livelli if preferenze else None
-        if livelli:
-            try:
-                validate_livelli(session, livelli)
-            except LivelliNonValidi as exc:
-                raise HTTPException(400, str(exc)) from exc
-
-        # Scelte del configuratore Pro raccolte nel wizard (09-11, es.
-        # tipo_pavimento): validate contro il catalogo, poi unite alle
-        # risposte mirate nella STESSA colonna che il pannello del dettaglio
-        # gia' usa (`risposte_pro_json`), cosi' schermata e wizard restano
-        # allineati.
-        scelte_grezze = preferenze.scelte if preferenze else None
-        scelte_valide: dict = {}
-        if scelte_grezze:
-            try:
-                scelte_valide = valida_risposte_pro(session, dict(scelte_grezze))
-            except RisposteNonValide as exc:
-                raise HTTPException(400, str(exc)) from exc
-            domande_catalogo = {
-                d.code: d for d in domande_configuratore(session, mq=1, risposte={})
-            }
-            for codice in scelte_valide:
-                domanda = domande_catalogo.get(codice)
-                if domanda is None or domanda.tipo_controllo in CONTROLLI_NUMERICI:
-                    raise HTTPException(400, f"'{codice}' non e' una scelta")
-
-        risposte_pro: dict = {}
-        if preferenze and preferenze.risposte is not None:
-            risposte_pro.update(preferenze.risposte.model_dump())
-        if scelte_valide:
-            risposte_pro.update(scelte_valide)
+        livelli, risposte_pro = _colonne_preferenze(session, payload.preferenze_pro)
 
         row = StimaSalvata(
             user_id=current_user.id,
@@ -120,10 +134,59 @@ def salva_stima(
             fallback=payload.fallback,
             risultato_json=risultato_json,
             budget_eur=payload.budget_eur,
-            livelli_pro_json=livelli or None,
-            risposte_pro_json=risposte_pro or None,
+            livelli_pro_json=livelli,
+            risposte_pro_json=risposte_pro,
         )
         session.add(row)
+        session.commit()
+        session.refresh(row)
+
+        return StimaSalvataCreatedOut(id=row.id, created_at=row.created_at)
+
+
+@router.put("/stime/{stima_id}", response_model=StimaSalvataCreatedOut)
+def aggiorna_stima(
+    stima_id: int,
+    payload: StimaSalvataCreate,
+    current_user: User = Depends(get_current_user),
+) -> StimaSalvataCreatedOut:
+    """G14: "Modifica" aggiorna la stima attuale invece di crearne una nuova.
+
+    Sostituzione completa dello snapshot con il payload del client, mai
+    ricalcolo lato server (D-09): lo snapshot resta la prova di cio' che
+    l'utente ha visto. La colonna `tier` resta quella congelata al primo
+    salvataggio: una stima Free non diventa Pro (ne' viceversa). Se
+    `preferenze_pro` e' assente le colonne delle scelte Pro restano com'e';
+    se presente sono validate come nel POST e le sostituiscono. Le colonne
+    scalari (citta, mq, tipo, totali, fallback) sono riscritte perche' il
+    dettaglio Pro ricalcola da quelle. 404 (mai 403) su stima altrui o
+    inesistente (anti-IDOR); `created_at` invariato."""
+    with SessionLocal() as session:
+        stmt = select(StimaSalvata).where(
+            StimaSalvata.id == stima_id,
+            StimaSalvata.user_id == current_user.id,
+        )
+        row = session.execute(stmt).scalar_one_or_none()
+        if row is None:
+            raise HTTPException(404, "Stima non trovata")
+
+        # Validazione PRIMA di toccare la riga: un 400 non lascia modifiche.
+        colonne_pro = (
+            _colonne_preferenze(session, payload.preferenze_pro)
+            if payload.preferenze_pro is not None
+            else None
+        )
+
+        row.risultato_json = _snapshot(payload)
+        row.citta = payload.input.citta
+        row.mq = payload.input.mq
+        row.tipo = payload.input.tipo.value
+        row.totale_min = payload.totale.totale_min
+        row.totale_max = payload.totale.totale_max
+        row.fallback = payload.fallback
+        row.budget_eur = payload.budget_eur
+        if colonne_pro is not None:
+            row.livelli_pro_json, row.risposte_pro_json = colonne_pro
         session.commit()
         session.refresh(row)
 
