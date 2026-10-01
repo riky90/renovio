@@ -18,7 +18,16 @@ from decimal import Decimal
 
 from pydantic import BaseModel, Field, field_validator
 
-from app.schemas.stima import ArredoOut, BonusOut, CategoriaOut, ConfrontoFinitureOut, ExtraOut, StimaInputEcho, TotaleOut
+from app.schemas.stima import (
+    ArredoOut,
+    BonusOut,
+    CategoriaOut,
+    ConfrontoFinitureOut,
+    ExtraOut,
+    StimaInputEcho,
+    StimaInputSalvataIn,
+    TotaleOut,
+)
 
 
 class RisposteProIn(BaseModel):
@@ -71,7 +80,9 @@ class StimaSalvataCreate(BaseModel):
     Uniche eccezioni: `preferenze_pro` e `budget_eur`, che sono parametri e non
     risultati — vanno nelle loro colonne, mai nello snapshot."""
 
-    input: StimaInputEcho
+    # Vincoli di `StimaRequest` in ingresso (WR-06): il PUT riscrive citta/mq e
+    # il dettaglio Pro ricalcola da li'. In lettura resta `StimaInputEcho`.
+    input: StimaInputSalvataIn
     fallback: bool
     disclaimer: str | None = None
     valuta: str

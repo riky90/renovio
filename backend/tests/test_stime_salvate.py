@@ -497,6 +497,26 @@ class TestAggiornaStima:
         assert client.put(f"{STIME_URL}/{sid}", json=p).status_code == 422
         assert client.get(f"{STIME_URL}/{sid}").json()["input"]["mq"] == 85
 
+    @pytest.mark.parametrize(
+        ("campo", "valore"),
+        [("mq", 0), ("mq", -10), ("mq", 2001), ("mq", 2**31), ("citta", ""), ("citta", "x" * 101)],
+    )
+    def test_input_fuori_dai_vincoli_di_stima_request_422(self, client, campo, valore):
+        """WR-06: citta/mq pilotano il ricalcolo Pro, quindi in ingresso valgono
+        gli stessi vincoli di POST /stima. La riga resta invariata."""
+        sid = self._crea(client)
+        p = _stima_modificata()
+        p["input"][campo] = valore
+
+        assert client.put(f"{STIME_URL}/{sid}", json=p).status_code == 422
+        assert client.get(f"{STIME_URL}/{sid}").json()["input"]["mq"] == 85
+
+    def test_post_con_mq_fuori_dai_vincoli_422(self, client):
+        _registra(client)
+        p = _stima_payload()
+        p["input"]["mq"] = 0
+        assert client.post(STIME_URL, json=p).status_code == 422
+
     def test_nessun_dato_impresa_nelle_risposte(self, client):
         sid = self._crea(client)
         put = client.put(f"{STIME_URL}/{sid}", json=_stima_modificata())

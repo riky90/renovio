@@ -75,6 +75,16 @@ class StimaInputEcho(BaseModel):
     risposte: Risposte | None = None
 
 
+class StimaInputSalvataIn(StimaInputEcho):
+    """Eco dell'input in INGRESSO a POST/PUT /me/stime: stessi vincoli di
+    `StimaRequest`, perche' `citta`/`mq` finiscono nelle colonne scalari da cui
+    il dettaglio Pro ricalcola (WR-06). `StimaInputEcho` resta permissivo
+    perche' rilegge anche snapshot storici gia' salvati."""
+
+    citta: str = Field(min_length=1, max_length=100)
+    mq: int = Field(ge=1, le=2000)
+
+
 class CategoriaOut(BaseModel):
     code: str
     nome: str
