@@ -2,23 +2,23 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: domande e motore parametrico
-status: verifying
+status: milestone_complete
 last_updated: "2026-10-01T08:32:46.423Z"
 progress:
   total_phases: 7
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 53
   completed_plans: 53
-  percent: 86
+  percent: 100
 ---
 
 # Project State — ristruttura-stima
 
 ## Current Position
 
-Phase: 10 (risultato-leggibile) — VERIFYING
-Plan: 24 of 24 (tutti eseguiti; ri-collaudo G10-G15 approvato il 2026-10-01, `10-24-SUMMARY.md`)
-Prossimo: code review di fase, verifica goal-backward, poi chiusura della Fase 10 e della milestone v2.0.
+Phase: 10 (risultato-leggibile) — COMPLETE (2026-10-01)
+Plan: 24 of 24. Code review chiusa (`10-REVIEW-FIX.md`), verifica 5/5 (`10-VERIFICATION.md`, PDF al go-live), suite 1000 passed / 5 skipped.
+Prossimo: chiusura della milestone v2.0 (`/gsd:audit-milestone`, `/gsd:complete-milestone`), poi i passi prima del push: migrazioni 0021-0024 su Postgres, taratura A.6.11, `BACKEND_PUBLIC_URL` su Render, push `git push origin master:main`.
 Stato: Fase 09 **chiusa il 2026-09-29**: code review post-gap corretta (CR-01, WR-01..07,
 `09-REVIEW-FIX.md` all_fixed), ri-collaudo dal vivo G1..G4 approvato da Riccardo
 (`.planning/checklists/2026-09-29-ricollaudo-09.md`), fix "Aggiungi listino" (`4e4b50a`).

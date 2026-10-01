@@ -233,7 +233,7 @@ Plans:
 
 ### Phase 10: Risultato leggibile e tetto di budget
 
-**Status:** pending
+**Status:** ✅ Complete (2026-10-01) — 24/24 piani (9 + 15 di gap closure G1-G15), code review chiusa (WR-01/03/05/06; WR-02 voluto, WR-04 in backlog), verifica 5/5 `human_needed` solo per i PDF al go-live, ri-collaudo dal vivo approvato da Riccardo il 2026-10-01. Suite 1000 passed / 5 skipped.
 **Goal:** Il numero smette di essere un numero: si legge da dove viene, quanto pesa ogni categoria, quanto è davvero incerto — e cosa fare se supera il budget dichiarato.
 **Mode:** mvp
 **UI hint:** yes
@@ -246,7 +246,7 @@ Plans:
 4. Superato il budget dichiarato, compare un avviso con il confronto ricalcolato a finiture inferiori
 5. Il budget **non** muove il prezzo: due assi distinti, *finiture* sì e *budget* no
 
-**Plans:** 24/24 plans executed
+**Plans:** 24/24 plans complete
 
 Plans:
 **Wave 1**
