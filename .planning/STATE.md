@@ -3,7 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: domande e motore parametrico
 status: milestone_complete
-last_updated: "2026-10-01T08:32:46.423Z"
+last_updated: "2026-10-01T12:59:53.134Z"
+last_activity: 2026-10-01 — Milestone v2.0 completed and archived
 progress:
   total_phases: 7
   completed_phases: 7
@@ -16,61 +17,36 @@ progress:
 
 ## Current Position
 
-Phase: 10 (risultato-leggibile) — COMPLETE (2026-10-01)
-Plan: 24 of 24. Code review chiusa (`10-REVIEW-FIX.md`), verifica 5/5 (`10-VERIFICATION.md`, PDF al go-live), suite 1000 passed / 5 skipped.
-Prossimo: chiusura della milestone v2.0 (`/gsd:audit-milestone`, `/gsd:complete-milestone`), poi i passi prima del push: migrazioni 0021-0024 su Postgres, taratura A.6.11, `BACKEND_PUBLIC_URL` su Render, push `git push origin master:main`.
-Stato: Fase 09 **chiusa il 2026-09-29**: code review post-gap corretta (CR-01, WR-01..07,
-`09-REVIEW-FIX.md` all_fixed), ri-collaudo dal vivo G1..G4 approvato da Riccardo
-(`.planning/checklists/2026-09-29-ricollaudo-09.md`), fix "Aggiungi listino" (`4e4b50a`).
-`dev.db` a `0023 (head)`, listino di prova "modena" rimosso (backup
-`dev.db.bak-pre-rimozione-modena-20260929`). Suite 858 passed / 5 skipped.
-Prossima: `/gsd:plan-phase 10`. Prima del push (a fine Fase 10): taratura A.6.11, prova
-delle migrazioni 0021-0023 su Postgres, `BACKEND_PUBLIC_URL` su Render.
+Phase: Milestone v2.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-10-01 — Milestone v2.0 completed and archived (tag `v2.0`)
 
-- **Milestone:** v2.0 (domande e motore parametrico), fasi **05-10**. La v1.0 (MVP, fasi
-  01-04) e' **completa, verificata e in produzione dal 2026-09-09** — backend su Render,
-  frontend su Vercel — e archiviata in `.planning/milestones/v1.0-ROADMAP.md`.
+La v2.0 e' **chiusa ma non ancora in produzione**: `origin/main` e' fermo a `f011ed4`
+(v1.0), con circa 350 commit da pushare. Il push deploya su Render e migra il DB di
+produzione dalla `0013` alla `0024`. Prima del push:
 
-- **Fasi complete (6 di 7):** 05 (catalogo domande + motore Free parametrico), 06 (wizard
-  unico), 07 (arredo), 08 (export/import Excel), 08.1 (catalogo domande: pagina CRUD e file
-  Excel), 09 (configuratore Pro: assi finitura/pavimento senza somma di alternative, taratura
-  su tre canali, dev.db a `0022 head`). 05 e 06 eseguite fuori dal ciclo GSD e ricostruite nei
-  `NN-RETRO-SUMMARY.md`.
+1. Prova su Postgres delle migrazioni 0014-0024 (in particolare 0021-0024) e della
+   validazione WR-06.
+2. Taratura di A.6.11 "Taglio porta blindata" (coefficiente per m² invece che a conteggio,
+   vedi `09-TARATURA-TODO.md`).
+3. `BACKEND_PUBLIC_URL` impostata su Render (storage avatar su DB).
+4. `git push origin master:main`, poi il collaudo dei PDF in produzione (sezione PDF di
+   `10-HUMAN-UAT.md`, voci 15-18 di `.planning/checklists/2026-10-01-collaudo-wiz-04.md`).
 
-- **09** chiusa il 2026-09-28: 8/8 piani. `dev.db` migrato a `0022 (head)` e seminato (backup
-  pre-migrazione), suite backend 818 passed/5 skipped, build e lint frontend verdi, cinque
-  controlli automatici del percorso Pro via API verdi (default D-07, quota bagno D-02,
-  stepper bagni raddoppiato, anti-leak sulle chiavi JSON) — il quinto controllo (PDF Pro) e'
-  SKIP-graceful per il limite GTK3/WeasyPrint gia' noto su questa macchina Windows, non un
-  fallimento. `09-HUMAN-UAT.md` registra il collaudo dal vivo di Riccardo con il suo account
-  Pro reale come **pending**, non bloccante (WIZ-04, vincolo del 2026-09-26): le fasi 09-10
-  proseguono senza aspettarlo. I coefficienti restano la bozza accettata finche'
-  `09-TARATURA-TODO.md` non si chiude con il file vero di Riccardo.
+Prossima milestone: `/gsd:new-milestone`.
 
-- **08** chiusa il 2026-09-23: 8/8 piani, verifica `passed` 5/5, tredici findings della
-  code review chiuse in due iterazioni di `/gsd:code-review 08 --fix` (report in
-  `08-REVIEW-FIX.md`). Le due Info rimaste (`08-REVIEW.md`, `status: issues_found`) sono
-  fuori scope di proposito.
+## Deferred Items
 
-- **08.1** chiusa il 2026-09-25: 6/6 piani in tre wave, tre BLOCKER della review chiusi con
-  regressioni, collaudo dal vivo (`08.1-HUMAN-UAT.md`) **approvato da Riccardo**. Dal
-  collaudo e' emerso un difetto fuori scope, i dialog admin non scrollabili: corretto in
-  `db15e33`, insieme alla nuova pagina `/admin/documentazione` (manuale del pannello).
-  `backend/dev.db` a `0020 (head)`.
+Items acknowledged and deferred at milestone close on 2026-10-01:
 
-- **Push:** nessun push fino alla chiusura dell'**ultima fase della milestone (10)**,
-  decisione di Riccardo ribadita il 2026-09-25. Prima del push va configurata
-  `BACKEND_PUBLIC_URL` su Render, o l'upload avatar torna 503. Col primo deploy entra D-41:
-  il seed non riscrive piu' testi e opzioni esistenti, le correzioni passano dal pannello.
-
-- **Numerazione:** le fasi non ripartono da 01 a ogni milestone (regola GSD). Il piano
-  originale chiamava queste fasi 1-6; qui sono **05-10**. La corrispondenza e':
-  `piano Fase 1 -> 05` · `2 -> 06` · `3 -> 07` · `4 -> 08` · `5 -> 09` · `6 -> 10`.
-  Il piano sorgente resta `~/.claude/plans/il-punto-1-come-steady-comet.md`, ora tradotto in
-  `.planning/ROADMAP.md` + `.planning/REQUIREMENTS.md` (27 requisiti v2).
-
-- **Regola range (locked):** ±% solo sui lavori (4 categorie); extra fissi (€2.806 lordo); totale = Σ card + extra. Oracolo primario: 85 mq · totale = €47.985–€70.575.
-- **Stack (da RESEARCH):** FastAPI + SQLAlchemy 2.0 + Pydantic v2 + Postgres/Alembic · React 19 + Vite + TS 5.9 + react-query + Tailwind/shadcn · autocomplete comuni ISTAT bundlato offline.
+| Category | Item | Status |
+|----------|------|--------|
+| uat_gap | 08.1-HUMAN-UAT.md | passed (falso positivo: lo stato non e' `complete`) |
+| uat_gap | 10-HUMAN-UAT.md | resolved (falso positivo: lo stato non e' `complete`) |
+| verification_gap | 03-VERIFICATION.md | human_needed (fase v1.0, in produzione dal 2026-09-09) |
+| verification_gap | 04-VERIFICATION.md | human_needed (fase v1.0, in produzione dal 2026-09-09) |
+| verification_gap | 10-VERIFICATION.md | human_needed (solo PDF, da collaudare al go-live su Render) |
 
 ## Last Session
 
@@ -300,3 +276,7 @@ Vedi PROJECT.md → Key Decisions e `BRIEF-DISCUSSIONE.md`.
 - [Phase 10-risultato-leggibile P19]: G10 lato server chiuso: `su_arredo` per voce (voce in `completo` e assente in `lavori`, nessun codice cablato) e `rata_annua_lavori_min/max` in BonusOut; snapshot vecchi = false/null, nessun backfill. STATE.md aggiornato a mano oltre advance-plan.
 - [Phase 10-risultato-leggibile P22]: causa G12 = race su `reset()` (callback per-call di `mutate` persi in TanStack Query v5), provata in `frontend/scripts/check-richiesta-stima.ts`; prefill del wizard escluso. `ultimoSalvataggio` ora nell'`onSuccess` di useMutation. Che sia la causa vista dal vivo non e' osservato: conferma in checklist 10-24.
 - [Phase 10-risultato-leggibile P23]: G14 chiuso: `PUT /me/stime/{id}` (sostituzione snapshot, tier/created_at mai toccati, 404 anti-IDOR) e flusso Modifica della home che fa sempre PUT sull'id esistente (mai POST). Supera la regola 10-12 "input diversi = stima nuova". `created_at` invariato: da confermare in checklist 10-24.
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone

@@ -2,7 +2,7 @@
 
 ## What This Is
 
-App web che trasforma un computo metrico estimativo Excel (usato oggi manualmente per i preventivi di ristrutturazione) in uno strumento self-service. L'utente si registra (email o Google), indica **città, mq dell'appartamento e tipo di ristrutturazione (leggera / moderata / totale)** e riceve una **stima dei costi** divisa nelle 4 categorie **Edile, Finiture, Serramenti/Porte, Prodotti**. Con abbonamento **Pro** ottiene il dettaglio per sottocategorie (a.1/a.2…). A ogni livello può **scaricare un PDF** e **contattare un professionista** per il preventivo dettagliato.
+App web (marchio **Renovio**) che trasforma un computo metrico estimativo Excel in uno strumento self-service. L'utente si registra (email o Google) e, con un **wizard a quattro step**, descrive città, m², tipo di ristrutturazione e com'è fatta la casa (domande servite dal database, ambienti da arredare, livello di finiture, budget). Riceve una **stima a range** divisa nelle 4 categorie **Edile, Finiture, Serramenti/Porte, Prodotti**, con IVA, extra, detrazioni e forfait arredo accanto al totale lavori. Con abbonamento **Pro** ottiene il computo per sottocategorie, configurabile su finitura e pavimento. A ogni livello può **scaricare un PDF** e **contattare un professionista**. Il pannello admin cura listini, coefficienti, catalogo domande ed effetti, anche via Excel.
 
 ## Core Value
 
@@ -20,44 +20,51 @@ Da `(città, mq, tipo)` a una **stima credibile a range** in pochi secondi, senz
 ## Current State
 
 **Shipped:** v1.0 (MVP) — 2026-09-09, in produzione. Backend su Render, frontend su Vercel.
-30 piani su 4 fasi, 21/21 requisiti consegnati. Archivio:
-`.planning/milestones/v1.0-ROADMAP.md`.
+Archivio: `.planning/milestones/v1.0-ROADMAP.md`.
 
-**In corso:** v2.0 — *domande e motore parametrico*, fasi **05-10**. Le fasi 05, 06 e 07
-(catalogo domande in database, motore Free parametrico, wizard unico, forfait arredo) sono
-complete e committate; la 08 (export/import Excel dal pannello admin) ha il contesto
-raccolto e aspetta il piano. 27 requisiti mappati in `.planning/REQUIREMENTS.md`.
+**Completata, non ancora in produzione:** v2.0 — *domande e motore parametrico*, fasi 05-10,
+53 piani, 30/30 requisiti, audit `passed` (2026-10-01). Archivio:
+`.planning/milestones/v2.0-ROADMAP.md`. Il push (circa 350 commit, migrazioni 0014-0024) e'
+in attesa di: prova delle migrazioni su Postgres, taratura A.6.11, `BACKEND_PUBLIC_URL` su
+Render. Dopo il push, collaudo dei PDF in produzione.
 
-**Obiettivi della v2:** la v1 risponde a `(citta, mq, tipo)`; la v2 risponde a *com'e' fatta
-questa casa e cosa vuoi farci* — e lo fa senza che aggiungere una domanda costi un deploy.
-Il catalogo di domande, le opzioni e i loro effetti sono **dati amministrabili**. La fine
-della milestone chiude il bug dei cataloghi alternativi nel motore Pro, che oggi somma voci
-che sono alternative fra loro.
+**Stack:** FastAPI + SQLAlchemy/Alembic (SQLite in sviluppo, Postgres in produzione),
+WeasyPrint per i PDF; React + Vite + Tailwind/shadcn. Suite backend 1008 test.
 
-**Debito noto portato dentro la v2:** i coefficienti sono una bozza e non una taratura — e
-non sono tarabili da soli, perche' il computo sorgente non ha quantita'; la curatela di
-`voce.livello` esiste solo nel `dev.db` locale (21 voci su 191), ed e' la Fase 08 a renderla
-trasportabile. Lo storage avatar non e' piu' un debito: R2 resta la strada maestra se le
-cinque `R2_*` ci sono, altrimenti i byte stanno nella tabella `avatar_blob` (2026-09-21).
+**Debito noto:** coefficienti Pro in bozza finche' l'Excel di taratura non e' compilato;
+`domanda_mirata_key` e `Voce.livello` curabili ma non lette dal motore; effetti legati agli id
+di voce (fragili con un secondo listino); snapshot della stima fornito dal client; anteprima
+admin solo Free; nessun test runner frontend.
+
+## Next Milestone Goals
+
+Da definire con `/gsd:new-milestone`. Candidati: go-live della v2.0 e taratura vera dei
+coefficienti, secondo listino (altra città), progetti come contenitore di piu' stime,
+indirizzo e geocoding, AI come parser del testo libero.
 
 ## Requirements
 
 ### Validated
 
-(None yet — ship to validate)
+- ✓ Registrazione/login con email e Google — v1.0
+- ✓ Input guidato: città, mq, tipo di ristrutturazione — v1.0 (wizard a quattro step dalla v2.0)
+- ✓ Stima Free: 4 totali di categoria + IVA differenziata + extra, output a range — v1.0
+- ✓ Stima Pro: sottocategorie con voci e quantità stimate — v1.0, senza alternative sommate dalla v2.0
+- ✓ Motore parametrico Ibrido C — v1.0; parametrico sulle risposte del catalogo — v2.0
+- ✓ Listini prezzi per città con fallback + disclaimer — v1.0
+- ✓ Pannello admin per listini, coefficienti, città, referenti, testi — v1.0; catalogo domande ed export/import Excel — v2.0
+- ✓ Export PDF brandizzato Free e Pro — v1.0 (lettura completa, bonus e arredo dalla v2.0, collaudo PDF al go-live)
+- ✓ Contatto professionista con lead via email + dashboard admin — v1.0
+- ✓ Abbonamento Pro (paywall sul dettaglio) — v1.0
+- ✓ Catalogo domande/opzioni/effetti in database, curabile senza deploy — v2.0
+- ✓ Forfait arredo a range accanto al totale lavori, Bonus Mobili — v2.0
+- ✓ Configuratore Pro su finitura e pavimento — v2.0
+- ✓ Risultato leggibile (RangeBar proporzionale, €/m², peso, riepilogo IVA) e budget dichiarato — v2.0
 
 ### Active
 
-- [ ] Registrazione/login con email e Google
-- [ ] Input guidato: città, mq, tipo di ristrutturazione (leggera/moderata/totale)
-- [ ] Stima Free: 4 totali di categoria + IVA differenziata + extra (CSE/CSP, pratiche), output a range
-- [ ] Stima Pro: apertura sottocategorie a.1/a.2 con voci e quantità stimate
-- [ ] Motore parametrico Ibrido C con coefficienti €/m² e quantità-per-m²
-- [ ] Listini prezzi per città con fallback + disclaimer
-- [ ] Pannello admin per gestire listini, coefficienti, città, referenti, testi
-- [ ] Export PDF brandizzato a ogni livello (Free e Pro)
-- [ ] Contatto professionista (aperto a tutti) con lead via email + dashboard admin
-- [ ] Abbonamento Pro (paywall sul dettaglio sottocategorie)
+- [ ] Go-live della v2.0 in produzione
+- [ ] Taratura vera dei coefficienti Pro (Excel di taratura → migrazione 0025)
 
 ### Out of Scope
 
@@ -70,14 +77,19 @@ cinque `R2_*` ci sono, altrimenti i byte stanno nella tabella `avatar_blob` (202
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Motore Ibrido C (€/m² Free, parametrico Pro), output a range | Free istantaneo, Pro credibile senza modellare 300 righe; range protegge legalmente pre-sopralluogo | — Pending |
-| Utente vede solo prezzo cliente | Il coefficiente impresa è margine interno | — Pending |
-| Città = selettore listino, non moltiplicatore | Prezzi realmente diversi per città; RE è l'unico listino iniziale | — Pending |
-| Prezzi/coefficienti gestiti da pannello admin, non nel codice | L'utente deve aggiornarli senza sviluppatore | — Pending |
-| Free = 4 totali categoria; Pro = sottocategorie | Taglio naturale del valore percepito | — Pending |
-| Contatto professionista aperto a tutti | È il vero obiettivo di business (acquisizione lavori) | — Pending |
+| Motore Ibrido C (€/m² Free, parametrico Pro), output a range | Free istantaneo, Pro credibile senza modellare 300 righe; range protegge legalmente pre-sopralluogo | ✓ Good |
+| Utente vede solo prezzo cliente | Il coefficiente impresa è margine interno | ✓ Good (test anti-leak su tutte le route) |
+| Città = selettore listino, non moltiplicatore | Prezzi realmente diversi per città; RE è l'unico listino iniziale | ✓ Good |
+| Prezzi/coefficienti gestiti da pannello admin, non nel codice | L'utente deve aggiornarli senza sviluppatore | ✓ Good (anche via Excel dalla v2.0) |
+| Free = 4 totali categoria; Pro = sottocategorie | Taglio naturale del valore percepito | ✓ Good |
+| Contatto professionista aperto a tutti | È il vero obiettivo di business (acquisizione lavori) | — Pending (serve traffico in produzione) |
 | Modello dati multi-referente dal giorno 1, v1 con un solo referente | Non bloccare la rete futura senza costruire il portale ora | — Pending |
-| Extra sì, finanziamento no in v1 | Preventivo completo ma senza variabili di credito | — Pending |
+| Extra sì, finanziamento no in v1 | Preventivo completo ma senza variabili di credito | ✓ Good |
+| Domande, opzioni ed effetti come dati, con un insieme chiuso di tipi di effetto | Aggiungere una domanda non deve costare un deploy, ma niente formule libere in tabella | ✓ Good — v2.0 (otto tipi) |
+| Arredo accanto al totale lavori, mai dentro | L'oracolo dei lavori non deve muoversi | ✓ Good — v2.0 |
+| Assi Pro (finitura, pavimento) come effetti del catalogo | Chiude il bug delle alternative sommate con un test che conta le voci | ✓ Good — v2.0 |
+| Budget come asse separato dalle finiture | Il budget avvisa e confronta, non muove il prezzo | ✓ Good — v2.0 |
+| Push solo a fine milestone | Il push deploya e migra la produzione | ⚠️ Revisit — 350 commit accumulati rendono il go-live un salto grande |
 
 ## Evolution
 
@@ -97,4 +109,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-21 — milestone v1.0 archiviata, v2.0 aperta (fasi 05-10).*
+*Last updated: 2026-10-01 — milestone v2.0 completata e archiviata, push in attesa.*
