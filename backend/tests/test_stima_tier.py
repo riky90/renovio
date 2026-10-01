@@ -212,3 +212,26 @@ class TestGateOrtogonali:
         client.post(ATTIVA_PRO_URL)
 
         assert client.get(f"{STIME_URL}/{stima_id}/dettaglio-pro").status_code == 404
+
+
+class TestTierAlAggiornamento:
+    """G14: il PUT non rilegge mai il tier, resta quello del primo salvataggio."""
+
+    def test_stima_free_resta_free_dopo_upgrade(self, client):
+        _registra(client)
+        stima_id = client.post(STIME_URL, json=_stima_payload()).json()["id"]
+        client.post(ATTIVA_PRO_URL)
+
+        r = client.put(f"{STIME_URL}/{stima_id}", json=_stima_payload())
+
+        assert r.status_code == 200
+        assert client.get(f"{STIME_URL}/{stima_id}").json()["tier"] == "free"
+
+    def test_stima_pro_resta_pro(self, client):
+        _registra(client)
+        client.post(ATTIVA_PRO_URL)
+        stima_id = client.post(STIME_URL, json=_stima_payload()).json()["id"]
+
+        client.put(f"{STIME_URL}/{stima_id}", json=_stima_payload())
+
+        assert client.get(f"{STIME_URL}/{stima_id}").json()["tier"] == "pro"

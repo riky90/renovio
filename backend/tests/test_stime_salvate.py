@@ -343,3 +343,165 @@ class TestArredoNelloSnapshot:
         r = client.get(f"{STIME_URL}/{sid}")
         assert r.status_code == 200
         assert r.json()["arredo"] is None
+
+
+def _stima_modificata() -> dict:
+    """Come `_stima_payload()` ma con mq e totale diversi (esito di una Modifica)."""
+    p = _stima_payload()
+    p["input"]["mq"] = 120
+    p["totale"]["totale_min"] = "41000.00"
+    p["totale"]["totale_max"] = "59000.00"
+    return p
+
+
+class TestAggiornaStima:
+    """G14: PUT /me/stime/{id} sostituisce lo snapshot della propria stima."""
+
+    def _crea(self, client, payload=None) -> int:
+        _registra(client)
+        return client.post(STIME_URL, json=payload or _stima_payload()).json()["id"]
+
+    def test_put_stessa_id_nuovo_snapshot(self, client):
+        sid = self._crea(client)
+        created_at = client.get(f"{STIME_URL}/{sid}").json()["created_at"]
+
+        r = client.put(f"{STIME_URL}/{sid}", json=_stima_modificata())
+
+        assert r.status_code == 200
+        assert r.json()["id"] == sid
+        body = client.get(f"{STIME_URL}/{sid}").json()
+        assert body["created_at"] == created_at
+        assert body["input"]["mq"] == 120
+        assert body["totale"]["totale_max"] == "59000.00"
+
+    def test_lista_ha_una_sola_stima_con_valori_nuovi(self, client):
+        sid = self._crea(client)
+        client.put(f"{STIME_URL}/{sid}", json=_stima_modificata())
+
+        lista = client.get(STIME_URL).json()
+
+        assert len(lista) == 1
+        assert lista[0]["id"] == sid
+        assert lista[0]["mq"] == 120
+        assert float(lista[0]["totale_max"]) == 59000.0
+
+    def test_snapshot_senza_preferenze_ne_budget_e_con_schema_version(self, client):
+        from app.models.stima_salvata import StimaSalvata
+        from app.routers.stime_salvate import SCHEMA_VERSION
+
+        sid = self._crea(client)
+        payload = _stima_modificata()
+        payload["budget_eur"] = 50000
+        payload["preferenze_pro"] = {"livelli": None}
+        client.put(f"{STIME_URL}/{sid}", json=payload)
+
+        with db_module.SessionLocal() as s:
+            snap = s.get(StimaSalvata, sid).risultato_json
+        assert "preferenze_pro" not in snap
+        assert "budget_eur" not in snap
+        assert snap["schema_version"] == SCHEMA_VERSION
+
+    def test_budget_aggiornato_e_azzerato(self, client):
+        sid = self._crea(client)
+        p = _stima_modificata()
+        p["budget_eur"] = 70000
+        client.put(f"{STIME_URL}/{sid}", json=p)
+        assert client.get(f"{STIME_URL}/{sid}").json()["budget_eur"] == 70000
+
+        client.put(f"{STIME_URL}/{sid}", json=_stima_modificata())
+        assert client.get(f"{STIME_URL}/{sid}").json()["budget_eur"] is None
+
+    def test_senza_preferenze_pro_le_colonne_restano(self, client):
+        from app.models.stima_salvata import StimaSalvata
+
+        sid = self._crea(client)
+        with db_module.SessionLocal() as s:
+            riga = s.get(StimaSalvata, sid)
+            riga.livelli_pro_json = {"finiture": "alto"}
+            riga.risposte_pro_json = {"bagni": 2}
+            s.commit()
+
+        r = client.put(f"{STIME_URL}/{sid}", json=_stima_modificata())
+
+        assert r.status_code == 200
+        with db_module.SessionLocal() as s:
+            riga = s.get(StimaSalvata, sid)
+            assert riga.livelli_pro_json == {"finiture": "alto"}
+            assert riga.risposte_pro_json == {"bagni": 2}
+
+    def test_livelli_non_validi_400_e_riga_invariata(self, client):
+        sid = self._crea(client)
+        p = _stima_modificata()
+        p["preferenze_pro"] = {"livelli": {"categoria-inesistente": "x"}}
+
+        r = client.put(f"{STIME_URL}/{sid}", json=p)
+
+        assert r.status_code == 400
+        assert client.get(f"{STIME_URL}/{sid}").json()["input"]["mq"] == 85
+
+    def test_arredo_aggiunto_e_tolto(self, client):
+        sid = self._crea(client)
+        p = _stima_modificata()
+        p["arredo"] = _arredo_payload()
+        client.put(f"{STIME_URL}/{sid}", json=p)
+        assert client.get(f"{STIME_URL}/{sid}").json()["arredo"]["livello_code"] == "medio"
+
+        client.put(f"{STIME_URL}/{sid}", json=_stima_modificata())
+        assert client.get(f"{STIME_URL}/{sid}").json()["arredo"] is None
+
+    def test_snapshot_vecchio_viene_riscritto_nella_forma_nuova(self, client):
+        from app.models.stima_salvata import StimaSalvata
+
+        sid = self._crea(client)
+        with db_module.SessionLocal() as s:
+            riga = s.get(StimaSalvata, sid)
+            snap = dict(riga.risultato_json)
+            snap.pop("arredo", None)
+            snap.pop("bonus", None)
+            riga.risultato_json = snap
+            s.commit()
+
+        r = client.put(f"{STIME_URL}/{sid}", json=_stima_modificata())
+
+        assert r.status_code == 200
+        body = client.get(f"{STIME_URL}/{sid}").json()
+        assert body["input"]["mq"] == 120
+        assert "arredo" in body and "bonus" in body
+
+    def test_utente_b_riceve_404_e_la_stima_di_a_non_cambia(self, client):
+        sid = self._crea(client)
+        client.post(LOGOUT_URL)
+        _registra(client, email="utente.b@example.com", nome="B")
+
+        r = client.put(f"{STIME_URL}/{sid}", json=_stima_modificata())
+
+        assert r.status_code == 404
+        client.post(LOGOUT_URL)
+        client.post("/api/v1/auth/login", json={"email": "utente.a@example.com", "password": "Password123"})
+        assert client.get(f"{STIME_URL}/{sid}").json()["input"]["mq"] == 85
+
+    def test_id_inesistente_404(self, client):
+        _registra(client)
+        assert client.put(f"{STIME_URL}/99999", json=_stima_modificata()).status_code == 404
+
+    def test_senza_sessione_401(self, client):
+        sid = self._crea(client)
+        client.post(LOGOUT_URL)
+        assert client.put(f"{STIME_URL}/{sid}", json=_stima_modificata()).status_code == 401
+
+    def test_payload_non_valido_422_e_riga_invariata(self, client):
+        sid = self._crea(client)
+        p = _stima_modificata()
+        del p["totale"]
+
+        assert client.put(f"{STIME_URL}/{sid}", json=p).status_code == 422
+        assert client.get(f"{STIME_URL}/{sid}").json()["input"]["mq"] == 85
+
+    def test_nessun_dato_impresa_nelle_risposte(self, client):
+        sid = self._crea(client)
+        put = client.put(f"{STIME_URL}/{sid}", json=_stima_modificata())
+        get = client.get(f"{STIME_URL}/{sid}")
+        for r in (put, get):
+            for forbidden in FORBIDDEN_SUBSTRINGS:
+                assert forbidden not in r.text
+        _assert_no_forbidden_keys(get.json())
