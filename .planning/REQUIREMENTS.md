@@ -13,7 +13,7 @@ farci*, senza che aggiungere una domanda costi un deploy.
 ### Catalogo di domande (QST)
 
 - [x] **QST-01**: Le domande del wizard sono un catalogo in database (`domanda` → `opzione_domanda` → `effetto_opzione`), amministrabile senza deploy di backend o frontend
-- [x] **QST-02**: `tipo_effetto` è un insieme **chiuso** di sette valori con aritmetica nota al motore: nessuna espressione o formula libera in tabella
+- [x] **QST-02**: `tipo_effetto` è un insieme **chiuso** di otto valori con aritmetica nota al motore: nessuna espressione o formula libera in tabella
 - [x] **QST-03**: `attesa_immobile` (valore atteso per attributo e fascia di m²) alimenta sia i **default** del wizard sia la **baseline** dello scostamento, da una sola fonte
 - [x] **QST-04**: Il catalogo servito al client **non pubblica gli effetti**: la taratura resta server-side
 - [x] **QST-05**: Ogni chiave consumata dal motore Pro (`domanda_mirata_key`) ha una domanda corrispondente nel catalogo
@@ -31,7 +31,7 @@ farci*, senza che aggiungere una domanda costi un deploy.
 - [x] **WIZ-01**: Un solo wizard per Free e Pro, a 4 step, con le domande servite da `GET /api/v1/domande`
 - [x] **WIZ-02**: `NumberStepper` come primitivo dei contatori (−/valore/+, tap ≥44px, `inputMode="numeric"`)
 - [x] **WIZ-03**: I default derivano dai m², mai zero, e lo step dell'immobile è saltabile con i valori standard
-- [ ] **WIZ-04**: Il percorso Pro del wizard è verificato dal vivo end-to-end, non solo a livello di tipi (controlli automatici via API verdi in 09-08; collaudo dal vivo di Riccardo **rinviato**, tracciato in `09-HUMAN-UAT.md` come pending, non bloccante — vincolo del 2026-09-26)
+- [x] **WIZ-04**: Il percorso Pro del wizard è verificato dal vivo end-to-end, non solo a livello di tipi (controlli automatici via API verdi in 09-08; collaudo dal vivo di Riccardo approvato il 2026-10-01, `.planning/checklists/2026-10-01-collaudo-wiz-04.md`; il PDF Pro resta da provare al go-live)
 
 ### Arredo (ARR)
 
@@ -109,7 +109,7 @@ farci*, senza che aggiungere una domanda costi un deploy.
 | WIZ-01 | 06 | fatto |
 | WIZ-02 | 06 | fatto |
 | WIZ-03 | 06 | fatto |
-| WIZ-04 | 09 | da fare |
+| WIZ-04 | 09 | fatto |
 | ARR-01 | 07 | fatto |
 | ARR-02 | 07 | fatto |
 | ARR-03 | 07 | fatto |

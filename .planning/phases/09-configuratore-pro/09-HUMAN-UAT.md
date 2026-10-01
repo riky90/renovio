@@ -1,10 +1,10 @@
 ---
-status: partial
+status: complete
 phase: 09-configuratore-pro
 requirement: WIZ-04
 source: [09-08-PLAN.md, 09-14-PLAN.md]
 started: 2026-09-28T00:00:00Z
-updated: 2026-09-29T00:00:00Z
+updated: 2026-10-01T00:00:00Z
 ---
 
 ## Stato
@@ -262,3 +262,14 @@ review CR-01/WR-07, scelte del planner, voci residue del 28/09).
   (plausibilita' dei totali, rinviata da Riccardo a fine Fase 10).
 
 Stato: gap G1..G4 chiusi e approvati dal vivo.
+
+## Collaudo WIZ-04 del 2026-10-01
+
+Percorso Pro end-to-end dal vivo dopo i fix dell'audit della milestone (M2 `4d44e3c`, M1
+`1f43856`), checklist `.planning/checklists/2026-10-01-collaudo-wiz-04.md`: voci 1-14
+**approvate da Riccardo** senza note (finiture del wizard Alte/Economiche/Medie riportate sul
+dettaglio Pro, modifiche nel dettaglio, riapertura da "Le mie stime", anti-leak, plausibilita'
+Pro contro Free, che chiude anche la voce 13 del 28/09). WIZ-04 e' chiuso.
+
+Il PDF Pro (voci 15-18 della checklist, voce 12 del 28/09) non si puo' generare su questa
+macchina e resta da provare al go-live su Render.
