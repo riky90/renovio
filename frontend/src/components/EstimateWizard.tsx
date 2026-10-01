@@ -20,6 +20,7 @@ import {
 } from "@/components/EstimateFormFields";
 import { ImportoField } from "@/components/ImportoField";
 import { cn } from "@/lib/utils";
+import { risposteDopoCatalogo, soloVisibili } from "@/lib/richiestaStima";
 import {
   domandeVisibili,
   getCatalogoDomande,
@@ -146,22 +147,11 @@ export function EstimateWizard({
   useEffect(() => {
     if (!catalogo) return;
     const defaults = risposteIniziali(catalogo);
-    if (!primoCatalogoGestito.current) {
-      primoCatalogoGestito.current = true;
-      for (const [code, valore] of Object.entries(risposteDiPartenza ?? {})) {
-        if (JSON.stringify(valore) !== JSON.stringify(defaults[code])) {
-          risposteToccate.current.add(code);
-        }
-      }
-    }
-    const toccate = risposteToccate.current;
-    setRisposte((precedenti) => {
-      const nuove: Risposte = { ...defaults };
-      for (const code of toccate) {
-        if (code in precedenti) nuove[code] = precedenti[code];
-      }
-      return nuove;
-    });
+    const primo = !primoCatalogoGestito.current;
+    primoCatalogoGestito.current = true;
+    setRisposte((precedenti) =>
+      risposteDopoCatalogo(defaults, precedenti, risposteToccate.current, risposteDiPartenza, primo)
+    );
     // risposteDiPartenza si legge solo al primo catalogo: e' un valore iniziale.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [catalogo]);
@@ -404,19 +394,6 @@ function costruisciStep(domande: Domanda[], tier: "free" | "pro"): StepDef[] {
   }
 
   return steps;
-}
-
-/**
- * Le risposte alle domande nascoste non partono.
- *
- * Il motore le ignorerebbe comunque -- ri-applica la visibilita' per conto suo
- * -- ma finirebbero nello snapshot congelato, dove sembrerebbero risposte date.
- * Una stima salvata deve restare spiegabile, e "ho risposto a una domanda che
- * non mi e' stata fatta" non lo e'.
- */
-function soloVisibili(risposte: Risposte, visibili: Domanda[]): Risposte {
-  const codici = new Set(visibili.map((d) => d.code));
-  return Object.fromEntries(Object.entries(risposte).filter(([code]) => codici.has(code)));
 }
 
 /**
