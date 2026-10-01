@@ -1,4 +1,4 @@
-import { apiGet, apiPatch, apiPost, ApiError } from "@/api/client";
+import { apiGet, apiPatch, apiPut, apiPost, ApiError } from "@/api/client";
 import type { Risposte } from "@/api/domande";
 import type { DomandaProOut } from "@/api/dettaglio-pro";
 import type { TipoRistrutturazione } from "@/components/EstimateFormFields";
@@ -603,4 +603,17 @@ export async function scaricaPdf(id: number): Promise<void> {
   link.click();
   link.remove();
   window.URL.revokeObjectURL(url);
+}
+
+/**
+ * PUT /api/v1/me/stime/{id} (G14) — "Modifica" aggiorna la stima salvata
+ * invece di crearne una nuova: sostituisce snapshot e budget (nessun ricalcolo
+ * lato server). Non manda mai le preferenze Pro: le scelte fatte nel dettaglio
+ * Pro restano. Il tier resta quello del primo salvataggio.
+ */
+export async function putAggiornaStima(
+  id: number,
+  payload: StimaResponse & { budget_eur?: number | null }
+): Promise<{ id: number }> {
+  return apiPut<{ id: number }>(`/me/stime/${id}`, payload);
 }

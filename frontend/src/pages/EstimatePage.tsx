@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Gauge, MapPin, Zap, type LucideIcon } from "lucide-react";
 import { ArredoCard } from "@/components/ArredoCard";
 import { CategoryCard } from "@/components/CategoryCard";
@@ -17,8 +17,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { sommaMediCategorie } from "@/lib/risultato";
-import { stessaRichiesta } from "@/lib/richiestaStima";
-import { patchBudgetStima, postSalvaStima, postStima, type StimaRequest, type StimaResponse } from "@/api/stima";
+import { azioneSalvataggio } from "@/lib/richiestaStima";
+import { patchBudgetStima, postSalvaStima, postStima, putAggiornaStima, type StimaRequest, type StimaResponse } from "@/api/stima";
 import type { EstimateFormValues } from "@/components/EstimateFormFields";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -91,74 +91,118 @@ export function EstimatePage() {
   // Richiesta della stima corrente, ripassata al wizard da "Modifica" (G4).
   const [bozza, setBozza] = useState<StimaRequest | null>(null);
   const [wizardKey, setWizardKey] = useState(0);
-  // Ultima stima salvata da loggato con la richiesta che l'ha prodotta: sopravvive
-  // a "Modifica" per riconoscere un ricalcolo identico.
-  const [ultimoSalvataggio, setUltimoSalvataggio] = useState<{
+  // Ultima stima salvata (POST) o aggiornata (PUT) da loggato, con l'utente che
+  // l'ha salvata: se `user.id` cambia l'id non vale piu' (un PUT non deve mai
+  // puntare alla stima di un altro utente).
+  const [ultimoSalvataggioGrezzo, setUltimoSalvataggio] = useState<{
     id: number;
     richiesta: StimaRequest;
+    userId: number;
   } | null>(null);
+  // G14: true (con l'id dell'utente) dopo il primo "Modifica" che parte da una
+  // stima salvata o in salvataggio. Da li' in poi ogni ricalcolo AGGIORNA quella
+  // stima (PUT), mai un POST. Una pagina aperta da zero parte da null: POST.
+  const [modificaDiUtente, setModificaDiUtente] = useState<number | null>(null);
+  const userId = user?.id ?? null;
+  const ultimoSalvataggio =
+    ultimoSalvataggioGrezzo && ultimoSalvataggioGrezzo.userId === userId ? ultimoSalvataggioGrezzo : null;
+  const stimaInModifica = modificaDiUtente !== null && modificaDiUtente === userId;
+  // Richiesta il cui POST e' in volo (anche dopo un reset() di saveMutation).
+  const richiestaInSalvataggio = useRef<StimaRequest | null>(null);
+  // Risultato per cui l'auto-save e' gia' partito: l'effetto agisce una volta
+  // sola per risultato, qualunque dipendenza lo faccia rieseguire.
+  const ultimoResultInviato = useRef<StimaResponse | null>(null);
+  // Contatore che fa rieseguire l'effetto quando un POST finisce (anche in
+  // errore): chi aspettava l'id puo' ripiegare sul POST.
+  const [postConclusi, setPostConclusi] = useState(0);
+  const queryClient = useQueryClient();
 
   // Auto-save da loggato (D-07): nessun ricalcolo, si congela esattamente il
   // payload gia' mostrato dal risultato corrente.
-  // L'arrow è necessaria: `postSalvaStima` ha un secondo parametro opzionale
-  // (`preferenze_pro`, usato dal form Pro) e react-query passerebbe lì il
-  // proprio context. Qui la home non ha preferenze da mandare.
-  // Richiesta il cui POST e' in volo: l'effetto di auto-save non ne lancia un
-  // secondo per la stessa richiesta (anche dopo un reset() di saveMutation).
-  const richiestaInSalvataggio = useRef<StimaRequest | null>(null);
   // G12: `ultimoSalvataggio` si imposta nell'`onSuccess` delle opzioni di
   // useMutation e NON nel callback per-call di `mutate`: `reset()` (chiamato da
   // handleModifica) stacca l'observer dalla mutation in volo e i callback
   // per-call non partono piu' (TanStack Query v5, provato in
   // scripts/check-richiesta-stima.ts). Quelli nelle opzioni partono sempre.
   const saveMutation = useMutation({
-    mutationFn: ({ payload }: { payload: StimaResponse & { budget_eur: number | null }; richiesta: StimaRequest }) =>
-      postSalvaStima(payload),
-    onSuccess: (salvata, { richiesta }) => {
-      setUltimoSalvataggio({ id: salvata.id, richiesta });
+    mutationFn: ({
+      payload,
+    }: {
+      payload: StimaResponse & { budget_eur: number | null };
+      richiesta: StimaRequest;
+      userId: number;
+    }) => postSalvaStima(payload),
+    onSuccess: (salvata, { richiesta, userId: uid }) => {
+      setUltimoSalvataggio({ id: salvata.id, richiesta, userId: uid });
     },
     onSettled: () => {
       richiestaInSalvataggio.current = null;
+      setPostConclusi((n) => n + 1);
+    },
+  });
+
+  // G14: "Modifica" + ricalcolo aggiorna la stima gia' salvata (stesso id), anche
+  // con input cambiati; supera la regola 10-12 "input diversi = record nuovo".
+  // Sul percorso Modifica non esiste piu' un POST, quindi niente doppioni (G12).
+  const updateMutation = useMutation({
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: number;
+      payload: StimaResponse & { budget_eur: number | null };
+      richiesta: StimaRequest;
+      userId: number;
+    }) => putAggiornaStima(id, payload),
+    onSuccess: (_, { id, richiesta, userId: uid }) => {
+      setUltimoSalvataggio({ id, richiesta, userId: uid });
+      void queryClient.invalidateQueries({ queryKey: ["stima-dettaglio", id] });
+      void queryClient.invalidateQueries({ queryKey: ["dettaglio-pro", id] });
+      void queryClient.invalidateQueries({ queryKey: ["storico-stime"] });
     },
   });
 
   const result = mutation.data;
   const input = mutation.variables;
 
-  // Regola: stessa richiesta = stessa stima, niente secondo record (si riusa l'id
-  // gia' salvato, al massimo si allinea il budget con la PATCH); input diversi =
-  // stima nuova, quindi nuovo record come per l'auto-save normale.
-  const richiestaIdentica =
-    !!ultimoSalvataggio && !!input && stessaRichiesta(ultimoSalvataggio.richiesta, input);
-
   useEffect(() => {
-    if (
-      mutation.isSuccess &&
-      result &&
-      user &&
-      !richiestaIdentica &&
-      !(
-        richiestaInSalvataggio.current &&
-        mutation.variables &&
-        stessaRichiesta(richiestaInSalvataggio.current, mutation.variables)
-      ) &&
-      saveMutation.data === undefined &&
-      !saveMutation.isPending &&
-      !saveMutation.isError
-    ) {
+    if (!mutation.isSuccess || !result || !user) return;
+    if (ultimoResultInviato.current === result) return;
+    const richiesta = mutation.variables;
+    if (!richiesta) return;
+
+    const azione = azioneSalvataggio({
+      stimaInModifica,
+      idEsistente: ultimoSalvataggio?.id ?? null,
+      postInVolo: richiestaInSalvataggio.current !== null,
+    });
+    if (azione === "attendi") return;
+
+    if (azione === "put" && ultimoSalvataggio) {
+      ultimoResultInviato.current = result;
       budgetSalvato.current = budget;
-      const richiesta = mutation.variables;
-      if (richiesta) {
-        richiestaInSalvataggio.current = richiesta;
-        saveMutation.mutate({ payload: { ...result, budget_eur: budget }, richiesta });
-      }
+      updateMutation.mutate({
+        id: ultimoSalvataggio.id,
+        payload: { ...result, budget_eur: budget },
+        richiesta,
+        userId: user.id,
+      });
+      return;
+    }
+
+    if (!saveMutation.isPending && !saveMutation.isError && saveMutation.data === undefined) {
+      ultimoResultInviato.current = result;
+      budgetSalvato.current = budget;
+      richiestaInSalvataggio.current = richiesta;
+      saveMutation.mutate({ payload: { ...result, budget_eur: budget }, richiesta, userId: user.id });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mutation.isSuccess, result, user]);
+  }, [mutation.isSuccess, result, user?.id, ultimoSalvataggio?.id, postConclusi]);
 
   // Budget cambiato mentre l'auto-save era in corso: appena c'e' l'id lo si allinea.
-  const idSalvato =
-    saveMutation.data?.id ?? (richiestaIdentica ? ultimoSalvataggio?.id : undefined);
+  const idSalvato = stimaInModifica
+    ? (updateMutation.data?.id ?? saveMutation.data?.id)
+    : saveMutation.data?.id;
   useEffect(() => {
     if (idSalvato !== undefined && budgetSalvato.current !== budget) {
       const daInviare = budget;
@@ -192,8 +236,14 @@ export function EstimatePage() {
     // Il wizard inizializza lo stato alla mount, quindi lo si rimonta con `key`.
     if (mutation.variables) setBozza(mutation.variables);
     setWizardKey((k) => k + 1);
+    // G14: se c'e' gia' una stima salvata (o in salvataggio) il prossimo
+    // ricalcolo la aggiorna; resta cosi' per tutta la vita della pagina.
+    if (user && (ultimoSalvataggio !== null || richiestaInSalvataggio.current !== null)) {
+      setModificaDiUtente(user.id);
+    }
     mutation.reset();
     saveMutation.reset();
+    updateMutation.reset();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -321,6 +371,14 @@ export function EstimatePage() {
               <>
                 <SummaryPanel input={input} onModifica={handleModifica} />
 
+                {updateMutation.isError && (
+                  <Alert variant="destructive">
+                    <AlertDescription>
+                      Non siamo riusciti ad aggiornare la stima salvata. Riprova a ricalcolare.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
                 {/* Il risultato sintetico si mostra a TUTTI, Pro inclusi: e' anche
                     l'unico posto in cui i bonus compaiono, perche' si calcolano
                     sui totali lordi del motore Free (il motore Pro non modella
@@ -371,7 +429,7 @@ export function EstimatePage() {
                       result={{ ...result, budget_eur: budget }}
                       isAuthenticated={!!user}
                       savedId={idSalvato ?? null}
-                      isSaving={saveMutation.isPending}
+                      isSaving={saveMutation.isPending || updateMutation.isPending}
                       isPro={!!user?.pro}
                     />
                 </>

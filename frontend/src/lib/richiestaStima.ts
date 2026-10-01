@@ -67,3 +67,25 @@ export function risposteDopoCatalogo(
   }
   return nuove;
 }
+
+/**
+ * G14: cosa fa l'auto-save quando arriva un risultato per un utente loggato.
+ *
+ * - `post`: stima nuova (pagina aperta da zero) o primo salvataggio fallito.
+ * - `put`: dopo "Modifica" esiste gia' una stima salvata: si aggiorna quella,
+ *   identica o no, e MAI un POST (niente doppioni, G12).
+ * - `attendi`: dopo "Modifica" il primo POST e' ancora in volo, l'id non c'e'
+ *   ancora: si rimanda l'invio a quando arriva.
+ */
+export type AzioneSalvataggio = "post" | "put" | "attendi";
+
+export function azioneSalvataggio(stato: {
+  stimaInModifica: boolean;
+  idEsistente: number | null;
+  postInVolo: boolean;
+}): AzioneSalvataggio {
+  if (!stato.stimaInModifica) return "post";
+  if (stato.idEsistente !== null) return "put";
+  if (stato.postInVolo) return "attendi";
+  return "post";
+}

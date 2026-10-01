@@ -7,6 +7,7 @@ import {
   risposteDopoCatalogo,
   soloVisibili,
   stessaRichiesta,
+  azioneSalvataggio,
 } from "../src/lib/richiestaStima.ts";
 
 type Risposte = Record<string, number | string | string[]>;
@@ -140,6 +141,33 @@ async function attesa(ms: number) {
   await attesa(80);
   assert.equal(chiamate.perCall, 1, "G12: reset() in volo perde il callback per-call");
   assert.equal(chiamate.opzioni, 2, "il callback nelle opzioni della mutation parte sempre");
+}
+
+// (d) G14: PUT vs POST vs attesa ---
+{
+  const base = { stimaInModifica: true, idEsistente: 7, postInVolo: false };
+  assert.equal(azioneSalvataggio(base), "put", "dopo Modifica con id: PUT");
+  assert.equal(azioneSalvataggio({ ...base, postInVolo: true }), "put", "con id il POST in volo non conta");
+  assert.equal(
+    azioneSalvataggio({ stimaInModifica: false, idEsistente: null, postInVolo: false }),
+    "post",
+    "stima da zero: POST"
+  );
+  assert.equal(
+    azioneSalvataggio({ stimaInModifica: false, idEsistente: 7, postInVolo: false }),
+    "post",
+    "senza Modifica si ignora un id vecchio: POST"
+  );
+  assert.equal(
+    azioneSalvataggio({ stimaInModifica: true, idEsistente: null, postInVolo: true }),
+    "attendi",
+    "Modifica con primo POST in volo: attendi"
+  );
+  assert.equal(
+    azioneSalvataggio({ stimaInModifica: true, idEsistente: null, postInVolo: false }),
+    "post",
+    "Modifica ma primo POST fallito: ripiego sul POST"
+  );
 }
 
 console.log("check-richiesta-stima: OK");
