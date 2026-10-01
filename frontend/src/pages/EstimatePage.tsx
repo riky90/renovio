@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { sommaMediCategorie } from "@/lib/risultato";
+import { stessaRichiesta } from "@/lib/richiestaStima";
 import { patchBudgetStima, postSalvaStima, postStima, type StimaRequest, type StimaResponse } from "@/api/stima";
 import type { EstimateFormValues } from "@/components/EstimateFormFields";
 import { useAuth } from "@/hooks/useAuth";
@@ -77,25 +78,6 @@ const STEPS: { n: string; title: string; body: string }[] = [
   },
 ];
 
-function normalizzaRisposte(r: StimaRequest["risposte"]): string {
-  const ordinate: Record<string, unknown> = {};
-  for (const k of Object.keys(r ?? {}).sort()) {
-    const v = (r as Record<string, unknown>)[k];
-    ordinate[k] = Array.isArray(v) ? [...v].sort() : v;
-  }
-  return JSON.stringify(ordinate);
-}
-
-function stessaRichiesta(a: StimaRequest, b: StimaRequest): boolean {
-  return (
-    a.citta.trim() === b.citta.trim() &&
-    a.mq === b.mq &&
-    a.tipo === b.tipo &&
-    (a.destinazione ?? "prima_casa") === (b.destinazione ?? "prima_casa") &&
-    normalizzaRisposte(a.risposte) === normalizzaRisposte(b.risposte)
-  );
-}
-
 export function EstimatePage() {
   const mutation = useMutation<StimaResponse, Error, StimaRequest>({
     mutationFn: postStima,
@@ -121,9 +103,23 @@ export function EstimatePage() {
   // L'arrow è necessaria: `postSalvaStima` ha un secondo parametro opzionale
   // (`preferenze_pro`, usato dal form Pro) e react-query passerebbe lì il
   // proprio context. Qui la home non ha preferenze da mandare.
+  // Richiesta il cui POST e' in volo: l'effetto di auto-save non ne lancia un
+  // secondo per la stessa richiesta (anche dopo un reset() di saveMutation).
+  const richiestaInSalvataggio = useRef<StimaRequest | null>(null);
+  // G12: `ultimoSalvataggio` si imposta nell'`onSuccess` delle opzioni di
+  // useMutation e NON nel callback per-call di `mutate`: `reset()` (chiamato da
+  // handleModifica) stacca l'observer dalla mutation in volo e i callback
+  // per-call non partono piu' (TanStack Query v5, provato in
+  // scripts/check-richiesta-stima.ts). Quelli nelle opzioni partono sempre.
   const saveMutation = useMutation({
-    mutationFn: (payload: StimaResponse & { budget_eur: number | null }) =>
+    mutationFn: ({ payload }: { payload: StimaResponse & { budget_eur: number | null }; richiesta: StimaRequest }) =>
       postSalvaStima(payload),
+    onSuccess: (salvata, { richiesta }) => {
+      setUltimoSalvataggio({ id: salvata.id, richiesta });
+    },
+    onSettled: () => {
+      richiestaInSalvataggio.current = null;
+    },
   });
 
   const result = mutation.data;
@@ -141,20 +137,21 @@ export function EstimatePage() {
       result &&
       user &&
       !richiestaIdentica &&
+      !(
+        richiestaInSalvataggio.current &&
+        mutation.variables &&
+        stessaRichiesta(richiestaInSalvataggio.current, mutation.variables)
+      ) &&
       saveMutation.data === undefined &&
       !saveMutation.isPending &&
       !saveMutation.isError
     ) {
       budgetSalvato.current = budget;
       const richiesta = mutation.variables;
-      saveMutation.mutate(
-        { ...result, budget_eur: budget },
-        {
-          onSuccess: (salvata) => {
-            if (richiesta) setUltimoSalvataggio({ id: salvata.id, richiesta });
-          },
-        }
-      );
+      if (richiesta) {
+        richiestaInSalvataggio.current = richiesta;
+        saveMutation.mutate({ payload: { ...result, budget_eur: budget }, richiesta });
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mutation.isSuccess, result, user]);
