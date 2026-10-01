@@ -139,6 +139,8 @@ in `Note:` e prova su un ambiente con GTK3 (Render).
   Note:
 - [ ] **PDF Free e PDF Pro: gli importi per categoria sono IVA esclusa e lo dicono in etichetta (Range (IVA esclusa), Totale <categoria> (IVA esclusa)) (G2)** — verifica a occhio al go-live.
   Note:
+- [ ] **Cifre della barra ai bordi, Bonus Mobili nel blocco Arredo e stima modificata (G13, G10, G14)**: vedi checklist 2026-09-30-ricollaudo-10-g10-g14, sezione G13
+  Note:
 - [ ] **Cerca nei PDF (Free e Pro) le parole "coefficiente", "prezzo impresa", "impresa"** — non compaiono (T-10-25, regola di dominio 1). Usa la ricerca testo del lettore PDF.
   Note:
 - [ ] **Guarda nelle schermate web (Free e Pro) e nei dettagli di rete del browser (tab Rete, risposta di POST /stima e GET dettaglio Pro)** — nessun campo con nomi coefficiente / prezzo impresa / effettivo.
@@ -276,32 +278,38 @@ con `/gsd-plan-phase 10 --gaps`.
   reason: "Riccardo (ri-collaudo 2026-09-30 pomeriggio, G7c): 'metterlo non insieme agli altri bonus ma dopo gli arredi, essendo che gli arredi non sono inclusi'; in chat: dentro la card Arredo."
   severity: minor
   test: "Ri-collaudo G7(c) (G10)"
-  retest: .planning/checklists/2026-09-30-ricollaudo-10-g7-g9.md
+  fix: piani 10-19, 10-20, 10-21
+  retest: .planning/checklists/2026-09-30-ricollaudo-10-g10-g14.md
 
 - truth: "Con account Pro, la stima aperta da 'Le mie stime' mostra la card Arredo e il Bonus Mobili come /dettaglio-pro"
   status: failed
   reason: "Riccardo (G9b, G9d): con account free la card Arredo c'e', con account pro no; 'se faccio vedi dettaglio pro si, se lo guardo dalle mie stime no'."
   severity: major
   test: "Ri-collaudo G9(b), G9(d) (G11)"
-  retest: .planning/checklists/2026-09-30-ricollaudo-10-g7-g9.md
+  fix: piano 10-21
+  retest: .planning/checklists/2026-09-30-ricollaudo-10-g10-g14.md
 
 - truth: "Modifica + ricalcolo senza cambiare nulla non crea una seconda stima salvata (si riusa l'id)"
   status: failed
   reason: "Riccardo (G9c): 'se premo modifica poi vado a vedere le stime mi ha creato 2 stime'. Regressione rispetto a G4c. Causa radice da trovare (stessaRichiesta in EstimatePage.tsx, default del wizard dopo Modifica, arredo nella richiesta?)."
   severity: major
   test: "Ri-collaudo G9(c) (G12)"
-  retest: .planning/checklists/2026-09-30-ricollaudo-10-g7-g9.md
+  fix: piani 10-22, 10-23
+  root_cause: "race su reset() in TanStack Query v5: il callback per-call di mutate non parte se Modifica e' premuto con il POST in volo, ultimoSalvataggio resta null e il ricalcolo salva due volte (10-22); sul percorso Modifica i doppioni sono esclusi per costruzione dal flusso G14, che fa PUT e mai POST"
+  retest: .planning/checklists/2026-09-30-ricollaudo-10-g10-g14.md
 
 - truth: "Nei PDF (Free e Pro) le cifre min/max della barra stanno ai bordi, come sul web"
   status: failed
   reason: "Riccardo (scelta G8 sul PDF): 'Si, ai bordi'. Verifica a occhio al go-live (WeasyPrint assente in locale)."
   severity: cosmetic
   test: "Ri-collaudo, scelta G8 (G13)"
-  retest: .planning/checklists/2026-09-30-ricollaudo-10-g7-g9.md
+  fix: piano 10-20
+  retest: .planning/checklists/2026-09-30-ricollaudo-10-g10-g14.md
 
 - truth: "'Modifica' seguita da ricalcolo aggiorna la stima salvata da cui si e' partiti (stesso id in 'Le mie stime'), anche con input cambiati; non nasce una stima nuova"
   status: failed
   reason: "Riccardo (chat 2026-09-30, chiarendo la nota G9c 'non modificato la mia attuale'): 'Aggiorna l'attuale'. Supera la regola di 10-12 (input diversi = stima nuova, la precedente resta), approvata il 2026-09-29."
   severity: major
   test: "Ri-collaudo G9(c) e chat (G14)"
-  retest: .planning/checklists/2026-09-30-ricollaudo-10-g7-g9.md
+  fix: piano 10-23
+  retest: .planning/checklists/2026-09-30-ricollaudo-10-g10-g14.md

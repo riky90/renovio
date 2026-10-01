@@ -8,7 +8,7 @@ progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 53
-  completed_plans: 53
+  completed_plans: 52
   percent: 57
 ---
 
@@ -17,7 +17,7 @@ progress:
 ## Current Position
 
 Phase: 10 (risultato-leggibile) — EXECUTING
-Plan: 9 of 9
+Plan: 24 of 24 (10-24 in corso: controlli automatici fatti, checklist G10-G14 in attesa di Riccardo)
 Stato: Fase 09 **chiusa il 2026-09-29**: code review post-gap corretta (CR-01, WR-01..07,
 `09-REVIEW-FIX.md` all_fixed), ri-collaudo dal vivo G1..G4 approvato da Riccardo
 (`.planning/checklists/2026-09-29-ricollaudo-09.md`), fix "Aggiungi listino" (`4e4b50a`).
