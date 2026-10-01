@@ -246,7 +246,7 @@ Plans:
 4. Superato il budget dichiarato, compare un avviso con il confronto ricalcolato a finiture inferiori
 5. Il budget **non** muove il prezzo: due assi distinti, *finiture* sì e *budget* no
 
-**Plans:** 22/24 plans executed
+**Plans:** 23/24 plans executed
 
 Plans:
 **Wave 1**
@@ -327,7 +327,7 @@ Plans:
 
 **Wave 10** *(blocked on Wave 9 completion)*
 
-- [ ] 10-23-PLAN.md — G14 "Modifica" aggiorna la stima salvata (PUT /me/stime/{id}, stesso id, tier invariato), niente doppioni sul percorso Modifica (RIS-04)
+- [x] 10-23-PLAN.md — G14 "Modifica" aggiorna la stima salvata (PUT /me/stime/{id}, stesso id, tier invariato), niente doppioni sul percorso Modifica (RIS-04)
 
 **Wave 11** *(blocked on Wave 10 completion)*
 
