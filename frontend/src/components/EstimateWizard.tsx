@@ -475,7 +475,13 @@ function FinitureStep({
   scelte: Record<string, string>;
   onScelta: (code: string, valore: string) => void;
 }) {
-  const defaultLivello = opzioni?.livelli.find((l) => l.is_default)?.code;
+  // Il livello scelto allo step 3 (`livello_finiture`) e' il punto di partenza
+  // di ogni categoria: il motore Pro fa lo stesso ponte, cosi' la card
+  // selezionata qui e' quella che il dettaglio calcolera'.
+  const livelloWizard = risposte.livello_finiture;
+  const defaultLivello =
+    opzioni?.livelli.find((l) => l.code === livelloWizard)?.code ??
+    opzioni?.livelli.find((l) => l.is_default)?.code;
 
   return (
     <>

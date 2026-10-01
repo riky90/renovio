@@ -68,6 +68,7 @@ from app.models.listino import Listino
 from app.services.effetti import (
     CONTROLLI_NUMERICI,
     DOMANDA_FINITURA,
+    DOMANDA_LIVELLO_FINITURE,
     TIPI_EFFETTO_PRO,
     RisoluzionePro,
     attese_per_mq,
@@ -365,6 +366,21 @@ class DettaglioProService:
         range_pct = tipo_row.range_pct
 
         risposte_base = dict(risposte or {})
+        # Il wizard chiede il livello con `livello_finiture` (tier free, muove
+        # il sintetico); il motore Pro legge l'asse `finitura`. Le due domande
+        # condividono i codici d'opzione: senza questo ponte chi sceglie
+        # "Alte" nel wizard vedrebbe il dettaglio Pro al default. Una
+        # risposta esplicita a `finitura` vince; un codice che l'asse non ha
+        # resta fuori, cosi' ricade sul default invece di diventare invalido.
+        livello_wizard = risposte_base.get(DOMANDA_LIVELLO_FINITURE)
+        if DOMANDA_FINITURA not in risposte_base and livello_wizard is not None:
+            opzione_asse = (
+                session.query(OpzioneDomanda.code)
+                .filter_by(domanda_code=DOMANDA_FINITURA, code=livello_wizard)
+                .first()
+            )
+            if opzione_asse is not None:
+                risposte_base[DOMANDA_FINITURA] = livello_wizard
         livelli_scelti = livelli or {}
         livelli_rows = session.query(LivelloFinitura).order_by(LivelloFinitura.ordine).all()
         livelli_nomi = {row.code: row.nome for row in livelli_rows}

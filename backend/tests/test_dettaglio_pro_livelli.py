@@ -245,6 +245,39 @@ class TestSelezionePerLivello:
         # A-EDILE non selezionabile -> nessun livello da mostrare.
         assert per_code["A-EDILE"].livello_scelto is None
 
+    def test_livello_finiture_del_wizard_guida_la_finitura_pro(self, session):
+        """M2 dell'audit v2.0: la domanda del wizard `livello_finiture`
+        (step 3, tier free) e l'asse Pro `finitura` sono due domande con gli
+        stessi codici d'opzione. Senza ponte, chi sceglie "Alte" nel wizard
+        vede il totale a finiture alte e il dettaglio Pro al default."""
+        result = _compute(session, risposte={"livello_finiture": "alto"})
+
+        per_code = {c.code: c for c in result.categorie}
+        assert per_code["B-FINITURE"].livello_scelto == "alto"
+
+    def test_finitura_esplicita_vince_sul_livello_del_wizard(self, session):
+        result = _compute(session, risposte={"livello_finiture": "alto", "finitura": "base"})
+
+        per_code = {c.code: c for c in result.categorie}
+        assert per_code["B-FINITURE"].livello_scelto == "base"
+
+    def test_livello_per_categoria_vince_sul_livello_del_wizard(self, session):
+        result = _compute(
+            session, risposte={"livello_finiture": "alto"}, livelli={"B-FINITURE": "base"}
+        )
+
+        per_code = {c.code: c for c in result.categorie}
+        assert per_code["B-FINITURE"].livello_scelto == "base"
+
+    def test_livello_finiture_sconosciuto_all_asse_ricade_sul_default(self, session):
+        """Il ponte vale solo per i codici che esistono anche sull'asse
+        `finitura`: un'opzione aggiunta dal pannello alla sola domanda del
+        wizard non deve arrivare al motore Pro come risposta invalida."""
+        result = _compute(session, risposte={"livello_finiture": "inesistente"})
+
+        per_code = {c.code: c for c in result.categorie}
+        assert per_code["B-FINITURE"].livello_scelto == "medio"
+
     def test_sottocategoria_svuotata_dal_filtro_e_assente(self, session):
         """Niente accordion vuoti a 0 EUR: se il livello svuota una
         sottocategoria, sparisce — e ricompare col livello giusto. Una
