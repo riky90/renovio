@@ -1,0 +1,968 @@
+{
+  "tier": "free",
+  "mq": 85,
+  "attese": {
+    "bagni": "1.00",
+    "condizionatori": "2.00",
+    "finestre": "5.00",
+    "locali": "3.00",
+    "piano": "1.00",
+    "porte": "5.00",
+    "portefinestre": "1.00",
+    "superficie_calpestabile": "76.00"
+  },
+  "domande": [
+    {
+      "code": "locali",
+      "testo": "Quanti locali (esclusi bagni e cucina)?",
+      "help": null,
+      "tipo_controllo": "stepper",
+      "gruppo": "ambienti",
+      "ordine": 50,
+      "tier_minimo": "free",
+      "attributo_code": "locali",
+      "obbligatoria": false,
+      "visibile_se_domanda_code": null,
+      "visibile_se_opzione_code": null,
+      "valore_default": "3.00",
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 1
+        }
+      ]
+    },
+    {
+      "code": "bagni",
+      "testo": "Quanti bagni?",
+      "help": null,
+      "tipo_controllo": "stepper",
+      "gruppo": "ambienti",
+      "ordine": 55,
+      "tier_minimo": "free",
+      "attributo_code": "bagni",
+      "obbligatoria": false,
+      "visibile_se_domanda_code": null,
+      "visibile_se_opzione_code": null,
+      "valore_default": "1.00",
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 1
+        }
+      ]
+    },
+    {
+      "code": "finestre",
+      "testo": "Quante finestre?",
+      "help": null,
+      "tipo_controllo": "stepper",
+      "gruppo": "ambienti",
+      "ordine": 60,
+      "tier_minimo": "free",
+      "attributo_code": "finestre",
+      "obbligatoria": false,
+      "visibile_se_domanda_code": null,
+      "visibile_se_opzione_code": null,
+      "valore_default": "5.00",
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 1
+        }
+      ]
+    },
+    {
+      "code": "portefinestre",
+      "testo": "Quante portefinestre?",
+      "help": null,
+      "tipo_controllo": "stepper",
+      "gruppo": "ambienti",
+      "ordine": 65,
+      "tier_minimo": "free",
+      "attributo_code": "portefinestre",
+      "obbligatoria": false,
+      "visibile_se_domanda_code": null,
+      "visibile_se_opzione_code": null,
+      "valore_default": "1.00",
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 1
+        }
+      ]
+    },
+    {
+      "code": "porte",
+      "testo": "Quante porte interne?",
+      "help": null,
+      "tipo_controllo": "stepper",
+      "gruppo": "ambienti",
+      "ordine": 70,
+      "tier_minimo": "free",
+      "attributo_code": "porte",
+      "obbligatoria": false,
+      "visibile_se_domanda_code": null,
+      "visibile_se_opzione_code": null,
+      "valore_default": "5.00",
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 1
+        }
+      ]
+    },
+    {
+      "code": "condizionatori",
+      "testo": "Quanti climatizzatori (split) vuoi installare?",
+      "help": "Conta un'unita' interna per ogni ambiente da climatizzare. Se non vuoi la climatizzazione, lascia 0.",
+      "tipo_controllo": "stepper",
+      "gruppo": "ambienti",
+      "ordine": 75,
+      "tier_minimo": "free",
+      "attributo_code": "condizionatori",
+      "obbligatoria": false,
+      "visibile_se_domanda_code": null,
+      "visibile_se_opzione_code": null,
+      "valore_default": "2.00",
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 1
+        }
+      ]
+    },
+    {
+      "code": "muri_lavori",
+      "testo": "Ci sono lavori sui muri?",
+      "help": "Muri da risanare, da abbattere o da tirare su. Se non ne tocchi nessuno, lascia No.",
+      "tipo_controllo": "toggle",
+      "gruppo": "ambienti",
+      "ordine": 78,
+      "tier_minimo": "free",
+      "attributo_code": null,
+      "obbligatoria": false,
+      "visibile_se_domanda_code": null,
+      "visibile_se_opzione_code": null,
+      "valore_default": "no",
+      "opzioni": [
+        {
+          "code": "no",
+          "etichetta": "No",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": true,
+          "ordine": 1
+        },
+        {
+          "code": "si",
+          "etichetta": "Si",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 2
+        }
+      ]
+    },
+    {
+      "code": "muri_da_recuperare",
+      "testo": "Quanti m2 di muri da recuperare?",
+      "help": "Intonaci da rifare, tracce da chiudere, murature da risanare. Se non lo sai, lascia 0.",
+      "tipo_controllo": "stepper",
+      "gruppo": "ambienti",
+      "ordine": 80,
+      "tier_minimo": "free",
+      "attributo_code": null,
+      "obbligatoria": false,
+      "visibile_se_domanda_code": "muri_lavori",
+      "visibile_se_opzione_code": "si",
+      "valore_default": null,
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 1
+        }
+      ]
+    },
+    {
+      "code": "muri_da_rifare_mq",
+      "testo": "Quanti m2 di muri da abbattere e rifare?",
+      "help": "Demolizione piu' ricostruzione, non solo intonaco. Se non ce ne sono, lascia 0.",
+      "tipo_controllo": "stepper",
+      "gruppo": "ambienti",
+      "ordine": 82,
+      "tier_minimo": "free",
+      "attributo_code": null,
+      "obbligatoria": false,
+      "visibile_se_domanda_code": "muri_lavori",
+      "visibile_se_opzione_code": "si",
+      "valore_default": null,
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 1
+        }
+      ]
+    },
+    {
+      "code": "muri_da_rifare_portanti",
+      "testo": "Fra i muri da rifare ce n'e' qualcuno portante?",
+      "help": "Un muro portante regge il peso della casa: servono opere strutturali, calcoli e pratiche. Nel dubbio rispondi Si: lo confermiamo in sopralluogo.",
+      "tipo_controllo": "toggle",
+      "gruppo": "ambienti",
+      "ordine": 83,
+      "tier_minimo": "free",
+      "attributo_code": null,
+      "obbligatoria": false,
+      "visibile_se_domanda_code": "muri_lavori",
+      "visibile_se_opzione_code": "si",
+      "valore_default": "no",
+      "opzioni": [
+        {
+          "code": "no",
+          "etichetta": "No",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": true,
+          "ordine": 1
+        },
+        {
+          "code": "si",
+          "etichetta": "Si",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 2
+        }
+      ]
+    },
+    {
+      "code": "muri_da_creare_mq",
+      "testo": "Quanti m2 di muri nuovi da creare?",
+      "help": "Tramezze o pareti nuove per cambiare la distribuzione. Se non ce ne sono, lascia 0.",
+      "tipo_controllo": "stepper",
+      "gruppo": "ambienti",
+      "ordine": 84,
+      "tier_minimo": "free",
+      "attributo_code": null,
+      "obbligatoria": false,
+      "visibile_se_domanda_code": "muri_lavori",
+      "visibile_se_opzione_code": "si",
+      "valore_default": null,
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 1
+        }
+      ]
+    },
+    {
+      "code": "muri_da_creare_portanti",
+      "testo": "Fra i muri nuovi ce n'e' qualcuno portante?",
+      "help": "Raro in un appartamento, normale se si apre un vano o si aggiunge un solaio.",
+      "tipo_controllo": "toggle",
+      "gruppo": "ambienti",
+      "ordine": 85,
+      "tier_minimo": "free",
+      "attributo_code": null,
+      "obbligatoria": false,
+      "visibile_se_domanda_code": "muri_lavori",
+      "visibile_se_opzione_code": "si",
+      "valore_default": "no",
+      "opzioni": [
+        {
+          "code": "no",
+          "etichetta": "No",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": true,
+          "ordine": 1
+        },
+        {
+          "code": "si",
+          "etichetta": "Si",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 2
+        }
+      ]
+    },
+    {
+      "code": "ambienti_arredo",
+      "testo": "Quali ambienti vuoi arredare?",
+      "help": "Il costo dell'arredo resta FUORI dal totale dei lavori: te lo mostriamo a parte, perche' non e' una lavorazione e non va confrontato con un preventivo edile.",
+      "tipo_controllo": "scelta_multipla",
+      "gruppo": "arredo",
+      "ordine": 105,
+      "tier_minimo": "free",
+      "attributo_code": null,
+      "obbligatoria": false,
+      "visibile_se_domanda_code": null,
+      "visibile_se_opzione_code": null,
+      "valore_default": [],
+      "opzioni": [
+        {
+          "code": "cucina",
+          "etichetta": "Cucina",
+          "descrizione": "Mobili, elettrodomestici da incasso, piano e schienale.",
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 1
+        },
+        {
+          "code": "soggiorno",
+          "etichetta": "Soggiorno",
+          "descrizione": "Divano, tavolo e sedie, parete attrezzata.",
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 2
+        },
+        {
+          "code": "camera",
+          "etichetta": "Camera matrimoniale",
+          "descrizione": "Letto, armadio, comodini.",
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 3
+        },
+        {
+          "code": "cameretta",
+          "etichetta": "Cameretta",
+          "descrizione": "Letto, armadio, scrivania.",
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 4
+        },
+        {
+          "code": "bagno",
+          "etichetta": "Bagno",
+          "descrizione": "Mobile lavabo, specchio, accessori. I sanitari stanno nei lavori.",
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 5
+        },
+        {
+          "code": "ingresso",
+          "etichetta": "Ingresso e studio",
+          "descrizione": "Scarpiera, libreria, scrivania.",
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 6
+        }
+      ]
+    },
+    {
+      "code": "classe_energetica_attuale",
+      "testo": "Qual e' la classe energetica attuale?",
+      "help": "La trovi sull'APE dell'immobile. Se non ce l'hai, lascia 'Non la so': la stimiamo dall'anno di costruzione.",
+      "tipo_controllo": "scelta_singola",
+      "gruppo": "energia",
+      "ordine": 110,
+      "tier_minimo": "free",
+      "attributo_code": null,
+      "obbligatoria": false,
+      "visibile_se_domanda_code": null,
+      "visibile_se_opzione_code": null,
+      "valore_default": "non_so",
+      "opzioni": [
+        {
+          "code": "non_so",
+          "etichetta": "Non la so",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": true,
+          "ordine": 1
+        },
+        {
+          "code": "a",
+          "etichetta": "A",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 2
+        },
+        {
+          "code": "b",
+          "etichetta": "B",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 3
+        },
+        {
+          "code": "c",
+          "etichetta": "C",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 4
+        },
+        {
+          "code": "d",
+          "etichetta": "D",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 5
+        },
+        {
+          "code": "e",
+          "etichetta": "E",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 6
+        },
+        {
+          "code": "f",
+          "etichetta": "F",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 7
+        },
+        {
+          "code": "g",
+          "etichetta": "G",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 8
+        }
+      ]
+    },
+    {
+      "code": "efficientamento",
+      "testo": "Vuoi aumentare la classe energetica?",
+      "help": "Se si, ti chiediamo dove vuoi arrivare e con quali interventi. Il salto di classe si paga in lavorazioni aggiuntive.",
+      "tipo_controllo": "toggle",
+      "gruppo": "energia",
+      "ordine": 120,
+      "tier_minimo": "free",
+      "attributo_code": null,
+      "obbligatoria": false,
+      "visibile_se_domanda_code": null,
+      "visibile_se_opzione_code": null,
+      "valore_default": "no",
+      "opzioni": [
+        {
+          "code": "no",
+          "etichetta": "No",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": true,
+          "ordine": 1
+        },
+        {
+          "code": "si",
+          "etichetta": "Si",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 2
+        }
+      ]
+    },
+    {
+      "code": "classe_energetica_obiettivo",
+      "testo": "A che classe energetica vuoi arrivare?",
+      "help": "Il punto di arrivo realistico si decide in sopralluogo: qui serve per dimensionare la stima.",
+      "tipo_controllo": "scelta_singola",
+      "gruppo": "energia",
+      "ordine": 121,
+      "tier_minimo": "free",
+      "attributo_code": null,
+      "obbligatoria": false,
+      "visibile_se_domanda_code": "efficientamento",
+      "visibile_se_opzione_code": "si",
+      "valore_default": "da_valutare",
+      "opzioni": [
+        {
+          "code": "da_valutare",
+          "etichetta": "Non lo so ancora",
+          "descrizione": "Lo decidiamo in sopralluogo: contano gli interventi che scegli qui sotto.",
+          "immagine_url": null,
+          "is_default": true,
+          "ordine": 1
+        },
+        {
+          "code": "a",
+          "etichetta": "A",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 2
+        },
+        {
+          "code": "b",
+          "etichetta": "B",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 3
+        },
+        {
+          "code": "c",
+          "etichetta": "C",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 4
+        },
+        {
+          "code": "d",
+          "etichetta": "D",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 5
+        },
+        {
+          "code": "e",
+          "etichetta": "E",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 6
+        }
+      ]
+    },
+    {
+      "code": "interventi_efficientamento",
+      "testo": "Con quali interventi?",
+      "help": "Puoi sceglierne piu' di uno.",
+      "tipo_controllo": "scelta_multipla",
+      "gruppo": "energia",
+      "ordine": 122,
+      "tier_minimo": "free",
+      "attributo_code": null,
+      "obbligatoria": false,
+      "visibile_se_domanda_code": "efficientamento",
+      "visibile_se_opzione_code": "si",
+      "valore_default": [],
+      "opzioni": [
+        {
+          "code": "cappotto_esterno",
+          "etichetta": "Cappotto esterno",
+          "descrizione": "Isolamento sulla facciata. Il piu' efficace, richiede ponteggio e permessi.",
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 1
+        },
+        {
+          "code": "cappotto_interno",
+          "etichetta": "Cappotto interno",
+          "descrizione": "Isolamento dall'interno. Meno efficace, ma non tocca la facciata e ruba qualche centimetro.",
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 2
+        },
+        {
+          "code": "fotovoltaico",
+          "etichetta": "Impianto fotovoltaico",
+          "descrizione": "Costo una tantum, non proporzionale ai metri quadri dell'appartamento.",
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 3
+        },
+        {
+          "code": "cambio_caldaia",
+          "etichetta": "Cambio caldaia o pompa di calore",
+          "descrizione": "Costo una tantum: una caldaia costa quel che costa, non 45 euro al metro quadro.",
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 4
+        }
+      ]
+    },
+    {
+      "code": "tipo_immobile",
+      "testo": "Che tipo di immobile e'?",
+      "help": "Una villetta ha piu' superficie disperdente e piu' murature esterne di un appartamento a parita' di metri quadri.",
+      "tipo_controllo": "scelta_singola",
+      "gruppo": "immobile",
+      "ordine": 10,
+      "tier_minimo": "free",
+      "attributo_code": null,
+      "obbligatoria": false,
+      "visibile_se_domanda_code": null,
+      "visibile_se_opzione_code": null,
+      "valore_default": "appartamento",
+      "opzioni": [
+        {
+          "code": "appartamento",
+          "etichetta": "Appartamento",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": true,
+          "ordine": 1
+        },
+        {
+          "code": "villetta_schiera",
+          "etichetta": "Villetta a schiera",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 2
+        },
+        {
+          "code": "villetta_singola",
+          "etichetta": "Villetta singola",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 3
+        },
+        {
+          "code": "attico",
+          "etichetta": "Attico o mansarda",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 4
+        },
+        {
+          "code": "rustico",
+          "etichetta": "Rustico o casale",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 5
+        }
+      ]
+    },
+    {
+      "code": "anno_costruzione",
+      "testo": "Di che anni e' l'immobile?",
+      "help": "Piu' l'edificio e' datato, piu' spesso impianti e murature vanno rifatti da zero invece che adeguati.",
+      "tipo_controllo": "scelta_singola",
+      "gruppo": "immobile",
+      "ordine": 20,
+      "tier_minimo": "free",
+      "attributo_code": null,
+      "obbligatoria": false,
+      "visibile_se_domanda_code": null,
+      "visibile_se_opzione_code": null,
+      "valore_default": "1980_1990",
+      "opzioni": [
+        {
+          "code": "pre_1980",
+          "etichetta": "Prima del 1980",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 1
+        },
+        {
+          "code": "1980_1990",
+          "etichetta": "Tra il 1980 e il 1990",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": true,
+          "ordine": 2
+        },
+        {
+          "code": "post_1990",
+          "etichetta": "Dopo il 1990",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 3
+        }
+      ]
+    },
+    {
+      "code": "superficie_calpestabile",
+      "testo": "Quanti m2 calpestabili?",
+      "help": "La superficie che si cammina, al netto dei muri: di solito intorno all'85% dei metri commerciali. Se non la sai, lascia il valore proposto.",
+      "tipo_controllo": "stepper",
+      "gruppo": "immobile",
+      "ordine": 25,
+      "tier_minimo": "free",
+      "attributo_code": "superficie_calpestabile",
+      "obbligatoria": false,
+      "visibile_se_domanda_code": null,
+      "visibile_se_opzione_code": null,
+      "valore_default": "76.00",
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 1
+        }
+      ]
+    },
+    {
+      "code": "piano",
+      "testo": "A che piano si trova?",
+      "help": "Il trasporto di materiali e macerie cresce con il piano. Piano terra: 0.",
+      "tipo_controllo": "stepper",
+      "gruppo": "immobile",
+      "ordine": 30,
+      "tier_minimo": "free",
+      "attributo_code": "piano",
+      "obbligatoria": false,
+      "visibile_se_domanda_code": null,
+      "visibile_se_opzione_code": null,
+      "valore_default": "1.00",
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 1
+        }
+      ]
+    },
+    {
+      "code": "ascensore",
+      "testo": "C'e' un ascensore utilizzabile per i materiali?",
+      "help": null,
+      "tipo_controllo": "toggle",
+      "gruppo": "immobile",
+      "ordine": 35,
+      "tier_minimo": "free",
+      "attributo_code": null,
+      "obbligatoria": false,
+      "visibile_se_domanda_code": null,
+      "visibile_se_opzione_code": null,
+      "valore_default": "si",
+      "opzioni": [
+        {
+          "code": "si",
+          "etichetta": "Si",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": true,
+          "ordine": 1
+        },
+        {
+          "code": "no",
+          "etichetta": "No",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 2
+        }
+      ]
+    },
+    {
+      "code": "accessibilita",
+      "testo": "Come si raggiunge l'immobile per carico e scarico?",
+      "help": "Piu' il mezzo si avvicina all'ingresso, meno costa movimentare materiali e macerie.",
+      "tipo_controllo": "scelta_singola",
+      "gruppo": "immobile",
+      "ordine": 40,
+      "tier_minimo": "free",
+      "attributo_code": null,
+      "obbligatoria": false,
+      "visibile_se_domanda_code": null,
+      "visibile_se_opzione_code": null,
+      "valore_default": "cortile",
+      "opzioni": [
+        {
+          "code": "carrabile",
+          "etichetta": "Si arriva col mezzo fino all'ingresso",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 1
+        },
+        {
+          "code": "cortile",
+          "etichetta": "Cortile o area privata, ma non fino all'ingresso",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": true,
+          "ordine": 2
+        },
+        {
+          "code": "strada",
+          "etichetta": "Solo dalla strada pubblica",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 3
+        },
+        {
+          "code": "montacarichi",
+          "etichetta": "Serve un montacarichi o un'autoscala",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 4
+        }
+      ]
+    },
+    {
+      "code": "impianti",
+      "testo": "Quali impianti vanno rifatti?",
+      "help": "Su una ristrutturazione totale gli impianti sono gia' compresi nel prezzo base: qui pesano soprattutto sugli interventi piccoli e parziali.",
+      "tipo_controllo": "scelta_multipla",
+      "gruppo": "ristrutturazione",
+      "ordine": 90,
+      "tier_minimo": "free",
+      "attributo_code": null,
+      "obbligatoria": false,
+      "visibile_se_domanda_code": null,
+      "visibile_se_opzione_code": null,
+      "valore_default": [],
+      "opzioni": [
+        {
+          "code": "elettrico",
+          "etichetta": "Elettrico",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 1
+        },
+        {
+          "code": "idrico",
+          "etichetta": "Idrico e scarichi",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 2
+        },
+        {
+          "code": "gas",
+          "etichetta": "Gas",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 3
+        },
+        {
+          "code": "termico",
+          "etichetta": "Riscaldamento e climatizzazione",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 4
+        }
+      ]
+    },
+    {
+      "code": "livello_finiture",
+      "testo": "Che livello di finiture hai in mente?",
+      "help": "Materiali e apparecchi: e' la leva che sposta di piu' il conto a parita' di lavori.",
+      "tipo_controllo": "scelta_singola",
+      "gruppo": "ristrutturazione",
+      "ordine": 95,
+      "tier_minimo": "free",
+      "attributo_code": null,
+      "obbligatoria": false,
+      "visibile_se_domanda_code": null,
+      "visibile_se_opzione_code": null,
+      "valore_default": "medio",
+      "opzioni": [
+        {
+          "code": "base",
+          "etichetta": "Economiche",
+          "descrizione": "Materiali di serie, buon rapporto qualita/prezzo.",
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 1
+        },
+        {
+          "code": "medio",
+          "etichetta": "Medie",
+          "descrizione": "Materiali di fascia media, la scelta piu' frequente.",
+          "immagine_url": null,
+          "is_default": true,
+          "ordine": 2
+        },
+        {
+          "code": "alto",
+          "etichetta": "Alte",
+          "descrizione": "Materiali di pregio e finiture su misura.",
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 3
+        }
+      ]
+    },
+    {
+      "code": "non_rifare",
+      "testo": "C'e' qualcosa che NON vuoi rifare?",
+      "help": "Quello che e' gia' a posto esce dalla stima.",
+      "tipo_controllo": "scelta_multipla",
+      "gruppo": "ristrutturazione",
+      "ordine": 100,
+      "tier_minimo": "free",
+      "attributo_code": null,
+      "obbligatoria": false,
+      "visibile_se_domanda_code": null,
+      "visibile_se_opzione_code": null,
+      "valore_default": [],
+      "opzioni": [
+        {
+          "code": "serramenti",
+          "etichetta": "Serramenti e porte",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 1
+        },
+        {
+          "code": "finiture",
+          "etichetta": "Pavimenti e rivestimenti",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 2
+        },
+        {
+          "code": "prodotti",
+          "etichetta": "Sanitari e rubinetteria",
+          "descrizione": null,
+          "immagine_url": null,
+          "is_default": false,
+          "ordine": 3
+        }
+      ]
+    }
+  ]
+}
