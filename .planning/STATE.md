@@ -30,7 +30,9 @@ produzione dalla `0013` alla `0024`. Prima del push:
    2026-10-01**: passano da uno stato v1.0 con dati utente, smoke 39/39, valori identici a
    `dev.db` (`.planning/prove/2026-10-01-postgres/README.md`). Da decidere prima del go-live:
    il totale Pro e' circa 8 volte il Free per coefficienti in bozza su voci a corpo (non solo
-   A.6.11, osservazione 1 del report).
+   A.6.11, osservazione 1 del report). **Decisione di Riccardo (2026-10-01): si va in
+   produzione con il Pro cosi' com'e'**; la taratura vera arriva dopo, con l'Excel di taratura
+   (migrazione 0025).
 2. Taratura di A.6.11 "Taglio porta blindata" (coefficiente per m² invece che a conteggio,
    vedi `09-TARATURA-TODO.md`).
 3. `BACKEND_PUBLIC_URL` impostata su Render (storage avatar su DB).
