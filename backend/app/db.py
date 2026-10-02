@@ -11,7 +11,10 @@ from app.config import settings
 
 connect_args = {"check_same_thread": False} if settings.DATABASE_URL.startswith("sqlite") else {}
 
-engine = create_engine(settings.DATABASE_URL, connect_args=connect_args)
+# pool_pre_ping: Neon spegne il compute quando e' inattivo e chiude le
+# connessioni; senza il ping la prima richiesta dopo una pausa riceverebbe
+# una connessione morta dal pool.
+engine = create_engine(settings.DATABASE_URL, connect_args=connect_args, pool_pre_ping=True)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

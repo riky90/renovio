@@ -10,6 +10,7 @@ environment — no real secret is ever hardcoded here. See backend/.env.example
 for how to generate them locally.
 """
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -64,6 +65,21 @@ class Settings(BaseSettings):
     # assoluto in `User.avatar_url`, perche' quel campo finisce in un `<img
     # src>` renderizzato dal frontend, che gira su un'altra origine.
     BACKEND_PUBLIC_URL: str = "http://localhost:8000"
+
+    @field_validator("DATABASE_URL")
+    @classmethod
+    def _use_psycopg3(cls, url: str) -> str:
+        """Instrada gli URL Postgres "nudi" su psycopg 3.
+
+        I provider (Neon, Render, Supabase) danno `postgresql://` o
+        `postgres://`, che SQLAlchemy risolverebbe su psycopg2 — non
+        installato. Riscrivere qui permette di incollare la stringa del
+        provider cosi' com'e', e vale anche per Alembic, che legge da qui.
+        """
+        for prefix in ("postgresql://", "postgres://"):
+            if url.startswith(prefix):
+                return "postgresql+psycopg://" + url[len(prefix):]
+        return url
 
     @property
     def storage_configured(self) -> bool:
