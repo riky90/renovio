@@ -18,7 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { sommaMediCategorie } from "@/lib/risultato";
 import { azioneSalvataggio } from "@/lib/richiestaStima";
-import { patchBudgetStima, postSalvaStima, postStima, putAggiornaStima, type StimaRequest, type StimaResponse } from "@/api/stima";
+import { patchBudgetStima, postSalvaStima, postStima, putAggiornaStima, type StimaRequest, type StimaResponse, type TipoRistrutturazione } from "@/api/stima";
 import type { EstimateFormValues } from "@/components/EstimateFormFields";
 import { useAuth } from "@/hooks/useAuth";
 import { GuideCards } from "@/components/GuideCards";
@@ -462,7 +462,7 @@ export function EstimatePage() {
 
             {showResult && result && input && (
               <>
-                <SummaryPanel input={input} onModifica={handleModifica} />
+                <SummaryPanel input={input} tipo={result.tipo_effettivo} onModifica={handleModifica} />
 
                 {salvataggioFallito && (
                   <Alert variant="destructive">
@@ -612,17 +612,19 @@ interface SummaryPanelProps {
   /** La richiesta inviata, non i valori del form: e' cio' che ha prodotto
       questo risultato, comprese le risposte del wizard. */
   input: StimaRequest;
+  /** Il tipo descritto dalle risposte, quando il risultato c'e'. */
+  tipo?: TipoRistrutturazione | null;
   onModifica: () => void;
   disabled?: boolean;
 }
 
-function SummaryPanel({ input, onModifica, disabled }: SummaryPanelProps) {
+function SummaryPanel({ input, tipo, onModifica, disabled }: SummaryPanelProps) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-sm">
       <div className="flex flex-wrap items-center gap-2">
         <Badge variant="secondary">{input.citta}</Badge>
         <Badge variant="secondary">{input.mq} m²</Badge>
-        <Badge variant="secondary">{TIPO_LABELS[input.tipo]}</Badge>
+        <Badge variant="secondary">{TIPO_LABELS[tipo ?? input.tipo]}</Badge>
         <Badge variant="secondary">
           {DESTINAZIONE_LABELS[input.destinazione ?? "prima_casa"]}
         </Badge>

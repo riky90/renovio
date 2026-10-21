@@ -40,6 +40,13 @@ class StimaSalvata(Base):
     # JSON generico (non JSONB): portabile SQLite dev / Postgres prod.
     risultato_json: Mapped[dict] = mapped_column(JSON, nullable=False)
 
+    @property
+    def tipo_mostrato(self) -> str:
+        """Il tipo da mostrare: quello che le risposte descrivono, se lo
+        snapshot lo porta, altrimenti quello scelto. `tipo` resta il tipo
+        scelto perche' il dettaglio Pro ricalcola da li' (preset)."""
+        return (self.risultato_json or {}).get("tipo_effettivo") or self.tipo
+
     # Risposte alle domande mirate del dettaglio Pro (bagni/porte/condizionatori,
     # max 3 interi) — nullable, colonna JSON generica per portabilita (03-RESEARCH.md
     # Pitfall 3 / Open Question 2): persistita cosi' il dettaglio Pro e il PDF Pro

@@ -26,6 +26,7 @@ from app.schemas.stima import (
     ExtraOut,
     StimaInputEcho,
     StimaInputSalvataIn,
+    TipoEnum,
     TotaleOut,
 )
 
@@ -96,6 +97,7 @@ class StimaSalvataCreate(BaseModel):
     # Risultati calcolati dal motore (10-04): finiscono nello snapshot.
     confronto_finiture: ConfrontoFinitureOut | None = None
     finiture_al_minimo: bool = False
+    tipo_effettivo: TipoEnum | None = None
     preferenze_pro: PreferenzeProIn | None = None
     # Come `preferenze_pro`: parametro, non risultato. Va nella colonna
     # `budget_eur`, mai nello snapshot.
@@ -136,6 +138,7 @@ class StimaSalvataOut(BaseModel):
     # `.get()`, default None/False.
     confronto_finiture: ConfrontoFinitureOut | None = None
     finiture_al_minimo: bool = False
+    tipo_effettivo: TipoEnum | None = None
     # Dalla colonna `stima.budget_eur`, non dallo snapshot. None = nessun budget.
     budget_eur: int | None = None
 

@@ -73,6 +73,7 @@ from app.services.computo import (
     calcola_computo,
     listino_ha_regole,
     risposte_con_finitura,
+    tipo_effettivo,
 )
 from app.services.effetti import (
     CONTROLLI_NUMERICI,
@@ -411,8 +412,9 @@ class DettaglioProService:
         (test compresi) restano valide senza modifiche: assente significa
         "applica il livello di default di tabella", non "prendi tutte le
         voci"."""
-        tipo_row = session.query(TipoRistrutturazione).filter_by(code=tipo).one()
-        range_pct = tipo_row.range_pct
+        # Range dal tipo che le risposte descrivono, come nel Free.
+        effettivo = tipo_effettivo(session, listino, mq=mq, tipo=tipo, risposte=risposte)
+        range_pct = session.query(TipoRistrutturazione).filter_by(code=effettivo).one().range_pct
 
         # Il ponte `livello_finiture` (wizard) -> asse `finitura` vive nel
         # computo, condiviso col Free: stessa regola, una sola copia.

@@ -239,7 +239,7 @@ class PdfService:
             data_generazione=datetime.now().strftime("%d/%m/%Y"),
             citta=stima.citta,
             mq=stima.mq,
-            tipo=stima.tipo,
+            tipo=stima.tipo_mostrato,
             filename=build_filename_pro(stima),
         )
 
