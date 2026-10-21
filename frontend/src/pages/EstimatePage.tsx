@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Gauge, MapPin, Zap, type LucideIcon } from "lucide-react";
 import { ArredoCard } from "@/components/ArredoCard";
@@ -21,6 +21,11 @@ import { azioneSalvataggio } from "@/lib/richiestaStima";
 import { patchBudgetStima, postSalvaStima, postStima, putAggiornaStima, type StimaRequest, type StimaResponse } from "@/api/stima";
 import type { EstimateFormValues } from "@/components/EstimateFormFields";
 import { useAuth } from "@/hooks/useAuth";
+import { GuideCards } from "@/components/GuideCards";
+import { GUIDA_GENERALE, GUIDE, PATH_GUIDE } from "@/content/guide";
+import { formatEurRange, formatRangeEurMq } from "@/lib/currency";
+import { anno, fasciaDi, meseAnno, useDatiGuide } from "@/lib/guideCosti";
+import { ORGANIZATION_LD, SITE_URL, Seo, WEBSITE_LD } from "@/lib/seo";
 
 const TIPO_LABELS: Record<EstimateFormValues["tipo"], string> = {
   leggera: "Leggera",
@@ -55,8 +60,8 @@ const BENEFITS: Benefit[] = [
   },
   {
     icon: Zap,
-    title: "Pronta in 30 secondi",
-    body: "Tre informazioni, nessuna registrazione. Il calcolo è gratuito.",
+    title: "Pronta in due minuti",
+    body: "Il tipo di lavori precompila le risposte: cambi solo quello che non torna. Gratis, senza registrazione.",
   },
 ];
 
@@ -64,12 +69,12 @@ const STEPS: { n: string; title: string; body: string }[] = [
   {
     n: "01",
     title: "Inserisci i dati",
-    body: "Città dell'immobile, superficie in m² e tipo di lavori. Bastano tre informazioni.",
+    body: "Città, superficie in m² e tipo di lavori. Gli interventi sono già precompilati: li cambi solo se serve.",
   },
   {
     n: "02",
     title: "Ottieni il range",
-    body: "Una stima onesta minimo–massimo, IVA inclusa, divisa per categoria di lavori.",
+    body: "Una stima minimo–massimo, IVA inclusa, calcolata voce per voce e divisa per categoria di lavori.",
   },
   {
     n: "03",
@@ -123,6 +128,14 @@ export function EstimatePage() {
   // ma non persistito): lo si dice e si offre un nuovo tentativo.
   const [erroreBudget, setErroreBudget] = useState(false);
   const queryClient = useQueryClient();
+  const location = useLocation();
+
+  // `/#stima` (dalle guide): si arriva direttamente al wizard.
+  useEffect(() => {
+    if (location.hash === "#stima") {
+      document.getElementById("stima")?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [location.hash]);
 
   // Auto-save da loggato (D-07): nessun ricalcolo, si congela esattamente il
   // payload gia' mostrato dal risultato corrente.
@@ -309,9 +322,29 @@ export function EstimatePage() {
 
   return (
     <div className="flex min-h-svh flex-col bg-background">
+      <Seo
+        title="Quanto costa ristrutturare casa? Stima gratuita a range"
+        path="/"
+        jsonLd={[
+          ORGANIZATION_LD,
+          WEBSITE_LD,
+          {
+            "@context": "https://schema.org",
+            "@type": "WebApplication",
+            name: "Renovio — stima dei costi di ristrutturazione",
+            url: `${SITE_URL}/`,
+            applicationCategory: "UtilitiesApplication",
+            operatingSystem: "Web",
+            inLanguage: "it-IT",
+            isAccessibleForFree: true,
+            offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
+            publisher: { "@id": `${SITE_URL}/#organization` },
+          },
+        ]}
+      />
       <SiteHeader />
 
-      <main className="flex-1">
+      <main id="contenuto" className="flex-1">
         {isIdle ? (
           <section className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6 sm:py-16 lg:py-20">
             <div className="mx-auto max-w-2xl text-center">
@@ -323,12 +356,16 @@ export function EstimatePage() {
                 Quanto costa <span className="text-primary">ristrutturare</span> casa?
               </h1>
               <p className="mx-auto mt-4 max-w-xl text-balance text-base text-muted-foreground sm:text-lg">
-                Una stima onesta, a range, in trenta secondi. Bastano città, superficie e tipo
-                di lavori — niente registrazione.
+                Una stima onesta, a range, calcolata voce per voce sul listino della tua città.
+                Città, superficie e tipo di lavori: il resto lo precompiliamo noi. Gratis, senza
+                registrazione.
               </p>
             </div>
 
-            <div className="mx-auto mt-10 max-w-xl rounded-2xl border border-border bg-card p-6 shadow-lg shadow-black/[0.03] sm:p-8">
+            <div
+              id="stima"
+              className="mx-auto mt-10 max-w-xl scroll-mt-24 rounded-2xl border border-border bg-card p-6 shadow-lg shadow-black/[0.03] sm:p-8"
+            >
               <EstimateWizard
                 key={wizardKey}
                 tier="free"
@@ -379,6 +416,8 @@ export function EstimatePage() {
               </ol>
             </div>
 
+            <PrezziInEvidenza />
+
             <div className="mx-auto mt-20 max-w-4xl overflow-hidden rounded-2xl border border-border bg-card px-6 py-10 text-center shadow-sm sm:px-10 sm:py-12">
               <h2 className="text-2xl font-bold text-foreground sm:text-3xl">
                 Scopri quanto costa, senza impegno
@@ -388,7 +427,7 @@ export function EstimatePage() {
               </p>
               <Button
                 type="button"
-                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                onClick={() => document.getElementById("stima")?.scrollIntoView({ behavior: "smooth" })}
                 className="mt-6 h-11 px-6 text-base font-semibold"
               >
                 Calcola la tua stima
@@ -597,5 +636,52 @@ function SummaryPanel({ input, onModifica, disabled }: SummaryPanelProps) {
         Modifica
       </button>
     </div>
+  );
+}
+
+
+/**
+ * Le cifre in home: la stessa fascia delle guide, per 85 m², e la porta verso
+ * le guide ai costi. Contenuto vero e citabile anche per chi non usa il wizard.
+ */
+function PrezziInEvidenza() {
+  const dati = useDatiGuide();
+  const mq = dati.mq_riferimento;
+  const righe = (["leggera", "moderata", "totale"] as const).map((tipo) => ({
+    tipo,
+    fascia: fasciaDi(dati, tipo, mq),
+  }));
+  return (
+    <section aria-labelledby="prezzi-home" className="mx-auto mt-20 max-w-4xl border-t border-border pt-12">
+      <h2 id="prezzi-home" className="text-center text-2xl font-bold text-foreground sm:text-3xl">
+        Quanto costa ristrutturare casa nel {anno(dati.aggiornato_il)}
+      </h2>
+      <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
+        Un appartamento di {mq} m², IVA inclusa, listino di {dati.citta_listino} aggiornato a{" "}
+        {meseAnno(dati.aggiornato_il)}.
+      </p>
+      <ul className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {righe.map(({ tipo, fascia }) =>
+          fascia ? (
+            <li key={tipo} className="rounded-xl border border-border bg-card p-5">
+              <p className="text-sm font-semibold text-muted-foreground">{TIPO_LABELS[tipo]}</p>
+              <p className="mt-1 font-display text-xl font-bold tabular-nums text-foreground">
+                {formatEurRange(fascia.min, fascia.max)}
+              </p>
+              <p className="mt-1 text-sm tabular-nums text-muted-foreground">
+                {formatRangeEurMq(fascia.eur_mq_min, fascia.eur_mq_max)}
+              </p>
+            </li>
+          ) : null,
+        )}
+      </ul>
+      <div className="mt-10 flex items-baseline justify-between gap-4">
+        <h3 className="text-lg font-semibold text-foreground">Le guide ai costi</h3>
+        <Link to={PATH_GUIDE} className="text-sm font-medium text-primary underline-offset-4 hover:underline">
+          Tutte le guide
+        </Link>
+      </div>
+      <GuideCards guide={[GUIDA_GENERALE, ...GUIDE].slice(0, 6)} />
+    </section>
   );
 }

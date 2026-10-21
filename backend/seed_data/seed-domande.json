@@ -275,8 +275,8 @@
   "domande": [
     {
       "code": "tipo_immobile",
-      "testo": "Che tipo di immobile e'?",
-      "help": "Una villetta ha piu' superficie disperdente e piu' murature esterne di un appartamento a parita' di metri quadri.",
+      "testo": "Che tipo di immobile è?",
+      "help": "Una villetta ha più superficie disperdente e più murature esterne di un appartamento a parità di metri quadri.",
       "tipo_controllo": "scelta_singola",
       "gruppo": "immobile",
       "ordine": 10,
@@ -360,8 +360,8 @@
     },
     {
       "code": "anno_costruzione",
-      "testo": "Di che anni e' l'immobile?",
-      "help": "Piu' l'edificio e' datato, piu' spesso impianti e murature vanno rifatti da zero invece che adeguati.",
+      "testo": "Di che anni è l'immobile?",
+      "help": "Più l'edificio è datato, più spesso impianti e murature vanno rifatti da zero invece che adeguati.",
       "tipo_controllo": "scelta_singola",
       "gruppo": "immobile",
       "ordine": 20,
@@ -442,7 +442,7 @@
     },
     {
       "code": "ascensore",
-      "testo": "C'e' un ascensore utilizzabile per i materiali?",
+      "testo": "C'è un ascensore utilizzabile per i materiali?",
       "tipo_controllo": "toggle",
       "gruppo": "immobile",
       "ordine": 35,
@@ -473,7 +473,7 @@
     {
       "code": "accessibilita",
       "testo": "Come si raggiunge l'immobile per carico e scarico?",
-      "help": "Piu' il mezzo si avvicina all'ingresso, meno costa movimentare materiali e macerie.",
+      "help": "Più il mezzo si avvicina all'ingresso, meno costa movimentare materiali e macerie.",
       "tipo_controllo": "scelta_singola",
       "gruppo": "immobile",
       "ordine": 40,
@@ -955,7 +955,7 @@
     {
       "code": "condizionatori",
       "testo": "Quanti split vuoi installare?",
-      "help": "Conta un'unita' interna per ogni ambiente da climatizzare. Se non vuoi la climatizzazione, lascia 0.",
+      "help": "Conta un'unità interna per ogni ambiente da climatizzare. Se non vuoi la climatizzazione, lascia 0.",
       "tipo_controllo": "stepper",
       "gruppo": "ristrutturazione",
       "ordine": 99,
@@ -1137,13 +1137,13 @@
           "effetti": []
         }
       ],
-      "help": "Demolizione piu' ricostruzione, non solo intonaco. Se non ce ne sono, lascia 0.",
+      "help": "Demolizione più ricostruzione, non solo intonaco. Se non ce ne sono, lascia 0.",
       "visibile_se_domanda_code": "muri_lavori",
       "visibile_se_opzione_code": "si"
     },
     {
       "code": "muri_da_rifare_portanti",
-      "testo": "Fra i muri da rifare ce n'e' qualcuno portante?",
+      "testo": "Fra i muri da rifare ce n'è qualcuno portante?",
       "tipo_controllo": "toggle",
       "gruppo": "ambienti",
       "ordine": 83,
@@ -1198,7 +1198,7 @@
     },
     {
       "code": "muri_da_creare_portanti",
-      "testo": "Fra i muri nuovi ce n'e' qualcuno portante?",
+      "testo": "Fra i muri nuovi ce n'è qualcuno portante?",
       "tipo_controllo": "toggle",
       "gruppo": "ambienti",
       "ordine": 85,
@@ -1233,7 +1233,7 @@
     {
       "code": "impianti",
       "testo": "Quali impianti vanno rifatti?",
-      "help": "Su una ristrutturazione totale gli impianti sono gia' compresi nel prezzo base: qui pesano soprattutto sugli interventi piccoli e parziali.",
+      "help": "Su una ristrutturazione totale gli impianti sono già compresi nel prezzo base: qui pesano soprattutto sugli interventi piccoli e parziali.",
       "tipo_controllo": "scelta_multipla",
       "gruppo": "ristrutturazione",
       "ordine": 90,
@@ -1273,7 +1273,7 @@
     {
       "code": "livello_finiture",
       "testo": "Che livello di finiture hai in mente?",
-      "help": "Materiali e apparecchi: e' la leva che sposta di piu' il conto a parita' di lavori.",
+      "help": "Materiali e apparecchi: è la leva che sposta di più il conto a parità di lavori.",
       "tipo_controllo": "scelta_singola",
       "gruppo": "ristrutturazione",
       "ordine": 95,
@@ -1293,7 +1293,7 @@
           "ordine": 2,
           "is_default": true,
           "effetti": [],
-          "descrizione": "Materiali di fascia media, la scelta piu' frequente."
+          "descrizione": "Materiali di fascia media, la scelta più frequente."
         },
         {
           "code": "alto",
@@ -1307,8 +1307,8 @@
     },
     {
       "code": "non_rifare",
-      "testo": "C'e' qualcosa che NON vuoi rifare?",
-      "help": "Quello che e' gia' a posto esce dalla stima.",
+      "testo": "C'è qualcosa che NON vuoi rifare?",
+      "help": "Quello che è già a posto esce dalla stima.",
       "tipo_controllo": "scelta_multipla",
       "gruppo": "ristrutturazione",
       "ordine": 100,
@@ -1358,7 +1358,7 @@
     {
       "code": "ambienti_arredo",
       "testo": "Quali ambienti vuoi arredare?",
-      "help": "Il costo dell'arredo resta FUORI dal totale dei lavori: te lo mostriamo a parte, perche' non e' una lavorazione e non va confrontato con un preventivo edile.",
+      "help": "Il costo dell'arredo resta FUORI dal totale dei lavori: te lo mostriamo a parte, perché non è una lavorazione e non va confrontato con un preventivo edile.",
       "tipo_controllo": "scelta_multipla",
       "gruppo": "arredo",
       "ordine": 105,
@@ -1416,7 +1416,7 @@
     },
     {
       "code": "classe_energetica_attuale",
-      "testo": "Qual e' la classe energetica attuale?",
+      "testo": "Qual è la classe energetica attuale?",
       "help": "La trovi sull'APE dell'immobile. Se non ce l'hai, lascia 'Non la so': la stimiamo dall'anno di costruzione.",
       "tipo_controllo": "scelta_singola",
       "gruppo": "energia",
@@ -1675,7 +1675,7 @@
               "valore": "95"
             }
           ],
-          "descrizione": "Isolamento sulla facciata. Il piu' efficace, richiede ponteggio e permessi."
+          "descrizione": "Isolamento sulla facciata. Il più efficace, richiede ponteggio e permessi."
         },
         {
           "code": "cappotto_interno",
@@ -1714,7 +1714,7 @@
           "descrizione": "Costo una tantum: una caldaia costa quel che costa, non 45 euro al metro quadro."
         }
       ],
-      "help": "Puoi sceglierne piu' di uno.",
+      "help": "Puoi sceglierne più di uno.",
       "visibile_se_domanda_code": "efficientamento",
       "visibile_se_opzione_code": "si"
     },
@@ -1947,7 +1947,7 @@
         {
           "code": "medio",
           "etichetta": "Medio",
-          "descrizione": "Materiali di fascia media, la scelta piu' frequente.",
+          "descrizione": "Materiali di fascia media, la scelta più frequente.",
           "ordine": 2,
           "is_default": true,
           "effetti": [
@@ -4066,7 +4066,7 @@
       "tipo_controllo": "scelta_singola",
       "visibile_se_domanda_code": "muri_lavori",
       "visibile_se_opzione_code": "si",
-      "help": "Il cartongesso e' piu' veloce e leggero, i blocchi tipo Siporex isolano meglio.",
+      "help": "Il cartongesso è più veloce e leggero, i blocchi tipo Siporex isolano meglio.",
       "opzioni": [
         {
           "code": "forati",
@@ -4211,7 +4211,7 @@
         },
         {
           "code": "si",
-          "etichetta": "Si'",
+          "etichetta": "Sì",
           "ordine": 2,
           "is_default": true,
           "effetti": []
@@ -4222,7 +4222,7 @@
     },
     {
       "code": "cucina_gas",
-      "testo": "Il piano cottura sara' a gas?",
+      "testo": "Il piano cottura sarà a gas?",
       "gruppo": "ristrutturazione",
       "ordine": 91,
       "tipo_controllo": "toggle",
@@ -4239,7 +4239,7 @@
         },
         {
           "code": "si",
-          "etichetta": "Si'",
+          "etichetta": "Sì",
           "ordine": 2,
           "is_default": false,
           "effetti": []
@@ -4298,7 +4298,7 @@
         },
         {
           "code": "si",
-          "etichetta": "Si'",
+          "etichetta": "Sì",
           "ordine": 2,
           "is_default": false,
           "effetti": []
@@ -4349,7 +4349,7 @@
     },
     {
       "code": "riscaldamento_centralizzato",
-      "testo": "Il riscaldamento e' centralizzato?",
+      "testo": "Il riscaldamento è centralizzato?",
       "gruppo": "ristrutturazione",
       "ordine": 96,
       "tipo_controllo": "toggle",
@@ -4364,7 +4364,7 @@
         },
         {
           "code": "si",
-          "etichetta": "Si'",
+          "etichetta": "Sì",
           "ordine": 2,
           "is_default": false,
           "effetti": []
@@ -4390,14 +4390,14 @@
         },
         {
           "code": "split",
-          "etichetta": "Si', a split",
+          "etichetta": "Sì, a split",
           "ordine": 2,
           "is_default": false,
           "effetti": []
         },
         {
           "code": "canalizzato",
-          "etichetta": "Si', canalizzata",
+          "etichetta": "Sì, canalizzata",
           "ordine": 3,
           "is_default": false,
           "effetti": []
@@ -4423,7 +4423,7 @@
         },
         {
           "code": "si",
-          "etichetta": "Si'",
+          "etichetta": "Sì",
           "ordine": 2,
           "is_default": false,
           "effetti": []
@@ -4481,7 +4481,7 @@
         },
         {
           "code": "si",
-          "etichetta": "Si'",
+          "etichetta": "Sì",
           "ordine": 2,
           "is_default": false,
           "effetti": []
@@ -4508,7 +4508,7 @@
         },
         {
           "code": "sostituisci",
-          "etichetta": "Si'",
+          "etichetta": "Sì",
           "ordine": 2,
           "is_default": false,
           "effetti": []
@@ -4535,14 +4535,14 @@
         },
         {
           "code": "pvc",
-          "etichetta": "Si', in PVC",
+          "etichetta": "Sì, in PVC",
           "ordine": 2,
           "is_default": true,
           "effetti": []
         },
         {
           "code": "alluminio",
-          "etichetta": "Si', in alluminio",
+          "etichetta": "Sì, in alluminio",
           "ordine": 3,
           "is_default": false,
           "effetti": []
@@ -4570,7 +4570,7 @@
         },
         {
           "code": "si",
-          "etichetta": "Si'",
+          "etichetta": "Sì",
           "ordine": 2,
           "is_default": false,
           "effetti": []
@@ -4616,7 +4616,7 @@
         },
         {
           "code": "si",
-          "etichetta": "Si'",
+          "etichetta": "Sì",
           "ordine": 2,
           "is_default": true,
           "effetti": []

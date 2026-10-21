@@ -58,6 +58,17 @@ Items acknowledged and deferred at milestone close on 2026-10-01:
 
 ## Last Session
 
+- **2026-10-21** — **Revisione SEO, ricerche AI e UX del sito pubblico.** Pagine pubbliche
+  prerenderizzate al build (`entry-server.tsx` + `scripts/prerender.mjs`) con title,
+  description, canonical, Open Graph e JSON-LD per pagina (componente `Seo`); `sitemap.xml`,
+  `robots.txt`, `llms.txt`, 404 vera, `vercel.json`. Sette guide ai costi
+  (`/costi-ristrutturazione/...`) con cifre dallo stesso motore della stima
+  (`GET /api/v1/guide/costi`, copia in `frontend/src/data/guide-costi.json`). Wizard: step 3
+  con i soli essenziali e "Personalizza i lavori" a scomparsa, focus e annunci per lettori di
+  schermo. Header con navigazione, autocomplete città tollerante ("reggio emilia"), pagine
+  private caricate al bisogno (bundle iniziale 680 kB -> 364 kB). Accenti veri nel catalogo
+  (seed + migrazione 0028). Dominio provvisorio in `VITE_SITE_URL`; dati legali nel footer
+  rinviati.
 - **2026-09-28** — **Eseguito Plan 09-08 (chiusura Fase 09): dev.db allo stato finale, gate
   completi, controlli API automatici, collaudo rinviato.** Backup
   `backend/dev.db.bak-pre-0021-20260928-084905`, poi `alembic upgrade head` (0020->0022) e

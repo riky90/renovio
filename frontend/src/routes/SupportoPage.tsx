@@ -1,61 +1,75 @@
 import { Link } from "react-router";
+import { ChevronDown } from "lucide-react";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { GuideCards } from "@/components/GuideCards";
 import { Button } from "@/components/ui/button";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { GUIDA_GENERALE, GUIDE } from "@/content/guide";
+import { ORGANIZATION_LD, Seo, breadcrumbLd, faqLd } from "@/lib/seo";
 
 interface Faq {
-  q: string;
-  a: React.ReactNode;
+  domanda: string;
+  risposta: string;
+  link?: { to: string; testo: string };
 }
 
 const FAQS: Faq[] = [
   {
-    q: "Come funziona la stima?",
-    a: "Bastano tre informazioni — città, superficie in m² e tipo di lavori. Il motore le incrocia con il listino locale e ti restituisce un costo per categoria di lavori, IVA inclusa. Tutto in una trentina di secondi.",
+    domanda: "Come funziona la stima?",
+    risposta:
+      "Inserisci città e superficie in m² e scegli il tipo di lavori. Il tipo precompila le risposte sugli interventi (pavimenti, bagni, impianti, serramenti), che puoi cambiare. Il motore calcola le quantità voce per voce e le moltiplica per i prezzi del listino locale: ottieni un costo per categoria di lavori, IVA inclusa.",
   },
   {
-    q: "Perché ricevo un range e non un prezzo preciso?",
-    a: "Perché è una stima prima del sopralluogo. Un numero secco darebbe una falsa certezza: il costo reale dipende dallo stato dell'immobile e dai materiali scelti. Un minimo e un massimo onesti sono più utili di un prezzo finto-preciso.",
+    domanda: "Perché ricevo un range e non un prezzo preciso?",
+    risposta:
+      "Perché è una stima prima del sopralluogo. Un numero secco darebbe una falsa certezza: il costo reale dipende dallo stato dell'immobile e dai materiali scelti. Un minimo e un massimo onesti sono più utili di un prezzo finto-preciso.",
   },
   {
-    q: "È gratis? Devo registrarmi?",
-    a: "Il calcolo è gratuito e non richiede registrazione. Se crei un account, la stima resta salvata e puoi ritrovarla in «I miei progetti».",
+    domanda: "È gratis? Devo registrarmi?",
+    risposta:
+      "Il calcolo è gratuito e non richiede registrazione. Se crei un account, la stima resta salvata e puoi ritrovarla in «I miei progetti».",
   },
   {
-    q: "Cosa include il totale?",
-    a: "Le categorie di lavori (edile, finiture, serramenti, prodotti), l'IVA per ciascuna e i costi extra come sicurezza e pratiche amministrative. Il finanziamento a rate non è incluso.",
+    domanda: "Cosa include il totale?",
+    risposta:
+      "Le categorie di lavori (edile, finiture, serramenti e porte, prodotti), l'IVA di ciascuna, il cantiere, gli oneri della sicurezza e i costi extra come CSE/CSP e pratiche amministrative. Il finanziamento a rate e l'arredo non sono nel totale lavori: l'arredo, se lo chiedi, compare a parte.",
   },
   {
-    q: "I prezzi valgono per la mia città?",
-    a: "I prezzi sono calibrati sul listino locale. Per una città senza un listino proprio usiamo il più vicino disponibile e te lo segnaliamo con un avviso esplicito, così sai sempre su cosa si basa il numero.",
+    domanda: "I prezzi valgono per la mia città?",
+    risposta:
+      "I prezzi vengono dal listino locale. Per una città senza un listino proprio usiamo il più vicino disponibile e te lo segnaliamo con un avviso esplicito, così sai sempre su cosa si basa il numero.",
   },
   {
-    q: "Cosa aggiunge il piano Pro?",
-    a: (
-      <>
-        Con Pro vedi il dettaglio voce per voce di ogni categoria e ottieni il preventivo in PDF
-        da tenere o condividere.{" "}
-        <Link to="/passa-a-pro">Scopri Pro</Link>.
-      </>
-    ),
+    domanda: "Cosa aggiunge il piano Pro?",
+    risposta:
+      "Con Pro vedi il computo voce per voce di ogni categoria, con quantità e prezzi, scegli finiture e pavimenti e scarichi il preventivo in PDF da tenere o condividere.",
+    link: { to: "/passa-a-pro", testo: "Scopri Pro" },
   },
   {
-    q: "Come parlo con un professionista?",
-    a: "Da una stima salvata puoi chiedere di essere ricontattato: giriamo i tuoi dati a un referente della zona, senza impegno.",
+    domanda: "Come parlo con un professionista?",
+    risposta:
+      "Dal risultato della stima puoi chiedere di essere ricontattato: giriamo i tuoi dati a un referente della zona, senza impegno.",
   },
 ];
 
 export function SupportoPage() {
   return (
     <div className="flex min-h-svh flex-col bg-background">
+      <Seo
+        title="Domande frequenti sulla stima dei costi di ristrutturazione"
+        description="Come funziona la stima di Renovio, perché è un intervallo, cosa include il totale e da dove vengono i prezzi."
+        path="/supporto"
+        jsonLd={[
+          ORGANIZATION_LD,
+          faqLd(FAQS.map(({ domanda, risposta }) => ({ domanda, risposta }))),
+          breadcrumbLd([
+            { nome: "Home", path: "/" },
+            { nome: "Domande frequenti", path: "/supporto" },
+          ]),
+        ]}
+      />
       <SiteHeader />
-      <main className="flex-1">
+      <main id="contenuto" className="flex-1">
         <div className="mx-auto w-full max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
           <header className="flex flex-col gap-2 text-center">
             <span className="text-xs font-semibold uppercase tracking-wide text-primary">
@@ -67,16 +81,40 @@ export function SupportoPage() {
             </p>
           </header>
 
-          <div className="mt-10 rounded-2xl border border-border bg-card px-5 shadow-sm sm:px-8">
-            <Accordion type="single" collapsible>
-              {FAQS.map((faq, i) => (
-                <AccordionItem key={i} value={`faq-${i}`}>
-                  <AccordionTrigger className="text-base font-semibold">{faq.q}</AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground">{faq.a}</AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
+          {/* `details` nativo: le risposte restano nell'HTML anche chiuse, quindi le
+              leggono i crawler e funzionano senza JavaScript. */}
+          <div className="mt-10 divide-y divide-border rounded-2xl border border-border bg-card px-5 shadow-sm sm:px-8">
+            {FAQS.map((faq) => (
+              <details key={faq.domanda} className="group py-1">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-md py-4 text-base font-semibold text-foreground outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden">
+                  <h2 className="font-sans text-base font-semibold">{faq.domanda}</h2>
+                  <ChevronDown
+                    className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
+                    aria-hidden
+                  />
+                </summary>
+                <p className="pb-4 leading-relaxed text-muted-foreground">
+                  {faq.risposta}
+                  {faq.link && (
+                    <>
+                      {" "}
+                      <Link to={faq.link.to} className="font-medium text-primary underline-offset-4 hover:underline">
+                        {faq.link.testo}
+                      </Link>
+                      .
+                    </>
+                  )}
+                </p>
+              </details>
+            ))}
           </div>
+
+          <section aria-labelledby="guide-supporto" className="mt-12">
+            <h2 id="guide-supporto" className="text-xl font-bold text-foreground">
+              Le guide ai costi
+            </h2>
+            <GuideCards guide={[GUIDA_GENERALE, ...GUIDE]} />
+          </section>
 
           <div className="mt-10 flex flex-col items-center gap-4 rounded-2xl border border-border bg-secondary/40 px-6 py-10 text-center">
             <h2 className="text-xl font-bold text-foreground">Non hai trovato la risposta?</h2>
@@ -85,7 +123,7 @@ export function SupportoPage() {
               risponde senza impegno.
             </p>
             <Button asChild className="h-11 px-6">
-              <Link to="/">Calcola una stima</Link>
+              <Link to="/#stima">Calcola una stima</Link>
             </Button>
           </div>
         </div>

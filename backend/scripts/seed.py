@@ -137,9 +137,9 @@ CATEGORIA_NEL_TOTALE_LAVORI = {
 # sceglie: e' la scelta piu' difendibile su una stima pre-sopralluogo.
 LIVELLI_FINITURA = [
     {"code": "base", "nome": "Entry level", "ordine": 1, "is_default": False,
-     "descrizione": "Materiali di serie, buon rapporto qualita/prezzo."},
+     "descrizione": "Materiali di serie, buon rapporto qualità/prezzo."},
     {"code": "medio", "nome": "Medio", "ordine": 2, "is_default": True,
-     "descrizione": "Materiali di fascia media, la scelta piu' frequente."},
+     "descrizione": "Materiali di fascia media, la scelta più frequente."},
     {"code": "alto", "nome": "Lusso", "ordine": 3, "is_default": False,
      "descrizione": "Materiali di pregio e finiture su misura."},
 ]
