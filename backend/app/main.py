@@ -14,6 +14,7 @@ from app.routers import (
     avatars,
     dettaglio_pro,
     domande,
+    guide,
     health,
     lead,
     stima,
@@ -45,6 +46,7 @@ app.add_middleware(SessionMiddleware, secret_key=settings.OAUTH_SESSION_SECRET)
 app.include_router(health.router, prefix="/api/v1")
 app.include_router(stima.router, prefix="/api/v1")
 app.include_router(domande.router, prefix="/api/v1")
+app.include_router(guide.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(avatars.router, prefix="/api/v1")
 app.include_router(admin.router, prefix="/api/v1")

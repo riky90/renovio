@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import { BrandMark } from "@/components/BrandMark";
+import { GUIDA_GENERALE, GUIDE, pathGuida } from "@/content/guide";
 
 interface FooterLink {
   label: string;
@@ -10,7 +11,7 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
   {
     title: "Prodotto",
     links: [
-      { label: "Calcola una stima", to: "/" },
+      { label: "Calcola una stima", to: "/#stima" },
       { label: "Passa a Pro", to: "/passa-a-pro" },
       { label: "I miei progetti", to: "/le-mie-stime" },
     ],
@@ -23,11 +24,12 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
     ],
   },
   {
+    title: "Guide ai costi",
+    links: [GUIDA_GENERALE, ...GUIDE].map((g) => ({ label: g.nome, to: pathGuida(g) })),
+  },
+  {
     title: "Risorse",
-    links: [
-      { label: "Domande frequenti", to: "/supporto" },
-      { label: "Guide & supporto", to: "/supporto" },
-    ],
+    links: [{ label: "Domande frequenti", to: "/supporto" }],
   },
 ];
 
@@ -45,17 +47,17 @@ export function SiteFooter() {
               La stima trasparente per la tua casa.
             </p>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              Stime di ristrutturazione oneste, a range, calibrate sul listino della tua città.
-              Prima del sopralluogo, in trenta secondi.
+              Stime di ristrutturazione oneste, a range, calcolate voce per voce sul listino della
+              tua città. Prima del sopralluogo, in un paio di minuti.
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-10 sm:grid-cols-3 sm:gap-14">
+          <div className="grid grid-cols-2 gap-10 sm:grid-cols-4 sm:gap-10">
             {COLUMNS.map((col) => (
               <div key={col.title} className="flex flex-col gap-3">
-                <h3 className="font-sans text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <h2 className="font-sans text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   {col.title}
-                </h3>
+                </h2>
                 <ul className="flex flex-col gap-2.5">
                   {col.links.map((link) => (
                     <li key={link.label}>

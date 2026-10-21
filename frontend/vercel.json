@@ -1,0 +1,23 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    { "source": "/registrati", "destination": "/app.html" },
+    { "source": "/passa-a-pro", "destination": "/app.html" },
+    { "source": "/accedi", "destination": "/app.html" },
+    { "source": "/password-dimenticata", "destination": "/app.html" },
+    { "source": "/reimposta-password", "destination": "/app.html" },
+    { "source": "/le-mie-stime", "destination": "/app.html" },
+    { "source": "/impostazioni", "destination": "/app.html" },
+    { "source": "/impostazioni/:tab", "destination": "/app.html" },
+    { "source": "/nuova-stima", "destination": "/app.html" },
+    { "source": "/dettaglio-pro", "destination": "/app.html" },
+    { "source": "/admin", "destination": "/app.html" },
+    { "source": "/admin/:path*", "destination": "/app.html" }
+  ],
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    }
+  ]
+}

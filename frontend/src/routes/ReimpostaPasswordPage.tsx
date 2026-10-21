@@ -14,7 +14,7 @@ import {
 import { postReimpostaPassword } from "@/api/auth";
 
 const PASSWORD_ERROR = "La password deve avere almeno 8 caratteri.";
-const TOKEN_INVALIDO_MESSAGE = "Il link non e' piu' valido. Richiedine uno nuovo.";
+const TOKEN_INVALIDO_MESSAGE = "Il link non è più valido. Richiedine uno nuovo.";
 const GENERIC_ERROR = "Non siamo riusciti a completare l'operazione. Riprova tra qualche istante.";
 
 /**

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -248,9 +248,30 @@ export function EstimateWizard({
 
   const stepCorrente = steps[step - 1];
 
+  // Al cambio di step si riparte dall'inizio del wizard, con il focus sul
+  // titolo dello step: chi preme "Continua" in fondo a uno step lungo non deve
+  // ritrovarsi a meta' del successivo, e un lettore di schermo annuncia dove si
+  // trova. Non al primo render: la pagina non deve saltare all'apertura.
+  const titoloStepRef = useRef<HTMLHeadingElement>(null);
+  const primoRender = useRef(true);
+  useEffect(() => {
+    if (primoRender.current) {
+      primoRender.current = false;
+      return;
+    }
+    const titolo = titoloStepRef.current;
+    if (!titolo) return;
+    titolo.focus({ preventScroll: true });
+    const top = titolo.getBoundingClientRect().top + window.scrollY - 96;
+    if (top < window.scrollY) window.scrollTo({ top, behavior: "smooth" });
+  }, [step]);
+
   return (
     <form onSubmit={step === ultimoStep ? invia : avanti} className="flex w-full flex-col gap-6">
       <StepIndicator steps={steps} corrente={step} />
+      <h2 ref={titoloStepRef} tabIndex={-1} className="sr-only">
+        Passaggio {step} di {steps.length}: {stepCorrente?.titolo}
+      </h2>
 
       {step === 1 && (
         <>
@@ -290,15 +311,13 @@ export function EstimateWizard({
       {step === 3 && (
         <>
           <TipoField values={campi} onChange={handleChange} touched={touched} />
+          <StepLavori
+            domande={stepCorrente?.domande ?? []}
+            risposte={risposte}
+            onRisposta={handleRisposta}
+            tipoScelto={!!campi.tipo}
+          />
           <DestinazioneField values={campi} onChange={handleChange} />
-          {stepCorrente?.domande.map((domanda) => (
-            <DomandaField
-              key={domanda.code}
-              domanda={domanda}
-              valore={risposte[domanda.code]}
-              onChange={(valore) => handleRisposta(domanda.code, valore)}
-            />
-          ))}
           <div className="flex flex-col gap-2">
             <Label htmlFor="budget-importo" className="text-sm font-semibold">
               Qual è il tuo budget per la ristrutturazione?
@@ -391,12 +410,12 @@ function costruisciStep(domande: Domanda[], tier: "free" | "pro"): StepDef[] {
 
   const steps: StepDef[] = [
     { numero: 1, titolo: "Dove", domande: [] },
-    { numero: 2, titolo: "L'immobile", domande: perStep.get(2) ?? [] },
-    { numero: 3, titolo: "La ristrutturazione", domande: perStep.get(3) ?? [] },
+    { numero: 2, titolo: "La casa", domande: perStep.get(2) ?? [] },
+    { numero: 3, titolo: "I lavori", domande: perStep.get(3) ?? [] },
   ];
 
   if (tier === "pro") {
-    steps.push({ numero: 4, titolo: "Le finiture", domande: perStep.get(4) ?? [] });
+    steps.push({ numero: 4, titolo: "Finiture", domande: perStep.get(4) ?? [] });
   }
 
   return steps;
@@ -582,9 +601,13 @@ function Navigazione({
 
 function StepIndicator({ steps, corrente }: { steps: StepDef[]; corrente: number }) {
   return (
-    <div className="flex items-center gap-3">
+    <ol className="flex items-center gap-3" aria-label="Avanzamento">
       {steps.map((step) => (
-        <div key={step.numero} className="flex flex-1 flex-col gap-1.5">
+        <li
+          key={step.numero}
+          className="flex flex-1 flex-col gap-1.5"
+          aria-current={step.numero === corrente ? "step" : undefined}
+        >
           <span
             className={cn("h-1 rounded-full", step.numero <= corrente ? "bg-primary" : "bg-border")}
           />
@@ -596,8 +619,187 @@ function StepIndicator({ steps, corrente }: { steps: StepDef[]; corrente: number
           >
             {step.numero}. {step.titolo}
           </span>
-        </div>
+        </li>
       ))}
-    </div>
+    </ol>
+  );
+}
+
+/**
+ * Le domande che restano SEMPRE in vista nello step dei lavori: le altre del
+ * gruppo `ristrutturazione` sono gli interventi, gia' precompilati dal preset
+ * del tipo e riassunti, da aprire solo se serve. Mappe di PRESENTAZIONE come
+ * `GRUPPI_PER_STEP`: una domanda nuova creata dal pannello finisce comunque
+ * fra gli interventi, mai fuori dal wizard.
+ */
+const DOMANDE_IN_EVIDENZA = new Set(["livello_finiture"]);
+
+/** Gruppi resi come sezioni facoltative, chiuse di default. */
+const SEZIONI_FACOLTATIVE: { gruppo: string; titolo: string; descrizione: string }[] = [
+  {
+    gruppo: "energia",
+    titolo: "Risparmio energetico",
+    descrizione: "Classe energetica e interventi di efficientamento.",
+  },
+  {
+    gruppo: "arredo",
+    titolo: "Arredo",
+    descrizione: "Una stima dell'arredo, mostrata accanto al totale dei lavori.",
+  },
+];
+
+/** Etichette brevi per il riepilogo degli interventi. */
+const RIEPILOGO: Record<string, string> = {
+  interv_pavimenti: "Pavimenti",
+  interv_bagni: "Bagni",
+  interv_cucina: "Impianti cucina",
+  interv_elettrico: "Impianto elettrico",
+  interv_riscaldamento: "Riscaldamento",
+  interv_clima: "Climatizzazione",
+  interv_caldaia: "Caldaia nuova",
+  interv_porte: "Porte interne",
+  interv_serramenti: "Finestre",
+  tinteggiatura: "Tinteggiatura",
+  controsoffitti_mq: "Controsoffitti (m²)",
+};
+
+function etichettaRisposta(domanda: Domanda, valore: ValoreRisposta | undefined): string | null {
+  if (valore === undefined || valore === null) return null;
+  if (isNumerico(domanda.tipo_controllo)) return String(valore);
+  const codici = Array.isArray(valore) ? valore : [valore];
+  const etichette = codici
+    .map((c) => domanda.opzioni.find((o) => o.code === c)?.etichetta)
+    .filter((e): e is string => !!e);
+  return etichette.length ? etichette.join(", ") : null;
+}
+
+function StepLavori({
+  domande,
+  risposte,
+  onRisposta,
+  tipoScelto,
+}: {
+  domande: Domanda[];
+  risposte: Risposte;
+  onRisposta: (code: string, valore: ValoreRisposta) => void;
+  tipoScelto: boolean;
+}) {
+  const campo = (domanda: Domanda) => (
+    <DomandaField
+      key={domanda.code}
+      domanda={domanda}
+      valore={risposte[domanda.code]}
+      onChange={(valore) => onRisposta(domanda.code, valore)}
+    />
+  );
+  const facoltativi = new Set(SEZIONI_FACOLTATIVE.map((s) => s.gruppo));
+  const inEvidenza = domande.filter((d) => DOMANDE_IN_EVIDENZA.has(d.code));
+  const interventi = domande.filter((d) => !DOMANDE_IN_EVIDENZA.has(d.code) && !facoltativi.has(d.gruppo));
+  const riepilogo = interventi
+    .filter((d) => RIEPILOGO[d.code])
+    .map((d) => ({ code: d.code, nome: RIEPILOGO[d.code], valore: etichettaRisposta(d, risposte[d.code]) }))
+    .filter((r) => r.valore);
+
+  return (
+    <>
+      {inEvidenza.map(campo)}
+      {interventi.length > 0 && (
+        <SezioneComprimibile
+          id="lavori-inclusi"
+          titolo="I lavori inclusi"
+          descrizione={
+            tipoScelto
+              ? "Li abbiamo precompilati in base al tipo di ristrutturazione: cambia solo quello che non torna."
+              : "Scegli il tipo di ristrutturazione: precompiliamo i lavori di conseguenza."
+          }
+          etichettaApri="Personalizza i lavori"
+          riepilogo={
+            riepilogo.length > 0 && (
+              <dl className="grid grid-cols-1 gap-x-4 gap-y-1.5 text-sm sm:grid-cols-2">
+                {riepilogo.map((r) => (
+                  <div key={r.code} className="flex justify-between gap-3 border-b border-border/60 pb-1.5">
+                    <dt className="text-muted-foreground">{r.nome}</dt>
+                    <dd className="text-right font-medium text-foreground">{r.valore}</dd>
+                  </div>
+                ))}
+              </dl>
+            )
+          }
+        >
+          {interventi.map(campo)}
+        </SezioneComprimibile>
+      )}
+      {SEZIONI_FACOLTATIVE.map((sezione) => {
+        const delGruppo = domande.filter((d) => d.gruppo === sezione.gruppo);
+        if (!delGruppo.length) return null;
+        return (
+          <SezioneComprimibile
+            key={sezione.gruppo}
+            id={`sezione-${sezione.gruppo}`}
+            titolo={sezione.titolo}
+            descrizione={sezione.descrizione}
+            facoltativa
+            etichettaApri="Aggiungi"
+          >
+            {delGruppo.map(campo)}
+          </SezioneComprimibile>
+        );
+      })}
+    </>
+  );
+}
+
+/**
+ * Sezione richiudibile del wizard. Il contenuto resta montato anche chiuso
+ * (`hidden`): le risposte e lo stato dei campi non si perdono aprendo e
+ * chiudendo, e il riepilogo legge sempre i valori correnti.
+ */
+function SezioneComprimibile({
+  id,
+  titolo,
+  descrizione,
+  riepilogo,
+  facoltativa,
+  etichettaApri,
+  children,
+}: {
+  id: string;
+  titolo: string;
+  descrizione: string;
+  riepilogo?: React.ReactNode;
+  facoltativa?: boolean;
+  etichettaApri: string;
+  children: React.ReactNode;
+}) {
+  const [aperta, setAperta] = useState(false);
+  const idContenuto = `${id}-contenuto`;
+  return (
+    <section aria-labelledby={`${id}-titolo`} className="rounded-xl border border-border bg-secondary/30 p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h3 id={`${id}-titolo`} className="font-sans text-sm font-semibold text-foreground">
+            {titolo}
+            {facoltativa && <span className="ml-2 text-xs font-normal text-muted-foreground">facoltativo</span>}
+          </h3>
+          <p className="mt-0.5 text-sm text-muted-foreground">{descrizione}</p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="self-start sm:shrink-0"
+          aria-expanded={aperta}
+          aria-controls={idContenuto}
+          onClick={() => setAperta((a) => !a)}
+        >
+          {aperta ? "Chiudi" : etichettaApri}
+          <ChevronDown className={cn("size-4 transition-transform", aperta && "rotate-180")} aria-hidden />
+        </Button>
+      </div>
+      {!aperta && riepilogo && <div className="mt-3">{riepilogo}</div>}
+      <div id={idContenuto} hidden={!aperta} className="mt-4 flex flex-col gap-6">
+        {children}
+      </div>
+    </section>
   );
 }

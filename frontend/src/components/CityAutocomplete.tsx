@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Check } from "lucide-react";
 import {
   Command,
@@ -11,14 +11,52 @@ import {
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import comuniData from "@/data/comuni.json";
-
 interface Comune {
   nome: string;
   provincia: string;
 }
 
-const comuni = comuniData as Comune[];
+/** Parole normalizzate: minuscole, senza accenti, apostrofi come separatori. */
+function parole(testo: string): string[] {
+  return testo
+    .toLocaleLowerCase("it")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .split(/[\s'’-]+/)
+    .filter(Boolean);
+}
+
+// I ~8.000 comuni ISTAT pesano ~300 kB: si scaricano alla prima digitazione,
+// non con la pagina. Una sola promessa condivisa fra tutte le istanze.
+let caricamento: Promise<Comune[]> | null = null;
+function caricaComuni(): Promise<Comune[]> {
+  caricamento ??= import("@/data/comuni.json").then((m) => m.default as Comune[]);
+  return caricamento;
+}
+
+/**
+ * Suggerimenti in ordine di pertinenza: prima il nome che comincia con il
+ * testo digitato, poi i nomi in cui ogni parola digitata e' l'inizio di una
+ * parola del nome ("reggio emilia" trova "Reggio nell'Emilia").
+ */
+function suggerisci(comuni: Comune[], query: string): Comune[] {
+  const testo = query.trim().toLocaleLowerCase("it");
+  if (testo.length < 2) return [];
+  const cercate = parole(testo);
+  const iniziano: Comune[] = [];
+  const perParole: Comune[] = [];
+  for (const c of comuni) {
+    const nome = c.nome.toLocaleLowerCase("it");
+    if (nome.startsWith(testo)) {
+      iniziano.push(c);
+      continue;
+    }
+    const delNome = parole(c.nome);
+    if (cercate.every((p) => delNome.some((n) => n.startsWith(p)))) perParole.push(c);
+  }
+  const perLunghezza = (a: Comune, b: Comune) => a.nome.length - b.nome.length || a.nome.localeCompare(b.nome, "it");
+  return [...iniziano.sort(perLunghezza), ...perParole.sort(perLunghezza)].slice(0, 8);
+}
 
 interface CityAutocompleteProps {
   value: string;
@@ -34,14 +72,20 @@ interface CityAutocompleteProps {
  */
 export function CityAutocomplete({ value, onChange, error }: CityAutocompleteProps) {
   const [open, setOpen] = useState(false);
+  const [comuni, setComuni] = useState<Comune[]>([]);
 
-  const suggestions = useMemo(() => {
-    const query = value.trim().toLocaleLowerCase("it");
-    if (query.length < 2) return [];
-    return comuni
-      .filter((c) => c.nome.toLocaleLowerCase("it").startsWith(query))
-      .slice(0, 8);
-  }, [value]);
+  useEffect(() => {
+    if (comuni.length || value.trim().length < 2) return;
+    let attivo = true;
+    void caricaComuni().then((dati) => {
+      if (attivo) setComuni(dati);
+    });
+    return () => {
+      attivo = false;
+    };
+  }, [value, comuni.length]);
+
+  const suggestions = useMemo(() => suggerisci(comuni, value), [comuni, value]);
 
   const showList = open && suggestions.length > 0;
 

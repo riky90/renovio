@@ -1,4 +1,4 @@
-import { Bath, DoorOpen, Hammer, Lock, Paintbrush, type LucideIcon } from "lucide-react";
+import { AirVent, DoorOpen, Hammer, Lock, Paintbrush, type LucideIcon } from "lucide-react";
 import { Link } from "react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LetturaCategoria } from "@/components/LetturaCategoria";
@@ -7,17 +7,17 @@ import { incidenzaEurMq, pesoCategoria } from "@/lib/risultato";
 import type { CategoriaOut } from "@/api/stima";
 
 const COVERAGE_NOTES: Record<string, string> = {
-  "A-EDILE": "Demolizioni, murature, tracce e opere edili di base.",
-  "B-FINITURE": "Pavimenti, rivestimenti, tinteggiature, cartongesso.",
-  "C-SERRAMENTI": "Porte interne, infissi esterni, serramenti.",
-  "D-PRODOTTI": "Sanitari, rubinetteria, apparecchi e prodotti finiti.",
+  "A-EDILE": "Demolizioni, massetti, murature, impianti, posa e tinteggiature.",
+  "B-FINITURE": "Pavimenti, rivestimenti, sanitari, rubinetteria e radiatori.",
+  "C-SERRAMENTI": "Porte interne, porta blindata, finestre, tapparelle e cassonetti.",
+  "D-PRODOTTI": "Climatizzatori, caldaia e scaldasalviette.",
 };
 
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
   "A-EDILE": Hammer,
   "B-FINITURE": Paintbrush,
   "C-SERRAMENTI": DoorOpen,
-  "D-PRODOTTI": Bath,
+  "D-PRODOTTI": AirVent,
 };
 
 interface CategoryCardProps {
