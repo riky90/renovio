@@ -179,7 +179,12 @@ export function TipoField({ values, onChange, touched }: EstimateFormFieldsProps
   const { tipoValid } = validaCampiBase(values);
   return (
     <div className="flex flex-col gap-2">
-      <Label>Tipo di ristrutturazione</Label>
+      <div className="flex flex-col gap-0.5">
+        <Label>Da dove partiamo?</Label>
+        <p className="text-sm text-muted-foreground">
+          Precompila i lavori: puoi cambiarli tutti qui sotto, e la stima segue quello che indichi.
+        </p>
+      </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {TIPO_OPTIONS.map((option) => (
           <OptionCard

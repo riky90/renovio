@@ -8,7 +8,7 @@ import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { TotalCard } from "@/components/TotalCard";
 import { Badge } from "@/components/ui/badge";
 import { sommaMediCategorie } from "@/lib/risultato";
-import { patchBudgetStima, type StimaSalvataOut } from "@/api/stima";
+import { patchBudgetStima, tipoMostrato, type StimaSalvataOut } from "@/api/stima";
 
 const TIPO_LABELS: Record<string, string> = {
   leggera: "Leggera",
@@ -47,7 +47,7 @@ export function SavedEstimateDetail({ stima, rifaiProHref }: SavedEstimateDetail
       <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-secondary px-4 py-3">
         <Badge variant="secondary">{stima.input.citta}</Badge>
         <Badge variant="secondary">{stima.input.mq} m²</Badge>
-        <Badge variant="secondary">{TIPO_LABELS[stima.input.tipo] ?? stima.input.tipo}</Badge>
+        <Badge variant="secondary">{TIPO_LABELS[tipoMostrato(stima)] ?? tipoMostrato(stima)}</Badge>
         <Badge variant="secondary">
           {DESTINAZIONE_LABELS[stima.input.destinazione] ?? stima.input.destinazione}
         </Badge>

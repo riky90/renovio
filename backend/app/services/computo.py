@@ -43,6 +43,7 @@ non entra in questo modulo (regola non negoziabile #1).
 
 from __future__ import annotations
 
+import math
 from collections import defaultdict
 from dataclasses import dataclass, field
 from decimal import ROUND_CEILING, ROUND_FLOOR, ROUND_HALF_UP, Decimal
@@ -71,6 +72,7 @@ from app.services.effetti import (
     RisoluzionePro,
     _as_decimal,
     attese_per_mq,
+    preset_per_tipo,
     risolvi_effetti_pro,
     risolvi_scelte,
 )
@@ -584,6 +586,81 @@ def computo_free(
         risposte=risposte_asse,
         risoluzione_per_categoria=lambda _codice: ris,
     )
+
+
+
+# --- tipo effettivo -----------------------------------------------------------
+
+
+def _totale_lavori(session: Session, computo: ComputoResult) -> Decimal:
+    nel_totale = {
+        c.code for c in session.query(Categoria).filter(Categoria.nel_totale_lavori.is_(True)).all()
+    }
+    return sum((v for k, v in computo.per_categoria.items() if k in nel_totale), Decimal("0"))
+
+
+def _stessa_risposta(a: Any, b: Any) -> bool:
+    if isinstance(a, list) or isinstance(b, list):
+        return set(a or []) == set(b or [])
+    if a is not None and b is not None:
+        return str(a) == str(b)
+    return a == b
+
+
+def tipo_effettivo(
+    session: Session,
+    listino: Listino,
+    *,
+    mq: int,
+    tipo: str,
+    risposte: dict[str, Any] | None,
+) -> str:
+    """Il tipo di ristrutturazione che le risposte descrivono davvero.
+
+    Il tipo scelto nel wizard e' un punto di partenza: precompila i lavori col
+    suo preset, poi l'utente li cambia. Chi parte da "leggera" e rifa' bagni,
+    impianti e pavimenti sta facendo almeno una moderata, e l'ampiezza del
+    range e l'etichetta (lead, PDF, stime salvate) devono dirlo.
+
+    Il confronto e' sul COSTO, non sul numero di risposte cambiate: rifare tutti
+    i bagni pesa piu' che tenere le zanzariere. Per ogni tipo si calcola il
+    computo del suo preset con TUTTE le altre risposte dell'utente (finiture,
+    metri quadri, extra), cosi' la differenza misura solo quanti lavori si
+    fanno; vince il tipo col costo piu' vicino in scala logaritmica (a parita',
+    quello scelto).
+
+    `risposte is None` (layer spento) o un listino senza regole tornano il
+    tipo scelto.
+    """
+    if risposte is None:
+        return tipo
+    tipi = [t.code for t in session.query(TipoRistrutturazione).order_by(TipoRistrutturazione.ordine).all()]
+    if tipo not in tipi:
+        return tipo
+    preset = {t: preset_per_tipo(session, t) for t in tipi}
+    domande_preset = {code for p in preset.values() for code in p}
+    if not domande_preset or all(
+        _stessa_risposta(risposte.get(code, preset[tipo].get(code)), preset[tipo].get(code))
+        for code in domande_preset
+    ):
+        # Nessun lavoro cambiato rispetto al preset scelto: niente da ricalcolare.
+        return tipo
+
+    computo = computo_free(session, listino, mq=mq, tipo=tipo, risposte=risposte)
+    if computo is None:
+        return tipo
+    totale = _totale_lavori(session, computo)
+
+    altre = {k: v for k, v in risposte.items() if k not in domande_preset}
+    distanze: dict[str, float] = {}
+    for t in tipi:
+        riferimento = computo_free(session, listino, mq=mq, tipo=t, risposte=altre)
+        rif = _totale_lavori(session, riferimento) if riferimento is not None else Decimal("0")
+        distanze[t] = abs(math.log((float(totale) + 1) / (float(rif) + 1)))
+    minima = min(distanze.values())
+    if distanze[tipo] - minima < 1e-9:
+        return tipo
+    return next(t for t in tipi if distanze[t] - minima < 1e-9)
 
 
 # --- validazione (admin / import Excel) --------------------------------------

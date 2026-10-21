@@ -43,7 +43,7 @@ from sqlalchemy.orm import Session
 
 from app.models.catalogo import Categoria, Extra, Moltiplicatore, TipoRistrutturazione
 from app.models.listino import Listino, ListinoCategoria
-from app.services.computo import computo_free
+from app.services.computo import computo_free, tipo_effettivo
 from app.services.effetti import risolvi_effetti_free
 
 
@@ -76,6 +76,9 @@ class StimaResult:
     extra: list[ExtraEstimato] = field(default_factory=list)
     totale_min: Decimal = Decimal("0")
     totale_max: Decimal = Decimal("0")
+    #: Il tipo che le risposte descrivono (vedi `effetti.tipo_effettivo`): da
+    #: qui viene l'ampiezza del range, e l'etichetta mostrata all'utente.
+    tipo_effettivo: str = ""
 
 
 class EstimationService:
@@ -89,8 +92,10 @@ class EstimationService:
         tipo: str,
         risposte: dict[str, Any] | None = None,
     ) -> StimaResult:
-        tipo_row = session.query(TipoRistrutturazione).filter_by(code=tipo).one()
-        range_pct = tipo_row.range_pct
+        # Il tipo scelto precompila le risposte (preset); l'ampiezza del range
+        # segue invece i lavori davvero indicati.
+        effettivo = tipo_effettivo(session, listino, mq=mq, tipo=tipo, risposte=risposte)
+        range_pct = session.query(TipoRistrutturazione).filter_by(code=effettivo).one().range_pct
 
         # Computo parametrico (Fase 11, MOT-01): il Free e' il computo delle
         # voci sommato per categoria. Solo un listino senza regole ricade sul
@@ -185,4 +190,5 @@ class EstimationService:
             extra=extras,
             totale_min=sum_min + extra_sum,
             totale_max=sum_max + extra_sum,
+            tipo_effettivo=effettivo,
         )

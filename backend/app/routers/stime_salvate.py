@@ -208,7 +208,7 @@ def lista_stime(current_user: User = Depends(get_current_user)) -> list[StimaSal
                 id=row.id,
                 citta=row.citta,
                 mq=row.mq,
-                tipo=row.tipo,
+                tipo=row.tipo_mostrato,
                 totale_min=row.totale_min,
                 totale_max=row.totale_max,
                 tier=row.tier or "free",
@@ -258,6 +258,7 @@ def dettaglio_stima(
                 else None
             ),
             finiture_al_minimo=bool(snapshot.get("finiture_al_minimo", False)),
+            tipo_effettivo=snapshot.get("tipo_effettivo"),
             budget_eur=row.budget_eur,
         )
 

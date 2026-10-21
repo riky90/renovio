@@ -152,6 +152,12 @@ export interface StimaResponse {
   /** true quando le finiture scelte sono gia' al livello piu' basso. */
   finiture_al_minimo: boolean;
   /**
+   * Il tipo che le risposte descrivono: il tipo scelto e' solo il punto di
+   * partenza del wizard. Da qui vengono ampiezza del range ed etichetta.
+   * null sugli snapshot salvati prima della modifica.
+   */
+  tipo_effettivo: TipoRistrutturazione | null;
+  /**
    * Solo client: NON arriva da POST /stima. Lo aggiunge la pagina prima del
    * salvataggio (piano 10-05).
    */
@@ -228,6 +234,7 @@ interface RawStimaResponse {
   /** Assente sugli snapshot precedenti la fase 10. */
   confronto_finiture?: RawConfrontoFinitureOut | null;
   finiture_al_minimo?: boolean;
+  tipo_effettivo?: TipoRistrutturazione | null;
 }
 
 const NUMERIC_CATEGORIA_FIELDS = [
@@ -388,7 +395,13 @@ function normalizeResponse(raw: RawStimaResponse): StimaResponse {
     arredo: normalizeArredo(raw.arredo),
     confronto_finiture: normalizeConfronto(raw.confronto_finiture),
     finiture_al_minimo: raw.finiture_al_minimo ?? false,
+    tipo_effettivo: raw.tipo_effettivo ?? null,
   };
+}
+
+/** Il tipo da mostrare: quello descritto dalle risposte, se noto. */
+export function tipoMostrato(r: Pick<StimaResponse, "input" | "tipo_effettivo">): TipoRistrutturazione {
+  return r.tipo_effettivo ?? r.input.tipo;
 }
 
 /**

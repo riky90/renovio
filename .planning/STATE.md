@@ -58,6 +58,12 @@ Items acknowledged and deferred at milestone close on 2026-10-01:
 
 ## Last Session
 
+- **2026-10-21** — **Tipo di ristrutturazione come punto di partenza.** Il tipo scelto nel
+  wizard precompila i lavori (preset); ampiezza del range ed etichetta (risultato, lead, PDF,
+  stime salvate) seguono il tipo effettivo, cioe' quello il cui preset ha il costo piu' vicino
+  ai lavori indicati (`computo.tipo_effettivo`, a parita' di finiture e altre risposte).
+  `input.tipo` e la colonna `stima.tipo` restano il tipo scelto: il dettaglio Pro ricalcola da
+  li'. `GET /api/v1/health/db` espone `migrazione`, `migrazione_head` e `aggiornato`.
 - **2026-10-21** — **Revisione SEO, ricerche AI e UX del sito pubblico.** Pagine pubbliche
   prerenderizzate al build (`entry-server.tsx` + `scripts/prerender.mjs`) con title,
   description, canonical, Open Graph e JSON-LD per pagina (componente `Seo`); `sitemap.xml`,

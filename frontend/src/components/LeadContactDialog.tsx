@@ -24,7 +24,7 @@ import {
 import { formatEurRange } from "@/lib/currency";
 import { postLead, type FasciaOraria, type PreferenzaContatto } from "@/api/lead";
 import { useAuth } from "@/hooks/useAuth";
-import type { StimaResponse } from "@/api/stima";
+import { tipoMostrato, type StimaResponse } from "@/api/stima";
 
 const TIPO_LABELS: Record<StimaResponse["input"]["tipo"], string> = {
   leggera: "Leggera",
@@ -115,7 +115,7 @@ export function LeadContactDialog({ open, onOpenChange, result }: LeadContactDia
         fascia_oraria: fasciaOraria === "" ? undefined : fasciaOraria,
         citta: result.input.citta,
         mq: result.input.mq,
-        tipo: result.input.tipo,
+        tipo: tipoMostrato(result),
         totale_min: result.totale.totale_min,
         totale_max: result.totale.totale_max,
       },
@@ -234,7 +234,7 @@ export function LeadContactDialog({ open, onOpenChange, result }: LeadContactDia
 
               <div className="rounded-lg border border-border bg-secondary px-4 py-3 text-sm text-muted-foreground">
                 Alleghiamo alla richiesta la stima che stai visualizzando: {result.input.citta} ·{" "}
-                {result.input.mq} m² · {TIPO_LABELS[result.input.tipo]} ·{" "}
+                {result.input.mq} m² · {TIPO_LABELS[tipoMostrato(result)]} ·{" "}
                 <span className="font-semibold text-foreground">
                   {formatEurRange(result.totale.totale_min, result.totale.totale_max)}
                 </span>

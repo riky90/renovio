@@ -213,3 +213,7 @@ class StimaResponse(BaseModel):
     # sezione opzionale: None, mai a zero.
     confronto_finiture: ConfrontoFinitureOut | None = None
     finiture_al_minimo: bool = False
+    # Il tipo che le risposte descrivono (`effetti.tipo_effettivo`): da qui
+    # vengono ampiezza del range ed etichetta. `input.tipo` resta quello scelto.
+    # None negli snapshot salvati prima di questa modifica.
+    tipo_effettivo: TipoEnum | None = None

@@ -163,6 +163,7 @@ def crea_stima(payload: StimaRequest, request: Request) -> StimaResponse:
             arredo=_arredo_out(session, arredo_result),
             confronto_finiture=confronto,
             finiture_al_minimo=finiture_al_minimo,
+            tipo_effettivo=result.tipo_effettivo or payload.tipo,
         )
 
 
