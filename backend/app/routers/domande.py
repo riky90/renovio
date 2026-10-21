@@ -25,6 +25,7 @@ from sqlalchemy.orm import Session
 
 from app.db import SessionLocal
 from app.limiter import limiter
+from app.models.catalogo import TipoRistrutturazione
 from app.models.domanda import Domanda, OpzioneDomanda
 from app.schemas.domande import CatalogoDomandeOut, DomandaOut, OpzioneOut
 from app.services.effetti import (
@@ -34,7 +35,9 @@ from app.services.effetti import (
     TIER_FREE,
     TIER_PRO,
     attese_per_mq,
+    preset_per_tipo,
 )
+from app.services.computo import risolvi_grandezze
 
 router = APIRouter(prefix="/domande", tags=["domande"])
 
@@ -50,6 +53,7 @@ def leggi_catalogo(
     request: Request,
     tier: str = Query(default=TIER_FREE, pattern="^(free|pro)$"),
     mq: int | None = Query(default=None, ge=1, le=10_000),
+    tipo: str | None = Query(default=None, pattern="^[a-z_]{1,32}$"),
 ) -> CatalogoDomandeOut:
     """Catalogo + opzioni + default gia' risolti per `mq`.
 
@@ -58,9 +62,27 @@ def leggi_catalogo(
     con `valore_default=None`: il client mostra il campo vuoto e lo riempie alla
     seconda chiamata, invece di piantarci uno zero che l'utente prenderebbe per
     una risposta gia' data.
+
+    `tipo` (Fase 11, INT-03) applica il PRESET di quel tipo di
+    ristrutturazione ai default: il wizard lo ripassa quando l'utente sceglie
+    il tipo, e riapplica i nuovi default alle sole domande che non ha toccato.
+    Un tipo sconosciuto si ignora, come se non fosse stato passato.
     """
     with SessionLocal() as session:
+        if tipo is not None and session.get(TipoRistrutturazione, tipo) is None:
+            tipo = None
         attese = attese_per_mq(session, mq) if mq is not None else {}
+        preset = preset_per_tipo(session, tipo) if tipo is not None else {}
+        grandezze = (
+            {
+                code: g.valore
+                for code, g in risolvi_grandezze(
+                    session, mq=mq, tipo=tipo or "", risposte={}
+                ).items()
+            }
+            if mq is not None
+            else {}
+        )
         domande = _domande_attive(session, TIER_VISIBILI[tier])
         opzioni = _opzioni_per_domanda(session, [d.code for d in domande])
 
@@ -81,7 +103,9 @@ def leggi_catalogo(
                     obbligatoria=d.obbligatoria,
                     visibile_se_domanda_code=d.visibile_se_domanda_code,
                     visibile_se_opzione_code=d.visibile_se_opzione_code,
-                    valore_default=_default_di(d, opzioni.get(d.code, []), attese),
+                    valore_default=_default_di(
+                        d, opzioni.get(d.code, []), attese, preset, grandezze
+                    ),
                     opzioni=[
                         OpzioneOut(
                             code=o.code,
@@ -146,7 +170,13 @@ def _opzioni_per_domanda(
     return per_domanda
 
 
-def _default_di(domanda: Domanda, opzioni: list[OpzioneDomanda], attese: dict):
+def _default_di(
+    domanda: Domanda,
+    opzioni: list[OpzioneDomanda],
+    attese: dict,
+    preset: dict | None = None,
+    grandezze: dict | None = None,
+):
     """Il default gia' risolto, nella forma che quel controllo si aspetta.
 
     Tre forme distinte e non una sola stringa: uno stepper vuole un numero, una
@@ -159,14 +189,35 @@ def _default_di(domanda: Domanda, opzioni: list[OpzioneDomanda], attese: dict):
     fascia non c'e' si torna `None` e il campo resta vuoto, che e' l'unica cosa
     onesta da mostrare — lo stesso criterio per cui il motore, senza attesa, non
     applica alcuna correzione invece di inventarsi una baseline.
+
+    Dalla Fase 11 il PRESET del tipo vince sull'`is_default`, e uno stepper
+    senza fascia di attesa prende il default della sua GRANDEZZA del computo
+    (per esempio i m² di controsoffitto: zero e' il default dichiarato, non
+    un'invenzione) — la stessa che il motore usa se la risposta manca.
     """
+    preset = preset or {}
+    grandezze = grandezze or {}
+    codici = {o.code for o in opzioni}
+
     if domanda.tipo_controllo in CONTROLLI_NUMERICI:
+        if domanda.code in preset:
+            return preset[domanda.code]
         if domanda.attributo_code is None:
             return None
-        return attese.get(domanda.attributo_code)
+        if domanda.attributo_code in attese:
+            return attese[domanda.attributo_code]
+        valore = grandezze.get(domanda.attributo_code)
+        if valore is None:
+            return None
+        return int(valore) if valore == valore.to_integral_value() else valore
 
     if domanda.tipo_controllo == CONTROLLO_SCELTA_MULTIPLA:
+        if domanda.code in preset:
+            return [c for c in preset[domanda.code] if c in codici]
         return [o.code for o in opzioni if o.is_default]
 
+    da_preset = preset.get(domanda.code)
+    if isinstance(da_preset, str) and da_preset in codici:
+        return da_preset
     scelto = next((o for o in opzioni if o.is_default), None)
     return scelto.code if scelto is not None else None

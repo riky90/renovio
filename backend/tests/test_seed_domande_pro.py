@@ -77,10 +77,12 @@ def test_target_voce_con_codice_risolve_id_reale(session):
 
 
 def test_target_sottocategoria_per_nome_senza_codice(session):
-    """target_sottocategoria senza codice risolve per nome esatto (B-FINITURE / PAVIMENTI PARQUET)."""
+    """target_sottocategoria risolve per nome esatto (B-FINITURE / PAVIMENTI
+    PARQUET). Dalla v3 la sottocategoria ha anche un codice (`B.3`): il nome
+    resta una chiave valida, perche' il JSON degli effetti la cita cosi'."""
     sotto_reale = (
         session.query(Sottocategoria)
-        .filter_by(categoria_code="B-FINITURE", codice=None, nome="PAVIMENTI PARQUET")
+        .filter_by(categoria_code="B-FINITURE", nome="PAVIMENTI PARQUET")
         .one()
     )
     data = _domanda_con_effetto(
@@ -104,15 +106,14 @@ def test_target_sottocategoria_per_nome_senza_codice(session):
 
 
 def test_voce_senza_codice_risolve_per_descrizione_esatta(session):
-    """Una voce senza codice (famiglia catalogo) si risolve per descrizione esatta
-    dentro la sottocategoria."""
+    """Una voce di catalogo si risolve per descrizione esatta dentro la
+    sottocategoria, anche ora che ha un codice stabile (v3, `B.3.n`)."""
     voce_reale = (
         session.query(Voce)
         .join(Sottocategoria)
         .filter(
             Sottocategoria.categoria_code == "B-FINITURE",
             Sottocategoria.nome == "PAVIMENTI PARQUET",
-            Voce.codice.is_(None),
         )
         .first()
     )

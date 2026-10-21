@@ -1,5 +1,11 @@
 """EstimationService: the Free tier calculation engine (Ibrido C, ENG-01).
 
+Dalla Fase 11 (v3.0) l'imponibile di ogni categoria e' il COMPUTO PARAMETRICO
+sommato (`services/computo.py`, MOT-01): lo stesso calcolo voce per voce che il
+Pro mostra in dettaglio, quindi Free e Pro coincidono per costruzione. Il
+calcolo `base_eur_mq x moltiplicatore_tipo x mq` descritto qui sotto resta
+come ripiego per un listino che non ha ancora regole (MOT-03).
+
 ALL math happens in `Decimal`; coefficients are read from the DB (never
 hardcoded — ENG-02). `coefficiente_impresa` is read off `ListinoCategoria`
 internally but is NEVER placed on the result objects returned here — the
@@ -37,6 +43,7 @@ from sqlalchemy.orm import Session
 
 from app.models.catalogo import Categoria, Extra, Moltiplicatore, TipoRistrutturazione
 from app.models.listino import Listino, ListinoCategoria
+from app.services.computo import computo_free
 from app.services.effetti import risolvi_effetti_free
 
 
@@ -85,6 +92,14 @@ class EstimationService:
         tipo_row = session.query(TipoRistrutturazione).filter_by(code=tipo).one()
         range_pct = tipo_row.range_pct
 
+        # Computo parametrico (Fase 11, MOT-01): il Free e' il computo delle
+        # voci sommato per categoria. Solo un listino senza regole ricade sul
+        # calcolo EUR/m2 x moltiplicatore della v1 (MOT-03). Nel computo non
+        # c'e' un layer spento: senza risposte vale il preset del tipo.
+        computo = computo_free(session, listino, mq=mq, tipo=tipo, risposte=risposte)
+        if computo is not None and risposte is None:
+            risposte = {}
+
         correzioni = risolvi_effetti_free(session, mq=mq, tipo=tipo, risposte=risposte).correzioni
 
         # SOLO le categorie che fanno parte del totale lavori. L'arredo
@@ -105,18 +120,20 @@ class EstimationService:
         sum_max = Decimal("0")
 
         for cat in categorie_rows:
-            lc = (
-                session.query(ListinoCategoria)
-                .filter_by(listino_id=listino.id, categoria_code=cat.code)
-                .one()
-            )
-            molt = (
-                session.query(Moltiplicatore)
-                .filter_by(tipo_code=tipo, categoria_code=cat.code)
-                .one()
-            )
-
-            imponibile = lc.base_eur_mq * molt.valore * Decimal(mq)
+            if computo is not None:
+                imponibile = computo.per_categoria.get(cat.code, Decimal("0"))
+            else:
+                lc = (
+                    session.query(ListinoCategoria)
+                    .filter_by(listino_id=listino.id, categoria_code=cat.code)
+                    .one()
+                )
+                molt = (
+                    session.query(Moltiplicatore)
+                    .filter_by(tipo_code=tipo, categoria_code=cat.code)
+                    .one()
+                )
+                imponibile = lc.base_eur_mq * molt.valore * Decimal(mq)
 
             corr = correzioni.get(cat.code)
             if corr is not None:

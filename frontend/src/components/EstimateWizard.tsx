@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -126,10 +126,16 @@ export function EstimateWizard({
   // Il catalogo si ricarica quando cambiano i m2: i default degli stepper
   // dipendono dalla fascia, e servirli per una superficie diversa da quella
   // digitata farebbe partire lo scostamento da una baseline sbagliata.
+  // E quando cambia il tipo (Fase 11): il tipo e' un preset delle risposte
+  // sugli interventi, e i suoi default si riapplicano alle domande non
+  // toccate. `keepPreviousData` evita lo scheletro a ogni cambio di tipo.
+  const tipoScelto = campi.tipo ?? undefined;
   const catalogoQuery = useQuery<CatalogoDomande>({
-    queryKey: ["catalogo-domande", tier, step1Valid ? mq : null],
-    queryFn: () => getCatalogoDomande({ tier, mq: step1Valid ? mq : undefined }),
+    queryKey: ["catalogo-domande", tier, step1Valid ? mq : null, tipoScelto ?? null],
+    queryFn: () =>
+      getCatalogoDomande({ tier, mq: step1Valid ? mq : undefined, tipo: tipoScelto }),
     enabled: step1Valid,
+    placeholderData: keepPreviousData,
   });
 
   const opzioniProQuery = useQuery<OpzioniProOut>({

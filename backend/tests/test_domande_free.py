@@ -38,6 +38,7 @@ from app.services.effetti import (
 )
 from app.services.estimation import EstimationService
 from scripts.seed import load_seed_data, seed
+from tests.computo_spento import catalogo_v2
 from tests.session_factory import sessione_di_test
 
 
@@ -48,6 +49,9 @@ def session():
     testing_session_local = sessione_di_test(engine)
     with testing_session_local() as s:
         seed(s, load_seed_data())
+        # Aritmetica del percorso EUR/m2 + effetti (ripiego senza regole)
+        # sul catalogo nella forma v2: vedi tests/computo_spento.py.
+        catalogo_v2(s)
         yield s
 
 

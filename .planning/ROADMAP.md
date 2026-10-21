@@ -1,6 +1,6 @@
 # Roadmap — ristruttura-stima
 
-**Milestone attiva:** nessuna — la prossima si apre con `/gsd:new-milestone`.
+**Milestone attiva:** v3.0 — computo parametrico (fase 11).
 
 **Regola di numerazione GSD:** le fasi non ripartono da 01 a ogni milestone. La v1 ha usato
 01–04, la v2 05–10; la prossima parte da **11**.
@@ -9,6 +9,7 @@
 
 - ✅ **v1.0 MVP** — fasi 01–04 (shipped 2026-09-09, in produzione)
 - ✅ **v2.0 domande e motore parametrico** — fasi 05–10 (completata 2026-10-01, push in attesa)
+- 🚧 **v3.0 computo parametrico** — fase 11 (aperta 2026-10-21)
 
 ## Phases
 
@@ -55,6 +56,16 @@ Dettaglio completo e debito tecnico:
 Requisiti archiviati: [`.planning/milestones/v2.0-REQUIREMENTS.md`](milestones/v2.0-REQUIREMENTS.md).
 
 </details>
+
+### 🚧 Milestone v3.0 — computo parametrico (aperta 2026-10-21)
+
+Free e Pro diventano lo stesso computo, guidato da grandezze della casa, interventi (con il tipo
+come preset) e una regola di quantità per voce presa dalle colonne T/U del nuovo Excel. Fonte:
+[`docs/proposta-computo-parametrico.md`](../docs/proposta-computo-parametrico.md).
+
+| Fase | Nome | Requisiti |
+|------|------|-----------|
+| 11 | Computo parametrico | GRD-01..03, RGL-01..05, INT-01..03, MOT-01..04, CUR3-01 |
 
 ---
 

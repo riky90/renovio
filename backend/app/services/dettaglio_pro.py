@@ -1,9 +1,12 @@
 """DettaglioProService: motore Pro bottom-up (PRO-01, 03-03-PLAN.md Task 1).
 
-Indipendente dal motore di stima Free (D-01): questo modulo non importa
-alcuna classe del servizio di stima Fase 1 e non riconcilia il proprio
-risultato col totale della Fase 1 — sono misure diverse, e' atteso e
-accettabile che i due numeri differiscano.
+Dalla Fase 11 (v3.0, MOT-01) le quantita' e gli importi vengono dal COMPUTO
+PARAMETRICO (`services/computo.py`), lo stesso che il Free somma per
+categoria: i due numeri coincidono. Le correzioni di categoria del Free si
+applicano anche qui (moltiplicatori sulle voci, termini additivi come voci "a
+corpo"). La decisione D-01 della v1 ("Free e Pro sono misure diverse") e'
+superata; il percorso descritto sotto (catena `CoefficienteQuantitaVoce`)
+resta solo per un listino senza regole.
 
 ALL math happens in `Decimal`; coefficienti/prezzi letti dal DB (mai
 cablati nel codice, ENG-02). Nessun campo/colonna impresa esiste su `Voce`
@@ -65,15 +68,29 @@ from app.models.catalogo import Categoria, LivelloFinitura, TipoRistrutturazione
 from app.models.dettaglio_pro import CoefficienteQuantitaVoce, Sottocategoria, Voce
 from app.models.domanda import Domanda, EffettoOpzione, OpzioneDomanda
 from app.models.listino import Listino
+from app.services.computo import (
+    ComputoResult,
+    calcola_computo,
+    listino_ha_regole,
+    risposte_con_finitura,
+)
 from app.services.effetti import (
     CONTROLLI_NUMERICI,
     DOMANDA_FINITURA,
-    DOMANDA_LIVELLO_FINITURE,
     TIPI_EFFETTO_PRO,
+    TIPO_EUR_FISSO_CATEGORIA,
+    TIPO_EUR_MQ_CATEGORIA,
+    TIPO_EUR_PER_SCOSTAMENTO,
+    CorrezioniCategoria,
+    EffettoApplicato,
     RisoluzionePro,
     attese_per_mq,
+    risolvi_effetti_free,
     risolvi_effetti_pro,
 )
+
+#: Correzioni Free additive: nel Pro diventano voci "a corpo".
+TIPI_ADDITIVI = frozenset({TIPO_EUR_MQ_CATEGORIA, TIPO_EUR_FISSO_CATEGORIA, TIPO_EUR_PER_SCOSTAMENTO})
 
 
 def _eur(value: Decimal) -> Decimal:
@@ -346,6 +363,38 @@ def valida_risposte_pro(session: Session, risposte: dict) -> dict:
     return validato
 
 
+def _voci_a_corpo(
+    session: Session, applicati: list[EffettoApplicato], range_pct: Decimal
+) -> dict[str, list[VoceEstimata]]:
+    """Le correzioni additive del Free (EUR/m2, EUR una tantum) come voci a
+    corpo per categoria, etichettate con la risposta che le ha prodotte."""
+    per_categoria: dict[str, list[VoceEstimata]] = {}
+    for a in applicati:
+        if (
+            not a.applicato
+            or a.categoria_code is None
+            or a.tipo_effetto not in TIPI_ADDITIVI
+            or not a.contributo
+        ):
+            continue
+        etichetta = (
+            session.query(OpzioneDomanda.etichetta)
+            .filter_by(domanda_code=a.domanda_code, code=a.opzione_code)
+            .scalar()
+        ) or a.opzione_code
+        per_categoria.setdefault(a.categoria_code, []).append(
+            VoceEstimata(
+                codice=None,
+                descrizione=etichetta,
+                um="a corpo",
+                quantita_stimata=Decimal("1.00"),
+                prezzo_min=_eur(a.contributo * (Decimal("1") - range_pct)),
+                prezzo_max=_eur(a.contributo * (Decimal("1") + range_pct)),
+            )
+        )
+    return per_categoria
+
+
 class DettaglioProService:
     """Server-side calculation: (listino, mq, tipo, risposte) -> DettaglioProResult."""
 
@@ -365,22 +414,9 @@ class DettaglioProService:
         tipo_row = session.query(TipoRistrutturazione).filter_by(code=tipo).one()
         range_pct = tipo_row.range_pct
 
-        risposte_base = dict(risposte or {})
-        # Il wizard chiede il livello con `livello_finiture` (tier free, muove
-        # il sintetico); il motore Pro legge l'asse `finitura`. Le due domande
-        # condividono i codici d'opzione: senza questo ponte chi sceglie
-        # "Alte" nel wizard vedrebbe il dettaglio Pro al default. Una
-        # risposta esplicita a `finitura` vince; un codice che l'asse non ha
-        # resta fuori, cosi' ricade sul default invece di diventare invalido.
-        livello_wizard = risposte_base.get(DOMANDA_LIVELLO_FINITURE)
-        if DOMANDA_FINITURA not in risposte_base and livello_wizard is not None:
-            opzione_asse = (
-                session.query(OpzioneDomanda.code)
-                .filter_by(domanda_code=DOMANDA_FINITURA, code=livello_wizard)
-                .first()
-            )
-            if opzione_asse is not None:
-                risposte_base[DOMANDA_FINITURA] = livello_wizard
+        # Il ponte `livello_finiture` (wizard) -> asse `finitura` vive nel
+        # computo, condiviso col Free: stessa regola, una sola copia.
+        risposte_base = risposte_con_finitura(session, risposte or {})
         livelli_scelti = livelli or {}
         livelli_rows = session.query(LivelloFinitura).order_by(LivelloFinitura.ordine).all()
         livelli_nomi = {row.code: row.nome for row in livelli_rows}
@@ -404,14 +440,36 @@ class DettaglioProService:
 
         categorie_rows = session.query(Categoria).order_by(Categoria.ordine).all()
 
+        def valore_finitura_di(cat: Categoria) -> str | None:
+            if cat.livello_selezionabile:
+                return livelli_scelti.get(cat.code) or risposte_base.get(DOMANDA_FINITURA)
+            return risposte_base.get(DOMANDA_FINITURA)
+
+        finitura_per_categoria = {cat.code: valore_finitura_di(cat) for cat in categorie_rows}
+
+        # Computo parametrico (Fase 11): le stesse quantita' e gli stessi
+        # importi del Free, voce per voce (MOT-01). Le correzioni di categoria
+        # del Free (immobile, epoca, accessibilita', efficientamento, "non
+        # rifare") si applicano anche qui, cosi' i totali coincidono (D-09).
+        computo: ComputoResult | None = None
+        correzioni: dict[str, CorrezioniCategoria] = {}
+        aggiuntive: dict[str, list[VoceEstimata]] = {}
+        if listino_ha_regole(session, listino):
+            computo = calcola_computo(
+                session,
+                listino,
+                mq=mq,
+                tipo=tipo,
+                risposte=risposte_base,
+                risoluzione_per_categoria=lambda code: risoluzione_per(finitura_per_categoria.get(code)),
+            )
+            free = risolvi_effetti_free(session, mq=mq, tipo=tipo, risposte=risposte_base)
+            correzioni = free.correzioni
+            aggiuntive = _voci_a_corpo(session, free.applicati, range_pct)
+
         categorie: list[CategoriaDettagliata] = []
         for cat in categorie_rows:
-            valore_finitura_cat = (
-                (livelli_scelti.get(cat.code) or risposte_base.get(DOMANDA_FINITURA))
-                if cat.livello_selezionabile
-                else risposte_base.get(DOMANDA_FINITURA)
-            )
-            ris = risoluzione_per(valore_finitura_cat)
+            ris = risoluzione_per(finitura_per_categoria[cat.code])
 
             sotto_rows = (
                 session.query(Sottocategoria)
@@ -420,44 +478,58 @@ class DettaglioProService:
                 .all()
             )
 
+            corr = correzioni.get(cat.code)
+            fattore_categoria = corr.moltiplicatore if corr is not None else Decimal("1")
+
             sottocategorie: list[SottocategoriaEstimata] = []
             for sotto in sotto_rows:
                 voce_rows = (
                     session.query(Voce).filter_by(sottocategoria_id=sotto.id).order_by(Voce.ordine).all()
                 )
-                voce_rows_incluse = [
-                    v for v in voce_rows if ris.voce_inclusa(v.id, sotto.id, cat.code)
-                ]
 
                 voci: list[VoceEstimata] = []
-                for voce in voce_rows_incluse:
-                    coeff = (
-                        session.query(CoefficienteQuantitaVoce)
-                        .filter_by(voce_id=voce.id, tipo_code=tipo)
-                        .one_or_none()
-                    )
-
-                    quantita_stimata = DettaglioProService._quantita(coeff, mq, voce.id, ris, sotto.id)
-
-                    totale_voce = quantita_stimata * voce.prezzo_unitario_cliente
-                    prezzo_min = _eur(totale_voce * (Decimal("1") - range_pct))
-                    prezzo_max = _eur(totale_voce * (Decimal("1") + range_pct))
-
-                    voci.append(
-                        VoceEstimata(
-                            codice=voce.codice,
-                            descrizione=voce.descrizione,
-                            um=voce.um,
-                            quantita_stimata=quantita_stimata,
-                            prezzo_min=prezzo_min,
-                            prezzo_max=prezzo_max,
-                            livello=ris.opzione_asse(DOMANDA_FINITURA, voce.id),
+                if computo is not None:
+                    for vc in computo.voci_di(sotto.id):
+                        totale_voce = vc.importo * fattore_categoria
+                        if totale_voce <= 0:
+                            continue
+                        voci.append(
+                            VoceEstimata(
+                                codice=vc.codice,
+                                descrizione=vc.descrizione,
+                                um=vc.um,
+                                quantita_stimata=_qta(vc.quantita),
+                                prezzo_min=_eur(totale_voce * (Decimal("1") - range_pct)),
+                                prezzo_max=_eur(totale_voce * (Decimal("1") + range_pct)),
+                                livello=ris.opzione_asse(DOMANDA_FINITURA, vc.voce_id),
+                            )
                         )
-                    )
+                else:
+                    for voce in voce_rows:
+                        if not ris.voce_inclusa(voce.id, sotto.id, cat.code):
+                            continue
+                        coeff = (
+                            session.query(CoefficienteQuantitaVoce)
+                            .filter_by(voce_id=voce.id, tipo_code=tipo)
+                            .one_or_none()
+                        )
+                        quantita_stimata = DettaglioProService._quantita(coeff, mq, voce.id, ris, sotto.id)
+                        totale_voce = quantita_stimata * voce.prezzo_unitario_cliente
+                        voci.append(
+                            VoceEstimata(
+                                codice=voce.codice,
+                                descrizione=voce.descrizione,
+                                um=voce.um,
+                                quantita_stimata=quantita_stimata,
+                                prezzo_min=_eur(totale_voce * (Decimal("1") - range_pct)),
+                                prezzo_max=_eur(totale_voce * (Decimal("1") + range_pct)),
+                                livello=ris.opzione_asse(DOMANDA_FINITURA, voce.id),
+                            )
+                        )
 
-                # Sottocategoria svuotata DAL FILTRO -> scartata: un accordion
-                # vuoto a 0 EUR e' rumore. Una sottocategoria gia' priva di voci
-                # in partenza resta invece visibile com'era prima dei livelli.
+                # Sottocategoria svuotata dal filtro o dal computo -> scartata:
+                # un accordion vuoto a 0 EUR e' rumore. Una sottocategoria gia'
+                # priva di voci in partenza resta invece visibile com'era.
                 if voce_rows and not voci:
                     continue
 
@@ -473,6 +545,26 @@ class DettaglioProService:
                         totale_max=sotto_max,
                     )
                 )
+
+            # Le correzioni additive del Free (EUR/m2, EUR fissi) non hanno una
+            # voce nel listino: compaiono come voci "a corpo", tracciabili per
+            # domanda, cosi' il Pro somma esattamente quello che somma il Free.
+            voci_extra = aggiuntive.get(cat.code, []) if fattore_categoria != 0 else []
+            if voci_extra and sotto_rows:
+                sottocategorie.append(
+                    SottocategoriaEstimata(
+                        codice=None,
+                        nome="Interventi a corpo",
+                        famiglia="catalogo",
+                        voci=voci_extra,
+                        totale_min=sum((v.prezzo_min for v in voci_extra), Decimal("0")),
+                        totale_max=sum((v.prezzo_max for v in voci_extra), Decimal("0")),
+                    )
+                )
+
+            if computo is not None and fattore_categoria == 0:
+                # "Non rifare" azzera la categoria: niente card a 0 EUR.
+                continue
 
             # Categoria senza NESSUNA sottocategoria nel listino -> scartata,
             # per la stessa ragione della sottocategoria svuotata poco sopra:

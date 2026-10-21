@@ -29,6 +29,7 @@ from app.models.dettaglio_pro import CoefficienteQuantitaVoce, Voce
 from app.services.city_resolver import resolve_listino
 from app.services.dettaglio_pro import DettaglioProService
 from scripts.seed import load_seed_data, seed
+from tests.computo_spento import spegni_computo
 from tests.session_factory import sessione_di_test
 
 
@@ -39,6 +40,9 @@ def session():
     testing_session_local = sessione_di_test(engine)
     with testing_session_local() as s:
         seed(s, load_seed_data())
+        # Catena di quantita' v2 e meccanica degli assi (ripiego senza regole):
+        # tests/computo_spento.py. Il computo ha i suoi test in test_computo*.py.
+        spegni_computo(s)
         yield s
 
 
@@ -236,6 +240,9 @@ def http_client(monkeypatch, tmp_path):
 
     with testing_session_local() as s:
         seed(s, load_seed_data())
+        # Catena di quantita' v2 e meccanica degli assi (ripiego senza regole):
+        # tests/computo_spento.py. Il computo ha i suoi test in test_computo*.py.
+        spegni_computo(s)
         s.commit()
 
     monkeypatch.setattr(db_module, "SessionLocal", testing_session_local)

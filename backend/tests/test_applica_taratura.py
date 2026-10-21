@@ -475,8 +475,18 @@ class TestRisolviChiaveNaturale:
     def test_risolve_voce_senza_codice_usa_descrizione(self, session):
         from app.models.dettaglio_pro import Voce
 
-        voce = session.query(Voce).filter(Voce.codice.is_(None)).first()
-        assert voce is not None
+        # Dalla v3 il seed da' un codice a ogni voce: una voce senza codice
+        # (creata a mano dal pannello) si costruisce qui.
+        esistente = session.query(Voce).filter(Voce.codice.like("B.%")).first()
+        voce = Voce(
+            sottocategoria_id=esistente.sottocategoria_id,
+            codice=None,
+            descrizione="Voce creata dal pannello senza codice",
+            um="mq",
+            prezzo_unitario_cliente=esistente.prezzo_unitario_cliente,
+        )
+        session.add(voce)
+        session.flush()
 
         chiave = risolvi_chiave_naturale(session, voce.id)
 

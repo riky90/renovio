@@ -19,6 +19,7 @@ import app.db as db_module
 from app.db import Base
 from app.main import app
 from scripts.seed import load_seed_data, seed
+from tests.computo_spento import catalogo_v2
 from tests.session_factory import sessione_di_test
 
 
@@ -31,6 +32,8 @@ def _seeded_db(tmp_path_factory):
 
     with testing_session_local() as s:
         seed(s, load_seed_data())
+        # Numeri del percorso EUR/m2 + effetti (catalogo v2): tests/computo_spento.py
+        catalogo_v2(s)
         s.commit()
 
     original_session_local = db_module.SessionLocal

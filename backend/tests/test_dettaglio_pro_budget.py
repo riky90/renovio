@@ -133,12 +133,17 @@ class TestConfrontoPro:
         assert Decimal(conf["totale_max"]) == Decimal(medio["totale_ivato_max"])
         assert alto["finiture_al_minimo"] is False
 
-    def test_confronto_assente_se_il_ricalcolo_non_abbassa(self, client):
-        """Con i dati attuali "base" costa piu' di "medio": nessun confronto."""
+    def test_confronto_dal_medio_scende_a_base(self, client):
+        """Col computo parametrico (v3) "base" costa meno di "medio": il
+        confronto c'e' e porta un totale piu' basso. Con i coefficienti v2
+        base costava di piu' e il confronto spariva (anomalia della bozza)."""
         c, sf = client
         _registra_pro(c)
         medio = _get(c, _crea(c, {k: "medio" for k in _livelli_selezionabili(sf)}))
-        assert medio["confronto_finiture"] is None
+        conf = medio["confronto_finiture"]
+        assert conf is not None
+        assert conf["livello_code"] == "base"
+        assert Decimal(conf["totale_max"]) < Decimal(medio["totale_ivato_max"])
         assert medio["finiture_al_minimo"] is False
 
     def test_livelli_misti_scende_la_piu_alta(self, client):

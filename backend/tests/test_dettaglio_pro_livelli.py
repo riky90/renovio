@@ -28,6 +28,7 @@ from app.models.stima_salvata import StimaSalvata
 from app.services.city_resolver import resolve_listino
 from app.services.dettaglio_pro import DettaglioProService
 from scripts.seed import load_seed_data, seed
+from tests.computo_spento import spegni_computo
 from tests.session_factory import sessione_di_test
 
 REGISTRAZIONE_URL = "/api/v1/auth/registrati"
@@ -44,6 +45,9 @@ def session():
     testing_session_local = sessione_di_test(engine)
     with testing_session_local() as s:
         seed(s, load_seed_data())
+        # Catena di quantita' v2 e meccanica degli assi (ripiego senza regole):
+        # tests/computo_spento.py. Il computo ha i suoi test in test_computo*.py.
+        spegni_computo(s)
         yield s
 
 
@@ -119,6 +123,16 @@ class TestRetrocompatibilita:
         assert voce.prezzo_min == prezzo_min_atteso
         assert voce.prezzo_max == prezzo_max_atteso
 
+def _bersagli_esclusivi(bersagli: dict[str, list[Voce]]) -> tuple[str, str, str]:
+    """Una voce per livello incluso SOLO da quel livello: dalla v3 il
+    rivestimento economico (B.1.6) e' incluso sia da base sia da medio."""
+    def esclusiva(livello: str) -> str:
+        altri = {v.id for code, voci in bersagli.items() if code != livello for v in voci}
+        return next(v for v in bersagli[livello] if v.id not in altri).descrizione
+
+    return esclusiva("medio"), esclusiva("base"), esclusiva("alto")
+
+
 class TestSelezionePerLivello:
     """Dalla Fase 09-03 il filtro per livello non e' piu' `voce.livello`
     (colonna letta a mano) ma l'asse `finitura` del catalogo domande, gia'
@@ -155,9 +169,7 @@ class TestSelezionePerLivello:
         return per_opzione
 
     def test_solo_la_voce_del_livello_scelto(self, session, bersagli_finitura):
-        medio_desc = bersagli_finitura["medio"][0].descrizione
-        base_desc = bersagli_finitura["base"][0].descrizione
-        alto_desc = bersagli_finitura["alto"][0].descrizione
+        medio_desc, base_desc, alto_desc = _bersagli_esclusivi(bersagli_finitura)
 
         incluse = _descrizioni_sotto(_compute(session, livelli={"B-FINITURE": "medio"}), GRES)
 
@@ -226,9 +238,7 @@ class TestSelezionePerLivello:
         """Senza scelta si applica `is_default` ('medio'). Il caso sbagliato da
         escludere e' "nessuna scelta => nessun filtro", che riporterebbe il bug
         della somma dei cataloghi."""
-        medio_desc = bersagli_finitura["medio"][0].descrizione
-        base_desc = bersagli_finitura["base"][0].descrizione
-        alto_desc = bersagli_finitura["alto"][0].descrizione
+        medio_desc, base_desc, alto_desc = _bersagli_esclusivi(bersagli_finitura)
 
         incluse = _descrizioni_sotto(_compute(session), GRES)
 
@@ -361,6 +371,12 @@ class TestSeedEAdmin:
         session.commit()
 
         seed(session, load_seed_data())
+
+        # Catena di quantita' v2 e meccanica degli assi (ripiego senza regole):
+
+        # tests/computo_spento.py. Il computo ha i suoi test in test_computo*.py.
+
+        spegni_computo(session)
         session.expire_all()
 
         assert session.get(Voce, voce.id).livello == "alto"

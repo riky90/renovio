@@ -183,7 +183,7 @@ def test_upgrade_head_gira_su_sqlite_vergine(tmp_path, monkeypatch):
         revisione = connessione.execute("SELECT version_num FROM alembic_version").fetchone()
     finally:
         connessione.close()
-    assert revisione == ("0024",)
+    assert revisione == ("0027",)
 
 
 def test_upgrade_all_ultima_revisione_gira_su_un_database_popolato(tmp_path, monkeypatch):
@@ -1646,8 +1646,10 @@ def _rimuovi_effetti_e_opzioni_0023(db_path: Path, modulo) -> None:
                 continue  # gia' rimosso sopra insieme all'opzione
             righe_voce = connessione.execute(
                 "SELECT v.id FROM voce v JOIN sottocategoria s ON s.id = v.sottocategoria_id"
-                " WHERE s.categoria_code = ? AND (s.codice = ? OR (s.codice IS NULL AND s.nome = ?))"
-                " AND (v.codice = ? OR (v.codice IS NULL AND v.descrizione = ?))",
+                # Per nome/descrizione anche con un codice: dalla 0025 B/C/D
+                # hanno codici stabili e il seed v3 li scrive gia'.
+                " WHERE s.categoria_code = ? AND (s.codice = ? OR s.nome = ?)"
+                " AND (v.codice = ? OR v.descrizione = ?)",
                 (categoria_code, sottocategoria_key, sottocategoria_key, voce_key, voce_key),
             ).fetchall()
             for (voce_id,) in righe_voce:

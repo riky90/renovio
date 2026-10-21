@@ -82,7 +82,7 @@ Tutti i valori qui sono in euro-cliente, come `listino_categoria.base_eur_mq`
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Any, Callable
 
@@ -230,6 +230,11 @@ class ScelteRisolte:
 
     domande: list[Domanda]
     opzioni: list[OpzioneDomanda]
+    #: Le risposte grezze completate dal preset del tipo (Fase 11): cio' che
+    #: il client ha mandato vince, il preset riempie solo le domande senza
+    #: risposta. E' l'input che i consumatori numerici (grandezze del
+    #: computo) devono leggere al posto delle risposte grezze.
+    risposte_effettive: dict[str, Any] = field(default_factory=dict)
 
 
 _VUOTA = RisoluzioneFree(correzioni={}, applicati=[])
@@ -484,6 +489,7 @@ def risolvi_scelte(
     risposte: dict[str, Any] | None,
     tier: str = TIER_FREE,
     tiers: tuple[str, ...] | None = None,
+    tipo: str | None = None,
 ) -> ScelteRisolte:
     """Quali domande sono in gioco e quali opzioni risultano scelte.
 
@@ -501,9 +507,16 @@ def risolvi_scelte(
     wizard) e domande Pro (finitura/tipo_pavimento) dallo stesso resolver.
     Nessun chiamante esistente passa `tiers`, quindi il comportamento di oggi
     (filtro su un tier solo) resta identico.
+
+    `tipo`, se passato, applica il PRESET di quel tipo di ristrutturazione
+    (`preset_risposta`, Fase 11): le domande senza risposta prendono la
+    risposta del preset prima di cadere sull'`is_default` dell'opzione. Il
+    tipo non scala piu' le quantita': sceglie cosa si fa di default.
     """
     if risposte is None:
         return _SCELTE_VUOTE
+    if tipo is not None:
+        risposte = {**preset_per_tipo(session, tipo), **risposte}
 
     filtro_tier = Domanda.tier_minimo.in_(tiers) if tiers is not None else Domanda.tier_minimo == tier
     domande = (
@@ -537,7 +550,37 @@ def risolvi_scelte(
     return ScelteRisolte(
         domande=domande,
         opzioni=[o for d in domande if visibili[d.code] for o in scelte_per_domanda[d.code]],
+        risposte_effettive=dict(risposte),
     )
+
+
+def preset_per_tipo(session: Session, tipo: str) -> dict[str, Any]:
+    """Le risposte di default del preset di un tipo, nella forma che il client
+    manderebbe: codice opzione per le scelte singole, lista di codici per le
+    multiple, numero per le numeriche."""
+    # Import locale: `models.computo` importa `app.db`, come questo modulo,
+    # ma tenerlo qui rende esplicito che il preset e' un'aggiunta della Fase 11.
+    from app.models.computo import PresetRisposta
+
+    righe = (
+        session.query(PresetRisposta, Domanda.tipo_controllo)
+        .join(Domanda, Domanda.code == PresetRisposta.domanda_code)
+        .filter(PresetRisposta.tipo_code == tipo, Domanda.attiva.is_(True))
+        .order_by(PresetRisposta.id)
+        .all()
+    )
+    preset: dict[str, Any] = {}
+    for riga, tipo_controllo in righe:
+        if tipo_controllo in CONTROLLI_NUMERICI:
+            if riga.valore is not None:
+                valore = riga.valore
+                preset[riga.domanda_code] = int(valore) if valore == valore.to_integral_value() else valore
+        elif tipo_controllo == CONTROLLO_SCELTA_MULTIPLA:
+            if riga.opzione_code is not None:
+                preset.setdefault(riga.domanda_code, []).append(riga.opzione_code)
+        elif riga.opzione_code is not None:
+            preset[riga.domanda_code] = riga.opzione_code
+    return preset
 
 
 def risolvi_effetti_free(
@@ -555,7 +598,7 @@ def risolvi_effetti_free(
     bit-identico a prima. Un dizionario vuoto invece ACCENDE il layer, e le
     domande non risposte cadono sui loro default.
     """
-    scelte = risolvi_scelte(session, risposte=risposte, tier=TIER_FREE)
+    scelte = risolvi_scelte(session, risposte=risposte, tier=TIER_FREE, tipo=tipo)
     opzioni_attive = scelte.opzioni
     if not opzioni_attive:
         return _VUOTA
@@ -812,7 +855,7 @@ def risolvi_effetti_pro(
 
     Vedi la docstring di modulo per l'ordine di risoluzione completo.
     """
-    scelte = risolvi_scelte(session, risposte=risposte, tiers=(TIER_FREE, TIER_PRO))
+    scelte = risolvi_scelte(session, risposte=risposte, tiers=(TIER_FREE, TIER_PRO), tipo=tipo)
     codici_visibili = {o.domanda_code for o in scelte.opzioni}
     if not codici_visibili:
         return RisoluzionePro(

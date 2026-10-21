@@ -33,6 +33,7 @@ from app.services.bonus_service import BonusService
 from app.services.city_resolver import resolve_listino
 from app.services.estimation import EstimationService
 from scripts.seed import load_seed_data, seed
+from tests.computo_spento import catalogo_v2
 from tests.session_factory import sessione_di_test
 
 STIMA_URL = "/api/v1/stima"
@@ -70,6 +71,8 @@ def session():
     testing_session_local = sessione_di_test(engine)
     with testing_session_local() as s:
         seed(s, load_seed_data())
+        # Numeri del percorso EUR/m2 + effetti (catalogo v2): tests/computo_spento.py
+        catalogo_v2(s)
         yield s
 
 
@@ -344,6 +347,10 @@ class TestSeedIdempotente:
 
         seed(session, load_seed_data())
 
+        # Numeri del percorso EUR/m2 + effetti (catalogo v2): tests/computo_spento.py
+
+        catalogo_v2(session)
+
         assert session.query(AliquotaBonus).count() == prima
 
     def test_riga_2027_gia_presente(self, session):
@@ -370,6 +377,8 @@ def client(monkeypatch, tmp_path):
 
     with testing_session_local() as s:
         seed(s, load_seed_data())
+        # Numeri del percorso EUR/m2 + effetti (catalogo v2): tests/computo_spento.py
+        catalogo_v2(s)
         s.commit()
 
     monkeypatch.setattr(db_module, "SessionLocal", testing_session_local)
