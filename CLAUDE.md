@@ -31,5 +31,18 @@ milestone: la v1.0 ha usato 01-04, la v2.0 usa 05-10.
   dipendenze. La suite completa impiega ~11 minuti.
 - Git: il ramo locale è `master`, il remoto è `main`. Il push è quindi
   `git push origin master:main`, e deploya su Render.
+- Due repository GitHub con lo stesso `main`, da tenere **sempre allineati**:
+  `riky90/renovio` (pubblico, dove si aprono le PR) e `riky90/stima` (privato, da cui
+  partono i deploy su Render e Vercel). Ogni volta che `main` cambia su uno dei due, va
+  portato sull'altro, altrimenti il sito non si aggiorna o i due storici divergono.
+  Configurazione una tantum dei remoti (da adattare se `origin` è già uno dei due):
+  `git remote add renovio https://github.com/riky90/renovio` e
+  `git remote add stima https://github.com/riky90/stima`.
+  Allineamento dopo un merge o un push su `main`:
+  `git fetch renovio main && git fetch stima main`, poi verificare che sia solo un
+  avanzamento (`git merge-base --is-ancestor stima/main renovio/main`) e
+  `git push stima renovio/main:main` (o il contrario se la novità è su `stima`).
+  Mai `--force`: se nessuno dei due è antenato dell'altro, prima si fa un merge.
+  Controllo finale: `git rev-parse renovio/main stima/main` deve dare lo stesso hash.
 - L'identità git è impostata **per-repo** (`user.email` = account personale): su questo
   PC il default globale è l'email aziendale e Vercel la rifiuta. Mai `--global`.
