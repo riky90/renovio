@@ -183,7 +183,7 @@ def test_upgrade_head_gira_su_sqlite_vergine(tmp_path, monkeypatch):
         revisione = connessione.execute("SELECT version_num FROM alembic_version").fetchone()
     finally:
         connessione.close()
-    assert revisione == ("0026",)
+    assert revisione == ("0027",)
 
 
 def test_upgrade_all_ultima_revisione_gira_su_un_database_popolato(tmp_path, monkeypatch):

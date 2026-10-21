@@ -299,6 +299,8 @@ Fatto:
   niente) nella scheda "Computo parametrico" della pagina Coefficienti; `GET /admin/computo/validazione`
   e `POST /admin/computo/anteprima` con la traccia di ogni voce.
 - **Fallback**: un listino senza regole usa ancora il calcolo €/m² della v1.
+- **DB già seminati in v2** (produzione, `dev.db`): la migrazione `0027` porta l'asse finitura sui
+  sanitari allo stato v3; dopo migrazioni e seed i numeri coincidono con quelli di un DB nuovo.
 
 Numeri della bozza (Reggio Emilia, 85 m², risposte di default, imponibile senza range):
 
@@ -315,9 +317,6 @@ Da fare:
 - I punti aperti del §7 (7% senza etichetta, A.9.1 al 30% o al 35%, movimentazione).
 - Domande non ancora poste: tipo di muro demolito, doccia o vasca, bagni ciechi, carta da parati.
 - Range per incertezza (banda stretta sulle quantità risposte).
-- Sul `dev.db` locale (catalogo v2 già seminato) gli effetti dell'asse finitura sui sanitari restano
-  quelli v2 più quelli nuovi: per avere la curatela pulita si risemina da zero. In produzione il
-  catalogo nasce già nella forma v3.
 
 ## Appendice A — Regola proposta per ogni voce di A-EDILE
 
