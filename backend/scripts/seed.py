@@ -26,6 +26,7 @@ from decimal import Decimal
 from pathlib import Path
 
 from slugify import slugify
+from sqlalchemy import inspect
 from sqlalchemy.orm import Session
 
 # Allow `python scripts/seed.py` direct execution (not just `-m scripts.seed`):
@@ -483,6 +484,10 @@ def seed_computo(session: Session, data: dict | None = None) -> None:
     diversamente dal JSON) si salta senza errore: il seed gira al boot e non
     deve impedire all'app di partire. `valida_computo` lo segnala in admin.
     """
+    # Un DB non ancora migrato alla 0025 non ha le tabelle del computo: il
+    # seed si limita a cio' che lo schema regge, come per ogni altra parte.
+    if not inspect(session.connection()).has_table("regola_voce"):
+        return
     data = data or load_computo_data()
     _sposta_condizionatori_dopo_il_clima(session)
 

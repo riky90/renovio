@@ -31,6 +31,7 @@ from app.services.city_resolver import resolve_listino
 from app.services.dettaglio_pro import DettaglioProService, SottocategoriaEstimata
 from app.services.effetti import TIPO_ESCLUDI, TIPO_FATTORE_QUANTITA, TIPO_INCLUDI
 from scripts.seed import load_seed_data, seed
+from tests.computo_spento import spegni_computo
 from tests.session_factory import sessione_di_test
 
 FIXTURE_FAMIGLIE = Path(__file__).parent / "fixtures" / "famiglie_alternative_pro.json"
@@ -45,6 +46,9 @@ def session():
     testing_session_local = sessione_di_test(engine)
     with testing_session_local() as s:
         seed(s, load_seed_data())
+        # Meccanica degli assi sulla catena v2 (ripiego senza regole):
+        # tests/computo_spento.py. Le alternative col computo: test_computo.py.
+        spegni_computo(s)
         yield s
 
 

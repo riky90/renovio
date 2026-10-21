@@ -146,7 +146,12 @@ def _listino_default_id(bind):
 
 def _risolvi_voce_id(bind, sottocategoria, voce, categoria_code, sottocategoria_key, voce_key):
     """Chiave naturale -> voce.id (codice se esiste, altrimenti nome/descrizione
-    esatta — stessa regola del seed/0022). `None` se non risolta."""
+    esatta — stessa regola del seed/0022). `None` se non risolta.
+
+    Il ripiego per nome/descrizione non richiede piu' `codice IS NULL`: dalla
+    0025 le sottocategorie e voci B/C/D hanno un codice. Su un DB reale questa
+    migrazione gira prima della 0025 (codici ancora nulli), quindi il risultato
+    non cambia; cambia solo per un catalogo seminato con il seed v3."""
     listino_id = _listino_default_id(bind)
     if listino_id is None:
         return None
@@ -165,7 +170,6 @@ def _risolvi_voce_id(bind, sottocategoria, voce, categoria_code, sottocategoria_
             .where(
                 sottocategoria.c.listino_id == listino_id,
                 sottocategoria.c.categoria_code == categoria_code,
-                sottocategoria.c.codice.is_(None),
                 sottocategoria.c.nome == sottocategoria_key,
             )
             .order_by(sottocategoria.c.id)
@@ -183,7 +187,6 @@ def _risolvi_voce_id(bind, sottocategoria, voce, categoria_code, sottocategoria_
             sa.select(voce.c.id)
             .where(
                 voce.c.sottocategoria_id == sotto_id,
-                voce.c.codice.is_(None),
                 voce.c.descrizione == voce_key,
             )
             .order_by(voce.c.id)

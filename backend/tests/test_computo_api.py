@@ -124,3 +124,20 @@ def test_anteprima_tipo_sconosciuto_400(client):
     _registra(client, ADMIN_EMAIL)
     risposta = client.post(f"{COMPUTO_URL}/anteprima", json={"mq": 85, "tipo": "inventato"})
     assert risposta.status_code == 400
+
+
+def test_post_stima_usa_il_computo(client, monkeypatch):
+    """`POST /stima` passa dal computo: il tipo sceglie cosa si fa, e una
+    leggera costa molto meno di una totale (prima i tre tipi differivano solo
+    per un moltiplicatore)."""
+    import app.routers.stima as stima_router_module
+
+    monkeypatch.setattr(stima_router_module, "SessionLocal", db_module.SessionLocal)
+    totali = {}
+    for tipo in ("leggera", "totale"):
+        risposta = client.post(
+            "/api/v1/stima", json={"citta": "Reggio Emilia", "mq": 85, "tipo": tipo, "risposte": {}}
+        )
+        assert risposta.status_code == 200, risposta.text
+        totali[tipo] = float(risposta.json()["totale"]["totale_max"])
+    assert totali["leggera"] * 2 < totali["totale"]

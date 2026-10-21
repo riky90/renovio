@@ -143,11 +143,11 @@ def upgrade() -> None:
         sa.Column("descrizione", sa.String(500), nullable=True),
         sa.Column("ordine", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("costante", sa.Numeric(12, 4), nullable=False, server_default="0"),
-        sa.Column("da_attesa", sa.Boolean(), nullable=False, server_default=sa.false()),
+        sa.Column("da_attesa", sa.Boolean(), nullable=False, server_default="0"),
         sa.Column("arrotondamento", sa.String(8), nullable=False, server_default="nessuno"),
         sa.Column("minimo", sa.Numeric(12, 4), nullable=True),
         sa.Column("massimo", sa.Numeric(12, 4), nullable=True),
-        sa.Column("attiva", sa.Boolean(), nullable=False, server_default=sa.true()),
+        sa.Column("attiva", sa.Boolean(), nullable=False, server_default="1"),
         _timestamp(),
     )
     op.create_table(
@@ -193,7 +193,7 @@ def upgrade() -> None:
         sa.Column("condizione_grandezza_code", sa.String(48), nullable=True),
         sa.Column("importo_minimo", sa.Numeric(12, 2), nullable=True),
         sa.Column("nota", sa.String(500), nullable=True),
-        sa.Column("attiva", sa.Boolean(), nullable=False, server_default=sa.true()),
+        sa.Column("attiva", sa.Boolean(), nullable=False, server_default="1"),
         _timestamp(),
     )
     op.create_table(

@@ -19,6 +19,7 @@ from app.services.bonus_stima import bonus_out_per_stima
 from app.services.city_resolver import resolve_listino
 from app.services.estimation import EstimationService
 from scripts.seed import load_seed_data, seed
+from tests.computo_spento import catalogo_v2
 from tests.session_factory import sessione_di_test
 
 STIMA_URL = "/api/v1/stima"
@@ -31,6 +32,8 @@ def session():
     testing_session_local = sessione_di_test(engine)
     with testing_session_local() as s:
         seed(s, load_seed_data())
+        # Numeri del percorso EUR/m2 + effetti (catalogo v2): tests/computo_spento.py
+        catalogo_v2(s)
         yield s
 
 
@@ -192,6 +195,8 @@ def client(monkeypatch, tmp_path):
     testing_session_local = sessione_di_test(engine)
     with testing_session_local() as s:
         seed(s, load_seed_data())
+        # Numeri del percorso EUR/m2 + effetti (catalogo v2): tests/computo_spento.py
+        catalogo_v2(s)
         s.get(BonusFiscale, "MOBILI").attivo = True
         s.commit()
     monkeypatch.setattr(db_module, "SessionLocal", testing_session_local)

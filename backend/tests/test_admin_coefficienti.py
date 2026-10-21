@@ -26,6 +26,7 @@ from app.db import Base
 from app.limiter import limiter
 from app.main import app
 from scripts.seed import load_seed_data, seed
+from tests.computo_spento import catalogo_v2
 from tests.session_factory import sessione_di_test
 
 REGISTRAZIONE_URL = "/api/v1/auth/registrati"
@@ -47,6 +48,8 @@ def client(monkeypatch, tmp_path):
 
     with testing_session_local() as s:
         seed(s, load_seed_data())
+        # Numeri del percorso EUR/m2 + effetti (catalogo v2): tests/computo_spento.py
+        catalogo_v2(s)
 
     monkeypatch.setattr(db_module, "SessionLocal", testing_session_local)
 
