@@ -31,6 +31,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { AnteprimaTab } from "@/components/admin/AnteprimaTab";
+import { ComputoTab } from "@/components/admin/ComputoTab";
 import { EMPTY_HEADING, EMPTY_BODY } from "@/lib/adminCopy";
 import { scaricaExcel } from "@/api/admin/exportExcel";
 import {
@@ -174,6 +175,7 @@ export function CoefficientiPage() {
             <TabsTrigger value="iva">IVA</TabsTrigger>
             <TabsTrigger value="extra">Extra</TabsTrigger>
             <TabsTrigger value="coeff-pro">Coefficienti Pro</TabsTrigger>
+            <TabsTrigger value="computo">Computo parametrico</TabsTrigger>
             <TabsTrigger value="anteprima">Anteprima</TabsTrigger>
           </TabsList>
 
@@ -191,6 +193,9 @@ export function CoefficientiPage() {
           </TabsContent>
           <TabsContent value="coeff-pro">
             <CoeffProTab />
+          </TabsContent>
+          <TabsContent value="computo">
+            <ComputoTab />
           </TabsContent>
           <TabsContent value="anteprima">
             <AnteprimaTab />

@@ -2,7 +2,11 @@
 
 > Studio di `2025_Computo Base_ER_PREZZI IMPRESE DEFINITI (2) (1).xlsx` (radice del repo)
 > confrontato con il motore attuale (`effetti.py`, `dettaglio_pro.py`, seed e migrazioni fino alla 0024).
-> Data: 2026-10-21. È una proposta da discutere: non cambia codice.
+> Data: 2026-10-21.
+>
+> **Stato (2026-10-21):** approvata e implementata nella fase 11 (milestone v3.0). Decisioni di
+> Riccardo: Free derivato dallo stesso motore, tutte le domande nuove nel Free, tipo come preset,
+> computi reali per la taratura da cercare. Cosa è stato fatto e cosa resta: §10.
 
 ## 1. Cosa porta di nuovo il file
 
@@ -272,6 +276,48 @@ Le tappe 1-2 si possono già fare prima del go-live di un secondo listino, e la 
 da centinaia di migliaia a ordini di grandezza credibili.
 
 ---
+
+## 10. Stato dell'implementazione (fase 11)
+
+Fatto:
+
+- **Modello dati** (migrazione `0025`): `grandezza`, `termine_grandezza`, `valore_grandezza_opzione`,
+  `regola_voce`, `sorgente_regola`, `scaglione_regola`, `preset_risposta`. Codici stabili su B/C/D
+  (`B.1.1`…); lo smaltimento diventa `A.9.6` (nel seed v2 le due `A.9.5` collassavano in una sola e
+  l'assistenza air zone spariva); `A.12.1.` → `A.12.1`.
+- **Motore unico** (`backend/app/services/computo.py`): grandezze → interventi → regola per voce,
+  sei tipi di regola, valutazione per dipendenze, traccia per voce. Il Free è il computo sommato per
+  categoria, il Pro lo mostra voce per voce: i totali coincidono (Free = Pro + IVA).
+- **Catalogo** (migrazione `0026` + seed): 18 domande d'intervento nel Free (pavimenti, massetto,
+  bagni, cucina, gas, elettrico, collettore, riscaldamento, centralizzato, clima, caldaia, porte,
+  blindata, serramenti, tapparelle, zanzariere, controsoffitti, tinteggiatura, tipo di muri nuovi).
+  Spenti gli effetti `eur_per_scostamento`, i moltiplicatori di `impianti` e di `livello_finiture`, e
+  gli effetti che ora sono voci.
+- **Preset**: `GET /domande?tipo=` restituisce i default del tipo; il wizard li riapplica alle domande
+  non toccate quando il tipo cambia.
+- **Curatela**: Excel del computo (scarica, anteprima con errori per foglio e riga, applica tutto o
+  niente) nella scheda "Computo parametrico" della pagina Coefficienti; `GET /admin/computo/validazione`
+  e `POST /admin/computo/anteprima` con la traccia di ogni voce.
+- **Fallback**: un listino senza regole usa ancora il calcolo €/m² della v1.
+
+Numeri della bozza (Reggio Emilia, 85 m², risposte di default, imponibile senza range):
+
+| Tipo | Edile | Totale lavori |
+|---|---|---|
+| Leggera | 16,4 k€ | 20,5 k€ |
+| Moderata | 32,4 k€ | 41,5 k€ |
+| Totale | 39,1 k€ | 67,3 k€ |
+
+Da fare:
+
+- **Taratura sui computi reali** (TAR-01): i valori delle grandezze e dei preset sono una bozza
+  ragionata dalle note del file.
+- I punti aperti del §7 (7% senza etichetta, A.9.1 al 30% o al 35%, movimentazione).
+- Domande non ancora poste: tipo di muro demolito, doccia o vasca, bagni ciechi, carta da parati.
+- Range per incertezza (banda stretta sulle quantità risposte).
+- Sul `dev.db` locale (catalogo v2 già seminato) gli effetti dell'asse finitura sui sanitari restano
+  quelli v2 più quelli nuovi: per avere la curatela pulita si risemina da zero. In produzione il
+  catalogo nasce già nella forma v3.
 
 ## Appendice A — Regola proposta per ogni voce di A-EDILE
 

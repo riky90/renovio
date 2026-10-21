@@ -81,10 +81,13 @@ export interface RawCatalogo extends Omit<CatalogoDomande, "attese" | "domande">
 export async function getCatalogoDomande(params: {
   tier?: "free" | "pro";
   mq?: number;
+  /** Il tipo di ristrutturazione: i default arrivano dal suo preset (INT-03). */
+  tipo?: string;
 }): Promise<CatalogoDomande> {
   const query = new URLSearchParams();
   query.set("tier", params.tier ?? "free");
   if (params.mq !== undefined) query.set("mq", String(params.mq));
+  if (params.tipo !== undefined) query.set("tipo", params.tipo);
   const raw = await apiGet<RawCatalogo>(`/domande?${query.toString()}`);
   return normalizeCatalogo(raw);
 }

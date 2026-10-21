@@ -435,13 +435,7 @@
           "etichetta": "Valore",
           "ordine": 1,
           "is_default": false,
-          "effetti": [
-            {
-              "tipo_effetto": "eur_per_scostamento",
-              "target_categoria_code": "A-EDILE",
-              "valore": "350"
-            }
-          ]
+          "effetti": []
         }
       ],
       "help": "Il trasporto di materiali e macerie cresce con il piano. Piano terra: 0."
@@ -547,13 +541,7 @@
           "etichetta": "Valore",
           "ordine": 1,
           "is_default": false,
-          "effetti": [
-            {
-              "tipo_effetto": "eur_per_scostamento",
-              "target_categoria_code": "A-EDILE",
-              "valore": "900"
-            }
-          ]
+          "effetti": []
         }
       ]
     },
@@ -572,16 +560,6 @@
           "ordine": 1,
           "is_default": false,
           "effetti": [
-            {
-              "tipo_effetto": "eur_per_scostamento",
-              "target_categoria_code": "A-EDILE",
-              "valore": "1900"
-            },
-            {
-              "tipo_effetto": "eur_per_scostamento",
-              "target_categoria_code": "D-PRODOTTI",
-              "valore": "1400"
-            },
             {
               "tipo_effetto": "quantita_per_unita",
               "valore": 1.0,
@@ -834,13 +812,7 @@
           "etichetta": "Valore",
           "ordine": 1,
           "is_default": false,
-          "effetti": [
-            {
-              "tipo_effetto": "eur_per_scostamento",
-              "target_categoria_code": "C-SERRAMENTI",
-              "valore": "650"
-            }
-          ]
+          "effetti": []
         }
       ]
     },
@@ -858,13 +830,7 @@
           "etichetta": "Valore",
           "ordine": 1,
           "is_default": false,
-          "effetti": [
-            {
-              "tipo_effetto": "eur_per_scostamento",
-              "target_categoria_code": "C-SERRAMENTI",
-              "valore": "950"
-            }
-          ]
+          "effetti": []
         }
       ]
     },
@@ -883,11 +849,6 @@
           "ordine": 1,
           "is_default": false,
           "effetti": [
-            {
-              "tipo_effetto": "eur_per_scostamento",
-              "target_categoria_code": "C-SERRAMENTI",
-              "valore": "480"
-            },
             {
               "tipo_effetto": "quantita_per_unita",
               "valore": 1.0,
@@ -993,11 +954,11 @@
     },
     {
       "code": "condizionatori",
-      "testo": "Quanti climatizzatori (split) vuoi installare?",
+      "testo": "Quanti split vuoi installare?",
       "help": "Conta un'unita' interna per ogni ambiente da climatizzare. Se non vuoi la climatizzazione, lascia 0.",
       "tipo_controllo": "stepper",
-      "gruppo": "ambienti",
-      "ordine": 75,
+      "gruppo": "ristrutturazione",
+      "ordine": 99,
       "tier_minimo": "free",
       "attributo_code": "condizionatori",
       "opzioni": [
@@ -1007,16 +968,6 @@
           "ordine": 1,
           "is_default": false,
           "effetti": [
-            {
-              "tipo_effetto": "eur_per_scostamento",
-              "target_categoria_code": "A-EDILE",
-              "valore": "700"
-            },
-            {
-              "tipo_effetto": "eur_per_scostamento",
-              "target_categoria_code": "D-PRODOTTI",
-              "valore": "900"
-            },
             {
               "tipo_effetto": "quantita_per_unita",
               "valore": 1.0,
@@ -1118,7 +1069,9 @@
             }
           ]
         }
-      ]
+      ],
+      "visibile_se_domanda_code": "interv_clima",
+      "visibile_se_opzione_code": "split"
     },
     {
       "code": "muri_lavori",
@@ -1153,20 +1106,14 @@
       "gruppo": "ambienti",
       "ordine": 80,
       "tier_minimo": "free",
-      "attributo_code": null,
+      "attributo_code": "muri_da_recuperare",
       "opzioni": [
         {
           "code": "valore",
           "etichetta": "Valore",
           "ordine": 1,
           "is_default": false,
-          "effetti": [
-            {
-              "tipo_effetto": "eur_per_scostamento",
-              "target_categoria_code": "A-EDILE",
-              "valore": "28"
-            }
-          ]
+          "effetti": []
         }
       ],
       "help": "Intonaci da rifare, tracce da chiudere, murature da risanare. Se non lo sai, lascia 0.",
@@ -1180,20 +1127,14 @@
       "gruppo": "ambienti",
       "ordine": 82,
       "tier_minimo": "free",
-      "attributo_code": null,
+      "attributo_code": "muri_da_rifare_mq",
       "opzioni": [
         {
           "code": "valore",
           "etichetta": "Valore",
           "ordine": 1,
           "is_default": false,
-          "effetti": [
-            {
-              "tipo_effetto": "eur_per_scostamento",
-              "target_categoria_code": "A-EDILE",
-              "valore": "95"
-            }
-          ]
+          "effetti": []
         }
       ],
       "help": "Demolizione piu' ricostruzione, non solo intonaco. Se non ce ne sono, lascia 0.",
@@ -1241,20 +1182,14 @@
       "gruppo": "ambienti",
       "ordine": 84,
       "tier_minimo": "free",
-      "attributo_code": null,
+      "attributo_code": "muri_da_creare_mq",
       "opzioni": [
         {
           "code": "valore",
           "etichetta": "Valore",
           "ordine": 1,
           "is_default": false,
-          "effetti": [
-            {
-              "tipo_effetto": "eur_per_scostamento",
-              "target_categoria_code": "A-EDILE",
-              "valore": "110"
-            }
-          ]
+          "effetti": []
         }
       ],
       "help": "Tramezze o pareti nuove per cambiare la distribuzione. Se non ce ne sono, lascia 0.",
@@ -1309,106 +1244,31 @@
           "etichetta": "Elettrico",
           "ordine": 1,
           "is_default": false,
-          "effetti": [
-            {
-              "tipo_effetto": "moltiplicatore_categoria",
-              "target_categoria_code": "A-EDILE",
-              "valore": "1.14",
-              "tipo_code": "leggera"
-            },
-            {
-              "tipo_effetto": "moltiplicatore_categoria",
-              "target_categoria_code": "A-EDILE",
-              "valore": "1.07",
-              "tipo_code": "moderata"
-            },
-            {
-              "tipo_effetto": "moltiplicatore_categoria",
-              "target_categoria_code": "A-EDILE",
-              "valore": "1.00",
-              "tipo_code": "totale"
-            }
-          ]
+          "effetti": []
         },
         {
           "code": "idrico",
           "etichetta": "Idrico e scarichi",
           "ordine": 2,
           "is_default": false,
-          "effetti": [
-            {
-              "tipo_effetto": "moltiplicatore_categoria",
-              "target_categoria_code": "A-EDILE",
-              "valore": "1.10",
-              "tipo_code": "leggera"
-            },
-            {
-              "tipo_effetto": "moltiplicatore_categoria",
-              "target_categoria_code": "A-EDILE",
-              "valore": "1.05",
-              "tipo_code": "moderata"
-            },
-            {
-              "tipo_effetto": "moltiplicatore_categoria",
-              "target_categoria_code": "A-EDILE",
-              "valore": "1.00",
-              "tipo_code": "totale"
-            }
-          ]
+          "effetti": []
         },
         {
           "code": "gas",
           "etichetta": "Gas",
           "ordine": 3,
           "is_default": false,
-          "effetti": [
-            {
-              "tipo_effetto": "moltiplicatore_categoria",
-              "target_categoria_code": "A-EDILE",
-              "valore": "1.04",
-              "tipo_code": "leggera"
-            },
-            {
-              "tipo_effetto": "moltiplicatore_categoria",
-              "target_categoria_code": "A-EDILE",
-              "valore": "1.02",
-              "tipo_code": "moderata"
-            },
-            {
-              "tipo_effetto": "moltiplicatore_categoria",
-              "target_categoria_code": "A-EDILE",
-              "valore": "1.00",
-              "tipo_code": "totale"
-            }
-          ]
+          "effetti": []
         },
         {
           "code": "termico",
           "etichetta": "Riscaldamento e climatizzazione",
           "ordine": 4,
           "is_default": false,
-          "effetti": [
-            {
-              "tipo_effetto": "moltiplicatore_categoria",
-              "target_categoria_code": "A-EDILE",
-              "valore": "1.16",
-              "tipo_code": "leggera"
-            },
-            {
-              "tipo_effetto": "moltiplicatore_categoria",
-              "target_categoria_code": "A-EDILE",
-              "valore": "1.09",
-              "tipo_code": "moderata"
-            },
-            {
-              "tipo_effetto": "moltiplicatore_categoria",
-              "target_categoria_code": "A-EDILE",
-              "valore": "1.00",
-              "tipo_code": "totale"
-            }
-          ]
+          "effetti": []
         }
-      ]
+      ],
+      "attiva": false
     },
     {
       "code": "livello_finiture",
@@ -1424,23 +1284,7 @@
           "etichetta": "Economiche",
           "ordine": 1,
           "is_default": false,
-          "effetti": [
-            {
-              "tipo_effetto": "moltiplicatore_categoria",
-              "target_categoria_code": "B-FINITURE",
-              "valore": "0.85"
-            },
-            {
-              "tipo_effetto": "moltiplicatore_categoria",
-              "target_categoria_code": "C-SERRAMENTI",
-              "valore": "0.88"
-            },
-            {
-              "tipo_effetto": "moltiplicatore_categoria",
-              "target_categoria_code": "D-PRODOTTI",
-              "valore": "0.85"
-            }
-          ],
+          "effetti": [],
           "descrizione": "Materiali di serie, buon rapporto qualita/prezzo."
         },
         {
@@ -1456,23 +1300,7 @@
           "etichetta": "Alte",
           "ordine": 3,
           "is_default": false,
-          "effetti": [
-            {
-              "tipo_effetto": "moltiplicatore_categoria",
-              "target_categoria_code": "B-FINITURE",
-              "valore": "1.30"
-            },
-            {
-              "tipo_effetto": "moltiplicatore_categoria",
-              "target_categoria_code": "C-SERRAMENTI",
-              "valore": "1.25"
-            },
-            {
-              "tipo_effetto": "moltiplicatore_categoria",
-              "target_categoria_code": "D-PRODOTTI",
-              "valore": "1.35"
-            }
-          ],
+          "effetti": [],
           "descrizione": "Materiali di pregio e finiture su misura."
         }
       ]
@@ -1541,42 +1369,48 @@
           "etichetta": "Cucina",
           "descrizione": "Mobili, elettrodomestici da incasso, piano e schienale.",
           "ordine": 1,
-          "is_default": false
+          "is_default": false,
+          "effetti": []
         },
         {
           "code": "soggiorno",
           "etichetta": "Soggiorno",
           "descrizione": "Divano, tavolo e sedie, parete attrezzata.",
           "ordine": 2,
-          "is_default": false
+          "is_default": false,
+          "effetti": []
         },
         {
           "code": "camera",
           "etichetta": "Camera matrimoniale",
           "descrizione": "Letto, armadio, comodini.",
           "ordine": 3,
-          "is_default": false
+          "is_default": false,
+          "effetti": []
         },
         {
           "code": "cameretta",
           "etichetta": "Cameretta",
           "descrizione": "Letto, armadio, scrivania.",
           "ordine": 4,
-          "is_default": false
+          "is_default": false,
+          "effetti": []
         },
         {
           "code": "bagno",
           "etichetta": "Bagno",
           "descrizione": "Mobile lavabo, specchio, accessori. I sanitari stanno nei lavori.",
           "ordine": 5,
-          "is_default": false
+          "is_default": false,
+          "effetti": []
         },
         {
           "code": "ingresso",
           "etichetta": "Ingresso e studio",
           "descrizione": "Scarpiera, libreria, scrivania.",
           "ordine": 6,
-          "is_default": false
+          "is_default": false,
+          "effetti": []
         }
       ]
     },
@@ -1876,13 +1710,7 @@
           "etichetta": "Cambio caldaia o pompa di calore",
           "ordine": 4,
           "is_default": false,
-          "effetti": [
-            {
-              "tipo_effetto": "eur_fisso_categoria",
-              "target_categoria_code": "A-EDILE",
-              "valore": "6500"
-            }
-          ],
+          "effetti": [],
           "descrizione": "Costo una tantum: una caldaia costa quel che costa, non 45 euro al metro quadro."
         }
       ],
@@ -2019,46 +1847,6 @@
               }
             },
             {
-              "tipo_effetto": "escludi",
-              "target_voce": {
-                "categoria_code": "B-FINITURE",
-                "sottocategoria": "RUBINETTERIE",
-                "voce": "Bidet in porcellana dura (vetrochina): monoforo con erogazione dalla rubinetteria, 36 × 54 × 39 cm"
-              }
-            },
-            {
-              "tipo_effetto": "includi",
-              "target_voce": {
-                "categoria_code": "B-FINITURE",
-                "sottocategoria": "RUBINETTERIE",
-                "voce": "Cassetta d'incasso da 9 litri, per posa in muratura, con regolazione del flusso e doppio tipo di risciacquo, allacciamento alla rete idrica sul lato superiore da 1/2\", con rubinetto d'arresto, fissaggi per la cassetta e rete di rivestimento per l'intonaco, con tubo di risciacquamento in polietilene "
-              }
-            },
-            {
-              "tipo_effetto": "escludi",
-              "target_voce": {
-                "categoria_code": "B-FINITURE",
-                "sottocategoria": "RUBINETTERIE",
-                "voce": "Miscelatore monocomando cromato per bidet, erogazione a doccetta orientabile, completo di scarico, senza nipples e rosoni"
-              }
-            },
-            {
-              "tipo_effetto": "escludi",
-              "target_voce": {
-                "categoria_code": "B-FINITURE",
-                "sottocategoria": "RUBINETTERIE",
-                "voce": "Vasca in acrilico colore bianco, scarico centrale, per installazione ad incasso, inclusa piletta sifonata con foro ∅ 90 mm: rettangolare: 170 × 70"
-              }
-            },
-            {
-              "tipo_effetto": "escludi",
-              "target_voce": {
-                "categoria_code": "C-SERRAMENTI",
-                "sottocategoria": "PORTE",
-                "voce": "Porta interna in legno con anta mobile tamburata e con bordi impiallacciati, completa di telaio maestro in listellare impiallacciato dello spessore di 8/11 mm, coprifili ad incastro in multistrato e tutta la ferramenta necessaria per il fissaggio, movimento e chiusura, delle dimensioni standard di 2"
-              }
-            },
-            {
               "tipo_effetto": "includi",
               "target_voce": {
                 "categoria_code": "C-SERRAMENTI",
@@ -2096,6 +1884,62 @@
                 "categoria_code": "D-PRODOTTI",
                 "sottocategoria": "PRODOTTI",
                 "voce": "Fornitura di condizionatore SAMSUNG CEBU trialsplit"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "B.6.1"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "B.6.2"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "B.6.3"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "B.6.4"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "B.6.6"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "B.6.7"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "B.6.8"
               }
             }
           ]
@@ -2230,62 +2074,6 @@
             {
               "tipo_effetto": "escludi",
               "target_voce": {
-                "categoria_code": "B-FINITURE",
-                "sottocategoria": "RUBINETTERIE",
-                "voce": "Bidet in porcellana dura (vetrochina): monoforo con erogazione dalla rubinetteria, 36 × 54 × 39 cm"
-              }
-            },
-            {
-              "tipo_effetto": "escludi",
-              "target_voce": {
-                "categoria_code": "B-FINITURE",
-                "sottocategoria": "RUBINETTERIE",
-                "voce": "Miscelatore monocomando cromato per bidet, erogazione a doccetta orientabile, completo di scarico, senza nipples e rosoni"
-              }
-            },
-            {
-              "tipo_effetto": "includi",
-              "target_voce": {
-                "categoria_code": "B-FINITURE",
-                "sottocategoria": "RUBINETTERIE",
-                "voce": "Piatto doccia in acrilico colore bianco, scarico centrale, per installazione sopra pavimento, inclusa piletta sifonata con foro ∅ 90 mm: rettangolare: 120 × 80 × 4 cm o 100 × 80 × 4 cm"
-              }
-            },
-            {
-              "tipo_effetto": "escludi",
-              "target_voce": {
-                "categoria_code": "B-FINITURE",
-                "sottocategoria": "RUBINETTERIE",
-                "voce": "Vasca in acrilico colore bianco, scarico centrale, per installazione ad incasso, inclusa piletta sifonata con foro ∅ 90 mm: rettangolare: 170 × 70"
-              }
-            },
-            {
-              "tipo_effetto": "includi",
-              "target_voce": {
-                "categoria_code": "B-FINITURE",
-                "sottocategoria": "RUBINETTERIE",
-                "voce": "Vaso igienico in porcellana vetrificata (vetrochina), esclusi accessori di fissaggio: sospeso con scarico a parete"
-              }
-            },
-            {
-              "tipo_effetto": "includi",
-              "target_voce": {
-                "categoria_code": "C-SERRAMENTI",
-                "sottocategoria": "PORTE",
-                "voce": "Porta in legno scorrevole interno muro con anta tamburata e bordi impiallacciati, spessore 8/11 mm, coprifili ad incastro in multistrato, serratura a gancio con nottolino e maniglia ad incasso, dimensioni 210 × 60 ÷ 90 cm:cieca liscia, anta singola:noce tanganika"
-              }
-            },
-            {
-              "tipo_effetto": "escludi",
-              "target_voce": {
-                "categoria_code": "C-SERRAMENTI",
-                "sottocategoria": "PORTE",
-                "voce": "Porta interna in legno con anta mobile tamburata e con bordi impiallacciati, completa di telaio maestro in listellare impiallacciato dello spessore di 8/11 mm, coprifili ad incastro in multistrato e tutta la ferramenta necessaria per il fissaggio, movimento e chiusura, delle dimensioni standard di 2"
-              }
-            },
-            {
-              "tipo_effetto": "escludi",
-              "target_voce": {
                 "categoria_code": "D-PRODOTTI",
                 "sottocategoria": "PRODOTTI",
                 "voce": "Fornitura di condizionatore DAIKIN PREFERA dualsplit"
@@ -2321,6 +2109,86 @@
                 "categoria_code": "D-PRODOTTI",
                 "sottocategoria": "PRODOTTI",
                 "voce": "Fornitura di condizionatore SAMSUNG CEBU trialsplit"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "B.6.1"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "B.6.2"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "B.6.3"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "B.6.4"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "B.6.6"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "B.6.9"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "B.6.10"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "B.6.11"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "B.6.12"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "PAVIMENTI E RIVESTIMENTI GRES",
+                "voce": "B.1.6"
               }
             }
           ]
@@ -2447,70 +2315,6 @@
             {
               "tipo_effetto": "escludi",
               "target_voce": {
-                "categoria_code": "B-FINITURE",
-                "sottocategoria": "RUBINETTERIE",
-                "voce": "Bidet in porcellana dura (vetrochina): monoforo con erogazione dalla rubinetteria, 36 × 54 × 39 cm"
-              }
-            },
-            {
-              "tipo_effetto": "includi",
-              "target_voce": {
-                "categoria_code": "B-FINITURE",
-                "sottocategoria": "RUBINETTERIE",
-                "voce": "Bidet in porcellana dura (vetrochina): sospeso, monoforo con erogazione dalla rubinetteria. 35 × 57 × 32 cm"
-              }
-            },
-            {
-              "tipo_effetto": "includi",
-              "target_voce": {
-                "categoria_code": "B-FINITURE",
-                "sottocategoria": "RUBINETTERIE",
-                "voce": "Cabina per piatto doccia composta da porta con profili in alluminio verniciato a caldo con resine epossidiche, altezza 1850 mm, lastre trasparenti con guarnizioni in gomma trattate con antimuffa, chiusura anta apribile mediante magnete:una porta a soffietto con apertura verso l'interno, con vetro st"
-              }
-            },
-            {
-              "tipo_effetto": "escludi",
-              "target_voce": {
-                "categoria_code": "B-FINITURE",
-                "sottocategoria": "RUBINETTERIE",
-                "voce": "Miscelatore monocomando cromato per bidet, erogazione a doccetta orientabile, completo di scarico, senza nipples e rosoni"
-              }
-            },
-            {
-              "tipo_effetto": "escludi",
-              "target_voce": {
-                "categoria_code": "B-FINITURE",
-                "sottocategoria": "RUBINETTERIE",
-                "voce": "Vasca in acrilico colore bianco, scarico centrale, per installazione ad incasso, inclusa piletta sifonata con foro ∅ 90 mm: rettangolare: 170 × 70"
-              }
-            },
-            {
-              "tipo_effetto": "includi",
-              "target_voce": {
-                "categoria_code": "B-FINITURE",
-                "sottocategoria": "RUBINETTERIE",
-                "voce": "Vaso igienico in porcellana vetrificata (vetrochina), esclusi accessori di fissaggio: scarico a pavimento"
-              }
-            },
-            {
-              "tipo_effetto": "includi",
-              "target_voce": {
-                "categoria_code": "C-SERRAMENTI",
-                "sottocategoria": "PORTE",
-                "voce": "Porta in legno scorrevole interno muro con anta tamburata e bordi impiallacciati, spessore 8/11 mm, coprifili ad incastro in multistrato, serratura a gancio con nottolino e maniglia ad incasso, dimensioni 210 × 60 ÷ 90 cm:cieca liscia, anta singola:laccata bianca"
-              }
-            },
-            {
-              "tipo_effetto": "escludi",
-              "target_voce": {
-                "categoria_code": "C-SERRAMENTI",
-                "sottocategoria": "PORTE",
-                "voce": "Porta interna in legno con anta mobile tamburata e con bordi impiallacciati, completa di telaio maestro in listellare impiallacciato dello spessore di 8/11 mm, coprifili ad incastro in multistrato e tutta la ferramenta necessaria per il fissaggio, movimento e chiusura, delle dimensioni standard di 2"
-              }
-            },
-            {
-              "tipo_effetto": "escludi",
-              "target_voce": {
                 "categoria_code": "D-PRODOTTI",
                 "sottocategoria": "PRODOTTI",
                 "voce": "Fornitura di condizionatore DAIKIN PREFERA dualsplit"
@@ -2546,6 +2350,78 @@
                 "categoria_code": "D-PRODOTTI",
                 "sottocategoria": "PRODOTTI",
                 "voce": "Fornitura di condizionatore SAMSUNG CEBU trialsplit"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "B.6.1"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "B.6.2"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "B.6.3"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "B.6.4"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "B.6.6"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "B.6.9"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "B.6.10"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "B.6.11"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "B-FINITURE",
+                "sottocategoria": "RUBINETTERIE",
+                "voce": "B.6.12"
               }
             }
           ]
@@ -4181,6 +4057,574 @@
           ]
         }
       ]
+    },
+    {
+      "code": "tipo_muri_nuovi",
+      "testo": "Con cosa vuoi costruire i muri nuovi?",
+      "gruppo": "ambienti",
+      "ordine": 86,
+      "tipo_controllo": "scelta_singola",
+      "visibile_se_domanda_code": "muri_lavori",
+      "visibile_se_opzione_code": "si",
+      "help": "Il cartongesso e' piu' veloce e leggero, i blocchi tipo Siporex isolano meglio.",
+      "opzioni": [
+        {
+          "code": "forati",
+          "etichetta": "Mattoni forati",
+          "ordine": 1,
+          "is_default": true,
+          "effetti": []
+        },
+        {
+          "code": "siporex",
+          "etichetta": "Blocchi tipo Siporex",
+          "ordine": 2,
+          "is_default": false,
+          "effetti": []
+        },
+        {
+          "code": "cartongesso",
+          "etichetta": "Cartongesso",
+          "ordine": 3,
+          "is_default": false,
+          "effetti": []
+        }
+      ],
+      "tier_minimo": "free",
+      "obbligatoria": false
+    },
+    {
+      "code": "interv_pavimenti",
+      "testo": "Cosa fai con i pavimenti?",
+      "gruppo": "ristrutturazione",
+      "ordine": 87,
+      "tipo_controllo": "scelta_singola",
+      "help": "Posare sopra l'esistente costa meno; demolire permette di rifare massetto e impianti a pavimento.",
+      "opzioni": [
+        {
+          "code": "mantieni",
+          "etichetta": "Li tengo",
+          "ordine": 1,
+          "is_default": false,
+          "effetti": []
+        },
+        {
+          "code": "sovrapponi",
+          "etichetta": "Posa sopra l'esistente",
+          "ordine": 2,
+          "is_default": false,
+          "effetti": []
+        },
+        {
+          "code": "rifai",
+          "etichetta": "Demolisco e rifaccio, con il massetto",
+          "ordine": 3,
+          "is_default": true,
+          "effetti": []
+        }
+      ],
+      "tier_minimo": "free",
+      "obbligatoria": false
+    },
+    {
+      "code": "tipo_massetto",
+      "testo": "Che massetto vuoi?",
+      "gruppo": "ristrutturazione",
+      "ordine": 88,
+      "tipo_controllo": "scelta_singola",
+      "visibile_se_domanda_code": "interv_pavimenti",
+      "visibile_se_opzione_code": "rifai",
+      "help": "Il premiscelato asciuga in fretta; il termoacustico isola dal piano di sotto.",
+      "opzioni": [
+        {
+          "code": "sabbia_cemento",
+          "etichetta": "Sabbia e cemento",
+          "ordine": 1,
+          "is_default": false,
+          "effetti": []
+        },
+        {
+          "code": "premiscelato",
+          "etichetta": "Premiscelato rapido",
+          "ordine": 2,
+          "is_default": true,
+          "effetti": []
+        },
+        {
+          "code": "termoacustico",
+          "etichetta": "Termoacustico",
+          "ordine": 3,
+          "is_default": false,
+          "effetti": []
+        }
+      ],
+      "tier_minimo": "free",
+      "obbligatoria": false
+    },
+    {
+      "code": "interv_bagni",
+      "testo": "Rifai i bagni?",
+      "gruppo": "ristrutturazione",
+      "ordine": 89,
+      "tipo_controllo": "scelta_singola",
+      "help": "Rifare un bagno vuol dire sanitari, rivestimenti, impianto idrico e impermeabilizzazione.",
+      "opzioni": [
+        {
+          "code": "nessuno",
+          "etichetta": "No",
+          "ordine": 1,
+          "is_default": false,
+          "effetti": []
+        },
+        {
+          "code": "uno",
+          "etichetta": "Uno",
+          "ordine": 2,
+          "is_default": true,
+          "effetti": []
+        },
+        {
+          "code": "tutti",
+          "etichetta": "Tutti",
+          "ordine": 3,
+          "is_default": false,
+          "effetti": []
+        }
+      ],
+      "tier_minimo": "free",
+      "obbligatoria": false
+    },
+    {
+      "code": "interv_cucina",
+      "testo": "Rifai gli impianti della cucina?",
+      "gruppo": "ristrutturazione",
+      "ordine": 90,
+      "tipo_controllo": "toggle",
+      "help": "Acqua, scarichi, linea del piano cottura e foro per la cappa. I mobili sono a parte.",
+      "opzioni": [
+        {
+          "code": "no",
+          "etichetta": "No",
+          "ordine": 1,
+          "is_default": false,
+          "effetti": []
+        },
+        {
+          "code": "si",
+          "etichetta": "Si'",
+          "ordine": 2,
+          "is_default": true,
+          "effetti": []
+        }
+      ],
+      "tier_minimo": "free",
+      "obbligatoria": false
+    },
+    {
+      "code": "cucina_gas",
+      "testo": "Il piano cottura sara' a gas?",
+      "gruppo": "ristrutturazione",
+      "ordine": 91,
+      "tipo_controllo": "toggle",
+      "visibile_se_domanda_code": "interv_cucina",
+      "visibile_se_opzione_code": "si",
+      "help": "Con l'induzione serve una linea elettrica dedicata, col gas l'impianto gas.",
+      "opzioni": [
+        {
+          "code": "no",
+          "etichetta": "No",
+          "ordine": 1,
+          "is_default": true,
+          "effetti": []
+        },
+        {
+          "code": "si",
+          "etichetta": "Si'",
+          "ordine": 2,
+          "is_default": false,
+          "effetti": []
+        }
+      ],
+      "tier_minimo": "free",
+      "obbligatoria": false
+    },
+    {
+      "code": "interv_elettrico",
+      "testo": "E l'impianto elettrico?",
+      "gruppo": "ristrutturazione",
+      "ordine": 92,
+      "tipo_controllo": "scelta_singola",
+      "help": "Il rifacimento comprende quadro, punti luce e certificazione.",
+      "opzioni": [
+        {
+          "code": "nessuno",
+          "etichetta": "Lo tengo",
+          "ordine": 1,
+          "is_default": false,
+          "effetti": []
+        },
+        {
+          "code": "modifica",
+          "etichetta": "Lo modifico",
+          "ordine": 2,
+          "is_default": false,
+          "effetti": []
+        },
+        {
+          "code": "rifacimento",
+          "etichetta": "Lo rifaccio",
+          "ordine": 3,
+          "is_default": true,
+          "effetti": []
+        }
+      ],
+      "tier_minimo": "free",
+      "obbligatoria": false
+    },
+    {
+      "code": "idrico_collettore",
+      "testo": "Vuoi l'impianto idrico a collettore?",
+      "gruppo": "ristrutturazione",
+      "ordine": 93,
+      "tipo_controllo": "toggle",
+      "help": "Ogni apparecchio ha la sua tubazione e una chiusura dedicata.",
+      "opzioni": [
+        {
+          "code": "no",
+          "etichetta": "No",
+          "ordine": 1,
+          "is_default": true,
+          "effetti": []
+        },
+        {
+          "code": "si",
+          "etichetta": "Si'",
+          "ordine": 2,
+          "is_default": false,
+          "effetti": []
+        }
+      ],
+      "tier_minimo": "free",
+      "obbligatoria": false
+    },
+    {
+      "code": "interv_riscaldamento",
+      "testo": "Cosa fai con il riscaldamento?",
+      "gruppo": "ristrutturazione",
+      "ordine": 94,
+      "tipo_controllo": "scelta_singola",
+      "help": "Smontare e rimontare i radiatori serve quando si tinteggia o si rifanno i pavimenti.",
+      "opzioni": [
+        {
+          "code": "nessuno",
+          "etichetta": "Niente",
+          "ordine": 1,
+          "is_default": false,
+          "effetti": []
+        },
+        {
+          "code": "smonta_rimonta",
+          "etichetta": "Smonto e rimonto i radiatori",
+          "ordine": 2,
+          "is_default": true,
+          "effetti": []
+        },
+        {
+          "code": "radiatori",
+          "etichetta": "Radiatori nuovi",
+          "ordine": 3,
+          "is_default": false,
+          "effetti": []
+        },
+        {
+          "code": "pavimento",
+          "etichetta": "Riscaldamento a pavimento",
+          "ordine": 4,
+          "is_default": false,
+          "effetti": []
+        }
+      ],
+      "tier_minimo": "free",
+      "obbligatoria": false
+    },
+    {
+      "code": "riscaldamento_centralizzato",
+      "testo": "Il riscaldamento e' centralizzato?",
+      "gruppo": "ristrutturazione",
+      "ordine": 96,
+      "tipo_controllo": "toggle",
+      "help": "Con il centralizzato toccare i radiatori richiede di bloccare l'impianto condominiale.",
+      "opzioni": [
+        {
+          "code": "no",
+          "etichetta": "No",
+          "ordine": 1,
+          "is_default": true,
+          "effetti": []
+        },
+        {
+          "code": "si",
+          "etichetta": "Si'",
+          "ordine": 2,
+          "is_default": false,
+          "effetti": []
+        }
+      ],
+      "tier_minimo": "free",
+      "obbligatoria": false
+    },
+    {
+      "code": "interv_clima",
+      "testo": "Vuoi la climatizzazione?",
+      "gruppo": "ristrutturazione",
+      "ordine": 97,
+      "tipo_controllo": "scelta_singola",
+      "help": "Il canalizzato nasconde le macchine nel controsoffitto e distribuisce l'aria con bocchette.",
+      "opzioni": [
+        {
+          "code": "nessuno",
+          "etichetta": "No",
+          "ordine": 1,
+          "is_default": true,
+          "effetti": []
+        },
+        {
+          "code": "split",
+          "etichetta": "Si', a split",
+          "ordine": 2,
+          "is_default": false,
+          "effetti": []
+        },
+        {
+          "code": "canalizzato",
+          "etichetta": "Si', canalizzata",
+          "ordine": 3,
+          "is_default": false,
+          "effetti": []
+        }
+      ],
+      "tier_minimo": "free",
+      "obbligatoria": false
+    },
+    {
+      "code": "interv_caldaia",
+      "testo": "Sostituisci la caldaia?",
+      "gruppo": "ristrutturazione",
+      "ordine": 100,
+      "tipo_controllo": "toggle",
+      "help": "Fornitura, posa e allaccio gas della caldaia.",
+      "opzioni": [
+        {
+          "code": "no",
+          "etichetta": "No",
+          "ordine": 1,
+          "is_default": true,
+          "effetti": []
+        },
+        {
+          "code": "si",
+          "etichetta": "Si'",
+          "ordine": 2,
+          "is_default": false,
+          "effetti": []
+        }
+      ],
+      "tier_minimo": "free",
+      "obbligatoria": false
+    },
+    {
+      "code": "interv_porte",
+      "testo": "E le porte interne?",
+      "gruppo": "ristrutturazione",
+      "ordine": 101,
+      "tipo_controllo": "scelta_singola",
+      "help": "Le scorrevoli a scomparsa richiedono un controtelaio dentro al muro.",
+      "opzioni": [
+        {
+          "code": "mantieni",
+          "etichetta": "Le tengo",
+          "ordine": 1,
+          "is_default": false,
+          "effetti": []
+        },
+        {
+          "code": "battente",
+          "etichetta": "Nuove a battente",
+          "ordine": 2,
+          "is_default": true,
+          "effetti": []
+        },
+        {
+          "code": "scorrevoli",
+          "etichetta": "Nuove scorrevoli",
+          "ordine": 3,
+          "is_default": false,
+          "effetti": []
+        }
+      ],
+      "tier_minimo": "free",
+      "obbligatoria": false
+    },
+    {
+      "code": "porta_blindata",
+      "testo": "Cambi la porta blindata?",
+      "gruppo": "ristrutturazione",
+      "ordine": 102,
+      "tipo_controllo": "toggle",
+      "opzioni": [
+        {
+          "code": "no",
+          "etichetta": "No",
+          "ordine": 1,
+          "is_default": true,
+          "effetti": []
+        },
+        {
+          "code": "si",
+          "etichetta": "Si'",
+          "ordine": 2,
+          "is_default": false,
+          "effetti": []
+        }
+      ],
+      "tier_minimo": "free",
+      "obbligatoria": false,
+      "help": null
+    },
+    {
+      "code": "interv_serramenti",
+      "testo": "Sostituisci finestre e portefinestre?",
+      "gruppo": "ristrutturazione",
+      "ordine": 103,
+      "tipo_controllo": "scelta_singola",
+      "help": "Infissi in PVC con vetro di sicurezza, montati sul controtelaio esistente.",
+      "opzioni": [
+        {
+          "code": "mantieni",
+          "etichetta": "No",
+          "ordine": 1,
+          "is_default": true,
+          "effetti": []
+        },
+        {
+          "code": "sostituisci",
+          "etichetta": "Si'",
+          "ordine": 2,
+          "is_default": false,
+          "effetti": []
+        }
+      ],
+      "tier_minimo": "free",
+      "obbligatoria": false
+    },
+    {
+      "code": "tapparelle",
+      "testo": "Con le tapparelle?",
+      "gruppo": "ristrutturazione",
+      "ordine": 104,
+      "tipo_controllo": "scelta_singola",
+      "visibile_se_domanda_code": "interv_serramenti",
+      "visibile_se_opzione_code": "sostituisci",
+      "opzioni": [
+        {
+          "code": "nessuna",
+          "etichetta": "No",
+          "ordine": 1,
+          "is_default": false,
+          "effetti": []
+        },
+        {
+          "code": "pvc",
+          "etichetta": "Si', in PVC",
+          "ordine": 2,
+          "is_default": true,
+          "effetti": []
+        },
+        {
+          "code": "alluminio",
+          "etichetta": "Si', in alluminio",
+          "ordine": 3,
+          "is_default": false,
+          "effetti": []
+        }
+      ],
+      "tier_minimo": "free",
+      "obbligatoria": false,
+      "help": null
+    },
+    {
+      "code": "zanzariere",
+      "testo": "Aggiungi le zanzariere?",
+      "gruppo": "ristrutturazione",
+      "ordine": 105,
+      "tipo_controllo": "toggle",
+      "visibile_se_domanda_code": "interv_serramenti",
+      "visibile_se_opzione_code": "sostituisci",
+      "opzioni": [
+        {
+          "code": "no",
+          "etichetta": "No",
+          "ordine": 1,
+          "is_default": true,
+          "effetti": []
+        },
+        {
+          "code": "si",
+          "etichetta": "Si'",
+          "ordine": 2,
+          "is_default": false,
+          "effetti": []
+        }
+      ],
+      "tier_minimo": "free",
+      "obbligatoria": false,
+      "help": null
+    },
+    {
+      "code": "controsoffitti_mq",
+      "testo": "Quanti m² di controsoffitto vuoi?",
+      "gruppo": "ristrutturazione",
+      "ordine": 106,
+      "tipo_controllo": "stepper",
+      "attributo_code": "controsoffitti_mq",
+      "help": "In cartongesso, per esempio per nascondere impianti o fare luce indiretta. Zero se non ne vuoi.",
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "ordine": 1,
+          "is_default": true,
+          "effetti": []
+        }
+      ],
+      "tier_minimo": "free",
+      "obbligatoria": false
+    },
+    {
+      "code": "tinteggiatura",
+      "testo": "Tinteggi pareti e soffitti?",
+      "gruppo": "ristrutturazione",
+      "ordine": 107,
+      "tipo_controllo": "toggle",
+      "opzioni": [
+        {
+          "code": "no",
+          "etichetta": "No",
+          "ordine": 1,
+          "is_default": false,
+          "effetti": []
+        },
+        {
+          "code": "si",
+          "etichetta": "Si'",
+          "ordine": 2,
+          "is_default": true,
+          "effetti": []
+        }
+      ],
+      "tier_minimo": "free",
+      "obbligatoria": false,
+      "help": null
     }
   ],
   "forfait_arredo": [

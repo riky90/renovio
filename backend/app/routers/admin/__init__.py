@@ -22,6 +22,7 @@ from app.routers.admin import (
     bonus,
     citta,
     coefficienti,
+    computo,
     dettaglio_pro,
     domande,
     export_log,
@@ -50,4 +51,5 @@ router.include_router(import_excel.router)
 router.include_router(utenti.router)
 router.include_router(dettaglio_pro.router)
 router.include_router(domande.router)
+router.include_router(computo.router)
 router.include_router(export_log.router)

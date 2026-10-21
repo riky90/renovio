@@ -1,26 +1,29 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: domande e motore parametrico
-status: milestone_complete
-last_updated: "2026-10-01T12:59:53.134Z"
-last_activity: 2026-10-01 — Milestone v2.0 completed and archived
+milestone: v3.0
+milestone_name: computo parametrico
+status: in_progress
+last_updated: "2026-10-21T00:00:00.000Z"
+last_activity: 2026-10-21 — fase 11 computo parametrico in implementazione
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 53
-  completed_plans: 53
-  percent: 100
+  total_phases: 1
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State — ristruttura-stima
 
 ## Current Position
 
-Phase: Milestone v2.0 complete
+Phase: 11 — computo parametrico (milestone v3.0)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-10-01 — Milestone v2.0 completed and archived (tag `v2.0`)
+Status: implementazione in corso sul branch `claude/great-wozniak-1ysani`
+Last activity: 2026-10-21 — motore unico Free/Pro sul computo parametrico, migrazioni 0025-0026,
+domande d'intervento e preset, Excel del computo. Vedi `docs/proposta-computo-parametrico.md` §10.
+
+### v2.0 (storico)
 
 La v2.0 e' **chiusa ma non ancora in produzione**: `origin/main` e' fermo a `f011ed4`
 (v1.0), con circa 350 commit da pushare. Il push deploya su Render e migra il DB di

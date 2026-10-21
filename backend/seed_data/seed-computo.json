@@ -1,0 +1,4126 @@
+{
+  "nota": "BOZZA Fase 11 (2026-10-21), ragionata dalle colonne T/U e dalle note H del computo 2025. Curatela: il seed crea le righe che mancano e non riscrive quelle esistenti (D-41). Da tarare sui computi reali (TAR-01).",
+  "grandezze": [
+    {
+      "code": "superficie_calpestabile",
+      "nome": "Superficie calpestabile",
+      "um": "m²",
+      "descrizione": "Dalla domanda omonima; senza risposta 85% dei m² commerciali.",
+      "ordine": 10,
+      "costante": "0",
+      "da_attesa": true,
+      "arrotondamento": "vicino",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "mq",
+          "fattore": "0.85",
+          "per": null
+        }
+      ]
+    },
+    {
+      "code": "piano",
+      "nome": "Piano",
+      "um": "",
+      "descrizione": "Dalla domanda 'A che piano si trova?'.",
+      "ordine": 20,
+      "costante": "0",
+      "da_attesa": true,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "locali",
+      "nome": "Locali",
+      "um": "n",
+      "descrizione": "Esclusi bagni e cucina.",
+      "ordine": 30,
+      "costante": "3",
+      "da_attesa": true,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "bagni",
+      "nome": "Bagni",
+      "um": "n",
+      "descrizione": null,
+      "ordine": 40,
+      "costante": "1",
+      "da_attesa": true,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "finestre",
+      "nome": "Finestre",
+      "um": "n",
+      "descrizione": null,
+      "ordine": 50,
+      "costante": "0",
+      "da_attesa": true,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "portefinestre",
+      "nome": "Portefinestre",
+      "um": "n",
+      "descrizione": null,
+      "ordine": 60,
+      "costante": "0",
+      "da_attesa": true,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "porte",
+      "nome": "Porte interne",
+      "um": "n",
+      "descrizione": null,
+      "ordine": 70,
+      "costante": "0",
+      "da_attesa": true,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "condizionatori",
+      "nome": "Split da installare",
+      "um": "n",
+      "descrizione": null,
+      "ordine": 80,
+      "costante": "2",
+      "da_attesa": true,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "muri_da_recuperare",
+      "nome": "Muri da recuperare",
+      "um": "m²",
+      "descrizione": "Intonaco da spicconare e rifare.",
+      "ordine": 90,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "muri_da_rifare_mq",
+      "nome": "Muri da abbattere e rifare",
+      "um": "m²",
+      "descrizione": null,
+      "ordine": 100,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "muri_da_creare_mq",
+      "nome": "Muri nuovi",
+      "um": "m²",
+      "descrizione": null,
+      "ordine": 110,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "controsoffitti_mq",
+      "nome": "Controsoffitti",
+      "um": "m²",
+      "descrizione": null,
+      "ordine": 120,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "pav_sovrapponi",
+      "nome": "Pavimenti posati sopra l'esistente",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 130,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "pav_rifai",
+      "nome": "Pavimenti demoliti e rifatti",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 140,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "massetto_sabbia_cemento",
+      "nome": "Massetto sabbia e cemento",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 150,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "massetto_premiscelato",
+      "nome": "Massetto premiscelato",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 160,
+      "costante": "1",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "massetto_termoacustico",
+      "nome": "Massetto termoacustico",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 170,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "rifai_un_bagno",
+      "nome": "Si rifa' un bagno",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 180,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "rifai_tutti_bagni",
+      "nome": "Si rifanno tutti i bagni",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 190,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "cucina",
+      "nome": "Impianti cucina rifatti",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 200,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "cucina_gas",
+      "nome": "Piano cottura a gas",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 210,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "elettrico_modifica",
+      "nome": "Impianto elettrico modificato",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 220,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "elettrico_rifacimento",
+      "nome": "Impianto elettrico rifatto",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 230,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "idrico_collettore",
+      "nome": "Impianto idrico a collettore",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 240,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "risc_smonta",
+      "nome": "Radiatori smontati e rimontati",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 250,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "risc_radiatori",
+      "nome": "Radiatori nuovi",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 260,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "risc_pavimento",
+      "nome": "Riscaldamento a pavimento",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 270,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "risc_centralizzato",
+      "nome": "Riscaldamento centralizzato",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 280,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "clima_split",
+      "nome": "Climatizzazione a split",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 290,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "clima_canalizzato",
+      "nome": "Climatizzazione canalizzata",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 300,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "porte_battente",
+      "nome": "Porte nuove a battente",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 310,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "porte_scorrevoli",
+      "nome": "Porte nuove scorrevoli",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 320,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "blindata_nuova",
+      "nome": "Porta blindata nuova",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 330,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "serramenti_sostituisci",
+      "nome": "Serramenti sostituiti",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 340,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "tapp_pvc",
+      "nome": "Tapparelle in PVC",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 350,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "tapp_alluminio",
+      "nome": "Tapparelle in alluminio",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 360,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "zanzariere",
+      "nome": "Zanzariere",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 370,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "tinteggiatura",
+      "nome": "Tinteggiatura",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 380,
+      "costante": "1",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "muri_forati",
+      "nome": "Muri nuovi in forati",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 390,
+      "costante": "1",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "muri_siporex",
+      "nome": "Muri nuovi in blocchi tipo Siporex",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 400,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "muri_cartongesso",
+      "nome": "Muri nuovi in cartongesso",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 410,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "muri_portanti",
+      "nome": "Varchi su muri portanti",
+      "um": "flag",
+      "descrizione": "0/1 dalle risposte; il valore costante vale solo se la domanda e' nascosta.",
+      "ordine": 420,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "caldaia_nuova",
+      "nome": "Caldaia nuova",
+      "um": "flag",
+      "descrizione": "Da 'Sostituisci la caldaia?' o dall'efficientamento 'cambio caldaia'.",
+      "ordine": 430,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": "1",
+      "termini": []
+    },
+    {
+      "code": "mq_pavimento_posa",
+      "nome": "Pavimento da posare",
+      "um": "m²",
+      "descrizione": null,
+      "ordine": 440,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "superficie_calpestabile",
+          "fattore": "1",
+          "per": "pav_sovrapponi"
+        },
+        {
+          "sorgente": "superficie_calpestabile",
+          "fattore": "1",
+          "per": "pav_rifai"
+        }
+      ]
+    },
+    {
+      "code": "mq_pareti",
+      "nome": "Pareti",
+      "um": "m²",
+      "descrizione": "Superficie delle pareti: circa 2,9 m² per m² calpestabile (altezza 2,70).",
+      "ordine": 450,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "vicino",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "superficie_calpestabile",
+          "fattore": "2.9",
+          "per": null
+        }
+      ]
+    },
+    {
+      "code": "mq_soffitti",
+      "nome": "Soffitti",
+      "um": "m²",
+      "descrizione": null,
+      "ordine": 460,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "superficie_calpestabile",
+          "fattore": "1",
+          "per": null
+        }
+      ]
+    },
+    {
+      "code": "ml_battiscopa",
+      "nome": "Battiscopa",
+      "um": "ml",
+      "descrizione": "Perimetro dei locali, circa 1,1 ml per m².",
+      "ordine": 470,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "vicino",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "superficie_calpestabile",
+          "fattore": "1.1",
+          "per": null
+        }
+      ]
+    },
+    {
+      "code": "ml_battiscopa_posa",
+      "nome": "Battiscopa da posare",
+      "um": "ml",
+      "descrizione": null,
+      "ordine": 480,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "ml_battiscopa",
+          "fattore": "1",
+          "per": "pav_sovrapponi"
+        },
+        {
+          "sorgente": "ml_battiscopa",
+          "fattore": "1",
+          "per": "pav_rifai"
+        }
+      ]
+    },
+    {
+      "code": "bagni_rifatti",
+      "nome": "Bagni rifatti",
+      "um": "n",
+      "descrizione": null,
+      "ordine": 490,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "rifai_un_bagno",
+          "fattore": "1",
+          "per": null
+        },
+        {
+          "sorgente": "bagni",
+          "fattore": "1",
+          "per": "rifai_tutti_bagni"
+        }
+      ]
+    },
+    {
+      "code": "mq_rivestimenti",
+      "nome": "Rivestimenti",
+      "um": "m²",
+      "descrizione": "18 m² per bagno rifatto, 5 m² per la cucina.",
+      "ordine": 500,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "bagni_rifatti",
+          "fattore": "18",
+          "per": null
+        },
+        {
+          "sorgente": "cucina",
+          "fattore": "5",
+          "per": null
+        }
+      ]
+    },
+    {
+      "code": "punti_acqua",
+      "nome": "Punti acqua",
+      "um": "n",
+      "descrizione": "5 per bagno (lavabo, wc, bidet, doccia, lavatrice), 2 per la cucina.",
+      "ordine": 510,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "bagni_rifatti",
+          "fattore": "5",
+          "per": null
+        },
+        {
+          "sorgente": "cucina",
+          "fattore": "2",
+          "per": null
+        }
+      ]
+    },
+    {
+      "code": "centraline_idriche",
+      "nome": "Centraline a collettore",
+      "um": "n",
+      "descrizione": "Una ogni 5 chiusure (nota A.8.3).",
+      "ordine": 520,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "su",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "punti_acqua",
+          "fattore": "0.2",
+          "per": "idrico_collettore"
+        }
+      ]
+    },
+    {
+      "code": "n_radiatori",
+      "nome": "Radiatori della casa",
+      "um": "n",
+      "descrizione": "Un radiatore per locale e per bagno, piu' uno.",
+      "ordine": 530,
+      "costante": "1",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "locali",
+          "fattore": "1",
+          "per": null
+        },
+        {
+          "sorgente": "bagni",
+          "fattore": "1",
+          "per": null
+        }
+      ]
+    },
+    {
+      "code": "radiatori_nuovi",
+      "nome": "Radiatori nuovi",
+      "um": "n",
+      "descrizione": null,
+      "ordine": 540,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "n_radiatori",
+          "fattore": "1",
+          "per": "risc_radiatori"
+        }
+      ]
+    },
+    {
+      "code": "radiatori_smontati",
+      "nome": "Radiatori smontati e rimontati",
+      "um": "n",
+      "descrizione": null,
+      "ordine": 550,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "n_radiatori",
+          "fattore": "1",
+          "per": "risc_smonta"
+        }
+      ]
+    },
+    {
+      "code": "punti_termo",
+      "nome": "Punti termoidraulici",
+      "um": "n",
+      "descrizione": "Un punto per radiatore, piu' collettore e caldaia (nota A.8.10).",
+      "ordine": 560,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "radiatori_nuovi",
+          "fattore": "1",
+          "per": null
+        },
+        {
+          "sorgente": "risc_radiatori",
+          "fattore": "2",
+          "per": null
+        }
+      ]
+    },
+    {
+      "code": "scaldasalviette",
+      "nome": "Scaldasalviette",
+      "um": "n",
+      "descrizione": null,
+      "ordine": 570,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "bagni_rifatti",
+          "fattore": "1",
+          "per": "risc_radiatori"
+        }
+      ]
+    },
+    {
+      "code": "blocco_condominiale",
+      "nome": "Blocco impianto condominiale",
+      "um": "n",
+      "descrizione": null,
+      "ordine": 580,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "risc_centralizzato",
+          "fattore": "1",
+          "per": "risc_smonta"
+        },
+        {
+          "sorgente": "risc_centralizzato",
+          "fattore": "1",
+          "per": "risc_radiatori"
+        }
+      ]
+    },
+    {
+      "code": "punti_luce",
+      "nome": "Punti luce della casa",
+      "um": "n",
+      "descrizione": "Circa un punto ogni 2 m² commerciali.",
+      "ordine": 590,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "vicino",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "mq",
+          "fattore": "0.5",
+          "per": null
+        }
+      ]
+    },
+    {
+      "code": "punti_luce_nuovi",
+      "nome": "Punti luce nuovi",
+      "um": "n",
+      "descrizione": null,
+      "ordine": 600,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "punti_luce",
+          "fattore": "1",
+          "per": "elettrico_rifacimento"
+        }
+      ]
+    },
+    {
+      "code": "punti_luce_modificati",
+      "nome": "Punti luce modificati",
+      "um": "n",
+      "descrizione": "Circa un terzo dei punti in una modifica.",
+      "ordine": 610,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "su",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "punti_luce",
+          "fattore": "0.3",
+          "per": "elettrico_modifica"
+        }
+      ]
+    },
+    {
+      "code": "elettrico",
+      "nome": "Intervento sull'impianto elettrico",
+      "um": "flag",
+      "descrizione": null,
+      "ordine": 620,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "elettrico_modifica",
+          "fattore": "1",
+          "per": null
+        },
+        {
+          "sorgente": "elettrico_rifacimento",
+          "fattore": "1",
+          "per": null
+        }
+      ]
+    },
+    {
+      "code": "linee_dedicate",
+      "nome": "Linee dedicate al quadro",
+      "um": "n",
+      "descrizione": "Induzione e climatizzazione (nota A.8.18).",
+      "ordine": 630,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "cucina",
+          "fattore": "1",
+          "per": null
+        },
+        {
+          "sorgente": "cucina",
+          "fattore": "-1",
+          "per": "cucina_gas"
+        },
+        {
+          "sorgente": "clima_split",
+          "fattore": "1",
+          "per": null
+        },
+        {
+          "sorgente": "clima_canalizzato",
+          "fattore": "1",
+          "per": null
+        }
+      ]
+    },
+    {
+      "code": "punti_lampadari",
+      "nome": "Lampadari da montare",
+      "um": "n",
+      "descrizione": null,
+      "ordine": 640,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "locali",
+          "fattore": "1",
+          "per": "elettrico_rifacimento"
+        },
+        {
+          "sorgente": "bagni",
+          "fattore": "1",
+          "per": "elettrico_rifacimento"
+        },
+        {
+          "sorgente": "elettrico_rifacimento",
+          "fattore": "1",
+          "per": null
+        }
+      ]
+    },
+    {
+      "code": "n_split",
+      "nome": "Split",
+      "um": "n",
+      "descrizione": null,
+      "ordine": 650,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "condizionatori",
+          "fattore": "1",
+          "per": "clima_split"
+        }
+      ]
+    },
+    {
+      "code": "n_bocchette",
+      "nome": "Bocchette canalizzato",
+      "um": "n",
+      "descrizione": null,
+      "ordine": 660,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "locali",
+          "fattore": "1",
+          "per": "clima_canalizzato"
+        },
+        {
+          "sorgente": "clima_canalizzato",
+          "fattore": "1",
+          "per": null
+        }
+      ]
+    },
+    {
+      "code": "n_airzone",
+      "nome": "Zone air zone",
+      "um": "n",
+      "descrizione": null,
+      "ordine": 670,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "locali",
+          "fattore": "1",
+          "per": "clima_canalizzato"
+        }
+      ]
+    },
+    {
+      "code": "porte_battente_n",
+      "nome": "Porte a battente nuove",
+      "um": "n",
+      "descrizione": null,
+      "ordine": 680,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "porte",
+          "fattore": "1",
+          "per": "porte_battente"
+        }
+      ]
+    },
+    {
+      "code": "porte_scorrevoli_n",
+      "nome": "Porte scorrevoli nuove",
+      "um": "n",
+      "descrizione": null,
+      "ordine": 690,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "porte",
+          "fattore": "1",
+          "per": "porte_scorrevoli"
+        }
+      ]
+    },
+    {
+      "code": "porte_nuove",
+      "nome": "Porte nuove",
+      "um": "n",
+      "descrizione": null,
+      "ordine": 700,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "porte_battente_n",
+          "fattore": "1",
+          "per": null
+        },
+        {
+          "sorgente": "porte_scorrevoli_n",
+          "fattore": "1",
+          "per": null
+        }
+      ]
+    },
+    {
+      "code": "taglio_blindata",
+      "nome": "Taglio della porta blindata",
+      "um": "n",
+      "descrizione": "Pavimento rifatto con la blindata esistente.",
+      "ordine": 710,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "pav_rifai",
+          "fattore": "1",
+          "per": null
+        },
+        {
+          "sorgente": "pav_rifai",
+          "fattore": "-1",
+          "per": "blindata_nuova"
+        }
+      ]
+    },
+    {
+      "code": "mq_finestre",
+      "nome": "Finestre da sostituire",
+      "um": "m²",
+      "descrizione": "2 m² a finestra, il minimo della nota.",
+      "ordine": 720,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "finestre",
+          "fattore": "2",
+          "per": "serramenti_sostituisci"
+        }
+      ]
+    },
+    {
+      "code": "mq_portefinestre",
+      "nome": "Portefinestre da sostituire",
+      "um": "m²",
+      "descrizione": null,
+      "ordine": 730,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "portefinestre",
+          "fattore": "2.5",
+          "per": "serramenti_sostituisci"
+        }
+      ]
+    },
+    {
+      "code": "mq_oscuranti",
+      "nome": "Superficie oscuranti",
+      "um": "m²",
+      "descrizione": null,
+      "ordine": 740,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "mq_finestre",
+          "fattore": "1",
+          "per": null
+        },
+        {
+          "sorgente": "mq_portefinestre",
+          "fattore": "1",
+          "per": null
+        }
+      ]
+    },
+    {
+      "code": "tapparelle",
+      "nome": "Tapparelle nuove",
+      "um": "flag",
+      "descrizione": null,
+      "ordine": 750,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "tapp_pvc",
+          "fattore": "1",
+          "per": null
+        },
+        {
+          "sorgente": "tapp_alluminio",
+          "fattore": "1",
+          "per": null
+        }
+      ]
+    },
+    {
+      "code": "ml_cassonetti",
+      "nome": "Cassonetti",
+      "um": "ml",
+      "descrizione": "1,2 ml per serramento con tapparella.",
+      "ordine": 760,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "finestre",
+          "fattore": "1.2",
+          "per": "tapparelle"
+        },
+        {
+          "sorgente": "portefinestre",
+          "fattore": "1.2",
+          "per": "tapparelle"
+        }
+      ]
+    },
+    {
+      "code": "muri_nuovi_mq",
+      "nome": "Muri da costruire",
+      "um": "m²",
+      "descrizione": null,
+      "ordine": 770,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "muri_da_rifare_mq",
+          "fattore": "1",
+          "per": null
+        },
+        {
+          "sorgente": "muri_da_creare_mq",
+          "fattore": "1",
+          "per": null
+        }
+      ]
+    },
+    {
+      "code": "muri_nuovi_forati",
+      "nome": "Muri nuovi in forati",
+      "um": "m²",
+      "descrizione": null,
+      "ordine": 780,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "muri_nuovi_mq",
+          "fattore": "1",
+          "per": "muri_forati"
+        }
+      ]
+    },
+    {
+      "code": "muri_nuovi_siporex",
+      "nome": "Muri nuovi in Siporex",
+      "um": "m²",
+      "descrizione": null,
+      "ordine": 790,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "muri_nuovi_mq",
+          "fattore": "1",
+          "per": "muri_siporex"
+        }
+      ]
+    },
+    {
+      "code": "muri_nuovi_cartongesso",
+      "nome": "Muri nuovi in cartongesso",
+      "um": "m²",
+      "descrizione": null,
+      "ordine": 800,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "muri_nuovi_mq",
+          "fattore": "1",
+          "per": "muri_cartongesso"
+        }
+      ]
+    },
+    {
+      "code": "intonaco_mq",
+      "nome": "Intonaco",
+      "um": "m²",
+      "descrizione": "Due lati dei muri in laterizio, piu' i muri da recuperare (nota A.4.1).",
+      "ordine": 810,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "muri_nuovi_forati",
+          "fattore": "2",
+          "per": null
+        },
+        {
+          "sorgente": "muri_nuovi_siporex",
+          "fattore": "2",
+          "per": null
+        },
+        {
+          "sorgente": "muri_da_recuperare",
+          "fattore": "1",
+          "per": null
+        }
+      ]
+    },
+    {
+      "code": "architravi",
+      "nome": "Architravi",
+      "um": "n",
+      "descrizione": "Una porta ogni 10 m² di muro nuovo.",
+      "ordine": 820,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "su",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "muri_nuovi_forati",
+          "fattore": "0.1",
+          "per": null
+        },
+        {
+          "sorgente": "muri_nuovi_siporex",
+          "fattore": "0.1",
+          "per": null
+        }
+      ]
+    },
+    {
+      "code": "piano_movimentazione",
+      "nome": "Piani di movimentazione",
+      "um": "n",
+      "descrizione": "Il piano dell'immobile piu' uno: anche al piano terra il materiale si movimenta.",
+      "ordine": 830,
+      "costante": "1",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "piano",
+          "fattore": "1",
+          "per": null
+        }
+      ]
+    },
+    {
+      "code": "pareti_tinteggiate",
+      "nome": "Pareti da tinteggiare",
+      "um": "m²",
+      "descrizione": null,
+      "ordine": 840,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "mq_pareti",
+          "fattore": "1",
+          "per": "tinteggiatura"
+        }
+      ]
+    },
+    {
+      "code": "soffitti_tinteggiati",
+      "nome": "Soffitti da tinteggiare",
+      "um": "m²",
+      "descrizione": null,
+      "ordine": 850,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "mq_soffitti",
+          "fattore": "1",
+          "per": "tinteggiatura"
+        }
+      ]
+    },
+    {
+      "code": "superfici_fondo",
+      "nome": "Superfici con fondo",
+      "um": "m²",
+      "descrizione": null,
+      "ordine": 860,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "pareti_tinteggiate",
+          "fattore": "1",
+          "per": null
+        },
+        {
+          "sorgente": "soffitti_tinteggiati",
+          "fattore": "1",
+          "per": null
+        }
+      ]
+    },
+    {
+      "code": "rasatura_mq",
+      "nome": "Rasatura",
+      "um": "m²",
+      "descrizione": "30% delle pareti tinteggiate piu' tutto l'intonaco nuovo.",
+      "ordine": 870,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "vicino",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "pareti_tinteggiate",
+          "fattore": "0.3",
+          "per": null
+        },
+        {
+          "sorgente": "intonaco_mq",
+          "fattore": "1",
+          "per": null
+        }
+      ]
+    }
+  ],
+  "regole": [
+    {
+      "voce": "A.0.1",
+      "tipo": "scaglioni",
+      "grandezza": "mq",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "600 fino a 100 m² (nota H); oltre, bozza.",
+      "sorgenti": [],
+      "scaglioni": [
+        {
+          "fino_a": "100",
+          "valore": "1"
+        },
+        {
+          "fino_a": "150",
+          "valore": "1.25"
+        },
+        {
+          "fino_a": null,
+          "valore": "1.5"
+        }
+      ]
+    },
+    {
+      "voce": "A.0.2",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Sempre presente (col. T: Fisso).",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.0.3",
+      "tipo": "grandezza",
+      "grandezza": "bagni_rifatti",
+      "fattore": "0.5",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Piatto doccia: meta' dei bagni (l'altra meta' ha la vasca).",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.0.4",
+      "tipo": "grandezza",
+      "grandezza": "bagni_rifatti",
+      "fattore": "0.5",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Vasca: meta' dei bagni.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.0.5",
+      "tipo": "grandezza",
+      "grandezza": "bagni_rifatti",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Un apparecchio per bagno rifatto.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.0.6",
+      "tipo": "grandezza",
+      "grandezza": "bagni_rifatti",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Un apparecchio per bagno rifatto.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.0.7",
+      "tipo": "grandezza",
+      "grandezza": "bagni_rifatti",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Un apparecchio per bagno rifatto.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.0.8",
+      "tipo": "grandezza",
+      "grandezza": "cucina",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Lavello della cucina.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.0.9",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Scaldabagno da rimuovere: solo su sopralluogo.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.0.10",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Cassetta alta: solo su sopralluogo.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.0.11",
+      "tipo": "grandezza",
+      "grandezza": "bagni_rifatti",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Una linea per bagno da rifare (nota H).",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.0.12",
+      "tipo": "grandezza",
+      "grandezza": "porte_nuove",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Porte rimosse = porte sostituite.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.0.13",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Radiatori fino a 6 elementi: si usa la taglia media.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.0.14",
+      "tipo": "grandezza",
+      "grandezza": "radiatori_nuovi",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Radiatori sostituiti, taglia media.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.0.15",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Radiatori oltre 13 elementi: si usa la taglia media.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.0.16",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Rimozione clima esistente: solo su sopralluogo.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.0.17",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Rimozione clima esistente: solo su sopralluogo.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.0.18",
+      "tipo": "percentuale_per_grandezza",
+      "grandezza": "piano_movimentazione",
+      "fattore": "0.06",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Formula del file: 6% dei pavimenti x piano. Da confermare (T48: 2.000-2.500 per 100 m² per piano).",
+      "sorgenti": [
+        "A.6"
+      ],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.1.1.1",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Muri in mattoni pieni: domanda futura sul tipo di muro demolito.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.1.1.2",
+      "tipo": "grandezza",
+      "grandezza": "muri_da_rifare_mq",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Tramezzi in forati, il caso tipico.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.1.2",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Cartongesso demolito: domanda futura.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.1.3",
+      "tipo": "grandezza",
+      "grandezza": "controsoffitti_mq",
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Nessuna domanda sui controsoffitti esistenti.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.1.4",
+      "tipo": "grandezza",
+      "grandezza": "muri_da_recuperare",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Spicconatura dei muri da recuperare.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.1.5",
+      "tipo": "grandezza",
+      "grandezza": "superficie_calpestabile",
+      "fattore": "1",
+      "condizione": "pav_rifai",
+      "importo_minimo": null,
+      "nota": "Pavimento e sottofondo, quando si rifa'.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.1.6",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Demolizione senza sottofondo: alternativa ad A.1.5, non usata in bozza.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.1.7",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Parquet senza sottofondo: alternativa ad A.1.5, non usata in bozza.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.1.8",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Battiscopa in legno: si assume ceramica.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.1.9",
+      "tipo": "grandezza",
+      "grandezza": "ml_battiscopa",
+      "fattore": "1",
+      "condizione": "pav_sovrapponi",
+      "importo_minimo": null,
+      "nota": "Con la posa sopra l'esistente il battiscopa va tolto; con la demolizione e' compreso in A.1.5.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.1.10",
+      "tipo": "grandezza",
+      "grandezza": "mq_rivestimenti",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Rivestimenti di bagni e cucina rifatti.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.1.11.1",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Carta da parati: solo su sopralluogo.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.1.11.2",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Carta da parati: solo su sopralluogo.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.1.12",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Guaina: terrazzi, solo su sopralluogo.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.1.13",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Col. T: 'questa voce la toglierei'.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.1.14",
+      "tipo": "grandezza",
+      "grandezza": "muri_portanti",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Un varco per ogni gruppo di muri portanti dichiarato.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.1.15",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Col. T: 'questa voce la toglierei'.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.1.16",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Col. T: 'questa voce la toglierei'.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.2.1",
+      "tipo": "da_voci",
+      "grandezza": null,
+      "fattore": "1",
+      "condizione": "massetto_sabbia_cemento",
+      "importo_minimo": null,
+      "nota": "Stessi m² della demolizione con sottofondo (col. U: A.1.5).",
+      "sorgenti": [
+        "A.1.5"
+      ],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.2.2",
+      "tipo": "da_voci",
+      "grandezza": null,
+      "fattore": "1",
+      "condizione": "massetto_premiscelato",
+      "importo_minimo": null,
+      "nota": "Stessi m² della demolizione con sottofondo (col. U: A.1.5).",
+      "sorgenti": [
+        "A.1.5"
+      ],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.2.3",
+      "tipo": "da_voci",
+      "grandezza": null,
+      "fattore": "1",
+      "condizione": "massetto_termoacustico",
+      "importo_minimo": null,
+      "nota": "Stessi m² della demolizione con sottofondo (col. U: A.1.5).",
+      "sorgenti": [
+        "A.1.5"
+      ],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.2.4",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Col. T: 'questa voce la toglierei'.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.2.5",
+      "tipo": "grandezza",
+      "grandezza": "superficie_calpestabile",
+      "fattore": "1",
+      "condizione": "pav_sovrapponi",
+      "importo_minimo": null,
+      "nota": "Autolivellante quando si posa sopra l'esistente (nota H).",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.3.1",
+      "tipo": "grandezza",
+      "grandezza": "muri_nuovi_forati",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.3.2",
+      "tipo": "grandezza",
+      "grandezza": "muri_nuovi_siporex",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.3.3",
+      "tipo": "grandezza",
+      "grandezza": "muri_nuovi_cartongesso",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.3.4",
+      "tipo": "da_voci",
+      "grandezza": null,
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Isolamento delle pareti in cartongesso (col. U: A3.3).",
+      "sorgenti": [
+        "A.3.3"
+      ],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.3.5",
+      "tipo": "grandezza",
+      "grandezza": "porte_battente_n",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Controtelaio per ogni porta a battente nuova.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.3.6",
+      "tipo": "grandezza",
+      "grandezza": "architravi",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Porte su muri nuovi (nota H).",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.3.7",
+      "tipo": "grandezza",
+      "grandezza": "porte_scorrevoli_n",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Controtelaio per ogni porta scorrevole.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.3.8",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Quadratura vano: solo su sopralluogo.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.4.1",
+      "tipo": "grandezza",
+      "grandezza": "intonaco_mq",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Due lati dei muri nuovi in laterizio piu' i muri recuperati (nota H).",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.4.2",
+      "tipo": "da_voci",
+      "grandezza": null,
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Ripresa dove si tolgono rivestimenti e sulle tracce dei tramezzi demoliti (nota H).",
+      "sorgenti": [
+        "A.1.10",
+        "A.1.1.1",
+        "A.1.1.2"
+      ],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.5.1",
+      "tipo": "grandezza",
+      "grandezza": "controsoffitti_mq",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.5.2",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Isolamento controsoffitto: solo su richiesta.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.5.3",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Velette: solo su progetto.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.5.4",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Soppalco: solo su progetto.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.6.1",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Posa del pavimento scelto (asse tipo_pavimento).",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.6.2",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Posa del pavimento scelto (asse tipo_pavimento).",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.6.5",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Posa del pavimento scelto (asse tipo_pavimento).",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.6.6",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Posa del pavimento scelto (asse tipo_pavimento).",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.6.3",
+      "tipo": "grandezza",
+      "grandezza": "mq_rivestimenti",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Posa rivestimenti, formato dal livello di finitura.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.6.4",
+      "tipo": "grandezza",
+      "grandezza": "mq_rivestimenti",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Posa rivestimenti, formato dal livello di finitura.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.6.7",
+      "tipo": "grandezza",
+      "grandezza": "ml_battiscopa_posa",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Battiscopa del pavimento scelto.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.6.8",
+      "tipo": "grandezza",
+      "grandezza": "ml_battiscopa_posa",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Battiscopa del pavimento scelto.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.6.9",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Levigatura marmo: solo su sopralluogo.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.6.10",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Levigatura parquet: il prefinito non la richiede.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.6.11",
+      "tipo": "grandezza",
+      "grandezza": "taglio_blindata",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pavimento rifatto con la blindata esistente.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.7.1",
+      "tipo": "grandezza",
+      "grandezza": "bagni_rifatti",
+      "fattore": "6",
+      "condizione": null,
+      "importo_minimo": "200",
+      "nota": "6 m² per bagno; a corpo 200 € se pochi metri (nota H).",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.7.2",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Membrana bituminosa: terrazzi, solo su sopralluogo.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.8.1",
+      "tipo": "grandezza",
+      "grandezza": "punti_acqua",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Un punto per apparecchio (nota H).",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.8.2",
+      "tipo": "grandezza",
+      "grandezza": "bagni_rifatti",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Una braga per bagno rifatto (col. U: quanti wc).",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.8.3",
+      "tipo": "grandezza",
+      "grandezza": "centraline_idriche",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.8.4",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pompa Sanitrit: solo su sopralluogo.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.8.5",
+      "tipo": "grandezza",
+      "grandezza": "bagni_rifatti",
+      "fattore": "4",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Quattro apparecchi per bagno.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.8.7",
+      "tipo": "grandezza",
+      "grandezza": "cucina_gas",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Impianto gas cucina solo con piano a gas.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.8.8",
+      "tipo": "grandezza",
+      "grandezza": "caldaia_nuova",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.8.10",
+      "tipo": "grandezza",
+      "grandezza": "punti_termo",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.8.11",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Spostamento radiatori: solo su progetto.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.8.12",
+      "tipo": "grandezza",
+      "grandezza": "blocco_condominiale",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Solo con impianto centralizzato (nota H).",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.8.13.1",
+      "tipo": "grandezza",
+      "grandezza": "superficie_calpestabile",
+      "fattore": "1",
+      "condizione": "risc_pavimento",
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.8.13.2",
+      "tipo": "grandezza",
+      "grandezza": "superficie_calpestabile",
+      "fattore": "1",
+      "condizione": "risc_pavimento",
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.8.13.3",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "1",
+      "condizione": "risc_pavimento",
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.8.15",
+      "tipo": "grandezza",
+      "grandezza": "punti_luce_modificati",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.8.16",
+      "tipo": "grandezza",
+      "grandezza": "punti_luce_nuovi",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.8.17",
+      "tipo": "scaglioni",
+      "grandezza": "mq",
+      "fattore": "1",
+      "condizione": "elettrico_rifacimento",
+      "importo_minimo": null,
+      "nota": "Nota H: 560 fino a 50 m², 775 fino a 80, 890 fino a 100, 905 oltre (prezzo base 600).",
+      "sorgenti": [],
+      "scaglioni": [
+        {
+          "fino_a": "50",
+          "valore": "0.9333"
+        },
+        {
+          "fino_a": "80",
+          "valore": "1.2917"
+        },
+        {
+          "fino_a": "100",
+          "valore": "1.4833"
+        },
+        {
+          "fino_a": null,
+          "valore": "1.5083"
+        }
+      ]
+    },
+    {
+      "voce": "A.8.18",
+      "tipo": "grandezza",
+      "grandezza": "linee_dedicate",
+      "fattore": "1",
+      "condizione": "elettrico",
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.8.19",
+      "tipo": "grandezza",
+      "grandezza": "clima_canalizzato",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.8.20",
+      "tipo": "grandezza",
+      "grandezza": "n_airzone",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.8.21",
+      "tipo": "grandezza",
+      "grandezza": "n_split",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.8.22",
+      "tipo": "grandezza",
+      "grandezza": "clima_canalizzato",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.9.1",
+      "tipo": "percentuale",
+      "grandezza": null,
+      "fattore": "0.30",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "30% di idrico, gas, termo e clima (formula del file; col. K dice 0,35).",
+      "sorgenti": [
+        "A.8.1",
+        "A.8.2",
+        "A.8.3",
+        "A.8.4",
+        "A.8.5",
+        "A.8.7",
+        "A.8.8",
+        "A.8.10",
+        "A.8.11",
+        "A.8.12",
+        "A.8.13.1",
+        "A.8.13.2",
+        "A.8.13.3",
+        "A.8.21",
+        "A.8.22"
+      ],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.9.2",
+      "tipo": "percentuale",
+      "grandezza": null,
+      "fattore": "0.35",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "35% dell'elettrico (formula del file).",
+      "sorgenti": [
+        "A.8.15",
+        "A.8.16",
+        "A.8.17",
+        "A.8.18",
+        "A.8.19",
+        "A.8.20"
+      ],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.9.3",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Assistenza a corpo per singolo ambiente: mai insieme alle percentuali (nota H).",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.9.4",
+      "tipo": "grandezza",
+      "grandezza": "n_bocchette",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.9.5",
+      "tipo": "grandezza",
+      "grandezza": "n_airzone",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.9.6",
+      "tipo": "percentuale",
+      "grandezza": null,
+      "fattore": "0.20",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "20% delle demolizioni (formula del file).",
+      "sorgenti": [
+        "A.1"
+      ],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.10.1",
+      "tipo": "grandezza",
+      "grandezza": "n_split",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.10.2",
+      "tipo": "grandezza",
+      "grandezza": "radiatori_smontati",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.10.3",
+      "tipo": "grandezza",
+      "grandezza": "caldaia_nuova",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.10.4",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Boiler elettrico: alternativa alla caldaia, solo su richiesta.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.10.5",
+      "tipo": "grandezza",
+      "grandezza": "bagni_rifatti",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Box doccia per bagno rifatto.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.10.6",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Motorizzazione serrande: solo su richiesta.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.10.7",
+      "tipo": "grandezza",
+      "grandezza": "cucina",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.10.8",
+      "tipo": "grandezza",
+      "grandezza": "cucina_gas",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.10.9",
+      "tipo": "da_voci",
+      "grandezza": null,
+      "fattore": "0.5",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Un faretto ogni 2 m² di controsoffitto.",
+      "sorgenti": [
+        "A.5.1"
+      ],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.10.10",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Lampade di emergenza: non obbligatorie in casa (nota H).",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.10.11",
+      "tipo": "grandezza",
+      "grandezza": "punti_lampadari",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.10.12",
+      "tipo": "grandezza",
+      "grandezza": "cucina",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Foro per la cappa.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.10.13",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Aerazione forzata: solo per bagni ciechi.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.11.1",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Raschiatura: solo su richiesta (nota H).",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.11.2",
+      "tipo": "grandezza",
+      "grandezza": "rasatura_mq",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.11.3",
+      "tipo": "grandezza",
+      "grandezza": "soffitti_tinteggiati",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.11.4",
+      "tipo": "grandezza",
+      "grandezza": "pareti_tinteggiate",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.11.5",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Smalto: alternativa alla lavabile.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.11.6",
+      "tipo": "grandezza",
+      "grandezza": "superfici_fondo",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.12.1",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Oneri della sicurezza.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.1.1",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pavimento, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.1.2",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pavimento, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.1.3",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pavimento, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.1.4",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pavimento, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.1.5",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pavimento, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.1.6",
+      "tipo": "grandezza",
+      "grandezza": "mq_rivestimenti",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Rivestimento, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.1.7",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pavimento, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.1.8",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pavimento, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.1.9",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pavimento, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.1.10",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pavimento, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.1.11",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pavimento, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.1.12",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pavimento, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.1.13",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pavimento, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.1.14",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pavimento, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.1.15",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pavimento, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.1.16",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pavimento, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.1.17",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pavimento, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.1.18",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pavimento, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.1.19",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pavimento, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.1.20",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pavimento, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.1.21",
+      "tipo": "grandezza",
+      "grandezza": "mq_rivestimenti",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Rivestimento, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.2.1",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pavimento, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.2.2",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pavimento, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.2.3",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pavimento, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.2.4",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pavimento, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.2.5",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pavimento, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.2.6",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pavimento, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.3.1",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Parquet, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.3.2",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Parquet, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.3.3",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Parquet, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.3.4",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Parquet, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.3.5",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Parquet, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.3.6",
+      "tipo": "grandezza",
+      "grandezza": "mq_pavimento_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Parquet, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.4.1",
+      "tipo": "grandezza",
+      "grandezza": "ml_battiscopa_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Battiscopa, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.4.2",
+      "tipo": "grandezza",
+      "grandezza": "ml_battiscopa_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Battiscopa, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.4.3",
+      "tipo": "grandezza",
+      "grandezza": "ml_battiscopa_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Battiscopa, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.4.4",
+      "tipo": "grandezza",
+      "grandezza": "ml_battiscopa_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Battiscopa, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.4.5",
+      "tipo": "grandezza",
+      "grandezza": "ml_battiscopa_posa",
+      "fattore": "1.1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Battiscopa, 10% di sfrido.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.5.1",
+      "tipo": "da_voci",
+      "grandezza": null,
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Colle e stucchi per i m² posati a colla.",
+      "sorgenti": [
+        "A.6.1",
+        "A.6.3",
+        "A.6.4",
+        "A.6.5"
+      ],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.6.1",
+      "tipo": "grandezza",
+      "grandezza": "bagni_rifatti",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Un pezzo per bagno rifatto; gli assi scelgono a terra o sospeso.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.6.2",
+      "tipo": "grandezza",
+      "grandezza": "bagni_rifatti",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Un pezzo per bagno rifatto; gli assi scelgono a terra o sospeso.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.6.3",
+      "tipo": "grandezza",
+      "grandezza": "bagni_rifatti",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Un pezzo per bagno rifatto; gli assi scelgono a terra o sospeso.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.6.4",
+      "tipo": "grandezza",
+      "grandezza": "bagni_rifatti",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Un pezzo per bagno rifatto; gli assi scelgono a terra o sospeso.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.6.6",
+      "tipo": "grandezza",
+      "grandezza": "bagni_rifatti",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Un pezzo per bagno rifatto; gli assi scelgono a terra o sospeso.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.6.7",
+      "tipo": "grandezza",
+      "grandezza": "bagni_rifatti",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Un pezzo per bagno rifatto; gli assi scelgono a terra o sospeso.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.6.8",
+      "tipo": "grandezza",
+      "grandezza": "bagni_rifatti",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Un pezzo per bagno rifatto; gli assi scelgono a terra o sospeso.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.6.9",
+      "tipo": "grandezza",
+      "grandezza": "bagni_rifatti",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Un pezzo per bagno rifatto; gli assi scelgono a terra o sospeso.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.6.10",
+      "tipo": "grandezza",
+      "grandezza": "bagni_rifatti",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Un pezzo per bagno rifatto; gli assi scelgono a terra o sospeso.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.6.11",
+      "tipo": "grandezza",
+      "grandezza": "bagni_rifatti",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Un pezzo per bagno rifatto; gli assi scelgono a terra o sospeso.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.6.12",
+      "tipo": "grandezza",
+      "grandezza": "bagni_rifatti",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Un pezzo per bagno rifatto; gli assi scelgono a terra o sospeso.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.6.5",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Vasca: si assume la doccia.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.6.13",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Scaldasalviette: si usa D.1.10.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "B.6.14",
+      "tipo": "grandezza",
+      "grandezza": "radiatori_nuovi",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "C.1.1",
+      "tipo": "grandezza",
+      "grandezza": "porte_battente_n",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "C.1.2",
+      "tipo": "grandezza",
+      "grandezza": "porte_battente_n",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "C.1.3",
+      "tipo": "grandezza",
+      "grandezza": "porte_scorrevoli_n",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "C.1.4",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Scorrevole laccata: alternativa a C.1.3.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "C.1.5",
+      "tipo": "grandezza",
+      "grandezza": "porte_scorrevoli_n",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "C.1.6",
+      "tipo": "grandezza",
+      "grandezza": "blindata_nuova",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "C.1.7",
+      "tipo": "grandezza",
+      "grandezza": "blindata_nuova",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "C.1.8",
+      "tipo": "grandezza",
+      "grandezza": "blindata_nuova",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "C.1.9",
+      "tipo": "grandezza",
+      "grandezza": "mq_finestre",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Minimo 2 m² a finestra (nota).",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "C.1.10",
+      "tipo": "grandezza",
+      "grandezza": "mq_portefinestre",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "C.1.11",
+      "tipo": "grandezza",
+      "grandezza": "mq_oscuranti",
+      "fattore": "1",
+      "condizione": "tapp_pvc",
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "C.1.12",
+      "tipo": "grandezza",
+      "grandezza": "mq_oscuranti",
+      "fattore": "1",
+      "condizione": "tapp_alluminio",
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "C.1.13",
+      "tipo": "grandezza",
+      "grandezza": "ml_cassonetti",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "C.1.14",
+      "tipo": "grandezza",
+      "grandezza": "mq_oscuranti",
+      "fattore": "1",
+      "condizione": "zanzariere",
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "D.1.1",
+      "tipo": "grandezza",
+      "grandezza": "n_split",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Un monosplit per split richiesto.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "D.1.4",
+      "tipo": "grandezza",
+      "grandezza": "n_split",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Un monosplit per split richiesto.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "D.1.2",
+      "tipo": "grandezza",
+      "grandezza": "n_split",
+      "fattore": "0.5",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Un dualsplit ogni due split.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "D.1.5",
+      "tipo": "grandezza",
+      "grandezza": "n_split",
+      "fattore": "0.5",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Un dualsplit ogni due split.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "D.1.3",
+      "tipo": "grandezza",
+      "grandezza": "n_split",
+      "fattore": "0.3333",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Un trialsplit ogni tre split.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "D.1.6",
+      "tipo": "grandezza",
+      "grandezza": "n_split",
+      "fattore": "0.3333",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Un trialsplit ogni tre split.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "D.1.7",
+      "tipo": "grandezza",
+      "grandezza": "caldaia_nuova",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "D.1.8",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Scaldabagno: alternativa alla caldaia.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "D.1.9",
+      "tipo": "fisso",
+      "grandezza": null,
+      "fattore": "0",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Termosifoni: si usa B.6.14.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "D.1.10",
+      "tipo": "grandezza",
+      "grandezza": "scaldasalviette",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    }
+  ],
+  "valori_opzione": [
+    {
+      "domanda": "interv_pavimenti",
+      "opzione": "sovrapponi",
+      "grandezza": "pav_sovrapponi",
+      "valore": "1"
+    },
+    {
+      "domanda": "interv_pavimenti",
+      "opzione": "rifai",
+      "grandezza": "pav_rifai",
+      "valore": "1"
+    },
+    {
+      "domanda": "tipo_massetto",
+      "opzione": "sabbia_cemento",
+      "grandezza": "massetto_sabbia_cemento",
+      "valore": "1"
+    },
+    {
+      "domanda": "tipo_massetto",
+      "opzione": "premiscelato",
+      "grandezza": "massetto_premiscelato",
+      "valore": "1"
+    },
+    {
+      "domanda": "tipo_massetto",
+      "opzione": "termoacustico",
+      "grandezza": "massetto_termoacustico",
+      "valore": "1"
+    },
+    {
+      "domanda": "interv_bagni",
+      "opzione": "uno",
+      "grandezza": "rifai_un_bagno",
+      "valore": "1"
+    },
+    {
+      "domanda": "interv_bagni",
+      "opzione": "tutti",
+      "grandezza": "rifai_tutti_bagni",
+      "valore": "1"
+    },
+    {
+      "domanda": "interv_cucina",
+      "opzione": "si",
+      "grandezza": "cucina",
+      "valore": "1"
+    },
+    {
+      "domanda": "cucina_gas",
+      "opzione": "si",
+      "grandezza": "cucina_gas",
+      "valore": "1"
+    },
+    {
+      "domanda": "interv_elettrico",
+      "opzione": "modifica",
+      "grandezza": "elettrico_modifica",
+      "valore": "1"
+    },
+    {
+      "domanda": "interv_elettrico",
+      "opzione": "rifacimento",
+      "grandezza": "elettrico_rifacimento",
+      "valore": "1"
+    },
+    {
+      "domanda": "idrico_collettore",
+      "opzione": "si",
+      "grandezza": "idrico_collettore",
+      "valore": "1"
+    },
+    {
+      "domanda": "interv_riscaldamento",
+      "opzione": "smonta_rimonta",
+      "grandezza": "risc_smonta",
+      "valore": "1"
+    },
+    {
+      "domanda": "interv_riscaldamento",
+      "opzione": "radiatori",
+      "grandezza": "risc_radiatori",
+      "valore": "1"
+    },
+    {
+      "domanda": "interv_riscaldamento",
+      "opzione": "pavimento",
+      "grandezza": "risc_pavimento",
+      "valore": "1"
+    },
+    {
+      "domanda": "riscaldamento_centralizzato",
+      "opzione": "si",
+      "grandezza": "risc_centralizzato",
+      "valore": "1"
+    },
+    {
+      "domanda": "interv_clima",
+      "opzione": "split",
+      "grandezza": "clima_split",
+      "valore": "1"
+    },
+    {
+      "domanda": "interv_clima",
+      "opzione": "canalizzato",
+      "grandezza": "clima_canalizzato",
+      "valore": "1"
+    },
+    {
+      "domanda": "interv_caldaia",
+      "opzione": "si",
+      "grandezza": "caldaia_nuova",
+      "valore": "1"
+    },
+    {
+      "domanda": "interventi_efficientamento",
+      "opzione": "cambio_caldaia",
+      "grandezza": "caldaia_nuova",
+      "valore": "1"
+    },
+    {
+      "domanda": "interv_porte",
+      "opzione": "battente",
+      "grandezza": "porte_battente",
+      "valore": "1"
+    },
+    {
+      "domanda": "interv_porte",
+      "opzione": "scorrevoli",
+      "grandezza": "porte_scorrevoli",
+      "valore": "1"
+    },
+    {
+      "domanda": "porta_blindata",
+      "opzione": "si",
+      "grandezza": "blindata_nuova",
+      "valore": "1"
+    },
+    {
+      "domanda": "interv_serramenti",
+      "opzione": "sostituisci",
+      "grandezza": "serramenti_sostituisci",
+      "valore": "1"
+    },
+    {
+      "domanda": "tapparelle",
+      "opzione": "pvc",
+      "grandezza": "tapp_pvc",
+      "valore": "1"
+    },
+    {
+      "domanda": "tapparelle",
+      "opzione": "alluminio",
+      "grandezza": "tapp_alluminio",
+      "valore": "1"
+    },
+    {
+      "domanda": "zanzariere",
+      "opzione": "si",
+      "grandezza": "zanzariere",
+      "valore": "1"
+    },
+    {
+      "domanda": "tinteggiatura",
+      "opzione": "si",
+      "grandezza": "tinteggiatura",
+      "valore": "1"
+    },
+    {
+      "domanda": "tipo_muri_nuovi",
+      "opzione": "forati",
+      "grandezza": "muri_forati",
+      "valore": "1"
+    },
+    {
+      "domanda": "tipo_muri_nuovi",
+      "opzione": "siporex",
+      "grandezza": "muri_siporex",
+      "valore": "1"
+    },
+    {
+      "domanda": "tipo_muri_nuovi",
+      "opzione": "cartongesso",
+      "grandezza": "muri_cartongesso",
+      "valore": "1"
+    },
+    {
+      "domanda": "muri_da_rifare_portanti",
+      "opzione": "si",
+      "grandezza": "muri_portanti",
+      "valore": "1"
+    },
+    {
+      "domanda": "muri_da_creare_portanti",
+      "opzione": "si",
+      "grandezza": "muri_portanti",
+      "valore": "1"
+    }
+  ],
+  "preset": [
+    {
+      "tipo": "leggera",
+      "domanda": "interv_pavimenti",
+      "opzione": "sovrapponi",
+      "valore": null
+    },
+    {
+      "tipo": "moderata",
+      "domanda": "interv_pavimenti",
+      "opzione": "rifai",
+      "valore": null
+    },
+    {
+      "tipo": "totale",
+      "domanda": "interv_pavimenti",
+      "opzione": "rifai",
+      "valore": null
+    },
+    {
+      "tipo": "leggera",
+      "domanda": "interv_bagni",
+      "opzione": "nessuno",
+      "valore": null
+    },
+    {
+      "tipo": "moderata",
+      "domanda": "interv_bagni",
+      "opzione": "uno",
+      "valore": null
+    },
+    {
+      "tipo": "totale",
+      "domanda": "interv_bagni",
+      "opzione": "tutti",
+      "valore": null
+    },
+    {
+      "tipo": "leggera",
+      "domanda": "interv_cucina",
+      "opzione": "no",
+      "valore": null
+    },
+    {
+      "tipo": "moderata",
+      "domanda": "interv_cucina",
+      "opzione": "si",
+      "valore": null
+    },
+    {
+      "tipo": "totale",
+      "domanda": "interv_cucina",
+      "opzione": "si",
+      "valore": null
+    },
+    {
+      "tipo": "leggera",
+      "domanda": "interv_elettrico",
+      "opzione": "modifica",
+      "valore": null
+    },
+    {
+      "tipo": "moderata",
+      "domanda": "interv_elettrico",
+      "opzione": "rifacimento",
+      "valore": null
+    },
+    {
+      "tipo": "totale",
+      "domanda": "interv_elettrico",
+      "opzione": "rifacimento",
+      "valore": null
+    },
+    {
+      "tipo": "leggera",
+      "domanda": "idrico_collettore",
+      "opzione": "no",
+      "valore": null
+    },
+    {
+      "tipo": "moderata",
+      "domanda": "idrico_collettore",
+      "opzione": "no",
+      "valore": null
+    },
+    {
+      "tipo": "totale",
+      "domanda": "idrico_collettore",
+      "opzione": "si",
+      "valore": null
+    },
+    {
+      "tipo": "leggera",
+      "domanda": "interv_riscaldamento",
+      "opzione": "nessuno",
+      "valore": null
+    },
+    {
+      "tipo": "moderata",
+      "domanda": "interv_riscaldamento",
+      "opzione": "smonta_rimonta",
+      "valore": null
+    },
+    {
+      "tipo": "totale",
+      "domanda": "interv_riscaldamento",
+      "opzione": "radiatori",
+      "valore": null
+    },
+    {
+      "tipo": "leggera",
+      "domanda": "interv_clima",
+      "opzione": "nessuno",
+      "valore": null
+    },
+    {
+      "tipo": "moderata",
+      "domanda": "interv_clima",
+      "opzione": "nessuno",
+      "valore": null
+    },
+    {
+      "tipo": "totale",
+      "domanda": "interv_clima",
+      "opzione": "split",
+      "valore": null
+    },
+    {
+      "tipo": "leggera",
+      "domanda": "interv_caldaia",
+      "opzione": "no",
+      "valore": null
+    },
+    {
+      "tipo": "moderata",
+      "domanda": "interv_caldaia",
+      "opzione": "no",
+      "valore": null
+    },
+    {
+      "tipo": "totale",
+      "domanda": "interv_caldaia",
+      "opzione": "si",
+      "valore": null
+    },
+    {
+      "tipo": "leggera",
+      "domanda": "interv_porte",
+      "opzione": "mantieni",
+      "valore": null
+    },
+    {
+      "tipo": "moderata",
+      "domanda": "interv_porte",
+      "opzione": "battente",
+      "valore": null
+    },
+    {
+      "tipo": "totale",
+      "domanda": "interv_porte",
+      "opzione": "battente",
+      "valore": null
+    },
+    {
+      "tipo": "leggera",
+      "domanda": "interv_serramenti",
+      "opzione": "mantieni",
+      "valore": null
+    },
+    {
+      "tipo": "moderata",
+      "domanda": "interv_serramenti",
+      "opzione": "mantieni",
+      "valore": null
+    },
+    {
+      "tipo": "totale",
+      "domanda": "interv_serramenti",
+      "opzione": "sostituisci",
+      "valore": null
+    },
+    {
+      "tipo": "leggera",
+      "domanda": "tinteggiatura",
+      "opzione": "si",
+      "valore": null
+    },
+    {
+      "tipo": "moderata",
+      "domanda": "tinteggiatura",
+      "opzione": "si",
+      "valore": null
+    },
+    {
+      "tipo": "totale",
+      "domanda": "tinteggiatura",
+      "opzione": "si",
+      "valore": null
+    }
+  ]
+}

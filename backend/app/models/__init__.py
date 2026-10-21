@@ -24,6 +24,15 @@ from app.models.catalogo import (
     Referente,
     TipoRistrutturazione,
 )
+from app.models.computo import (
+    Grandezza,
+    PresetRisposta,
+    RegolaVoce,
+    ScaglioneRegola,
+    SorgenteRegola,
+    TermineGrandezza,
+    ValoreGrandezzaOpzione,
+)
 from app.models.dettaglio_pro import CoefficienteQuantitaVoce, Sottocategoria, Voce
 from app.models.domanda import (
     AttesaImmobile,
@@ -56,6 +65,7 @@ __all__ = [
     "ExportLog",
     "Extra",
     "ForfaitArredo",
+    "Grandezza",
     "Lead",
     "Listino",
     "ListinoCategoria",
@@ -63,13 +73,19 @@ __all__ = [
     "Moltiplicatore",
     "OpzioneDomanda",
     "PasswordResetToken",
+    "PresetRisposta",
     "Referente",
+    "RegolaVoce",
+    "ScaglioneRegola",
+    "SorgenteRegola",
     "Sottocategoria",
     "StimaSalvata",
     "Subscription",
+    "TermineGrandezza",
     "Testo",
     "TipoRistrutturazione",
     "User",
     "UserSession",
+    "ValoreGrandezzaOpzione",
     "Voce",
 ]

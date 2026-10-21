@@ -51,6 +51,15 @@ from app.models.catalogo import (  # noqa: E402
     Moltiplicatore,
     TipoRistrutturazione,
 )
+from app.models.computo import (  # noqa: E402
+    Grandezza,
+    PresetRisposta,
+    RegolaVoce,
+    ScaglioneRegola,
+    SorgenteRegola,
+    TermineGrandezza,
+    ValoreGrandezzaOpzione,
+)
 from app.models.dettaglio_pro import CoefficienteQuantitaVoce, Sottocategoria, Voce  # noqa: E402
 from app.models.domanda import (  # noqa: E402
     AttesaImmobile,
@@ -79,6 +88,8 @@ SEED_JSON_PATH = _resolve_seed("seed-coefficienti-base.json")
 SEED_DETTAGLIO_PRO_JSON_PATH = _resolve_seed("seed-dettaglio-pro.json")
 # Catalogo domande Free (0014): bozza del wizard parametrico.
 SEED_DOMANDE_JSON_PATH = _resolve_seed("seed-domande.json")
+# Computo parametrico (Fase 11): grandezze, regole per voce, preset per tipo.
+SEED_COMPUTO_JSON_PATH = _resolve_seed("seed-computo.json")
 
 CATEGORIA_NOMI = {
     "A-EDILE": "Edile",
@@ -427,6 +438,158 @@ def seed_dettaglio_pro(session: Session, listino: Listino, data: dict | None = N
                 _upsert_coefficiente_qta(session, voce, tipo_code, coeff_data)
 
 
+def load_computo_data(path: Path = SEED_COMPUTO_JSON_PATH) -> dict:
+    with path.open(encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _dec_o_none(value) -> Decimal | None:
+    return None if value is None else _dec(value)
+
+
+def _sposta_condizionatori_dopo_il_clima(session: Session) -> None:
+    """Una tantum, solo se la riga e' ancora nella forma v2: lo stepper dei
+    climatizzatori passa dallo step "ambienti" alla domanda `interv_clima` e si
+    mostra solo con gli split. Non e' una migrazione perche' `interv_clima`
+    nasce dal seed, dopo le migrazioni (FK di `visibile_se_domanda_code`).
+    Guardato sui valori v2 (gruppo `ambienti`, nessuna visibilita'): una
+    modifica fatta dal pannello dopo non viene mai riscritta."""
+    condizionatori = session.get(Domanda, "condizionatori")
+    clima = session.get(Domanda, "interv_clima")
+    if (
+        condizionatori is None
+        or clima is None
+        or condizionatori.gruppo != "ambienti"
+        or condizionatori.visibile_se_domanda_code is not None
+    ):
+        return
+    condizionatori.gruppo = "ristrutturazione"
+    condizionatori.ordine = 99
+    condizionatori.testo = "Quanti split vuoi installare?"
+    condizionatori.visibile_se_domanda_code = "interv_clima"
+    condizionatori.visibile_se_opzione_code = "split"
+
+
+def seed_computo(session: Session, data: dict | None = None) -> None:
+    """Create-if-missing del computo parametrico (Fase 11, D-41).
+
+    Grandezze, regole, valori delle opzioni e preset sono CURATELA: il seed
+    crea le righe che mancano e non riscrive mai quelle esistenti, cosi' una
+    taratura fatta dal pannello o dall'Excel sopravvive al deploy. Termini,
+    sorgenti e scaglioni nascono con la loro grandezza o regola e poi
+    appartengono a lei.
+
+    Un riferimento a una domanda o opzione che non esiste (catalogo curato
+    diversamente dal JSON) si salta senza errore: il seed gira al boot e non
+    deve impedire all'app di partire. `valida_computo` lo segnala in admin.
+    """
+    data = data or load_computo_data()
+    _sposta_condizionatori_dopo_il_clima(session)
+
+    for g_data in data.get("grandezze", []):
+        if session.get(Grandezza, g_data["code"]) is not None:
+            continue
+        session.add(
+            Grandezza(
+                code=g_data["code"],
+                nome=g_data["nome"],
+                um=g_data.get("um", ""),
+                descrizione=g_data.get("descrizione"),
+                ordine=g_data.get("ordine", 0),
+                costante=_dec(g_data.get("costante", 0)),
+                da_attesa=g_data.get("da_attesa", False),
+                arrotondamento=g_data.get("arrotondamento", "nessuno"),
+                minimo=_dec_o_none(g_data.get("minimo")),
+                massimo=_dec_o_none(g_data.get("massimo")),
+            )
+        )
+        session.flush()
+        for i, t in enumerate(g_data.get("termini", [])):
+            session.add(
+                TermineGrandezza(
+                    grandezza_code=g_data["code"],
+                    sorgente_code=t["sorgente"],
+                    fattore=_dec(t["fattore"]),
+                    per_grandezza_code=t.get("per"),
+                    ordine=i,
+                )
+            )
+
+    for r_data in data.get("regole", []):
+        if session.get(RegolaVoce, r_data["voce"]) is not None:
+            continue
+        session.add(
+            RegolaVoce(
+                voce_codice=r_data["voce"],
+                tipo_regola=r_data["tipo"],
+                grandezza_code=r_data.get("grandezza"),
+                fattore=_dec(r_data.get("fattore", 1)),
+                condizione_grandezza_code=r_data.get("condizione"),
+                importo_minimo=_dec_o_none(r_data.get("importo_minimo")),
+                nota=r_data.get("nota"),
+            )
+        )
+        session.flush()
+        for codice in r_data.get("sorgenti", []):
+            session.add(SorgenteRegola(voce_codice=r_data["voce"], sorgente_codice=codice))
+        for sc in r_data.get("scaglioni", []):
+            session.add(
+                ScaglioneRegola(
+                    voce_codice=r_data["voce"],
+                    fino_a=_dec_o_none(sc.get("fino_a")),
+                    valore=_dec(sc["valore"]),
+                )
+            )
+
+    session.flush()
+    for v_data in data.get("valori_opzione", []):
+        opzione = (
+            session.query(OpzioneDomanda)
+            .filter_by(domanda_code=v_data["domanda"], code=v_data["opzione"])
+            .one_or_none()
+        )
+        if opzione is None or session.get(Grandezza, v_data["grandezza"]) is None:
+            continue
+        esiste = (
+            session.query(ValoreGrandezzaOpzione)
+            .filter_by(opzione_id=opzione.id, grandezza_code=v_data["grandezza"])
+            .one_or_none()
+        )
+        if esiste is None:
+            session.add(
+                ValoreGrandezzaOpzione(
+                    opzione_id=opzione.id,
+                    grandezza_code=v_data["grandezza"],
+                    valore=_dec(v_data["valore"]),
+                )
+            )
+
+    for p_data in data.get("preset", []):
+        if session.get(Domanda, p_data["domanda"]) is None:
+            continue
+        if session.get(TipoRistrutturazione, p_data["tipo"]) is None:
+            continue
+        esiste = (
+            session.query(PresetRisposta)
+            .filter_by(
+                tipo_code=p_data["tipo"],
+                domanda_code=p_data["domanda"],
+                opzione_code=p_data.get("opzione"),
+            )
+            .one_or_none()
+        )
+        if esiste is None:
+            session.add(
+                PresetRisposta(
+                    tipo_code=p_data["tipo"],
+                    domanda_code=p_data["domanda"],
+                    opzione_code=p_data.get("opzione"),
+                    valore=_dec_o_none(p_data.get("valore")),
+                )
+            )
+    session.flush()
+
+
 def seed_bonus(session: Session) -> None:
     """Upsert idempotente di bonus, aliquote e mapping (categoria|extra)->bonus.
     Chiamata da `seed()` — mai un secondo script (D-12/Pitfall 5).
@@ -527,8 +690,8 @@ def _risolvi_bersaglio_naturale(session: Session, listino: Listino, e_data: dict
     `target_voce`: {categoria_code, sottocategoria, voce}. `target_sottocategoria`:
     {categoria_code, sottocategoria}. La sottocategoria si cerca per
     (listino_id, categoria_code, codice == sottocategoria) e, se non trovata, per
-    (codice IS NULL, nome == sottocategoria); la voce per codice == voce e, se non
-    trovata, per (codice IS NULL, descrizione == voce) dentro quella sottocategoria.
+    (nome == sottocategoria); la voce per codice == voce e, se non
+    trovata, per (descrizione == voce) dentro quella sottocategoria.
 
     Ritorna (campi_target, risolto): `campi_target` e' il dict da fondere in
     `e_data` prima di chiamare `_crea_effetto_se_manca` (vuoto se l'effetto non ha
@@ -550,7 +713,10 @@ def _risolvi_bersaglio_naturale(session: Session, listino: Listino, e_data: dict
     )
     sotto = query.filter_by(codice=sottocategoria_key).one_or_none()
     if sotto is None:
-        sotto = query.filter_by(codice=None, nome=sottocategoria_key).one_or_none()
+        # Per nome anche quando la sottocategoria ha gia' un codice: dalla
+        # 0025 B/C/D hanno codici stabili, ma il JSON degli effetti li cita
+        # ancora per nome.
+        sotto = query.filter_by(nome=sottocategoria_key).one_or_none()
     if sotto is None:
         return {}, False
 
@@ -561,7 +727,7 @@ def _risolvi_bersaglio_naturale(session: Session, listino: Listino, e_data: dict
     query_voce = session.query(Voce).filter_by(sottocategoria_id=sotto.id)
     voce = query_voce.filter_by(codice=voce_key).one_or_none()
     if voce is None:
-        voce = query_voce.filter_by(codice=None, descrizione=voce_key).one_or_none()
+        voce = query_voce.filter_by(descrizione=voce_key).first()
     if voce is None:
         return {}, False
     return {"target_voce_id": voce.id}, True
@@ -933,6 +1099,10 @@ def seed(session: Session, data: dict | None = None) -> Listino:
 
     # 12. catalogo domande (0014) — stessa funzione seed() idempotente.
     seed_domande(session)
+
+    # 13. computo parametrico (Fase 11): dopo le domande, perche' valori delle
+    # opzioni e preset puntano al catalogo.
+    seed_computo(session)
 
     session.commit()
     return listino
