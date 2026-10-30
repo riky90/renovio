@@ -50,6 +50,13 @@ Items acknowledged and deferred at milestone close on 2026-10-01:
 
 ## Last Session
 
+- **2026-10-30** — **Pagamento del Pro con Stripe.** Abbonamento mensile (3 €) e annuale
+  (29 €), IVA inclusa, prezzi su Stripe per lookup key. Checkout ospitato, webhook firmato che
+  aggiorna la tessera `subscription` (migrazione 0032: cliente e abbonamento Stripe, disdetta a
+  fine periodo), conferma al ritorno, portale clienti. L'attivazione dimostrativa resta solo
+  senza `STRIPE_SECRET_KEY`. Fix collaterali del deploy: migrazione 0030 su Postgres e seed su
+  DB vuoto (PR #6). Setup: `docs/pagamenti-stripe.md`.
+
 - **2026-10-30** — **TAR-01: taratura sui computi reali (prima passata).** Quattro computi
   anonimizzati estratti in fixture (`scripts/estrai_casi_reali.py`), input del wizard dedotti
   e motivati, confronto voce per voce (`scripts/confronta_casi_reali.py`). Edile dopo la

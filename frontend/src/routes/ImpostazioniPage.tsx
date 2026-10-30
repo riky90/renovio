@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Check, Copy, CreditCard, Gift, Mail, Sparkles, User } from "lucide-react";
 import { ProfileHeaderCard } from "@/components/ProfileHeaderCard";
@@ -22,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AUTH_QUERY_KEY, useAuth } from "@/hooks/useAuth";
 import { patchProfilo, type UserOut } from "@/api/auth";
+import { getAbbonamento, postPortale } from "@/api/subscription";
 
 /**
  * Le tre tab, nell'ordine in cui compaiono anche nel menu account. Lo slug e'
@@ -267,9 +268,12 @@ function AbbonamentoTab({ user }: { user: UserOut }) {
         </div>
 
         {user.pro ? (
-          <p className="text-sm text-muted-foreground">
-            Il tuo abbonamento Pro è attivo: hai accesso al dettaglio voce per voce di ogni stima.
-          </p>
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-muted-foreground">
+              Il tuo abbonamento Pro è attivo: hai accesso al dettaglio voce per voce di ogni stima.
+            </p>
+            <DettaglioAbbonamento />
+          </div>
         ) : (
           <div className="flex flex-col gap-4">
             <ul className="flex flex-col gap-2 text-sm text-foreground">
@@ -291,6 +295,48 @@ function AbbonamentoTab({ user }: { user: UserOut }) {
         )}
       </CardContent>
     </Card>
+  );
+}
+
+function formatData(iso: string): string {
+  return new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "long", year: "numeric" }).format(new Date(iso));
+}
+
+/** Piano, rinnovo o scadenza e accesso al portale clienti Stripe. */
+function DettaglioAbbonamento() {
+  const abbonamentoQuery = useQuery({ queryKey: ["abbonamento"], queryFn: getAbbonamento });
+  const portale = useMutation({
+    mutationFn: postPortale,
+    onSuccess: (url) => window.location.assign(url),
+    onError: () => toast.error("Non riusciamo ad aprire la gestione dell'abbonamento. Riprova tra poco."),
+  });
+  const abb = abbonamentoQuery.data;
+  if (!abb || !abb.piano_code) return null;
+
+  const piano = abb.piano_code === "annuale" ? "Annuale" : "Mensile";
+  const data = abb.scade_il ? formatData(abb.scade_il) : null;
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border border-border px-5 py-4">
+      <div className="flex flex-col gap-0.5 text-sm">
+        <span className="font-medium text-foreground">Piano {piano}</span>
+        {data && (
+          <span className="text-muted-foreground">
+            {abb.rinnovo_automatico ? `Si rinnova il ${data}.` : `Disdetto: resta attivo fino al ${data}.`}
+          </span>
+        )}
+      </div>
+      {abb.gestibile && (
+        <div>
+          <Button type="button" variant="outline" onClick={() => portale.mutate()} disabled={portale.isPending}>
+            <CreditCard className="size-4" />
+            {portale.isPending ? "Apertura…" : "Gestisci abbonamento"}
+          </Button>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Disdetta, cambio di piano, metodo di pagamento e ricevute, su Stripe.
+          </p>
+        </div>
+      )}
+    </div>
   );
 }
 

@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, false, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -33,3 +33,12 @@ class Subscription(Base):
     scaduta_il: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     piano_code: Mapped[str | None] = mapped_column(String(32), nullable=True)
     created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.now())
+    # Pagamento con Stripe (migrazione 0032). Il cliente Stripe si crea al
+    # primo checkout e si riusa; l'abbonamento Stripe e' quello che i webhook
+    # aggiornano. `cancella_a_fine_periodo`: l'utente ha disdetto, il Pro resta
+    # attivo fino a `scaduta_il` e poi non si rinnova.
+    stripe_customer_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    stripe_subscription_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    cancella_a_fine_periodo: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=false()
+    )

@@ -46,6 +46,9 @@ il range mostrato è −10% / +15% dal 2026-10-30):
 
 ## Cosa manca
 
+0. **Pagamento del Pro** (2026-10-30): codice pronto, abbonamento Stripe a 3 €/mese o
+   29 €/anno IVA inclusa (migrazione `0032`). Si accende impostando le chiavi Stripe su Render:
+   passi in `docs/pagamenti-stripe.md`. Da chiarire col commercialista documenti fiscali e IVA OSS.
 1. **Dopo la taratura (TAR-01, 2026-10-30)**: eccedenza IVA al 22% dei beni significativi,
    altri computi reali per le voci di cantiere e per un eventuale range asimmetrico. Le domande
    Pro per i lavori a corpo e il clima "solo predisposizione" sono fatti (migrazione `0030`). Dettaglio in

@@ -24,6 +24,7 @@ dependencies = [
     "python-slugify==8.0.4",
     "slowapi==0.1.10",
     "sqlalchemy==2.0.52",
+    "stripe>=12",
     "uvicorn[standard]==0.52.4",
     "weasyprint>=69.0",
 ]

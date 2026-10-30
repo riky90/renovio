@@ -17,6 +17,7 @@ from app.routers import (
     guide,
     health,
     lead,
+    pagamenti,
     stima,
     stime_salvate,
     subscription,
@@ -52,5 +53,6 @@ app.include_router(avatars.router, prefix="/api/v1")
 app.include_router(admin.router, prefix="/api/v1")
 app.include_router(stime_salvate.router, prefix="/api/v1")
 app.include_router(subscription.router, prefix="/api/v1")
+app.include_router(pagamenti.router, prefix="/api/v1")
 app.include_router(dettaglio_pro.router, prefix="/api/v1")
 app.include_router(lead.router, prefix="/api/v1")
