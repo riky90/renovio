@@ -7,3 +7,9 @@ dist/
 build/
 .DS_Store
 .claude/
+
+# Computi reali originali con dati dei clienti: in git solo le copie anonime in docs/casi-reali/
+/20250409_Computo Base_CUGINO ASYA.xlsx
+/20260603_Computo Soliani _PREZZI CODEGEL.xlsx
+/2026_Computo Marco Negozio.xlsx
+/CODEGEL_Per ragazzi.xlsx
