@@ -85,7 +85,17 @@ class TipoRistrutturazione(Base):
     code: Mapped[str] = mapped_column(String(32), primary_key=True)
     nome: Mapped[str] = mapped_column(String(100), nullable=False)
     ordine: Mapped[int] = mapped_column(nullable=False)
+    #: Ampiezza del range SOPRA il valore stimato (max = valore x (1 + range_pct)).
     range_pct: Mapped[Decimal] = mapped_column(Numeric(4, 3), nullable=False)
+    #: Ampiezza SOTTO (min = valore x (1 - range_pct_sotto)). NULL = simmetrico,
+    #: cioe' uguale a `range_pct`. Il range e' asimmetrico dal 2026-10-30: la
+    #: taratura sui computi reali (TAR-01) mostra che i lavori a corpo non
+    #: chiesti spostano il reale verso l'alto, mai verso il basso.
+    range_pct_sotto: Mapped[Decimal | None] = mapped_column(Numeric(4, 3), nullable=True)
+
+    @property
+    def range_sotto(self) -> Decimal:
+        return self.range_pct if self.range_pct_sotto is None else self.range_pct_sotto
 
 
 class Moltiplicatore(Base):

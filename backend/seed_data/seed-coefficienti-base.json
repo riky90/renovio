@@ -32,7 +32,7 @@
   "range_pct_tipo": {
     "leggera": 0.15,
     "moderata": 0.15,
-    "totale": 0.2
+    "totale": 0.15
   },
   "iva_categoria": {
     "A-EDILE": 0.1,
@@ -44,5 +44,10 @@
   "extra": {
     "CSE_CSP": 800,
     "pratiche": 1500
+  },
+  "range_pct_sotto_tipo": {
+    "leggera": 0.1,
+    "moderata": 0.1,
+    "totale": 0.1
   }
 }

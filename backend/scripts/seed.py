@@ -1038,17 +1038,26 @@ def seed(session: Session, data: dict | None = None) -> Listino:
             lc.coefficiente_impresa = COEFFICIENTE_IMPRESA[code]
 
     # 4. tipo_ristrutturazione (3)
+    # Range asimmetrico (TAR-01): `range_pct_tipo` e' l'ampiezza sopra,
+    # `range_pct_sotto_tipo` quella sotto; senza la seconda il range e' simmetrico.
+    range_sotto = data.get("range_pct_sotto_tipo", {})
     for code, range_pct in data["range_pct_tipo"].items():
+        sotto = _dec(range_sotto[code]) if code in range_sotto else None
         tipo = session.query(TipoRistrutturazione).filter_by(code=code).one_or_none()
         if tipo is None:
             tipo = TipoRistrutturazione(
-                code=code, nome=TIPO_NOMI[code], ordine=TIPO_ORDINE[code], range_pct=_dec(range_pct)
+                code=code,
+                nome=TIPO_NOMI[code],
+                ordine=TIPO_ORDINE[code],
+                range_pct=_dec(range_pct),
+                range_pct_sotto=sotto,
             )
             session.add(tipo)
         else:
             tipo.nome = TIPO_NOMI[code]
             tipo.ordine = TIPO_ORDINE[code]
             tipo.range_pct = _dec(range_pct)
+            tipo.range_pct_sotto = sotto
     session.flush()
 
     # 5. moltiplicatore (12 = 3 tipi x 4 categorie)

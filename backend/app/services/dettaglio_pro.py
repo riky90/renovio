@@ -15,8 +15,9 @@ strutturale, non solo di schema-risposta (stessa disciplina di
 `estimation.py` — dataclass frozen a campi chiusi).
 
 Range per-voce (Assunzione A1, 03-RESEARCH.md Pattern 4): riuso di
-`TipoRistrutturazione.range_pct` (10/15/20% per tipo, gia' a DB per il
-Free) applicato a `quantita_stimata * prezzo_unitario_cliente`.
+`TipoRistrutturazione.range_pct` (sopra) e `range_sotto` (sotto), gia' a DB per
+il Free, applicati a `quantita_stimata * prezzo_unitario_cliente`. Dal
+2026-10-30 il range e' asimmetrico (-10% / +15%, TAR-01).
 
 GLI ASSI DI SCELTA SONO DATI (Fase 09-03) — le sottocategorie
 `famiglia='catalogo'` sono cataloghi di ALTERNATIVE, non addendi.
@@ -379,7 +380,7 @@ def valida_risposte_pro(session: Session, risposte: dict) -> dict:
 
 
 def _voci_a_corpo(
-    session: Session, applicati: list[EffettoApplicato], range_pct: Decimal
+    session: Session, applicati: list[EffettoApplicato], range_pct: Decimal, range_sotto: Decimal
 ) -> dict[str, list[VoceEstimata]]:
     """Le correzioni additive del Free (EUR/m2, EUR una tantum) come voci a
     corpo per categoria, etichettate con la risposta che le ha prodotte."""
@@ -403,7 +404,7 @@ def _voci_a_corpo(
                 descrizione=etichetta,
                 um="a corpo",
                 quantita_stimata=Decimal("1.00"),
-                prezzo_min=_eur(a.contributo * (Decimal("1") - range_pct)),
+                prezzo_min=_eur(a.contributo * (Decimal("1") - range_sotto)),
                 prezzo_max=_eur(a.contributo * (Decimal("1") + range_pct)),
             )
         )
@@ -428,7 +429,8 @@ class DettaglioProService:
         voci"."""
         # Range dal tipo che le risposte descrivono, come nel Free.
         effettivo = tipo_effettivo(session, listino, mq=mq, tipo=tipo, risposte=risposte)
-        range_pct = session.query(TipoRistrutturazione).filter_by(code=effettivo).one().range_pct
+        tipo_row = session.query(TipoRistrutturazione).filter_by(code=effettivo).one()
+        range_pct, range_sotto = tipo_row.range_pct, tipo_row.range_sotto
 
         # Il ponte `livello_finiture` (wizard) -> asse `finitura` vive nel
         # computo, condiviso col Free: stessa regola, una sola copia.
@@ -481,7 +483,7 @@ class DettaglioProService:
             )
             free = risolvi_effetti_free(session, mq=mq, tipo=tipo, risposte=risposte_base)
             correzioni = free.correzioni
-            aggiuntive = _voci_a_corpo(session, free.applicati, range_pct)
+            aggiuntive = _voci_a_corpo(session, free.applicati, range_pct, range_sotto)
 
         categorie: list[CategoriaDettagliata] = []
         for cat in categorie_rows:
@@ -515,7 +517,7 @@ class DettaglioProService:
                                 descrizione=vc.descrizione,
                                 um=vc.um,
                                 quantita_stimata=_qta(vc.quantita),
-                                prezzo_min=_eur(totale_voce * (Decimal("1") - range_pct)),
+                                prezzo_min=_eur(totale_voce * (Decimal("1") - range_sotto)),
                                 prezzo_max=_eur(totale_voce * (Decimal("1") + range_pct)),
                                 livello=ris.opzione_asse(DOMANDA_FINITURA, vc.voce_id),
                             )
@@ -537,7 +539,7 @@ class DettaglioProService:
                                 descrizione=voce.descrizione,
                                 um=voce.um,
                                 quantita_stimata=quantita_stimata,
-                                prezzo_min=_eur(totale_voce * (Decimal("1") - range_pct)),
+                                prezzo_min=_eur(totale_voce * (Decimal("1") - range_sotto)),
                                 prezzo_max=_eur(totale_voce * (Decimal("1") + range_pct)),
                                 livello=ris.opzione_asse(DOMANDA_FINITURA, voce.id),
                             )

@@ -14,7 +14,8 @@ ever hand-building `CategoriaEstimata` / `ExtraEstimato` / `StimaResult` with
 an explicit, closed set of client-facing fields.
 
 Range/reconciliation rule (binding, 01-CONTEXT.md / 01-02-PLAN.md):
-  1. ±range_pct applies ONLY to the 4 category subtotals (imponibile + IVA).
+  1. The range (-range_pct_sotto / +range_pct, asymmetric since TAR-01) applies
+     ONLY to the 4 category subtotals (imponibile + IVA).
   2. Extras are FIXED gross values — never scaled by the range.
   3. Grand total = SUM(category ranges) + SUM(fixed extras gross).
   4. Full Decimal math; quantize (ROUND_HALF_UP) only on output fields.
@@ -95,7 +96,8 @@ class EstimationService:
         # Il tipo scelto precompila le risposte (preset); l'ampiezza del range
         # segue invece i lavori davvero indicati.
         effettivo = tipo_effettivo(session, listino, mq=mq, tipo=tipo, risposte=risposte)
-        range_pct = session.query(TipoRistrutturazione).filter_by(code=effettivo).one().range_pct
+        tipo_row = session.query(TipoRistrutturazione).filter_by(code=effettivo).one()
+        range_pct, range_sotto = tipo_row.range_pct, tipo_row.range_sotto
 
         # Computo parametrico (Fase 11, MOT-01): il Free e' il computo delle
         # voci sommato per categoria. Solo un listino senza regole ricade sul
@@ -160,7 +162,7 @@ class EstimationService:
             iva = imponibile * cat.iva_pct
             categoria_totale = imponibile + iva
 
-            cat_min = _eur(categoria_totale * (Decimal("1") - range_pct))
+            cat_min = _eur(categoria_totale * (Decimal("1") - range_sotto))
             cat_max = _eur(categoria_totale * (Decimal("1") + range_pct))
 
             categorie.append(

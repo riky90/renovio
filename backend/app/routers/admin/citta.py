@@ -43,7 +43,13 @@ def _to_comune_out(row: ComuneListino) -> ComuneListinoAdminOut:
 
 
 def _to_tipo_out(row: TipoRistrutturazione) -> TipoRistrutturazioneAdminOut:
-    return TipoRistrutturazioneAdminOut(code=row.code, nome=row.nome, ordine=row.ordine, range_pct=row.range_pct)
+    return TipoRistrutturazioneAdminOut(
+        code=row.code,
+        nome=row.nome,
+        ordine=row.ordine,
+        range_pct=row.range_pct,
+        range_pct_sotto=row.range_pct_sotto,
+    )
 
 
 @router.get("", response_model=list[ComuneListinoAdminOut])
@@ -144,6 +150,8 @@ def modifica_tipo(
         row.ordine = payload.ordine
     if payload.range_pct is not None:
         row.range_pct = payload.range_pct
+    if payload.range_pct_sotto is not None:
+        row.range_pct_sotto = payload.range_pct_sotto
 
     db.commit()
     db.refresh(row)

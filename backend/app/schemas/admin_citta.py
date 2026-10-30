@@ -40,9 +40,11 @@ class TipoRistrutturazioneAdminOut(BaseModel):
     nome: str
     ordine: int
     range_pct: Decimal
+    range_pct_sotto: Decimal | None = None
 
 
 class TipoRistrutturazionePatchIn(BaseModel):
     nome: str | None = Field(default=None, min_length=1, max_length=100)
     ordine: int | None = None
     range_pct: Decimal | None = Field(default=None, gt=0, le=1)
+    range_pct_sotto: Decimal | None = Field(default=None, gt=0, le=1)
