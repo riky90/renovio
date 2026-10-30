@@ -40,8 +40,8 @@ Numeri dopo la prima taratura (Reggio Emilia, 85 m², risposte di default, impon
 | Tipo | Edile | Totale lavori |
 |---|---|---|
 | Leggera | 14,0 k€ | 17,6 k€ |
-| Moderata | 32,3 k€ | 40,9 k€ |
-| Totale | 39,4 k€ | 69,2 k€ |
+| Moderata | 31,4 k€ | 40,0 k€ |
+| Totale | 38,5 k€ | 68,3 k€ |
 
 ## Cosa manca
 

@@ -61,7 +61,7 @@ Items acknowledged and deferred at milestone close on 2026-10-01:
   elettrico 60 €, IVA serramenti 10%, range leggera ±15%. Tutti e 4 i casi nel range.
   Terza passata: sei domande Pro (bagni nuovi e ciechi, varchi, velette, carta da parati,
   terrazzi), clima "solo predisposizione", rivestimenti in A.6.4, punti elettrici 0,65/m²
-  (migrazione 0030): edile +3 / +6 / +3 / -5%, errore voce per voce -40%.
+  (migrazione 0030): edile 0 / +5 / 0 / -7%, errore voce per voce -43%.
   Guide pubbliche rigenerate. Nota: `.planning/prove/2026-11-taratura/NOTA-SESSIONE-2026-10-30.md`.
 
 - **2026-10-21** — **Tipo di ristrutturazione come punto di partenza.** Il tipo scelto nel

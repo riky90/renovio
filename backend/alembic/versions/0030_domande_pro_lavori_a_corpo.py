@@ -7,8 +7,11 @@ ciechi, varchi, velette, carta da parati, terrazzi. `interv_clima` ha
 l'opzione "solo predisposizione", con la sua domanda sul numero di split. Domande, opzioni, grandezze nuove e valori
 delle opzioni li crea il seed al boot (create-if-missing); questa migrazione
 ricollega alle grandezze nuove le regole che esistono gia', aggiunge i
-termini mancanti alle grandezze esistenti e sposta la posa dei rivestimenti
-di base e medio sui formati grandi (A.6.4), come nei computi.
+termini mancanti alle grandezze esistenti e porta i punti elettrici a 0,65 per
+m² commerciale. Il seed aggiunge anche, ai livelli base e medio di `finitura`,
+la posa dei rivestimenti in formato grande (A.6.4, includi) al posto di quella
+piccola (A.6.3, escludi), come nei computi del tecnico: sono effetti nuovi, e
+quelli esistenti della 0023 non si toccano.
 
 Le regole puntano a grandezze che il seed crea subito dopo: nell'intervallo
 valgono 0, come una regola spenta.
@@ -136,12 +139,6 @@ _DESCRIZIONI: tuple[tuple[str, str, str], ...] = (
     ),
 )
 
-#: Posa dei rivestimenti per livello di finitura: (opzione di `finitura`, voce prima, voce dopo).
-_POSA_RIVESTIMENTI: tuple[tuple[str, str, str], ...] = (
-    ("base", "A.6.3", "A.6.4"),
-    ("medio", "A.6.3", "A.6.4"),
-)
-
 _NUMERICHE = frozenset({"fattore"})
 
 
@@ -239,23 +236,6 @@ def _aggiorna(da: int, a: int) -> None:
                 " WHERE code = :g AND descrizione = :vecchia"
             ),
             {"g": grandezza, "vecchia": testi[da], "nuova": testi[a]},
-        )
-
-    for opzione, *voci in _POSA_RIVESTIMENTI:
-        voce_vecchia, voce_nuova = voci[da], voci[a]
-        bind.execute(
-            sa.text(
-                "UPDATE effetto_opzione SET target_voce_id = ("
-                "  SELECT nv.id FROM voce nv JOIN voce ov ON ov.sottocategoria_id = nv.sottocategoria_id"
-                "  WHERE ov.id = effetto_opzione.target_voce_id AND nv.codice = :nuova)"
-                " WHERE tipo_effetto = 'includi'"
-                " AND opzione_id IN (SELECT id FROM opzione_domanda"
-                "  WHERE domanda_code = 'finitura' AND code = :opzione)"
-                " AND target_voce_id IN (SELECT id FROM voce WHERE codice = :vecchia)"
-                " AND EXISTS (SELECT 1 FROM voce nv JOIN voce ov ON ov.sottocategoria_id = nv.sottocategoria_id"
-                "  WHERE ov.id = effetto_opzione.target_voce_id AND nv.codice = :nuova)"
-            ),
-            {"opzione": opzione, "vecchia": voce_vecchia, "nuova": voce_nuova},
         )
 
 

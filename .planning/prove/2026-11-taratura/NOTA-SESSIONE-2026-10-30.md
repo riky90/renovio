@@ -160,14 +160,28 @@ Riccardo ha chiesto le domande Pro per i lavori a corpo e l'opzione clima, con u
 6. **Test**: domande nel pannello, ogni risposta Pro porta la sua voce, un bagno nuovo non
    smonta niente, il clima predisposto non monta né fornisce split.
 
+7. **Un bug trovato dai test e corretto prima del push finale.** Il primo modo di passare ad
+   A.6.4 spostava gli effetti di finitura: A.6.3 restava senza un'opzione che la includesse,
+   quindi usciva dall'asse ed entrava sempre, e la posa dei rivestimenti si sommava. Rompeva
+   anche gli invarianti della migrazione 0023. Ora è fatto con effetti nuovi (includi A.6.4,
+   escludi A.6.3) su base e medio, e i numeri sono quelli veri. Il commit `583810c` aveva
+   ancora la versione col bug, e i numeri +3 / +6% della prima stesura di questa nota
+   venivano da lì.
+
 Esito:
 
-- edile +3% / +6% / +3% (negozio) / −5%;
-- totale lavori +6% / +1% / +3% / −5%;
+- edile 0% / +5% / 0% (negozio) / −7%;
+- totale lavori +4% / 0% / 0% / −6%;
 - tutti e quattro i casi nel range;
-- errore voce per voce −40% rispetto alla bozza.
+- errore voce per voce −43% rispetto alla bozza.
 
-Il caso 04 resta sotto per l'impermeabilizzazione a corpo da 4.000 € senza m² nel file.
+Il caso 04 resta sotto per lavori che il file non spiega, soprattutto l'impermeabilizzazione a
+corpo da 4.000 € senza m².
+
+Sulla preferenza "meglio un po' sopra", i dati non giustificano altri aumenti voce per voce:
+oggi il motore sta sul reale. Per spostare la stima verso l'alto senza inventare quantità, lo
+strumento giusto è un range asimmetrico (per esempio −10% / +20%), che tocca il codice del
+calcolo del range. È proposto, non fatto.
 
 ## Punti ancora aperti
 
@@ -184,4 +198,4 @@ Il caso 04 resta sotto per l'impermeabilizzazione a corpo da 4.000 € senza m²
 - I commit sono sul branch `claude/great-wozniak-1ysani`. Nessuna PR aperta: non è stata
   chiesta.
 - Al deploy la migrazione `0029` e il seed cambiano i numeri mostrati agli utenti: 85 m²
-  totale da 69,3 a 69,2 k€ imponibili, e IVA dei serramenti al 10%.
+  totale da 69,3 a 68,3 k€ imponibili, e IVA dei serramenti al 10%.

@@ -25,22 +25,24 @@ cd backend
 
 | Caso | Edile reale | Scarto bozza | Scarto tarato | Totale lavori tarato | Errore voce per voce (bozza → tarato) | Totale reale nel range (bozza → tarato) |
 |---|---:|---:|---:|---:|---:|---|
-| 01 appartamento, totale | 65.572 | +16% | **+3%** | +6% | 39.080 → 20.287 | sì → sì |
-| 02 appartamento, parziale | 13.970 | +2% | **+6%** | +1% | 15.024 → 12.052 | sì → sì |
-| 03 negozio, bagno nuovo (frontiera) | 18.060 | +21% | **+3%** | +3% | 14.621 → 7.864 | no → sì |
-| 04 appartamento, totale, solo edile | 82.340 | 0% | **−5%** | −5% | 40.624 → 25.591 | sì → sì |
+| 01 appartamento, totale | 65.572 | +16% | **0%** | +4% | 39.080 → 18.387 | sì → sì |
+| 02 appartamento, parziale | 13.970 | +2% | **+5%** | 0% | 15.024 → 11.902 | sì → sì |
+| 03 negozio, bagno nuovo (frontiera) | 18.060 | +21% | **0%** | 0% | 14.621 → 8.429 | no → sì |
+| 04 appartamento, totale, solo edile | 82.340 | 0% | **−7%** | −6% | 40.624 → 24.066 | sì → sì |
 
 Imponibile in euro. L'"errore voce per voce" è la somma degli scarti assoluti delle voci di
 A-EDILE con le quantità del motore ai prezzi del file. Misura le quantità e non i prezzi, e un
 errore in più non compensa un errore in meno.
 
-- **Soglia ±15% sull'edile: rispettata** nei tre appartamenti, con la stima un po' sopra il
-  reale nei casi 01 e 02 (preferenza di Riccardo: meglio leggermente sopra, ma nel range).
+- **Soglia ±15% sull'edile: rispettata** nei tre appartamenti. La stima sta sul reale o un
+  po' sopra nei casi 01 e 02; la preferenza di Riccardo è "meglio leggermente sopra, ma nel
+  range".
 - **Totale reale nel range in tutti e quattro i casi.**
-- **Le quantità migliorano in tutti e quattro i casi**: l'errore voce per voce scende del 40%
-  complessivo (109 k€ → 66 k€).
-- **Il caso 04 resta sotto del 5%** per un'impermeabilizzazione a corpo da 4.000 € senza m²
-  né indicazione di terrazzi nel file: non si può rispondere alla domanda Pro senza inventare.
+- **Le quantità migliorano in tutti e quattro i casi**: l'errore voce per voce scende del 43%
+  complessivo (109 k€ → 63 k€).
+- **Il caso 04 resta sotto del 7%** per lavori che il file non spiega: soprattutto
+  un'impermeabilizzazione a corpo da 4.000 € senza m² né indicazione di terrazzi, a cui non si
+  può rispondere con la domanda Pro senza inventare.
 - **I totali della bozza tornavano in parte per compensazione.** La tinteggiatura sovrastimata
   copriva assistenze, movimentazione e lavori a corpo sottostimati. Ora ognuna di queste voci ha
   la sua regola o la sua domanda.
@@ -129,8 +131,8 @@ Reggio Emilia, 85 m², risposte di default, imponibile:
 | Tipo | Edile bozza → tarato | Totale lavori bozza → tarato |
 |---|---|---|
 | Leggera | 16,4 → 14,0 k€ | 20,5 → 17,6 k€ |
-| Moderata | 32,4 → 32,3 k€ | 41,5 → 40,9 k€ |
-| Totale | 39,1 → 39,4 k€ | 69,3 → 69,2 k€ |
+| Moderata | 32,4 → 31,4 k€ | 41,5 → 40,0 k€ |
+| Totale | 39,1 → 38,5 k€ | 69,3 → 68,3 k€ |
 
 L'oracolo v1 (il calcolo €/m², usato solo da un listino senza regole) passa da
 47.985–70.575 € a **47.251–69.473 €** per effetto dell'IVA dei serramenti. I test che lo
@@ -196,7 +198,7 @@ Nella stessa passata, sempre per stare un po' sopra il reale, sono cambiati altr
 
 | Dato | Prima | Dopo | Perché |
 |---|---|---|---|
-| Posa rivestimenti con finitura base e media | A.6.3 (formati 20-60, 30 €/m²) | **A.6.4** (formati 65-120, 40 €/m²) | Il tecnico usa A.6.4 in 2 computi su 3 (l'altro è il negozio). |
+| Posa rivestimenti con finitura base e media | A.6.3 (formati 20-60, 30 €/m²) | **A.6.4** (formati 65-120, 40 €/m²) | Il tecnico usa A.6.4 in 2 computi su 3 (l'altro è il negozio). Fatto con effetti nuovi del seed (includi A.6.4, escludi A.6.3) su base e medio, senza toccare quelli della 0023. |
 | Punti elettrici | 0,5 per m² commerciale | **0,65** | 0,91 (caso 01) e 0,43 (caso 04): media 0,67. |
 
 Restano fuori, e servono altri computi per decidere:

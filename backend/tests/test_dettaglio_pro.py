@@ -318,8 +318,8 @@ def test_risposte_salvate_distingue_zero_zero_zero_da_nessuna_risposta(http_clie
 
 
 def test_get_domande_configuratore_in_ordine_con_default(http_client):
-    """GET su una stima Pro nuova: `domande` = [tipo_pavimento, bagni, porte,
-    condizionatori] in ordine (ordine, code); i valori sono gia' risolti sui
+    """GET su una stima Pro nuova: `domande` = [tipo_pavimento, bagni, le sei
+    domande Pro dei lavori a corpo, porte, condizionatori] in ordine (ordine, code); i valori sono gia' risolti sui
     default di catalogo (D-07), la domanda finitura non compare."""
     http_client.post(
         REGISTRAZIONE_URL,
@@ -331,7 +331,20 @@ def test_get_domande_configuratore_in_ordine_con_default(http_client):
     body = http_client.get(f"{STIME_URL}/{stima_id}/dettaglio-pro").json()
 
     codici = [d["code"] for d in body["domande"]]
-    assert codici == ["tipo_pavimento", "bagni", "porte", "condizionatori"]
+    assert codici == [
+        "tipo_pavimento",
+        "bagni",
+        # Domande Pro dei lavori a corpo (TAR-01, 2026-10-30): gruppo
+        # configuratore_pro, lette dal computo come grandezze.
+        "bagni_nuovi",
+        "bagni_ciechi",
+        "varchi_n",
+        "velette_ml",
+        "carta_parati_mq",
+        "terrazzi_mq",
+        "porte",
+        "condizionatori",
+    ]
     assert "finitura" not in codici
 
     tipo_pavimento = next(d for d in body["domande"] if d["code"] == "tipo_pavimento")

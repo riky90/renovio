@@ -1761,7 +1761,23 @@
               "target_voce": {
                 "categoria_code": "A-EDILE",
                 "sottocategoria": "A.6",
+                "voce": "A.6.3"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.6",
                 "voce": "A.6.4"
+              }
+            },
+            {
+              "tipo_effetto": "escludi",
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.6",
+                "voce": "A.6.3"
               }
             },
             {
@@ -1978,7 +1994,23 @@
               "target_voce": {
                 "categoria_code": "A-EDILE",
                 "sottocategoria": "A.6",
+                "voce": "A.6.3"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.6",
                 "voce": "A.6.4"
+              }
+            },
+            {
+              "tipo_effetto": "escludi",
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.6",
+                "voce": "A.6.3"
               }
             },
             {

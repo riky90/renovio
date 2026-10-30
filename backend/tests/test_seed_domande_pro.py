@@ -386,10 +386,21 @@ class TestCatalogoProSulJsonReale:
                     )
 
     def test_nessuna_domanda_pro_oltre_finitura_e_tipo_pavimento(self, session):
-        """D-01: il nucleo Pro di questa fase e' solo finitura + tipo_pavimento
-        (i tre stepper esistevano gia' come domande Free)."""
+        """D-01: il nucleo Pro e' finitura + tipo_pavimento (i tre stepper
+        esistevano gia' come domande Free), piu' le sei domande dei lavori a
+        corpo aggiunte dalla taratura sui computi reali (TAR-01), tutte nel
+        gruppo del configuratore."""
         codici_pro = {
             d.code
             for d in session.query(Domanda).filter_by(tier_minimo="pro").all()
         }
-        assert codici_pro == {"finitura", "tipo_pavimento"}
+        assert codici_pro == {
+            "finitura",
+            "tipo_pavimento",
+            "bagni_nuovi",
+            "bagni_ciechi",
+            "varchi_n",
+            "velette_ml",
+            "carta_parati_mq",
+            "terrazzi_mq",
+        }

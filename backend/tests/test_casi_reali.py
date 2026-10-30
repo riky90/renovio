@@ -144,17 +144,6 @@ def _istantanea(conn) -> dict:
                 )
             )
         ),
-        "posa_finitura": sorted(
-            tuple(r)
-            for r in conn.execute(
-                text(
-                    "SELECT o.code, v.codice FROM effetto_opzione e"
-                    " JOIN opzione_domanda o ON o.id = e.opzione_id"
-                    " JOIN voce v ON v.id = e.target_voce_id"
-                    " WHERE o.domanda_code = 'finitura' AND v.codice LIKE 'A.6.%'"
-                )
-            )
-        ),
     }
 
 
@@ -189,12 +178,10 @@ def test_migrazioni_portano_la_bozza_al_seed_tarato(monkeypatch):
         _scendi(migrazioni, conn, monkeypatch)
         bozza = _istantanea(conn)
         assert ("mq_pareti", "superficie_calpestabile", "None", Decimal("2.9")) in bozza["termini"]
-        assert ("base", "A.6.3") in bozza["posa_finitura"]
         assert bozza != tarato
 
         _sali(migrazioni, conn, monkeypatch)
         assert _istantanea(conn) == tarato
-    assert ("base", "A.6.4") in tarato["posa_finitura"]
 
 
 def test_migrazioni_non_toccano_una_regola_curata(monkeypatch):
