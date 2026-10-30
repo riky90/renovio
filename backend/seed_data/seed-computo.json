@@ -895,7 +895,7 @@
       "code": "punti_luce",
       "nome": "Punti luce della casa",
       "um": "n",
-      "descrizione": "Circa un punto ogni 2 m² commerciali.",
+      "descrizione": "Circa 0,65 punti per m² commerciale (TAR-01: 0,91 e 0,43 nei due computi totali; arrotondato in su perché la stima stia sopra il reale).",
       "ordine": 590,
       "costante": "0",
       "da_attesa": false,
@@ -905,7 +905,7 @@
       "termini": [
         {
           "sorgente": "mq",
-          "fattore": "0.5",
+          "fattore": "0.65",
           "per": null
         }
       ]
@@ -1001,6 +1001,11 @@
         },
         {
           "sorgente": "clima_canalizzato",
+          "fattore": "1",
+          "per": null
+        },
+        {
+          "sorgente": "clima_predisposizione",
           "fattore": "1",
           "per": null
         }
@@ -1407,7 +1412,7 @@
       "code": "architravi",
       "nome": "Architravi",
       "um": "n",
-      "descrizione": "Una porta ogni 10 m² di muro nuovo.",
+      "descrizione": "Una porta ogni 10 m² di muro nuovo. Piu' una per ogni varco nuovo.",
       "ordine": 820,
       "costante": "0",
       "da_attesa": false,
@@ -1423,6 +1428,11 @@
         {
           "sorgente": "muri_nuovi_siporex",
           "fattore": "0.1",
+          "per": null
+        },
+        {
+          "sorgente": "varchi",
+          "fattore": "1",
           "per": null
         }
       ]
@@ -1531,6 +1541,182 @@
           "per": null
         }
       ]
+    },
+    {
+      "code": "bagni_nuovi",
+      "nome": "Bagni nuovi",
+      "um": "n",
+      "descrizione": "Dalla domanda Pro: bagni creati da zero (fra quelli rifatti).",
+      "ordine": 140,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "bagni_ciechi",
+      "nome": "Bagni ciechi",
+      "um": "n",
+      "descrizione": "Dalla domanda Pro: bagni senza finestra.",
+      "ordine": 141,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "varchi",
+      "nome": "Varchi",
+      "um": "n",
+      "descrizione": "Dalla domanda Pro: aperture nuove o vani porta da allargare.",
+      "ordine": 142,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "velette_ml",
+      "nome": "Velette",
+      "um": "ml",
+      "descrizione": "Dalla domanda Pro.",
+      "ordine": 143,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "carta_parati_mq",
+      "nome": "Carta da parati",
+      "um": "m²",
+      "descrizione": "Dalla domanda Pro: carta da parati da rimuovere.",
+      "ordine": 144,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "terrazzi_mq",
+      "nome": "Terrazzi da impermeabilizzare",
+      "um": "m²",
+      "descrizione": "Dalla domanda Pro.",
+      "ordine": 145,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "clima_predisposizione",
+      "nome": "Clima: solo predisposizione",
+      "um": "",
+      "descrizione": "0/1 dalle risposte.",
+      "ordine": 146,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "split_predisposti",
+      "nome": "Split da predisporre",
+      "um": "n",
+      "descrizione": "Dalla domanda 'Quanti split vuoi predisporre?'; senza risposta 2, come i condizionatori.",
+      "ordine": 147,
+      "costante": "2",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": []
+    },
+    {
+      "code": "bagni_smontati",
+      "nome": "Bagni da smontare",
+      "um": "n",
+      "descrizione": "Bagni rifatti meno quelli nuovi: solo questi hanno sanitari e rivestimenti da togliere.",
+      "ordine": 491,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": "0",
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "bagni_rifatti",
+          "fattore": "1",
+          "per": null
+        },
+        {
+          "sorgente": "bagni_nuovi",
+          "fattore": "-1",
+          "per": null
+        }
+      ]
+    },
+    {
+      "code": "mq_rivestimenti_demoliti",
+      "nome": "Rivestimenti da demolire",
+      "um": "m²",
+      "descrizione": "Come i rivestimenti, ma solo dei bagni da smontare.",
+      "ordine": 501,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "bagni_smontati",
+          "fattore": "18",
+          "per": null
+        },
+        {
+          "sorgente": "cucina",
+          "fattore": "5",
+          "per": null
+        }
+      ]
+    },
+    {
+      "code": "n_split_predisposti",
+      "nome": "Split predisposti",
+      "um": "n",
+      "descrizione": "Predisposizioni: split montati o solo predisposti.",
+      "ordine": 651,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "condizionatori",
+          "fattore": "1",
+          "per": "clima_split"
+        },
+        {
+          "sorgente": "split_predisposti",
+          "fattore": "1",
+          "per": "clima_predisposizione"
+        }
+      ]
     }
   ],
   "regole": [
@@ -1572,7 +1758,7 @@
     {
       "voce": "A.0.3",
       "tipo": "grandezza",
-      "grandezza": "bagni_rifatti",
+      "grandezza": "bagni_smontati",
       "fattore": "0.5",
       "condizione": null,
       "importo_minimo": null,
@@ -1583,7 +1769,7 @@
     {
       "voce": "A.0.4",
       "tipo": "grandezza",
-      "grandezza": "bagni_rifatti",
+      "grandezza": "bagni_smontati",
       "fattore": "0.5",
       "condizione": null,
       "importo_minimo": null,
@@ -1594,7 +1780,7 @@
     {
       "voce": "A.0.5",
       "tipo": "grandezza",
-      "grandezza": "bagni_rifatti",
+      "grandezza": "bagni_smontati",
       "fattore": "1",
       "condizione": null,
       "importo_minimo": null,
@@ -1605,7 +1791,7 @@
     {
       "voce": "A.0.6",
       "tipo": "grandezza",
-      "grandezza": "bagni_rifatti",
+      "grandezza": "bagni_smontati",
       "fattore": "1",
       "condizione": null,
       "importo_minimo": null,
@@ -1616,7 +1802,7 @@
     {
       "voce": "A.0.7",
       "tipo": "grandezza",
-      "grandezza": "bagni_rifatti",
+      "grandezza": "bagni_smontati",
       "fattore": "1",
       "condizione": null,
       "importo_minimo": null,
@@ -1662,7 +1848,7 @@
       "tipo": "fisso",
       "grandezza": null,
       "fattore": "1",
-      "condizione": "bagni_rifatti",
+      "condizione": "bagni_smontati",
       "importo_minimo": null,
       "nota": "Voce a corpo: una per cantiere se si rifa' almeno un bagno (TAR-01: 300 EUR a corpo per due bagni).",
       "sorgenti": [],
@@ -1860,22 +2046,22 @@
     {
       "voce": "A.1.10",
       "tipo": "grandezza",
-      "grandezza": "mq_rivestimenti",
+      "grandezza": "mq_rivestimenti_demoliti",
       "fattore": "1",
       "condizione": null,
       "importo_minimo": null,
-      "nota": "Rivestimenti di bagni e cucina rifatti.",
+      "nota": "Solo i bagni da smontare: un bagno nuovo non ha rivestimenti da demolire.",
       "sorgenti": [],
       "scaglioni": []
     },
     {
       "voce": "A.1.11.1",
-      "tipo": "fisso",
-      "grandezza": null,
-      "fattore": "0",
+      "tipo": "grandezza",
+      "grandezza": "carta_parati_mq",
+      "fattore": "1",
       "condizione": null,
       "importo_minimo": null,
-      "nota": "Carta da parati: solo su sopralluogo.",
+      "nota": "Dalla domanda Pro sulla carta da parati.",
       "sorgenti": [],
       "scaglioni": []
     },
@@ -1892,12 +2078,12 @@
     },
     {
       "voce": "A.1.12",
-      "tipo": "fisso",
-      "grandezza": null,
-      "fattore": "0",
+      "tipo": "grandezza",
+      "grandezza": "terrazzi_mq",
+      "fattore": "1",
       "condizione": null,
       "importo_minimo": null,
-      "nota": "Guaina: terrazzi, solo su sopralluogo.",
+      "nota": "Rimozione della vecchia guaina sui terrazzi della domanda Pro.",
       "sorgenti": [],
       "scaglioni": []
     },
@@ -2087,12 +2273,12 @@
     },
     {
       "voce": "A.3.8",
-      "tipo": "fisso",
-      "grandezza": null,
-      "fattore": "0",
+      "tipo": "grandezza",
+      "grandezza": "varchi",
+      "fattore": "1",
       "condizione": null,
       "importo_minimo": null,
-      "nota": "Quadratura vano: solo su sopralluogo.",
+      "nota": "Una quadratura per varco nuovo o allargato.",
       "sorgenti": [],
       "scaglioni": []
     },
@@ -2146,12 +2332,12 @@
     },
     {
       "voce": "A.5.3",
-      "tipo": "fisso",
-      "grandezza": null,
-      "fattore": "0",
+      "tipo": "grandezza",
+      "grandezza": "velette_ml",
+      "fattore": "1",
       "condizione": null,
       "importo_minimo": null,
-      "nota": "Velette: solo su progetto.",
+      "nota": "Dalla domanda Pro sulle velette.",
       "sorgenti": [],
       "scaglioni": []
     },
@@ -2300,12 +2486,12 @@
     },
     {
       "voce": "A.7.2",
-      "tipo": "fisso",
-      "grandezza": null,
-      "fattore": "0",
+      "tipo": "grandezza",
+      "grandezza": "terrazzi_mq",
+      "fattore": "1",
       "condizione": null,
       "importo_minimo": null,
-      "nota": "Membrana bituminosa: terrazzi, solo su sopralluogo.",
+      "nota": "Membrana sui terrazzi e balconi della domanda Pro.",
       "sorgenti": [],
       "scaglioni": []
     },
@@ -2538,11 +2724,11 @@
     {
       "voce": "A.8.21",
       "tipo": "grandezza",
-      "grandezza": "n_split",
+      "grandezza": "n_split_predisposti",
       "fattore": "1",
       "condizione": null,
       "importo_minimo": null,
-      "nota": null,
+      "nota": "Predisposizione anche quando gli split si montano piu' avanti.",
       "sorgenti": [],
       "scaglioni": []
     },
@@ -2774,22 +2960,22 @@
     {
       "voce": "A.10.12",
       "tipo": "grandezza",
-      "grandezza": "cucina",
-      "fattore": "0",
+      "grandezza": "bagni_ciechi",
+      "fattore": "1",
       "condizione": null,
       "importo_minimo": null,
-      "nota": "TAR-01: assente in tre cucine rifatte su tre; c'e' solo con un bagno cieco. Da legare alla domanda 'bagni ciechi' quando ci sara'.",
+      "nota": "Foro verso l'esterno, sempre insieme all'areazione forzata (nota H). TAR-01: assente nelle cucine rifatte.",
       "sorgenti": [],
       "scaglioni": []
     },
     {
       "voce": "A.10.13",
-      "tipo": "fisso",
-      "grandezza": null,
-      "fattore": "0",
+      "tipo": "grandezza",
+      "grandezza": "bagni_ciechi",
+      "fattore": "1",
       "condizione": null,
       "importo_minimo": null,
-      "nota": "Aerazione forzata: solo per bagni ciechi.",
+      "nota": "Un'areazione forzata per bagno cieco.",
       "sorgenti": [],
       "scaglioni": []
     },
@@ -3920,6 +4106,12 @@
       "domanda": "muri_da_creare_portanti",
       "opzione": "si",
       "grandezza": "muri_portanti",
+      "valore": "1"
+    },
+    {
+      "domanda": "interv_clima",
+      "opzione": "predisposizione",
+      "grandezza": "clima_predisposizione",
       "valore": "1"
     }
   ],

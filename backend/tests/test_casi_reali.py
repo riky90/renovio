@@ -15,8 +15,11 @@ Cosa va dimostrato:
   3. LE REGOLE "DEVE ESSERE PRESENTE" delle note del file: con un bagno
      rifatto entrano rimozione sanitari, linee idriche, impermeabilizzazione,
      montaggio sanitari e box doccia.
-  4. LA MIGRAZIONE 0029 porta un DB seminato con la bozza esattamente ai
-     valori del seed tarato, e torna indietro.
+  4. LE MIGRAZIONI 0029 E 0030 portano un DB seminato con la bozza
+     esattamente ai valori del seed tarato, e tornano indietro.
+  4b. LE DOMANDE PRO dei lavori a corpo (bagni nuovi e ciechi, varchi,
+     velette, carta da parati, terrazzi) e il clima "solo predisposizione"
+     portano le loro voci, e il pannello Pro le mostra.
   5. LE FIXTURE NON PORTANO IL PREZZO IMPRESA (regola di dominio 1).
 """
 
@@ -108,12 +111,14 @@ def test_bagno_rifatto_porta_le_sue_voci(engine, nome):
     assert presenti & {f"A.0.{n}" for n in range(3, 11)}
 
 
-# --- 4. migrazione 0029 ----------------------------------------------------------
+# --- 4. migrazioni 0029 e 0030 -----------------------------------------------
+
+_MIGRAZIONI = ("0029_taratura_casi_reali", "0030_domande_pro_lavori_a_corpo")
 
 
-def _migrazione_0029():
-    percorso = Path(__file__).resolve().parents[1] / "alembic" / "versions" / "0029_taratura_casi_reali.py"
-    spec = importlib.util.spec_from_file_location("migrazione_0029", percorso)
+def _migrazione(nome: str):
+    percorso = Path(__file__).resolve().parents[1] / "alembic" / "versions" / f"{nome}.py"
+    spec = importlib.util.spec_from_file_location(f"migrazione_{nome}", percorso)
     modulo = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(modulo)
     return modulo
@@ -139,46 +144,145 @@ def _istantanea(conn) -> dict:
                 )
             )
         ),
+        "posa_finitura": sorted(
+            tuple(r)
+            for r in conn.execute(
+                text(
+                    "SELECT o.code, v.codice FROM effetto_opzione e"
+                    " JOIN opzione_domanda o ON o.id = e.opzione_id"
+                    " JOIN voce v ON v.id = e.target_voce_id"
+                    " WHERE o.domanda_code = 'finitura' AND v.codice LIKE 'A.6.%'"
+                )
+            )
+        ),
     }
 
 
-def test_migrazione_0029_porta_la_bozza_al_seed_tarato(monkeypatch):
+def _db_seminato():
     engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
     with sessione_di_test(engine)() as s:
         seed(s, load_seed_data())
         s.commit()
-    migrazione = _migrazione_0029()
-    with engine.begin() as conn:
-        tarato = _istantanea(conn)
-        monkeypatch.setattr(migrazione.op, "get_bind", lambda: conn, raising=False)
+    return engine
 
-        migrazione.downgrade()
+
+def _scendi(migrazioni, conn, monkeypatch):
+    for m in reversed(migrazioni):
+        monkeypatch.setattr(m.op, "get_bind", lambda: conn, raising=False)
+        m.downgrade()
+
+
+def _sali(migrazioni, conn, monkeypatch):
+    for m in migrazioni:
+        monkeypatch.setattr(m.op, "get_bind", lambda: conn, raising=False)
+        m.upgrade()
+
+
+def test_migrazioni_portano_la_bozza_al_seed_tarato(monkeypatch):
+    """Dal seed attuale si scende alla bozza (downgrade 0030 e 0029) e si
+    risale: si deve tornare esattamente al seed. Cioe' le migrazioni portano
+    un DB seminato con la bozza ai valori del seed tarato, e tornano indietro."""
+    migrazioni = [_migrazione(n) for n in _MIGRAZIONI]
+    with _db_seminato().begin() as conn:
+        tarato = _istantanea(conn)
+        _scendi(migrazioni, conn, monkeypatch)
         bozza = _istantanea(conn)
         assert ("mq_pareti", "superficie_calpestabile", "None", Decimal("2.9")) in bozza["termini"]
+        assert ("base", "A.6.3") in bozza["posa_finitura"]
         assert bozza != tarato
 
-        migrazione.upgrade()
+        _sali(migrazioni, conn, monkeypatch)
         assert _istantanea(conn) == tarato
+    assert ("base", "A.6.4") in tarato["posa_finitura"]
 
 
-def test_migrazione_0029_non_tocca_una_regola_curata(monkeypatch):
+def test_migrazioni_non_toccano_una_regola_curata(monkeypatch):
     """Un valore cambiato dal pannello admin resta com'e'."""
-    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
-    Base.metadata.create_all(bind=engine)
-    with sessione_di_test(engine)() as s:
-        seed(s, load_seed_data())
-        s.commit()
-    migrazione = _migrazione_0029()
-    with engine.begin() as conn:
-        monkeypatch.setattr(migrazione.op, "get_bind", lambda: conn, raising=False)
-        migrazione.downgrade()
+    migrazioni = [_migrazione(n) for n in _MIGRAZIONI]
+    with _db_seminato().begin() as conn:
+        _scendi(migrazioni, conn, monkeypatch)
         conn.execute(text("UPDATE regola_voce SET fattore = 5 WHERE voce_codice = 'A.8.5'"))
-        migrazione.upgrade()
-        fattore = conn.execute(
-            text("SELECT fattore FROM regola_voce WHERE voce_codice = 'A.8.5'")
+        conn.execute(text("UPDATE regola_voce SET fattore = 2 WHERE voce_codice = 'A.3.8'"))
+        _sali(migrazioni, conn, monkeypatch)
+        curate = dict(
+            conn.execute(
+                text("SELECT voce_codice, fattore FROM regola_voce WHERE voce_codice IN ('A.8.5', 'A.3.8')")
+            ).all()
+        )
+        tipo_a38 = conn.execute(
+            text("SELECT tipo_regola FROM regola_voce WHERE voce_codice = 'A.3.8'")
         ).scalar_one()
-    assert Decimal(str(fattore)) == 5
+    assert Decimal(str(curate["A.8.5"])) == 5
+    assert Decimal(str(curate["A.3.8"])) == 2 and tipo_a38 == "fisso"
+
+
+# --- 4b. domande Pro dei lavori a corpo ------------------------------------------
+
+
+def test_pannello_pro_mostra_le_domande_dei_lavori_a_corpo(engine):
+    from app.services.dettaglio_pro import domande_configuratore
+
+    with sessione_di_test(engine)() as s:
+        codici = {d.code for d in domande_configuratore(s, mq=85, risposte={})}
+    assert {
+        "bagni_nuovi", "bagni_ciechi", "varchi_n", "velette_ml", "carta_parati_mq", "terrazzi_mq",
+    } <= codici
+
+
+@pytest.mark.parametrize(
+    "risposte,voce",
+    [
+        ({"varchi_n": 2}, "A.3.8"),
+        ({"velette_ml": 8}, "A.5.3"),
+        ({"carta_parati_mq": 30}, "A.1.11.1"),
+        ({"terrazzi_mq": 12}, "A.7.2"),
+        ({"interv_bagni": "tutti", "bagni": 1, "bagni_ciechi": 1}, "A.10.13"),
+    ],
+)
+def test_risposta_pro_porta_la_sua_voce(engine, risposte, voce):
+    from app.services.computo import computo_free
+
+    with sessione_di_test(engine)() as s:
+        listino, _ = resolve_listino(s, "Reggio Emilia")
+        senza = {v.codice for v in computo_free(s, listino, mq=85, tipo="moderata", risposte={}).voci}
+        con = {v.codice for v in computo_free(s, listino, mq=85, tipo="moderata", risposte=risposte).voci}
+    assert voce not in senza
+    assert voce in con
+
+
+def test_bagno_nuovo_non_smonta_niente(engine):
+    from app.services.computo import computo_free
+
+    base = {"interv_bagni": "tutti", "bagni": 1, "interv_cucina": "no"}
+    with sessione_di_test(engine)() as s:
+        listino, _ = resolve_listino(s, "Reggio Emilia")
+        rifatto = {v.codice for v in computo_free(s, listino, mq=85, tipo="moderata", risposte=base).voci}
+        nuovo = {
+            v.codice
+            for v in computo_free(s, listino, mq=85, tipo="moderata", risposte={**base, "bagni_nuovi": 1}).voci
+        }
+    smontaggi = {"A.0.5", "A.0.6", "A.0.7", "A.0.11", "A.1.10"}
+    assert smontaggi <= rifatto
+    assert not (smontaggi & nuovo)
+    assert {"A.7.1", "A.8.5", "A.10.5"} <= nuovo
+
+
+def test_clima_solo_predisposizione(engine):
+    from app.services.computo import computo_free
+
+    with sessione_di_test(engine)() as s:
+        listino, _ = resolve_listino(s, "Reggio Emilia")
+        voci = {
+            v.codice: v
+            for v in computo_free(
+                s, listino, mq=85, tipo="moderata",
+                risposte={"interv_clima": "predisposizione", "split_predisposti": 3},
+            ).voci
+        }
+    assert voci["A.8.21"].quantita == 3
+    assert "A.10.1" not in voci  # nessun montaggio
+    assert not any(c.startswith("D.1.") and c in voci for c in ("D.1.1", "D.1.2", "D.1.3"))
 
 
 # --- 5. niente prezzo impresa -----------------------------------------------------

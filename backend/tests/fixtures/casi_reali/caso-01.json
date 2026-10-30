@@ -527,7 +527,7 @@
       "interv_elettrico": "rifacimento",
       "idrico_collettore": "no",
       "interv_riscaldamento": "smonta_rimonta",
-      "interv_clima": "split",
+      "interv_clima": "predisposizione",
       "interv_caldaia": "no",
       "interv_porte": "battente",
       "porta_blindata": "no",
@@ -536,7 +536,9 @@
       "zanzariere": "no",
       "tinteggiatura": "si",
       "finitura": "base",
-      "tipo_pavimento": "gres"
+      "tipo_pavimento": "gres",
+      "bagni_nuovi": 2,
+      "split_predisposti": 2
     }
   },
   "deduzioni": {
@@ -550,9 +552,10 @@
     "cucina": "Si', a gas: impianto gas cucina (A.8.7) e allaccio acqua (A.10.7). Certa.",
     "elettrico": "Rifacimento: 150 punti ex novo (A.8.16) e quadro (A.8.17). Certa.",
     "riscaldamento": "Smonta e rimonta: 10 radiatori (A.10.2), detentori sostituiti a corpo. Certa.",
-    "clima": "Split, 2: predisposizione (A.8.21) x 2; nessun montaggio ne' fornitura nel computo. Probabile.",
+    "clima": "Solo predisposizione, 2 split: predisposizione A.8.21 x 2, nessun montaggio ne' fornitura. Certa.",
     "caldaia": "No: solo una linea per lo stacco caldaia (A.8.11 riscritta). Probabile.",
     "serramenti": "Sostituiti: C-SERRAMENTI a corpo 15.950 EUR IVA inclusa nel riepilogo, senza righe nel foglio C. Numero di finestre ignoto (default del motore). Incerta.",
-    "finitura": "Base: gres a 30 EUR/m², sanitari del listino base. Probabile."
+    "finitura": "Base: gres a 30 EUR/m², sanitari del listino base. Probabile.",
+    "bagni_nuovi": "2 dei 3 bagni sono nuovi: nello stato di fatto si smontano 1 piatto doccia, 1 vasca e 1 vaso (un solo bagno). Certa."
   }
 }

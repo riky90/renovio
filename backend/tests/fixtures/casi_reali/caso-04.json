@@ -587,7 +587,7 @@
       "interv_elettrico": "rifacimento",
       "idrico_collettore": "no",
       "interv_riscaldamento": "radiatori",
-      "interv_clima": "split",
+      "interv_clima": "predisposizione",
       "interv_caldaia": "si",
       "interv_porte": "mantieni",
       "porta_blindata": "no",
@@ -600,7 +600,10 @@
       "non_rifare": [
         "serramenti",
         "finiture"
-      ]
+      ],
+      "varchi_n": 3,
+      "carta_parati_mq": 60,
+      "split_predisposti": 5
     }
   },
   "deduzioni": {
@@ -613,9 +616,12 @@
     "muri": "Demoliti 30 m², costruiti 25 m² di forati, intonaco 50 m² (due lati). 25 da rifare. Certa.",
     "riscaldamento": "Radiatori nuovi: impianto termoidraulico 9 punti (A.8.10) e collettore (A.8.13.3); radiatori vecchi rimossi (A.0.13). Certa.",
     "caldaia": "Si', a gas: A.8.8 e caldaia fornita e posata a corpo 3.800 EUR (A.10.3 riscritta). Certa.",
-    "clima": "Split, 5: 5 predisposizioni (A.8.21). Certa.",
+    "clima": "Solo predisposizione, 5 split: predisposizioni A.8.21 x 5, nessun montaggio. Certa.",
     "solo_edile": "Il computo ha solo A-EDILE: B, C, D a zero. Il confronto per categoria si fa sull'edile; il totale del motore include finiture e prodotti che qui il cliente compra a parte.",
-    "non_rifare": "Computo solo edile: B e C a zero. I prodotti restano nel conto perche' la caldaia e' fornita (dentro A.10.3, vedi riclassifica)."
+    "non_rifare": "Computo solo edile: B e C a zero. I prodotti restano nel conto perche' la caldaia e' fornita (dentro A.10.3, vedi riclassifica).",
+    "varchi": "3: quadratura di vano (A.3.8) x 3. Certa.",
+    "carta_parati": "60 m² (A.1.11.1). Certa.",
+    "terrazzi": "Non risposta: impermeabilizzazione a corpo 4.000 EUR (A.7.1) senza m² ne' indicazione di terrazzi. Resta uno scarto noto."
   },
   "riclassifica": [
     {

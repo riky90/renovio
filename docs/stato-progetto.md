@@ -39,15 +39,15 @@ Numeri dopo la prima taratura (Reggio Emilia, 85 m², risposte di default, impon
 
 | Tipo | Edile | Totale lavori |
 |---|---|---|
-| Leggera | 13,6 k€ | 17,3 k€ |
-| Moderata | 30,1 k€ | 38,6 k€ |
-| Totale | 37,2 k€ | 66,9 k€ |
+| Leggera | 14,0 k€ | 17,6 k€ |
+| Moderata | 32,3 k€ | 40,9 k€ |
+| Totale | 39,4 k€ | 69,2 k€ |
 
 ## Cosa manca
 
-1. **Dopo la taratura (TAR-01, 2026-10-30)**: domande Pro per i lavori a corpo (terrazzi,
-   varchi, velette, carta da parati, bagno nuovo o cieco, clima solo predisposizione), eccedenza
-   IVA al 22% dei beni significativi, altri computi reali per le voci di cantiere. Dettaglio in
+1. **Dopo la taratura (TAR-01, 2026-10-30)**: eccedenza IVA al 22% dei beni significativi,
+   altri computi reali per le voci di cantiere e per un eventuale range asimmetrico. Le domande
+   Pro per i lavori a corpo e il clima "solo predisposizione" sono fatti (migrazione `0030`). Dettaglio in
    `.planning/prove/2026-11-taratura/README.md`.
 2. **Incoerenze del file da chiarire con il tecnico** (proposta §7): il 7% senza etichetta su
    `(B+C+D)`. A.9.1, A.9.2 e movimentazione sono state decise sui computi reali (2026-10-30).

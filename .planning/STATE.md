@@ -27,8 +27,9 @@ elettrico, IVA serramenti al 10%, range leggera ±15% (seed + migrazione 0029); 
 `backend/tests/test_casi_reali.py`. Report: `.planning/prove/2026-11-taratura/`.
 
 Per chiudere la fase 11: PR della taratura, merge e allineamento `stima` (`CLAUDE.md`).
-Candidati al passo successivo (v3.1): domande Pro per i lavori a corpo, eccedenza IVA al 22%
-dei beni significativi, range per incertezza.
+Fatte anche le domande Pro per i lavori a corpo e il clima "solo predisposizione"
+(migrazione 0030). Candidati al passo successivo (v3.1): eccedenza IVA al 22% dei beni
+significativi, range per incertezza.
 
 ### v2.0 (storico)
 
@@ -58,6 +59,9 @@ Items acknowledged and deferred at milestone close on 2026-10-01:
   impermeabilizzazione 4 m², sanitari 3/bagno, lampadari e foro cappa a 0. Poi, su decisione di
   Riccardo: A.9.1 40%, A.9.2 45%, movimentazione 12% (min 100 €), massetto 30 €/m², punto
   elettrico 60 €, IVA serramenti 10%, range leggera ±15%. Tutti e 4 i casi nel range.
+  Terza passata: sei domande Pro (bagni nuovi e ciechi, varchi, velette, carta da parati,
+  terrazzi), clima "solo predisposizione", rivestimenti in A.6.4, punti elettrici 0,65/m²
+  (migrazione 0030): edile +3 / +6 / +3 / -5%, errore voce per voce -40%.
   Guide pubbliche rigenerate. Nota: `.planning/prove/2026-11-taratura/NOTA-SESSIONE-2026-10-30.md`.
 
 - **2026-10-21** — **Tipo di ristrutturazione come punto di partenza.** Il tipo scelto nel

@@ -134,10 +134,46 @@ Esito finale:
 Durante la sessione ho corretto anche il report: per le voci in percentuale la colonna "a
 prezzi del file" moltiplicava la quantità per un importo a corpo.
 
+## Terza passata: domande Pro e clima (richiesta di Riccardo)
+
+Riccardo ha chiesto le domande Pro per i lavori a corpo e l'opzione clima, con una preferenza:
+**meglio una stima leggermente più alta del reale, ma dentro il range**.
+
+1. **Sei domande Pro** nel gruppo `configuratore_pro`, quindi solo nel pannello Pro:
+   - bagni nuovi;
+   - bagni ciechi;
+   - varchi;
+   - velette;
+   - carta da parati;
+   - terrazzi.
+
+   Collegano voci che il listino aveva già, con la regola a zero.
+2. **"Solo predisposizione"** come opzione di `interv_clima` nel Free, con una domanda gemella
+   "Quanti split vuoi predisporre?". La visibilità condizionata accetta una sola opzione, e
+   la domanda sugli split montati resta legata a "split".
+3. **Una riga di codice**: `domande_configuratore` mostra anche le domande attive del gruppo
+   `configuratore_pro` senza effetti Pro, che il computo legge come grandezze.
+4. **Rivestimenti in formato grande (A.6.4)** con finitura base e media, come il tecnico in 2
+   computi su 3. **Punti elettrici a 0,65 per m²**, media dei due casi utilizzabili.
+5. **Migrazione `0030`** per i DB già seminati, con le stesse garanzie della 0029: scrive solo
+   sui valori del seed precedente, è reversibile e testata in andata e ritorno.
+6. **Test**: domande nel pannello, ogni risposta Pro porta la sua voce, un bagno nuovo non
+   smonta niente, il clima predisposto non monta né fornisce split.
+
+Esito:
+
+- edile +3% / +6% / +3% (negozio) / −5%;
+- totale lavori +6% / +1% / +3% / −5%;
+- tutti e quattro i casi nel range;
+- errore voce per voce −40% rispetto alla bozza.
+
+Il caso 04 resta sotto per l'impermeabilizzazione a corpo da 4.000 € senza m² nel file.
+
 ## Punti ancora aperti
 
 1. Eccedenza IVA al 22% dei beni significativi (proposta, non fatta).
-2. Domande Pro per i lavori a corpo, e "solo predisposizione" per il clima.
+2. Limite di 99 sugli stepper del pannello Pro: basta per varchi, velette e terrazzi, ma una
+   casa grande può avere più di 99 m² di carta da parati.
 3. Il 7% senza etichetta su (B+C+D) nel riepilogo del file (§7).
 4. Altri computi reali per le voci di cantiere e per decidere un eventuale range asimmetrico.
 5. PR della taratura e allineamento `stima` dopo il merge.
@@ -148,4 +184,4 @@ prezzi del file" moltiplicava la quantità per un importo a corpo.
 - I commit sono sul branch `claude/great-wozniak-1ysani`. Nessuna PR aperta: non è stata
   chiesta.
 - Al deploy la migrazione `0029` e il seed cambiano i numeri mostrati agli utenti: 85 m²
-  totale da 69,3 a 66,9 k€ imponibili, e IVA dei serramenti al 10%.
+  totale da 69,3 a 69,2 k€ imponibili, e IVA dei serramenti al 10%.

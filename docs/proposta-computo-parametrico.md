@@ -307,9 +307,9 @@ imponibile senza range; con la bozza erano 16,4 / 32,4 / 39,1 k€ di edile):
 
 | Tipo | Edile | Totale lavori |
 |---|---|---|
-| Leggera | 13,6 k€ | 17,3 k€ |
-| Moderata | 30,1 k€ | 38,6 k€ |
-| Totale | 37,2 k€ | 66,9 k€ |
+| Leggera | 14,0 k€ | 17,6 k€ |
+| Moderata | 32,3 k€ | 40,9 k€ |
+| Totale | 39,4 k€ | 69,2 k€ |
 
 Da fare:
 

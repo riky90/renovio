@@ -78,6 +78,7 @@ from app.services.computo import (
 from app.services.effetti import (
     CONTROLLI_NUMERICI,
     DOMANDA_FINITURA,
+    GRUPPO_CONFIGURATORE_PRO,
     TIPI_EFFETTO_PRO,
     TIPO_EUR_FISSO_CATEGORIA,
     TIPO_EUR_MQ_CATEGORIA,
@@ -236,8 +237,10 @@ def domande_configuratore(
 ) -> list[DomandaConfiguratore]:
     """Le domande del pannello 'Qualche dettaglio in piu'' (D-06): quelle che
     governano DAVVERO il computo, cioe' hanno almeno un effetto Pro attivo
-    (`TIPI_EFFETTO_PRO`) su un'opzione attiva. Esclude sempre la domanda
-    `finitura`, che resta sul selettore per categoria esistente.
+    (`TIPI_EFFETTO_PRO`) su un'opzione attiva, piu' le domande attive del
+    gruppo `configuratore_pro`, che il computo legge come grandezze (velette,
+    varchi, bagni nuovi...: TAR-01) e quindi non hanno effetti. Esclude sempre
+    la domanda `finitura`, che resta sul selettore per categoria esistente.
 
     Il valore di ognuna e' gia' risolto (D-07): la risposta salvata se valida
     per quella domanda, altrimenti il default di catalogo — mai un campo
@@ -258,6 +261,17 @@ def domande_configuratore(
             .distinct()
             .all()
         )
+    ]
+    codici_domanda += [
+        row[0]
+        for row in session.query(Domanda.code)
+        .filter(
+            Domanda.attiva.is_(True),
+            Domanda.gruppo == GRUPPO_CONFIGURATORE_PRO,
+            Domanda.code != DOMANDA_FINITURA,
+            Domanda.code.notin_(codici_domanda),
+        )
+        .all()
     ]
     if not codici_domanda:
         return []

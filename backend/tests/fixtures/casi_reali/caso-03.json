@@ -385,7 +385,9 @@
         "serramenti",
         "finiture",
         "prodotti"
-      ]
+      ],
+      "bagni_nuovi": 1,
+      "bagni_ciechi": 1
     }
   },
   "deduzioni": {
@@ -396,6 +398,8 @@
     "muri": "27 m² di forati nuovi (A.3.1), intonaco 55 m² sui due lati (A.4.1). Certa.",
     "elettrico": "Modifica: 15 punti (A.8.15) piu' quadro (A.8.17). Certa.",
     "porte": "2 porte nuove: 2 controtelai (A.3.5) e 'montaggio due porte interne'. Nessuna porta rimossa. Certa.",
-    "non_rifare": "B, C e D a zero nel riepilogo: nel contratto c'e' solo l'edile."
+    "non_rifare": "B, C e D a zero nel riepilogo: nel contratto c'e' solo l'edile.",
+    "bagni_nuovi": "1: bagno creato da zero, nessuna rimozione. Certa.",
+    "bagni_ciechi": "1: areazione forzata (A.10.13) e foro (A.10.12). Certa."
   }
 }

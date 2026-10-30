@@ -23,26 +23,34 @@ cd backend
 
 ## Esito in breve
 
-| Caso | Edile reale | Scarto bozza | Scarto tarato | Errore voce per voce (bozza → tarato) | Totale reale nel range (bozza → tarato) |
-|---|---:|---:|---:|---:|---|
-| 01 appartamento, totale | 65.572 | +16% | **0%** | 39.080 → 23.665 | sì → sì |
-| 02 appartamento, parziale | 13.970 | +2% | **−7%** | 15.024 → 12.649 | sì → sì |
-| 03 negozio, bagno nuovo (frontiera) | 18.060 | +21% | **+2%** | 14.621 → 9.042 | no → sì |
-| 04 appartamento, totale, solo edile | 82.340 | 0% | **−11%** | 40.624 → 26.735 | sì → sì |
+| Caso | Edile reale | Scarto bozza | Scarto tarato | Totale lavori tarato | Errore voce per voce (bozza → tarato) | Totale reale nel range (bozza → tarato) |
+|---|---:|---:|---:|---:|---:|---|
+| 01 appartamento, totale | 65.572 | +16% | **+3%** | +6% | 39.080 → 20.287 | sì → sì |
+| 02 appartamento, parziale | 13.970 | +2% | **+6%** | +1% | 15.024 → 12.052 | sì → sì |
+| 03 negozio, bagno nuovo (frontiera) | 18.060 | +21% | **+3%** | +3% | 14.621 → 7.864 | no → sì |
+| 04 appartamento, totale, solo edile | 82.340 | 0% | **−5%** | −5% | 40.624 → 25.591 | sì → sì |
 
 Imponibile in euro. L'"errore voce per voce" è la somma degli scarti assoluti delle voci di
 A-EDILE con le quantità del motore ai prezzi del file. Misura le quantità e non i prezzi, e un
 errore in più non compensa un errore in meno.
 
-- **Soglia ±15% sull'edile: rispettata** nei tre appartamenti. Il negozio è fuori soglia per
-  scelta, vedi sotto, ma sta comunque a +2%.
+- **Soglia ±15% sull'edile: rispettata** nei tre appartamenti, con la stima un po' sopra il
+  reale nei casi 01 e 02 (preferenza di Riccardo: meglio leggermente sopra, ma nel range).
 - **Totale reale nel range in tutti e quattro i casi.**
-- **Le quantità migliorano in tutti e quattro i casi.** L'errore voce per voce scende del 34%
-  complessivo (109 k€ → 72 k€).
-- **I totali della bozza tornavano in parte per compensazione.** Nei casi 02 e 04 la
-  tinteggiatura sovrastimata (2-8 k€) copriva assistenze, movimentazione e lavori a corpo
-  sottostimati. Ora queste voci hanno ognuna la sua regola. Lo scarto residuo (−7%, −11%) è
-  quasi tutto in lavori a corpo che il wizard non chiede (sezione "Voci a corpo").
+- **Le quantità migliorano in tutti e quattro i casi**: l'errore voce per voce scende del 40%
+  complessivo (109 k€ → 66 k€).
+- **Il caso 04 resta sotto del 5%** per un'impermeabilizzazione a corpo da 4.000 € senza m²
+  né indicazione di terrazzi nel file: non si può rispondere alla domanda Pro senza inventare.
+- **I totali della bozza tornavano in parte per compensazione.** La tinteggiatura sovrastimata
+  copriva assistenze, movimentazione e lavori a corpo sottostimati. Ora ognuna di queste voci ha
+  la sua regola o la sua domanda.
+
+Il lavoro è andato in tre passate, tutte nella stessa sessione:
+
+1. quantità (tinteggiatura, battiscopa, voci bagno);
+2. decisioni di Riccardo: assistenze, movimentazione, prezzi, IVA, range;
+3. domande Pro per i lavori a corpo, "solo predisposizione" per il clima, rivestimenti in
+   formato grande, densità dei punti elettrici.
 
 ## Come è stato fatto
 
@@ -71,9 +79,10 @@ errore in più non compensa un errore in meno.
    - **caso 04**: la fornitura della caldaia è dentro A.10.3.
 
    Lo scarto per categoria si misura a parità di perimetro.
-4. **Taratura dei dati, non del codice**:
-   - regole e grandezze: seed + migrazione `0029_taratura_casi_reali.py`, che scrive solo
-     dove il valore è ancora quello della bozza;
+4. **Taratura dei dati** (con una sola riga di codice, per mostrare le domande Pro nuove):
+   - regole e grandezze: seed + migrazioni `0029_taratura_casi_reali.py` e
+     `0030_domande_pro_lavori_a_corpo.py`, che scrivono solo dove il valore è ancora quello
+     della bozza;
    - prezzi, IVA e range: il seed li riscrive a ogni avvio.
 5. **Casi d'oro** in `backend/tests/test_casi_reali.py`.
 
@@ -119,9 +128,9 @@ Reggio Emilia, 85 m², risposte di default, imponibile:
 
 | Tipo | Edile bozza → tarato | Totale lavori bozza → tarato |
 |---|---|---|
-| Leggera | 16,4 → 13,6 k€ | 20,5 → 17,3 k€ |
-| Moderata | 32,4 → 30,1 k€ | 41,5 → 38,6 k€ |
-| Totale | 39,1 → 37,2 k€ | 69,3 → 66,9 k€ |
+| Leggera | 16,4 → 14,0 k€ | 20,5 → 17,6 k€ |
+| Moderata | 32,4 → 32,3 k€ | 41,5 → 40,9 k€ |
+| Totale | 39,1 → 39,4 k€ | 69,3 → 69,2 k€ |
 
 L'oracolo v1 (il calcolo €/m², usato solo da un listino senza regole) passa da
 47.985–70.575 € a **47.251–69.473 €** per effetto dell'IVA dei serramenti. I test che lo
@@ -155,34 +164,46 @@ esempio leggera + sostituzione delle finestre: una parte del valore delle finest
 È un lavoro a sé, proposto come prossimo passo. Il 4% e gli immobili non residenziali restano
 fuori: il wizard prevede solo abitazioni.
 
-## Voci a corpo: si può fare meglio?
+## Domande Pro per i lavori a corpo (terza passata)
 
-Sì, in parte. Lo scarto residuo dei due appartamenti sotto il reale si divide così (imponibile,
-motore ai prezzi del file):
+Sei domande nuove nel pannello Pro (gruppo `configuratore_pro`, nessun effetto sul wizard Free)
+e un'opzione nuova nel Free. Collegano le voci che il listino aveva già, con la regola a zero in
+attesa di una domanda.
 
-| Tipo di scarto | Caso 02 | Caso 04 | Come ridurlo |
-|---|---:|---:|---|
-| Lavori a corpo che il wizard non chiede: velette, posa parziale, architrave, controtelaio scorrevole (02); impermeabilizzazione grande, nicchie, varchi, carta da parati (04) | −2.100 | −7.000 | **Domande Pro mirate**: le voci esistono già nel listino, con la regola a fattore 0 in attesa di una domanda. |
-| Clima con sola predisposizione: il motore monta anche gli split | — | +1.750 | Un'opzione "solo predisposizione" in `interv_clima`. |
-| Voci di cantiere a corpo (allestimento, sicurezza) | −100 | −1.600 | Nessuno schema nei 4 casi (sicurezza 500-2.000 € senza legame con m² o importo). Servono altri computi. |
-| Densità dei punti elettrici | −1.600 | +800 | Una domanda Pro sui punti, o un conteggio per stanza. |
-| Rivestimenti (formato e m²) | −700 | −2.000 | m² di rivestimento per bagno nel Pro (oggi 18 fissi). |
+| Domanda | Grandezza | Voci |
+|---|---|---|
+| Quanti bagni crei da zero? (`bagni_nuovi`) | `bagni_smontati` = bagni rifatti − nuovi | Niente rimozione di sanitari (A.0.3-7), linee (A.0.11) e rivestimenti (A.1.10) per i bagni nuovi. |
+| Quanti bagni sono senza finestra? (`bagni_ciechi`) | `bagni_ciechi` | Areazione forzata (A.10.13) e foro (A.10.12). |
+| Quante aperture nuove o vani da allargare? (`varchi_n`) | `varchi` | Quadratura vano (A.3.8), più un architrave per varco (A.3.6). |
+| Quanti metri di velette? (`velette_ml`) | `velette_ml` | Velette in cartongesso (A.5.3). |
+| Quanti m² di carta da parati da togliere? (`carta_parati_mq`) | `carta_parati_mq` | Rimozione carta da parati (A.1.11.1). |
+| Quanti m² di terrazzi da impermeabilizzare? (`terrazzi_mq`) | `terrazzi_mq` | Rimozione guaina (A.1.12) e membrana bituminosa (A.7.2). |
+| Clima: **solo predisposizione** (opzione di `interv_clima`, Free), con "Quanti split vuoi predisporre?" | `clima_predisposizione`, `split_predisposti` | Predisposizione (A.8.21) e linea dedicata (A.8.18), senza montaggio (A.10.1) né macchine (D). |
 
-Le domande Pro coprirebbero circa due terzi del residuo dei casi 02 e 04, senza toccare il Free.
-Sono, in ordine di peso:
+Nelle fixture le domande sono risposte solo dove il computo lo dice:
 
-1. impermeabilizzazione di terrazzi e balconi (A.7.2, m²);
-2. varchi e modifiche di vani porta (A.3.8, n);
-3. velette e controsoffitti nel Pro (A.5.3; `controsoffitti_mq` esiste già);
-4. carta da parati (A.1.11, m²);
-5. bagno nuovo o rifatto e bagno cieco (A.0.x, A.1.10, A.10.12-13);
-6. clima con sola predisposizione.
+- caso 01: 2 bagni nuovi, clima solo predisposto;
+- caso 02: 10 ml di velette, 1 varco;
+- caso 03: 1 bagno nuovo e cieco;
+- caso 04: 3 varchi, 60 m² di carta da parati, clima solo predisposto.
 
-Per le voci di cantiere servono più computi, non più regole.
+Il pannello Pro ora mostra anche le domande del gruppo `configuratore_pro` senza effetti
+(`services/dettaglio_pro.py::domande_configuratore`). È l'unica riga di codice cambiata. Le
+regole esistenti le ricollega la migrazione `0030`; domande, opzioni e grandezze nuove le crea
+il seed al boot.
 
-Un'alternativa senza domande nuove è un range asimmetrico (per esempio −10% / +20%). Il motore
-tende a stare sotto il reale perché i lavori a corpo non chiesti aggiungono costo, non lo
-tolgono. Con quattro casi però è prematuro: da rivalutare con i prossimi computi.
+Nella stessa passata, sempre per stare un po' sopra il reale, sono cambiati altri due dati:
+
+| Dato | Prima | Dopo | Perché |
+|---|---|---|---|
+| Posa rivestimenti con finitura base e media | A.6.3 (formati 20-60, 30 €/m²) | **A.6.4** (formati 65-120, 40 €/m²) | Il tecnico usa A.6.4 in 2 computi su 3 (l'altro è il negozio). |
+| Punti elettrici | 0,5 per m² commerciale | **0,65** | 0,91 (caso 01) e 0,43 (caso 04): media 0,67. |
+
+Restano fuori, e servono altri computi per decidere:
+
+- le voci di cantiere a corpo (allestimento, sicurezza): nei quattro casi non seguono né i m²
+  né l'importo dei lavori;
+- un eventuale range asimmetrico.
 
 ## Caso 03: perché è di frontiera
 

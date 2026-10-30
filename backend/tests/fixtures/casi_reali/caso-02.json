@@ -304,7 +304,9 @@
       "non_rifare": [
         "finiture",
         "prodotti"
-      ]
+      ],
+      "velette_ml": 10,
+      "varchi_n": 1
     }
   },
   "deduzioni": {
@@ -317,7 +319,9 @@
     "porte": "5 battenti: rimosse 5 porte (A.0.12) e fornite 5 porte battenti a corpo 2.500 EUR scritte nel posto di A.10.9 (in edile, non in C). In piu' un controtelaio scorrevole (A.3.7). Certa.",
     "muri": "Tramezzo in cartongesso a corpo 750 EUR (A.3.3), circa 10 m². Stimata.",
     "riscaldamento": "Nessuno: un solo termosifone sotto la caldaia e un cronotermostato, scritti nei posti di A.8.1 e A.8.18. Certa.",
-    "non_rifare": "Finiture e prodotti a zero nel riepilogo: il cliente li compra a parte. Le porte invece ci sono, ma scritte in edile (A.10.9): 'serramenti' resta nel conto, e nel confronto per categoria finiscono in C."
+    "non_rifare": "Finiture e prodotti a zero nel riepilogo: il cliente li compra a parte. Le porte invece ci sono, ma scritte in edile (A.10.9): 'serramenti' resta nel conto, e nel confronto per categoria finiscono in C.",
+    "velette": "10 ml: velette a corpo 600 EUR (A.5.3, listino 60 EUR/ml). Ricavata dall'importo.",
+    "varchi": "1: controtelaio scorrevole (A.3.7) e architrave a corpo (A.3.6) su un vano esistente. Probabile."
   },
   "riclassifica": [
     {
