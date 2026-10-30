@@ -209,14 +209,19 @@ def _aggiorna(da: int, a: int) -> None:
             )
             bind.execute(
                 sa.text(
+                    # Cast espliciti: Postgres deduce tipi diversi per lo stesso
+                    # parametro nella lista del SELECT (text) e nei confronti
+                    # con le colonne (varchar) e rifiuta la query.
                     "INSERT INTO termine_grandezza"
                     " (grandezza_code, sorgente_code, fattore, per_grandezza_code, ordine, updated_at)"
-                    " SELECT :g, :s, CAST(:f AS NUMERIC), NULL,"
-                    " (SELECT COALESCE(MAX(t.ordine), -1) + 1 FROM termine_grandezza t WHERE t.grandezza_code = :g),"
+                    " SELECT CAST(:g AS VARCHAR), CAST(:s AS VARCHAR), CAST(:f AS NUMERIC), NULL,"
+                    " (SELECT COALESCE(MAX(t.ordine), -1) + 1 FROM termine_grandezza t"
+                    "  WHERE t.grandezza_code = CAST(:g AS VARCHAR)),"
                     " CURRENT_TIMESTAMP"
-                    " WHERE EXISTS (SELECT 1 FROM grandezza WHERE code = :g)"
+                    " WHERE EXISTS (SELECT 1 FROM grandezza WHERE code = CAST(:g AS VARCHAR))"
                     " AND NOT EXISTS (SELECT 1 FROM termine_grandezza"
-                    "  WHERE grandezza_code = :g AND sorgente_code = :s AND per_grandezza_code IS NULL)"
+                    "  WHERE grandezza_code = CAST(:g AS VARCHAR) AND sorgente_code = CAST(:s AS VARCHAR)"
+                    "  AND per_grandezza_code IS NULL)"
                 ),
                 {"g": grandezza, "s": sorgente, "f": fattore},
             )
