@@ -1,0 +1,335 @@
+{
+  "caso": "caso-02",
+  "file": "docs/casi-reali/caso-02-appartamento-parziale-2026-05.xlsx",
+  "descrizione": "RISTRUTTURAZIONE PARZIALE APPARTAMENTO AL PIANO TERRA",
+  "totali_ivati": {
+    "A-EDILE": 18117.0,
+    "B-FINITURE": 0.0,
+    "C-SERRAMENTI": 0.0,
+    "D-PRODOTTI": 0.0,
+    "totale_lavori": 18117.0,
+    "pratiche": 0.0,
+    "da_pagare": 19629.0
+  },
+  "somme_imponibili_dalle_voci": {
+    "A-EDILE": 16775.0
+  },
+  "voci": [
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.0.1",
+      "riga": 27,
+      "impianto": "EDILE",
+      "descrizione": "Allestimento area di cantiere con protezione zone di passaggio a mezzo teli nylon e/o cartoni al fine di eseguire i lavori in oggetto a perf",
+      "um": "ac",
+      "quantita": 1.0,
+      "prezzo": 800.0,
+      "totale": 800.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.0.2",
+      "riga": 28,
+      "impianto": "ELETTRICO",
+      "descrizione": "Installazione di quadro elettrico di cantiere effettuato da operatore abilitato, e rilascio della certificazioni di installazione e conformi",
+      "um": "ac",
+      "quantita": 1.0,
+      "prezzo": 250.0,
+      "totale": 250.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.0.12",
+      "riga": 39,
+      "impianto": "EDILE",
+      "descrizione": "Rimozione di tutte le porte interne comprese di anta, telaio e falso telaio con trasposto dal piano strada alle pubbliche discariche. Compre",
+      "um": "cad",
+      "quantita": 5.0,
+      "prezzo": 50.0,
+      "totale": 250.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.0.18",
+      "riga": 48,
+      "impianto": "EDILE",
+      "descrizione": "Movimentazione nell'area di cantiere di materiali di risulta e assistenza con personale per il carico di tutte le forniture  (quali ad esemp",
+      "um": "piano",
+      "quantita": 1.0,
+      "prezzo": 100.0,
+      "totale": 100.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.1.10",
+      "riga": 63,
+      "impianto": "EDILE",
+      "descrizione": "Demolizione di rivestimenti a parete, compresa la demolizione della sottostante malta di allettamento. Compreso l’accatastamento nei siti ch",
+      "um": "mq",
+      "quantita": 40.0,
+      "prezzo": 20.0,
+      "totale": 800.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.3.3",
+      "riga": 85,
+      "impianto": "EDILE",
+      "descrizione": "Realizzazione di tramezzature in doppia lastre di cartongesso dello spessore di 12,5 mm fissati mediante viti autoperforanti fosfatate ad un",
+      "um": "ac",
+      "quantita": 1.0,
+      "prezzo": 750.0,
+      "totale": 750.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.3.6",
+      "riga": 88,
+      "impianto": "EDILE",
+      "descrizione": "Fornitura e posa in opera di architrave sottile prefabbricato in calcestruzzo aerato autoclavato armato per la realizzazione di aperture su ",
+      "um": "ac",
+      "quantita": 1.0,
+      "prezzo": 450.0,
+      "totale": 450.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.3.7",
+      "riga": 89,
+      "impianto": "EDILE",
+      "descrizione": "Fornitura e posa in opera di controtelaio metallico per porte scorrevoli interne al muro, misure standard (60-90cm/spess.10 cm),compresa la ",
+      "um": "cad",
+      "quantita": 1.0,
+      "prezzo": 500.0,
+      "totale": 500.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.4.2",
+      "riga": 95,
+      "impianto": "EDILE",
+      "descrizione": "Ripresa dell'intonaco sulle pareti dove è stato rimosso il rivestimento in ceramica e sulle tracce dei tramezzi demoliti - CUCINA, DOVE RIMU",
+      "um": "ac",
+      "quantita": 20.0,
+      "prezzo": 32.0,
+      "totale": 640.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.5.3",
+      "riga": 99,
+      "impianto": "EDILE",
+      "descrizione": "Relizzazione di velette in cartongesso da 12,5 mm per controsoffitti, per uno spessore massimo di 10 cm e larghezza massima 30cm per innesto",
+      "um": "ac",
+      "quantita": 1.0,
+      "prezzo": 600.0,
+      "totale": 600.0,
+      "codice_nel_file": "A.5.1"
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.6.1",
+      "riga": 106,
+      "impianto": "EDILE",
+      "descrizione": "Posa in opera della pavimentazione con disegno a correre, compresa la stuccatura finale (restano escluse colle e stucchi, in quanto andranno",
+      "um": "ac",
+      "quantita": 1.0,
+      "prezzo": 550.0,
+      "totale": 550.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.8.1",
+      "riga": 126,
+      "impianto": "IDRAULICO",
+      "descrizione": "Fornitura e posa di termosifone sotto la caldaia esistente.",
+      "um": "cad",
+      "quantita": 1.0,
+      "prezzo": 350.0,
+      "totale": 350.0,
+      "descrizione_modificata": true
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.8.16",
+      "riga": 146,
+      "impianto": "ELETTRICO",
+      "descrizione": "Realizzazione di impianto elettrico ex novo comprese placche e frutti linea Bticino Living light Bianca. Compresa certificazione conforme al",
+      "um": "cad",
+      "quantita": 60.0,
+      "prezzo": 60.0,
+      "totale": 3600.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.8.17",
+      "riga": 147,
+      "impianto": "ELETTRICO",
+      "descrizione": "Fornitura e posa in opera di quadro elettrico fino a 6Kw con sezioni come a norma di legge. CARATTERISTICHE QUADRO:  n° 1 Apparecchio sezion",
+      "um": "cad",
+      "quantita": 1.0,
+      "prezzo": 500.0,
+      "totale": 500.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.8.18",
+      "riga": 148,
+      "impianto": "ELETTRICO",
+      "descrizione": "FORNITURA E POSA DI CRONOTERMOSTATO + NUOVA PRESA FUORI",
+      "um": "cad",
+      "quantita": 1.0,
+      "prezzo": 200.0,
+      "totale": 200.0,
+      "descrizione_modificata": true
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.9.1",
+      "riga": 159,
+      "impianto": "EDILE",
+      "descrizione": "Assistenza muraria dell'intero immobile relativa all'impianto idro sanitario, impianto di riscaldamento, impianto gas e impianto di condizio",
+      "um": "%",
+      "quantita": 0.3,
+      "prezzo": 350.0,
+      "totale": 105.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.9.2",
+      "riga": 160,
+      "impianto": "EDILE",
+      "descrizione": "Assistenza muraria per realizzazione e/o modifica impianto elettrico relativa all'apertura e alla chiusura di tutte le tracce a parete e a p",
+      "um": "ac",
+      "quantita": 1.0,
+      "prezzo": 600.0,
+      "totale": 600.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.10.7",
+      "riga": 174,
+      "impianto": "IDRAULICO",
+      "descrizione": "Allaccio Impianto Acqua in cucina esclusa la raccorderia variabile a secondo di modello di impianto.",
+      "um": "cad",
+      "quantita": 1.0,
+      "prezzo": 150.0,
+      "totale": 150.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.10.8",
+      "riga": 175,
+      "impianto": "IDRAULICO",
+      "descrizione": "Allaccio Impianto Gas per il piano cottura cucina esclusa la raccorderia variabile a secondo di modello di impianto.",
+      "um": "cad",
+      "quantita": 1.0,
+      "prezzo": 150.0,
+      "totale": 150.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.10.9",
+      "riga": 176,
+      "impianto": "ELETTRICO",
+      "descrizione": "Fornitura e posa di 5 porte battenti, standard, colore bianco.",
+      "um": "cad",
+      "quantita": 5.0,
+      "prezzo": 500.0,
+      "totale": 2500.0,
+      "descrizione_modificata": true
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.11.2",
+      "riga": 185,
+      "impianto": "EDILE",
+      "descrizione": "Rasatura a gesso di intonaci civili, compresa la successiva scartavetratura ed ogni mezzo d'opera, con inserimento di rete e paraspigoli (ov",
+      "um": "mq",
+      "quantita": 40.0,
+      "prezzo": 20.0,
+      "totale": 800.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.11.3",
+      "riga": 186,
+      "impianto": "EDILE",
+      "descrizione": "Tinteggiatura di soffitti con pittura traspirante Bianca a due mani a coprire, esclusa la preparazione delle superfici con rasatura e stucca",
+      "um": "mq",
+      "quantita": 130.0,
+      "prezzo": 11.0,
+      "totale": 1430.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.12.1",
+      "riga": 193,
+      "impianto": "EDILE",
+      "descrizione": "Oneri alla sicurezza come da Dgls 81/08",
+      "um": "ac",
+      "quantita": 1.0,
+      "prezzo": 700.0,
+      "totale": 700.0
+    }
+  ],
+  "soglia": {
+    "nella_soglia": true
+  },
+  "input": {
+    "mq": 65,
+    "tipo": "leggera",
+    "risposte": {
+      "superficie_calpestabile": 55,
+      "piano": 0,
+      "porte": 5,
+      "muri_lavori": "si",
+      "muri_da_creare_mq": 10,
+      "tipo_muri_nuovi": "cartongesso",
+      "interv_pavimenti": "mantieni",
+      "interv_bagni": "nessuno",
+      "interv_cucina": "si",
+      "cucina_gas": "si",
+      "interv_elettrico": "rifacimento",
+      "idrico_collettore": "no",
+      "interv_riscaldamento": "nessuno",
+      "interv_clima": "nessuno",
+      "interv_caldaia": "no",
+      "interv_porte": "battente",
+      "porta_blindata": "no",
+      "interv_serramenti": "mantieni",
+      "tapparelle": "nessuna",
+      "zanzariere": "no",
+      "tinteggiatura": "si",
+      "non_rifare": [
+        "finiture",
+        "prodotti"
+      ],
+      "velette_ml": 10,
+      "varchi_n": 1
+    }
+  },
+  "deduzioni": {
+    "mq": "65 commerciali, 55 calpestabili: nel file non ci sono m². Ricavati da 60 punti elettrici ex novo (circa 1 punto per m² calpestabile come nel caso 01) e da 130 m² di tinteggiatura. Incerta: da confermare.",
+    "piano": "0: 'appartamento al piano terra'. Certa.",
+    "tipo": "Leggera come punto di partenza ('ristrutturazione parziale'), con le risposte esplicite sotto.",
+    "pavimenti": "Mantieni: nessuna demolizione ne' massetto; solo una posa a corpo da 550 EUR (A.6.1), probabilmente la cucina. Probabile.",
+    "cucina": "Si', a gas: rivestimenti demoliti 40 m² (A.1.10), allacci acqua e gas (A.10.7, A.10.8). Probabile.",
+    "elettrico": "Rifacimento: 60 punti ex novo (A.8.16) e quadro (A.8.17). Certa.",
+    "porte": "5 battenti: rimosse 5 porte (A.0.12) e fornite 5 porte battenti a corpo 2.500 EUR scritte nel posto di A.10.9 (in edile, non in C). In piu' un controtelaio scorrevole (A.3.7). Certa.",
+    "muri": "Tramezzo in cartongesso a corpo 750 EUR (A.3.3), circa 10 m². Stimata.",
+    "riscaldamento": "Nessuno: un solo termosifone sotto la caldaia e un cronotermostato, scritti nei posti di A.8.1 e A.8.18. Certa.",
+    "non_rifare": "Finiture e prodotti a zero nel riepilogo: il cliente li compra a parte. Le porte invece ci sono, ma scritte in edile (A.10.9): 'serramenti' resta nel conto, e nel confronto per categoria finiscono in C.",
+    "velette": "10 ml: velette a corpo 600 EUR (A.5.3, listino 60 EUR/ml). Ricavata dall'importo.",
+    "varchi": "1: controtelaio scorrevole (A.3.7) e architrave a corpo (A.3.6) su un vano esistente. Probabile."
+  },
+  "riclassifica": [
+    {
+      "codice": "A.10.9",
+      "da": "A-EDILE",
+      "a": "C-SERRAMENTI",
+      "importo": 2500,
+      "motivo": "Fornitura e posa di 5 porte battenti scritta nel posto di A.10.9: nel listino le porte sono C.1.1 + C.1.2."
+    }
+  ]
+}

@@ -106,13 +106,14 @@ class TestRetrocompatibilita:
             .filter_by(voce_id=voce_db.id, tipo_code="totale")
             .one()
         )
-        range_pct = session.query(TipoRistrutturazione).filter_by(code="totale").one().range_pct
+        tipo_row = session.query(TipoRistrutturazione).filter_by(code="totale").one()
+        range_pct, range_sotto = tipo_row.range_pct, tipo_row.range_sotto
 
         quantita_attesa = (coeff.coefficiente_qta_per_mq * Decimal(85)).quantize(
             Decimal("0.01"), rounding=ROUND_HALF_UP
         )
         totale_voce = quantita_attesa * voce_db.prezzo_unitario_cliente
-        prezzo_min_atteso = (totale_voce * (Decimal("1") - range_pct)).quantize(
+        prezzo_min_atteso = (totale_voce * (Decimal("1") - range_sotto)).quantize(
             Decimal("1"), rounding=ROUND_HALF_UP
         )
         prezzo_max_atteso = (totale_voce * (Decimal("1") + range_pct)).quantize(

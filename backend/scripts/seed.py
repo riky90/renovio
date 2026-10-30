@@ -1038,7 +1038,16 @@ def seed(session: Session, data: dict | None = None) -> Listino:
             lc.coefficiente_impresa = COEFFICIENTE_IMPRESA[code]
 
     # 4. tipo_ristrutturazione (3)
+    # Range asimmetrico (TAR-01): `range_pct_tipo` e' l'ampiezza sopra,
+    # `range_pct_sotto_tipo` quella sotto; senza la seconda il range e' simmetrico.
+    # Un DB fermo prima della 0031 non ha la colonna: si scrive solo se c'e'.
+    range_sotto = data.get("range_pct_sotto_tipo", {})
+    ha_range_sotto = any(
+        c["name"] == "range_pct_sotto"
+        for c in inspect(session.connection()).get_columns("tipo_ristrutturazione")
+    )
     for code, range_pct in data["range_pct_tipo"].items():
+        sotto = _dec(range_sotto[code]) if code in range_sotto else None
         tipo = session.query(TipoRistrutturazione).filter_by(code=code).one_or_none()
         if tipo is None:
             tipo = TipoRistrutturazione(
@@ -1049,6 +1058,8 @@ def seed(session: Session, data: dict | None = None) -> Listino:
             tipo.nome = TIPO_NOMI[code]
             tipo.ordine = TIPO_ORDINE[code]
             tipo.range_pct = _dec(range_pct)
+        if ha_range_sotto:
+            tipo.range_pct_sotto = sotto
     session.flush()
 
     # 5. moltiplicatore (12 = 3 tipi x 4 categorie)

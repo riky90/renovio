@@ -1074,6 +1074,28 @@
       "visibile_se_opzione_code": "split"
     },
     {
+      "code": "split_predisposti",
+      "testo": "Quanti split vuoi predisporre?",
+      "help": "Conta un'unità interna per ogni ambiente che vorrai climatizzare: prepariamo tubi e linee, le macchine le monti più avanti.",
+      "tipo_controllo": "stepper",
+      "gruppo": "ristrutturazione",
+      "ordine": 99,
+      "tier_minimo": "free",
+      "attributo_code": "split_predisposti",
+      "visibile_se_domanda_code": "interv_clima",
+      "visibile_se_opzione_code": "predisposizione",
+      "obbligatoria": false,
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "ordine": 1,
+          "is_default": true,
+          "effetti": []
+        }
+      ]
+    },
+    {
       "code": "muri_lavori",
       "testo": "Ci sono lavori sui muri?",
       "tipo_controllo": "toggle",
@@ -1743,6 +1765,22 @@
               }
             },
             {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.6",
+                "voce": "A.6.4"
+              }
+            },
+            {
+              "tipo_effetto": "escludi",
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.6",
+                "voce": "A.6.3"
+              }
+            },
+            {
               "tipo_effetto": "escludi",
               "target_voce": {
                 "categoria_code": "A-EDILE",
@@ -1953,6 +1991,22 @@
           "effetti": [
             {
               "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.6",
+                "voce": "A.6.3"
+              }
+            },
+            {
+              "tipo_effetto": "includi",
+              "target_voce": {
+                "categoria_code": "A-EDILE",
+                "sottocategoria": "A.6",
+                "voce": "A.6.4"
+              }
+            },
+            {
+              "tipo_effetto": "escludi",
               "target_voce": {
                 "categoria_code": "A-EDILE",
                 "sottocategoria": "A.6",
@@ -4379,7 +4433,7 @@
       "gruppo": "ristrutturazione",
       "ordine": 97,
       "tipo_controllo": "scelta_singola",
-      "help": "Il canalizzato nasconde le macchine nel controsoffitto e distribuisce l'aria con bocchette.",
+      "help": "Il canalizzato nasconde le macchine nel controsoffitto e distribuisce l'aria con bocchette. Con la sola predisposizione si preparano tubi e linee, senza macchine.",
       "opzioni": [
         {
           "code": "nessuno",
@@ -4400,6 +4454,14 @@
           "etichetta": "Sì, canalizzata",
           "ordine": 3,
           "is_default": false,
+          "effetti": []
+        },
+        {
+          "code": "predisposizione",
+          "etichetta": "Solo predisposizione",
+          "ordine": 4,
+          "is_default": false,
+          "descrizione": "Tubi e linee pronti: gli split li monti più avanti.",
           "effetti": []
         }
       ],
@@ -4625,6 +4687,126 @@
       "tier_minimo": "free",
       "obbligatoria": false,
       "help": null
+    },
+    {
+      "code": "bagni_nuovi",
+      "testo": "Quanti bagni crei da zero, dove prima non c'era un bagno?",
+      "help": "Un bagno nuovo non ha sanitari da smontare né rivestimenti da demolire. Contali fra i bagni da rifare.",
+      "tipo_controllo": "stepper",
+      "gruppo": "configuratore_pro",
+      "ordine": 60,
+      "tier_minimo": "pro",
+      "attributo_code": "bagni_nuovi",
+      "obbligatoria": false,
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "ordine": 1,
+          "is_default": true,
+          "effetti": []
+        }
+      ]
+    },
+    {
+      "code": "bagni_ciechi",
+      "testo": "Quanti bagni sono senza finestra?",
+      "help": "Un bagno cieco ha bisogno dell'aspirazione forzata e del foro verso l'esterno.",
+      "tipo_controllo": "stepper",
+      "gruppo": "configuratore_pro",
+      "ordine": 61,
+      "tier_minimo": "pro",
+      "attributo_code": "bagni_ciechi",
+      "obbligatoria": false,
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "ordine": 1,
+          "is_default": true,
+          "effetti": []
+        }
+      ]
+    },
+    {
+      "code": "varchi_n",
+      "testo": "Quante aperture nuove o vani porta da allargare?",
+      "help": "Porte nuove nei muri esistenti o vani da modificare, per esempio per una porta scorrevole. Zero se non ce ne sono.",
+      "tipo_controllo": "stepper",
+      "gruppo": "configuratore_pro",
+      "ordine": 62,
+      "tier_minimo": "pro",
+      "attributo_code": "varchi",
+      "obbligatoria": false,
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "ordine": 1,
+          "is_default": true,
+          "effetti": []
+        }
+      ]
+    },
+    {
+      "code": "velette_ml",
+      "testo": "Quanti metri di velette in cartongesso?",
+      "help": "Le fasce ribassate lungo le pareti, per nascondere tubi o fare luce indiretta. Zero se non ne vuoi.",
+      "tipo_controllo": "stepper",
+      "gruppo": "configuratore_pro",
+      "ordine": 63,
+      "tier_minimo": "pro",
+      "attributo_code": "velette_ml",
+      "obbligatoria": false,
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "ordine": 1,
+          "is_default": true,
+          "effetti": []
+        }
+      ]
+    },
+    {
+      "code": "carta_parati_mq",
+      "testo": "Quanti m² di carta da parati da togliere?",
+      "help": "Pareti con carta da parati da rimuovere prima di tinteggiare. Zero se non ce n'è.",
+      "tipo_controllo": "stepper",
+      "gruppo": "configuratore_pro",
+      "ordine": 64,
+      "tier_minimo": "pro",
+      "attributo_code": "carta_parati_mq",
+      "obbligatoria": false,
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "ordine": 1,
+          "is_default": true,
+          "effetti": []
+        }
+      ]
+    },
+    {
+      "code": "terrazzi_mq",
+      "testo": "Quanti m² di terrazzi o balconi da impermeabilizzare?",
+      "help": "Rimozione della vecchia guaina e nuova membrana. Zero se non li tocchi.",
+      "tipo_controllo": "stepper",
+      "gruppo": "configuratore_pro",
+      "ordine": 65,
+      "tier_minimo": "pro",
+      "attributo_code": "terrazzi_mq",
+      "obbligatoria": false,
+      "opzioni": [
+        {
+          "code": "valore",
+          "etichetta": "Valore",
+          "ordine": 1,
+          "is_default": true,
+          "effetti": []
+        }
+      ]
     }
   ],
   "forfait_arredo": [

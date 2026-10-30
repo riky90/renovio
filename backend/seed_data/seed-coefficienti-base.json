@@ -30,19 +30,24 @@
     }
   },
   "range_pct_tipo": {
-    "leggera": 0.1,
+    "leggera": 0.15,
     "moderata": 0.15,
-    "totale": 0.2
+    "totale": 0.15
   },
   "iva_categoria": {
     "A-EDILE": 0.1,
     "B-FINITURE": 0.22,
-    "C-SERRAMENTI": 0.22,
+    "C-SERRAMENTI": 0.1,
     "D-PRODOTTI": 0.1,
     "E-ARREDO": 0.22
   },
   "extra": {
     "CSE_CSP": 800,
     "pratiche": 1500
+  },
+  "range_pct_sotto_tipo": {
+    "leggera": 0.1,
+    "moderata": 0.1,
+    "totale": 0.1
   }
 }

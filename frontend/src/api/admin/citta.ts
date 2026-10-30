@@ -30,7 +30,10 @@ export interface TipoRistrutturazione {
   code: string;
   nome: string;
   ordine: number;
+  /** Ampiezza sopra il valore stimato. */
   range_pct: number;
+  /** Ampiezza sotto; `null` = uguale a `range_pct` (range simmetrico). */
+  range_pct_sotto: number | null;
 }
 
 interface RawTipoRistrutturazione {
@@ -38,6 +41,7 @@ interface RawTipoRistrutturazione {
   nome: string;
   ordine: number;
   range_pct: unknown;
+  range_pct_sotto?: unknown;
 }
 
 /** Listino minimo per popolare il select "listino mappato" nel dialog città. */
@@ -57,6 +61,10 @@ function normalizeTipo(raw: RawTipoRistrutturazione): TipoRistrutturazione {
     nome: raw.nome,
     ordine: raw.ordine,
     range_pct: toNumber(raw.range_pct),
+    range_pct_sotto:
+      raw.range_pct_sotto === null || raw.range_pct_sotto === undefined
+        ? null
+        : toNumber(raw.range_pct_sotto),
   };
 }
 
@@ -86,7 +94,7 @@ export async function listTipi(): Promise<TipoRistrutturazione[]> {
 
 export async function updateTipo(
   code: string,
-  body: { nome?: string; ordine?: number; range_pct?: number },
+  body: { nome?: string; ordine?: number; range_pct?: number; range_pct_sotto?: number },
 ): Promise<TipoRistrutturazione> {
   const raw = await apiPatch<RawTipoRistrutturazione>(`/admin/citta/tipi/${code}`, body);
   return normalizeTipo(raw);

@@ -4,7 +4,7 @@ Tre cose contano piu' dei numeri.
 
 1. **L'arredo sta FUORI dal totale lavori.** `E-ARREDO` e' una categoria vera
    in tabella, ma `nel_totale_lavori=False` la tiene fuori dal motore Free.
-   L'oracolo primario (85 mq totale RE -> 47.985-70.575) e la riconciliazione
+   L'oracolo primario (85 mq totale RE -> 52.807-66.696) e la riconciliazione
    `Sigma categorie + extra = totale` devono restare intatti CON la categoria
    seminata: e' la prova che l'esclusione e' un dato che funziona, non una
    coincidenza.
@@ -76,8 +76,8 @@ class TestCategoriaFuoriDalTotale:
     def test_oracolo_primario_invariato(self, session):
         """85 mq totale RE con `E-ARREDO` in tabella: il numero non si muove."""
         result = _stima(session)
-        assert result.totale_min == Decimal("47985")
-        assert result.totale_max == Decimal("70575")
+        assert result.totale_min == Decimal("52807")
+        assert result.totale_max == Decimal("66696")
 
     def test_arredo_non_compare_fra_le_categorie(self, session):
         result = _stima(session)
@@ -335,8 +335,8 @@ class TestApi:
         assert arredo["disclaimer"]
 
         # Il totale resta il TOTALE LAVORI: l'arredo non ci entra.
-        assert Decimal(body["totale"]["totale_min"]) == Decimal("47985")
-        assert Decimal(body["totale"]["totale_max"]) == Decimal("70575")
+        assert Decimal(body["totale"]["totale_min"]) == Decimal("52807")
+        assert Decimal(body["totale"]["totale_max"]) == Decimal("66696")
         assert Decimal(arredo["totale_min"]) > 0
 
     def test_nessuna_chiave_di_margine_nel_payload_arredo(self, client):

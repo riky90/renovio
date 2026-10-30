@@ -251,6 +251,7 @@ interface TipoFormState {
   nome: string;
   ordine: string;
   range_pct: string;
+  range_pct_sotto: string;
 }
 
 function TipiSection() {
@@ -259,7 +260,12 @@ function TipiSection() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<TipoRistrutturazione | null>(null);
-  const [form, setForm] = useState<TipoFormState>({ nome: "", ordine: "", range_pct: "" });
+  const [form, setForm] = useState<TipoFormState>({
+    nome: "",
+    ordine: "",
+    range_pct: "",
+    range_pct_sotto: "",
+  });
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -268,6 +274,7 @@ function TipiSection() {
         nome: form.nome.trim(),
         ordine: Number(form.ordine),
         range_pct: Number(form.range_pct),
+        ...(form.range_pct_sotto.trim() !== "" ? { range_pct_sotto: Number(form.range_pct_sotto) } : {}),
       });
     },
     onSuccess: () => {
@@ -283,6 +290,7 @@ function TipiSection() {
       nome: row.nome,
       ordine: String(row.ordine),
       range_pct: String(row.range_pct),
+      range_pct_sotto: row.range_pct_sotto === null ? "" : String(row.range_pct_sotto),
     });
     setDialogOpen(true);
   }
@@ -293,7 +301,7 @@ function TipiSection() {
       {row.ordine}
     </span>,
     <span key="range" className="tabular-nums">
-      {(row.range_pct * 100).toFixed(0)}%
+      −{((row.range_pct_sotto ?? row.range_pct) * 100).toFixed(0)}% / +{(row.range_pct * 100).toFixed(0)}%
     </span>,
     <div key="actions" className="flex justify-end gap-2">
       <Button
@@ -315,7 +323,7 @@ function TipiSection() {
       <h2 className="text-base font-semibold text-foreground">Tipi di ristrutturazione</h2>
 
       <AdminTable
-        columns={["Nome", "Ordine", "Range %", ""]}
+        columns={["Nome", "Ordine", "Range", ""]}
         isLoading={tipiQuery.isLoading}
         rows={rows}
         isEmpty={(tipiQuery.data ?? []).length === 0}
@@ -354,7 +362,7 @@ function TipiSection() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="tipo-range">Range % (0–1, es. 0.15)</Label>
+          <Label htmlFor="tipo-range">Range sopra (0–1, es. 0.15)</Label>
           <Input
             id="tipo-range"
             type="number"
@@ -364,6 +372,19 @@ function TipiSection() {
             value={form.range_pct}
             onChange={(e) => setForm((f) => ({ ...f, range_pct: e.target.value }))}
             required
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="tipo-range-sotto">Range sotto (0–1, es. 0.10; vuoto = come sopra)</Label>
+          <Input
+            id="tipo-range-sotto"
+            type="number"
+            step="0.01"
+            min="0"
+            max="1"
+            value={form.range_pct_sotto}
+            onChange={(e) => setForm((f) => ({ ...f, range_pct_sotto: e.target.value }))}
           />
         </div>
       </AdminCrudDialog>

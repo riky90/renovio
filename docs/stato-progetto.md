@@ -17,7 +17,7 @@ questo confronto (vedi `HANDOVER.md`).
 |---|---|---|
 | v1.0 MVP | 01–04 | Chiusa il 2026-09-09. Stima Free a range, account Google, PDF, lead, pannello admin. |
 | v2.0 domande e motore parametrico | 05–10 | Chiusa il 2026-10-01. Catalogo domande, wizard unico, arredo, Excel admin, configuratore Pro, budget. |
-| v3.0 computo parametrico | 11 | Implementata e mergiata su `main` (PR #1–#4). Taratura sui casi reali **da fare**. |
+| v3.0 computo parametrico | 11 | Implementata e mergiata su `main` (PR #1–#4). Taratura sui casi reali fatta (2026-10-30). |
 
 Fase 11, in sintesi (dettaglio in `docs/proposta-computo-parametrico.md` §10):
 
@@ -35,20 +35,23 @@ Fase 11, in sintesi (dettaglio in `docs/proposta-computo-parametrico.md` §10):
   costi, `vercel.json`, pagina 404.
 - `/health` riporta la versione della migrazione applicata.
 
-Numeri della bozza (Reggio Emilia, 85 m², risposte di default, imponibile):
+Numeri dopo la taratura (Reggio Emilia, 85 m², risposte di default, imponibile senza range;
+il range mostrato è −10% / +15% dal 2026-10-30):
 
 | Tipo | Edile | Totale lavori |
 |---|---|---|
-| Leggera | 16,4 k€ | 20,5 k€ |
-| Moderata | 32,4 k€ | 41,5 k€ |
-| Totale | 39,1 k€ | 67,3 k€ |
+| Leggera | 14,0 k€ | 17,6 k€ |
+| Moderata | 31,4 k€ | 40,0 k€ |
+| Totale | 38,5 k€ | 68,3 k€ |
 
 ## Cosa manca
 
-1. **Taratura sui computi reali (TAR-01)**: è il prossimo passo. Quattro computi veri,
-   anonimizzati, sono in `docs/casi-reali/`. Piano operativo in `HANDOVER.md`.
+1. **Dopo la taratura (TAR-01, 2026-10-30)**: eccedenza IVA al 22% dei beni significativi,
+   altri computi reali per le voci di cantiere e per un eventuale range asimmetrico. Le domande
+   Pro per i lavori a corpo e il clima "solo predisposizione" sono fatti (migrazione `0030`). Dettaglio in
+   `.planning/prove/2026-11-taratura/README.md`.
 2. **Incoerenze del file da chiarire con il tecnico** (proposta §7): il 7% senza etichetta su
-   `(B+C+D)`, A.9.1 al 30% o al 35%, la regola della movimentazione A.0.18.
+   `(B+C+D)`. A.9.1, A.9.2 e movimentazione sono state decise sui computi reali (2026-10-30).
 3. **Domande non ancora poste**: tipo di muro demolito, doccia o vasca, bagni ciechi, carta da
    parati.
 4. **Range per incertezza**: oggi il range è un ±% fisso. L'obiettivo è una banda stretta sulle

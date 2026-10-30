@@ -711,7 +711,7 @@
           "codice": "A.2.1",
           "descrizione": "Relizzazione Massetto di sabbia e cemento nelle proporzioni di kg 350 di cemento 32.5 per mc di sabbia dato in opera ben costipato e livellato per uno spessore finito pari a circa 8 cm.",
           "um": "mq",
-          "prezzo_unitario_cliente": 40.0,
+          "prezzo_unitario_cliente": 30.0,
           "ordine": 37,
           "coefficienti": {
             "leggera": {
@@ -1611,7 +1611,7 @@
           "codice": "A.8.16",
           "descrizione": "Realizzazione di impianto elettrico ex novo comprese placche e frutti linea Bticino Living light Bianca. Compresa certificazione conforme alla Norma CEI 64-8 Livello 1 con potenze fino a 6Kw. Calcolata a punti luce come descritto: 1 punto luce comprende: - ogni 503 (completo di due frutti) - ogni us",
           "um": "cad",
-          "prezzo_unitario_cliente": 65.0,
+          "prezzo_unitario_cliente": 60.0,
           "ordine": 83,
           "coefficienti": {
             "leggera": {

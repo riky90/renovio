@@ -89,8 +89,8 @@ def test_risposte_assenti_oracolo_intatto(client):
     body = _post(client)
     assert body["confronto_finiture"] is None
     assert body["finiture_al_minimo"] is False
-    assert float(body["totale"]["totale_min"]) == 47985
-    assert float(body["totale"]["totale_max"]) == 70575
+    assert float(body["totale"]["totale_min"]) == 52807
+    assert float(body["totale"]["totale_max"]) == 66696
 
 
 def test_arredo_non_entra_nel_confronto(client):

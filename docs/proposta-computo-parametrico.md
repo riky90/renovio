@@ -302,19 +302,23 @@ Fatto:
 - **DB già seminati in v2** (produzione, `dev.db`): la migrazione `0027` porta l'asse finitura sui
   sanitari allo stato v3; dopo migrazioni e seed i numeri coincidono con quelli di un DB nuovo.
 
-Numeri della bozza (Reggio Emilia, 85 m², risposte di default, imponibile senza range):
+Numeri dopo la prima taratura sui computi reali (2026-10-30; Reggio Emilia, 85 m², risposte di default,
+imponibile senza range; con la bozza erano 16,4 / 32,4 / 39,1 k€ di edile):
 
 | Tipo | Edile | Totale lavori |
 |---|---|---|
-| Leggera | 16,4 k€ | 20,5 k€ |
-| Moderata | 32,4 k€ | 41,5 k€ |
-| Totale | 39,1 k€ | 67,3 k€ |
+| Leggera | 14,0 k€ | 17,6 k€ |
+| Moderata | 31,4 k€ | 40,0 k€ |
+| Totale | 38,5 k€ | 68,3 k€ |
 
 Da fare:
 
-- **Taratura sui computi reali** (TAR-01): i valori delle grandezze e dei preset sono una bozza
-  ragionata dalle note del file.
-- I punti aperti del §7 (7% senza etichetta, A.9.1 al 30% o al 35%, movimentazione).
+- **Taratura sui computi reali** (TAR-01): fatta il 2026-10-30 su quattro computi (tinteggiatura,
+  fondo, rasatura, battiscopa, punti acqua, voci bagno; migrazione `0029`). Report in
+  `.planning/prove/2026-11-taratura/`. Deduzioni degli input confermate da Riccardo.
+- Punti del §7 decisi il 2026-10-30 sui computi reali: A.9.1 al 40%, A.9.2 al 45%, movimentazione
+  al 12% di A.6 × (piano + 1) con minimo 100 €; serramenti al 10% di IVA (beni significativi:
+  l'eccedenza al 22% non è ancora modellata). Resta aperto il 7% senza etichetta su (B+C+D).
 - Domande non ancora poste: tipo di muro demolito, doccia o vasca, bagni ciechi, carta da parati.
 - Range per incertezza (banda stretta sulle quantità risposte).
 

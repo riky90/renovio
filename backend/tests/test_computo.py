@@ -139,11 +139,11 @@ def test_assistenze_murarie_non_valgono_zero(session, listino):
     assert voci["A.0.18"].importo > 0, "movimentazione: 6% dei pavimenti x piano"
 
 
-def test_assistenza_impianti_e_il_trenta_per_cento(session, listino):
+def test_assistenza_impianti_e_il_quaranta_per_cento(session, listino):
     _, voci = _voci(session, listino)
     sorgenti = [s.sorgente_codice for s in session.query(SorgenteRegola).filter_by(voce_codice="A.9.1")]
     base = sum((voci[c].importo for c in sorgenti if c in voci), Decimal("0"))
-    assert voci["A.9.1"].importo == pytest.approx(base * Decimal("0.30"))
+    assert voci["A.9.1"].importo == pytest.approx(base * Decimal("0.40"))  # TAR-01
 
 
 # --- 4. alternative ---------------------------------------------------------
@@ -194,7 +194,7 @@ def test_il_tipo_sceglie_cosa_si_fa(session, listino):
 
 def test_risposta_esplicita_vince_sul_preset(session, listino):
     _, voci = _voci(session, listino, tipo="leggera", risposte={"interv_bagni": "tutti", "bagni": 2})
-    assert voci["A.8.5"].quantita == 8, "quattro apparecchi per due bagni"
+    assert voci["A.8.5"].quantita == 6, "tre apparecchi per due bagni (TAR-01)"
 
 
 def test_grandezza_da_risposta_numerica(session):
@@ -264,7 +264,9 @@ def test_listino_senza_regole_torna_al_calcolo_eur_mq(session, listino):
     session.flush()
     assert computo_free(session, listino, mq=85, tipo="totale", risposte={}) is None
     result = EstimationService.compute(session, listino, mq=85, tipo="totale")
-    assert (result.totale_min, result.totale_max) == (Decimal("47985"), Decimal("70575"))
+    # Oracolo v1 con C-SERRAMENTI al 10% di IVA e range -10% / +15% (TAR-01;
+    # prima 47.985-70.575).
+    assert (result.totale_min, result.totale_max) == (Decimal("52807"), Decimal("66696"))
 
 
 # --- 8. Excel -------------------------------------------------------------------------

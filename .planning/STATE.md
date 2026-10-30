@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: computo parametrico
 status: in_progress
-last_updated: "2026-10-21T00:00:00.000Z"
-last_activity: 2026-10-21 — fase 11 computo parametrico in implementazione
+last_updated: "2026-10-30T00:00:00.000Z"
+last_activity: 2026-10-30 — TAR-01 prima taratura sui quattro computi reali
 progress:
   total_phases: 1
   completed_phases: 0
@@ -19,30 +19,22 @@ progress:
 
 Phase: 11 — computo parametrico (milestone v3.0)
 Plan: —
-Status: implementazione in corso sul branch `claude/great-wozniak-1ysani`
-Last activity: 2026-10-21 — motore unico Free/Pro sul computo parametrico, migrazioni 0025-0026,
-domande d'intervento e preset, Excel del computo. Vedi `docs/proposta-computo-parametrico.md` §10.
+Status: implementata e in produzione (PR #1-#4 su `main`); taratura TAR-01 fatta il 2026-10-30
+sul branch `claude/great-wozniak-1ysani` (non ancora mergiata).
+Last activity: 2026-10-30 — confronto del motore con quattro computi reali
+(`docs/casi-reali/`), taratura di quantità, assistenze, movimentazione, prezzi di massetto ed
+elettrico, IVA serramenti al 10%, range leggera ±15% (seed + migrazione 0029); casi d'oro in
+`backend/tests/test_casi_reali.py`. Report: `.planning/prove/2026-11-taratura/`.
+
+Per chiudere la fase 11: PR della taratura, merge e allineamento `stima` (`CLAUDE.md`).
+Fatte anche le domande Pro per i lavori a corpo e il clima "solo predisposizione"
+(migrazione 0030). Candidati al passo successivo (v3.1): eccedenza IVA al 22% dei beni
+significativi, range per incertezza (oggi -10% / +15% fisso).
 
 ### v2.0 (storico)
 
-La v2.0 e' **chiusa ma non ancora in produzione**: `origin/main` e' fermo a `f011ed4`
-(v1.0), con circa 350 commit da pushare. Il push deploya su Render e migra il DB di
-produzione dalla `0013` alla `0024`. Prima del push:
-
-1. ~~Prova su Postgres delle migrazioni 0014-0024 e della validazione WR-06.~~ **Fatta il
-   2026-10-01**: passano da uno stato v1.0 con dati utente, smoke 39/39, valori identici a
-   `dev.db` (`.planning/prove/2026-10-01-postgres/README.md`). Da decidere prima del go-live:
-   il totale Pro e' circa 8 volte il Free per coefficienti in bozza su voci a corpo (non solo
-   A.6.11, osservazione 1 del report). **Decisione di Riccardo (2026-10-01): si va in
-   produzione con il Pro cosi' com'e'**; la taratura vera arriva dopo, con l'Excel di taratura
-   (migrazione 0025).
-2. Taratura di A.6.11 "Taglio porta blindata" (coefficiente per m² invece che a conteggio,
-   vedi `09-TARATURA-TODO.md`).
-3. `BACKEND_PUBLIC_URL` impostata su Render (storage avatar su DB).
-4. `git push origin master:main`, poi il collaudo dei PDF in produzione (sezione PDF di
-   `10-HUMAN-UAT.md`, voci 15-18 di `.planning/checklists/2026-10-01-collaudo-wiz-04.md`).
-
-Prossima milestone: `/gsd:new-milestone`.
+La v2.0 e' chiusa e in produzione, insieme alla v3.0 (fasi 01-04 v1.0, 05-10 v2.0, 11 v3.0;
+vedi `docs/stato-progetto.md`).
 
 ## Deferred Items
 
@@ -57,6 +49,21 @@ Items acknowledged and deferred at milestone close on 2026-10-01:
 | verification_gap | 10-VERIFICATION.md | human_needed (solo PDF, da collaudare al go-live su Render) |
 
 ## Last Session
+
+- **2026-10-30** — **TAR-01: taratura sui computi reali (prima passata).** Quattro computi
+  anonimizzati estratti in fixture (`scripts/estrai_casi_reali.py`), input del wizard dedotti
+  e motivati, confronto voce per voce (`scripts/confronta_casi_reali.py`). Edile dopo la
+  taratura: 0% / -7% / +2% (negozio, frontiera) / -11%; errore voce per voce -34%. Tarati
+  solo dati (seed + migrazione `0029`): tinteggiatura in una voce su 3,2 m²/m², fondo 40%,
+  rasatura senza intonaco, battiscopa 0,65, punti acqua 4/bagno + 3/cucina, A.0.11 a corpo,
+  impermeabilizzazione 4 m², sanitari 3/bagno, lampadari e foro cappa a 0. Poi, su decisione di
+  Riccardo: A.9.1 40%, A.9.2 45%, movimentazione 12% (min 100 €), massetto 30 €/m², punto
+  elettrico 60 €, IVA serramenti 10%, range leggera ±15%. Tutti e 4 i casi nel range.
+  Terza passata: sei domande Pro (bagni nuovi e ciechi, varchi, velette, carta da parati,
+  terrazzi), clima "solo predisposizione", rivestimenti in A.6.4, punti elettrici 0,65/m²
+  (migrazione 0030): edile 0 / +5 / 0 / -7%, errore voce per voce -43%.
+  Quarta passata: range asimmetrico -10% / +15% (`range_pct_sotto`, migrazione 0031).
+  Guide pubbliche rigenerate. Nota: `.planning/prove/2026-11-taratura/NOTA-SESSIONE-2026-10-30.md`.
 
 - **2026-10-21** — **Tipo di ristrutturazione come punto di partenza.** Il tipo scelto nel
   wizard precompila i lavori (preset); ampiezza del range ed etichetta (risultato, lead, PDF,

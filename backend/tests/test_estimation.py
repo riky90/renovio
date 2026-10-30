@@ -2,7 +2,10 @@
 docs/seed-listino-reggio-emilia.md and the range/reconciliation rule
 (binding, 01-02-PLAN.md <interfaces> / 01-RESEARCH.md Pitfall 4).
 
-Primary oracle (pinned exactly): 85 mq, tipo=totale -> 47985..70575.
+Primary oracle (pinned exactly): 85 mq, tipo=totale -> 52807..66696.
+Fino al 2026-10-30 era 47985..70575: C-SERRAMENTI passa dal 22% al 10% di IVA
+e il range da +/-20% a -10% / +15%
+(ristrutturazione su abitazione, come nei computi reali del tecnico, TAR-01).
 """
 
 from decimal import Decimal
@@ -36,15 +39,15 @@ def test_primary_oracle_85mq_totale(session):
 
     result = EstimationService.compute(session, listino, mq=85, tipo="totale")
 
-    assert result.totale_min == Decimal("47985")
-    assert result.totale_max == Decimal("70575")
+    assert result.totale_min == Decimal("52807")
+    assert result.totale_max == Decimal("66696")
 
 
 @pytest.mark.parametrize(
     "mq,tipo,expected_min,expected_max",
     [
-        (60, "totale", Decimal("34697"), Decimal("50643")),
-        (110, "totale", Decimal("61273"), Decimal("90507")),
+        (60, "totale", Decimal("38100"), Decimal("47904")),
+        (110, "totale", Decimal("67512"), Decimal("85487")),
     ],
 )
 def test_secondary_oracles_within_1_euro(session, mq, tipo, expected_min, expected_max):
@@ -75,7 +78,7 @@ def test_per_category_iva_rates(session):
     assert iva_by_code["A-EDILE"] == Decimal("0.100")
     assert iva_by_code["D-PRODOTTI"] == Decimal("0.100")
     assert iva_by_code["B-FINITURE"] == Decimal("0.220")
-    assert iva_by_code["C-SERRAMENTI"] == Decimal("0.220")
+    assert iva_by_code["C-SERRAMENTI"] == Decimal("0.100")
 
 
 def test_fixed_extras_not_scaled_by_range(session):
