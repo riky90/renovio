@@ -658,7 +658,7 @@ class TestAnteprima:
 
         assert risposta.status_code == 200
         corpo = risposta.json()
-        assert corpo["base_totale_min"] == "47985"
+        assert corpo["base_totale_min"] == "47251"
         assert corpo["delta_min"] == "0"
         assert corpo["delta_max"] == "0"
         assert corpo["avvisi"] == []

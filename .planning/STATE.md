@@ -19,19 +19,16 @@ progress:
 
 Phase: 11 — computo parametrico (milestone v3.0)
 Plan: —
-Status: implementata e in produzione (PR #1-#4 su `main`); taratura TAR-01 fatta in prima
-passata, in attesa delle conferme di Riccardo e del tecnico.
+Status: implementata e in produzione (PR #1-#4 su `main`); taratura TAR-01 fatta il 2026-10-30
+sul branch `claude/great-wozniak-1ysani` (non ancora mergiata).
 Last activity: 2026-10-30 — confronto del motore con quattro computi reali
-(`docs/casi-reali/`), taratura di tinteggiatura, battiscopa, punti acqua e voci bagno (seed +
-migrazione 0029), casi d'oro in `backend/tests/test_casi_reali.py`. Report e domande aperte:
-`.planning/prove/2026-11-taratura/`.
+(`docs/casi-reali/`), taratura di quantità, assistenze, movimentazione, prezzi di massetto ed
+elettrico, IVA serramenti al 10%, range leggera ±15% (seed + migrazione 0029); casi d'oro in
+`backend/tests/test_casi_reali.py`. Report: `.planning/prove/2026-11-taratura/`.
 
-Per chiudere la fase 11:
-
-1. Conferma delle deduzioni degli input dei casi (fixture `backend/tests/fixtures/casi_reali/`).
-2. Decisione del tecnico su A.9.1 / A.9.2 / A.0.18 (scenario 40% / 45% / 12% nel report) e
-   sull'IVA dei serramenti (10% nei computi, 22% nell'app).
-3. Aggiornare §10 della proposta, poi PR e allineamento `stima`.
+Per chiudere la fase 11: PR della taratura, merge e allineamento `stima` (`CLAUDE.md`).
+Candidati al passo successivo (v3.1): domande Pro per i lavori a corpo, eccedenza IVA al 22%
+dei beni significativi, range per incertezza.
 
 ### v2.0 (storico)
 
@@ -55,11 +52,12 @@ Items acknowledged and deferred at milestone close on 2026-10-01:
 - **2026-10-30** — **TAR-01: taratura sui computi reali (prima passata).** Quattro computi
   anonimizzati estratti in fixture (`scripts/estrai_casi_reali.py`), input del wizard dedotti
   e motivati, confronto voce per voce (`scripts/confronta_casi_reali.py`). Edile dopo la
-  taratura: 0% / -9% / +2% (negozio, frontiera) / -12%; errore voce per voce -29%. Tarati
+  taratura: 0% / -7% / +2% (negozio, frontiera) / -11%; errore voce per voce -34%. Tarati
   solo dati (seed + migrazione `0029`): tinteggiatura in una voce su 3,2 m²/m², fondo 40%,
   rasatura senza intonaco, battiscopa 0,65, punti acqua 4/bagno + 3/cucina, A.0.11 a corpo,
-  impermeabilizzazione 4 m², sanitari 3/bagno, lampadari e foro cappa a 0. Non tarati e
-  segnalati: A.9.1, A.9.2, A.0.18 (punti §7). Caso 02 fuori range del 2% (`xfail` stretto).
+  impermeabilizzazione 4 m², sanitari 3/bagno, lampadari e foro cappa a 0. Poi, su decisione di
+  Riccardo: A.9.1 40%, A.9.2 45%, movimentazione 12% (min 100 €), massetto 30 €/m², punto
+  elettrico 60 €, IVA serramenti 10%, range leggera ±15%. Tutti e 4 i casi nel range.
   Guide pubbliche rigenerate. Nota: `.planning/prove/2026-11-taratura/NOTA-SESSIONE-2026-10-30.md`.
 
 - **2026-10-21** — **Tipo di ristrutturazione come punto di partenza.** Il tipo scelto nel

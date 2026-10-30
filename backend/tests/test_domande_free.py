@@ -5,7 +5,7 @@ Tre cose vanno dimostrate, non sperate:
   1. NEUTRALITA' — il layer a riposo non muove un euro. `risposte=None` (layer
      spento) e `risposte={}` (layer acceso, tutte le domande sui loro default)
      devono produrre lo stesso identico numero dell'oracolo primario
-     47.985-70.575. Senza questo, ogni stima gia' salvata cambierebbe valore.
+     47.251-69.473. Senza questo, ogni stima gia' salvata cambierebbe valore.
   2. DISCIPLINA DEL DATO — la neutralita' regge solo se l'opzione di default di
      ogni domanda non porta effetti. E' una regola di curatela, quindi va
      verificata sul seed e non lasciata alla buona volonta' di chi lo modifica.
@@ -16,9 +16,9 @@ Tre cose vanno dimostrate, non sperate:
 Oracoli derivati dal seed RE (85 m2, tipo=totale), tutti esatti:
     A-EDILE  300 x 1.00 x 85 = 25.500  + IVA 10%  -> 28.050  -> [22.440, 33.660]
     B        130 x 1.00 x 85 = 11.050  + IVA 22%  -> 13.481  -> [10.785, 16.177]
-    C         90 x 1.00 x 85 =  7.650  + IVA 22%  ->  9.333  -> [ 7.466, 11.200]
+    C         90 x 1.00 x 85 =  7.650  + IVA 10%  ->  8.415  -> [ 6.732, 10.098]
     D         60 x 1.00 x 85 =  5.100  + IVA 10%  ->  5.610  -> [ 4.488,  6.732]
-    extra fissi 2.806 -> totale [47.985, 70.575]
+    extra fissi 2.806 -> totale [47.251, 69.473]
 """
 
 from decimal import Decimal
@@ -76,8 +76,8 @@ def _stima(session, listino, *, mq=85, tipo="totale", risposte=None):
 def test_layer_spento_produce_loracolo_primario(session, listino):
     """`risposte=None` = come se il catalogo domande non esistesse."""
     result = _stima(session, listino)
-    assert result.totale_min == Decimal("47985")
-    assert result.totale_max == Decimal("70575")
+    assert result.totale_min == Decimal("47251")
+    assert result.totale_max == Decimal("69473")
 
 
 def test_risposte_vuote_sono_identiche_a_layer_spento(session, listino):
@@ -89,8 +89,8 @@ def test_risposte_vuote_sono_identiche_a_layer_spento(session, listino):
     spento = _stima(session, listino, risposte=None)
     acceso = _stima(session, listino, risposte={})
 
-    assert acceso.totale_min == spento.totale_min == Decimal("47985")
-    assert acceso.totale_max == spento.totale_max == Decimal("70575")
+    assert acceso.totale_min == spento.totale_min == Decimal("47251")
+    assert acceso.totale_max == spento.totale_max == Decimal("69473")
     for attesa, ottenuta in zip(spento.categorie, acceso.categorie):
         assert (attesa.code, attesa.totale_min, attesa.totale_max) == (
             ottenuta.code,
@@ -108,8 +108,8 @@ def test_risposte_pari_agli_attesi_non_muovono_nulla(session, listino):
     risposte = {attributo: int(valore) for attributo, valore in attese.items()}
     result = _stima(session, listino, risposte=risposte)
 
-    assert result.totale_min == Decimal("47985")
-    assert result.totale_max == Decimal("70575")
+    assert result.totale_min == Decimal("47251")
+    assert result.totale_max == Decimal("69473")
 
 
 # --- 2. disciplina del dato -------------------------------------------------
@@ -402,14 +402,14 @@ def test_risposta_a_una_domanda_inesistente_viene_ignorata(session, listino):
     """Il client non e' fidato: una chiave sconosciuta non deve rompere nulla."""
     result = _stima(session, listino, risposte={"domanda_che_non_esiste": "qualunque"})
 
-    assert result.totale_min == Decimal("47985")
-    assert result.totale_max == Decimal("70575")
+    assert result.totale_min == Decimal("47251")
+    assert result.totale_max == Decimal("69473")
 
 
 def test_codice_opzione_inesistente_cade_sul_default(session, listino):
     result = _stima(session, listino, risposte={"anno_costruzione": "nel_futuro"})
 
-    assert result.totale_min == Decimal("47985")
+    assert result.totale_min == Decimal("47251")
 
 
 def test_toggle_mandato_come_booleano_non_diventa_una_quantita(session, listino):
@@ -417,7 +417,7 @@ def test_toggle_mandato_come_booleano_non_diventa_una_quantita(session, listino)
     sul default, non essere letto come il numero 1."""
     result = _stima(session, listino, risposte={"ascensore": True})
 
-    assert result.totale_min == Decimal("47985")
+    assert result.totale_min == Decimal("47251")
 
 
 def test_traccia_riporta_contributo_e_unita(session):
@@ -452,14 +452,14 @@ def test_domanda_gated_non_spara_se_il_gate_non_e_soddisfatto(session, listino):
         listino,
         risposte={"tipo_immobile": "appartamento", "efficientamento": "tre_piu"},
     )
-    assert gate_chiuso.totale_min == Decimal("47985")
+    assert gate_chiuso.totale_min == Decimal("47251")
 
     gate_aperto = _stima(
         session,
         listino,
         risposte={"tipo_immobile": "villetta_singola", "efficientamento": "tre_piu"},
     )
-    assert gate_aperto.totale_min > Decimal("47985")
+    assert gate_aperto.totale_min > Decimal("47251")
 
 
 # --- validazione admin ------------------------------------------------------
@@ -628,8 +628,8 @@ def test_derivazione_non_scatta_sul_default_dellanno(session, listino):
     che non ha mai dichiarato — cioe' il default smetterebbe di essere neutro e
     l'oracolo primario cambierebbe in silenzio.
     """
-    assert _stima(session, listino, risposte={}).totale_min == Decimal("47985")
-    assert _stima(session, listino, risposte={"locali": 3}).totale_min == Decimal("47985")
+    assert _stima(session, listino, risposte={}).totale_min == Decimal("47251")
+    assert _stima(session, listino, risposte={"locali": 3}).totale_min == Decimal("47251")
 
 
 def test_derivazione_non_sovrascrive_una_risposta_data(session, listino):

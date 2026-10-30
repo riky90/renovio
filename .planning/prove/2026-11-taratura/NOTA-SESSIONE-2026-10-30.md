@@ -60,10 +60,11 @@ cartella.
 
 ## Findings principali
 
-1. **Il motore regge.**
-   - Dopo la taratura l'edile sta entro ±12% sui tre appartamenti: 0%, −9%, −12%.
+1. **Il motore regge.** Numeri della prima passata, prima delle decisioni sotto:
+   - l'edile sta entro ±12% sui tre appartamenti: 0%, −9%, −12%.
    - Il negozio sta a +2%.
-   - L'errore voce per voce scende del 29% (110 → 78 k€ sommati sui quattro casi).
+   - L'errore voce per voce scende del 29% (110 → 78 k€ sommati sui quattro casi); del 34%
+     dopo le decisioni sotto.
 2. **La tinteggiatura era la sovrastima più grossa.** Il tecnico usa una sola voce (A.11.3,
    ~6,5-8 €/m²) per pareti e soffitti, circa 3,2 m² per m² calpestabile. Il motore metteva
    pareti a parte con la lavabile a 10 €/m², più fondo su tutto e rasatura gonfiata
@@ -92,34 +93,59 @@ cartella.
    - porte fornite fuori contratto.
 
    Spiegano quasi tutto lo scarto residuo dei casi 02 e 04.
-6. **Il caso 02 resta fuori range del 2%.** È un parziale, con range ±10%, e pesano circa
-   2.100 € di lavori a corpo non chiesti. Il test è `xfail(strict=True)`. Lo scenario del
-   punto 3 lo farebbe rientrare. In generale, ±10% sulla leggera è stretto per lavori
-   parziali, che hanno più voci a corpo.
+6. **Il caso 02 era fuori range del 2%** con la prima passata (parziale, range ±10%, circa
+   2.100 € di lavori a corpo non chiesti). Rientra con le decisioni sotto.
 7. **IVA dei serramenti**: i computi reali la calcolano al 10%, l'app al 22%. Da chiarire.
 
-## Domande per Riccardo (e per il tecnico)
+## Decisioni di Riccardo (stessa sessione) e cosa ne è seguito
 
-1. **Confermi le deduzioni** delle fixture? Le più incerte:
-   - caso 02: 55 m² calpestabili;
-   - caso 01: 3 bagni e 6 locali;
-   - caso 04: 230 m² e porte fuori contratto.
+1. **Deduzioni degli input**: confermate.
+2. **A.9.1 / A.9.2 / A.0.18**: adottati i valori dello scenario, cioè 40% e 45% degli impianti,
+   e movimentazione al 12% di A.6 × (piano + 1) con minimo 100 €. Sono nel seed e nella
+   migrazione `0029`. Il caso 02 rientra nel range e il suo `xfail` è stato tolto.
+3. **IVA dei serramenti**: la regola dei beni significativi dà il 10% sulla manodopera e sul
+   bene fino al valore del lavoro, e il 22% sull'eccedenza. C-SERRAMENTI passa al **10%**, che
+   è esatto finché i beni significativi non superano il resto dei lavori: è il caso di ogni
+   ristrutturazione con un po' di edile.
 
-   Se una è sbagliata, la si corregge nella fixture (`input`) e si rilancia
-   `confronta_casi_reali.py`.
-2. **A.9.1 / A.9.2 / A.0.18**: si passa ai valori dello scenario (40% / 45% / 12% con minimo
-   100 €), o il tecnico ha un'altra regola?
-3. **IVA C-SERRAMENTI**: 10% come nei computi o 22% come nell'app?
-4. **Listino**: si aggiornano massetto ed elettrico ai prezzi 2025-26?
-5. **Range della leggera**: ±10% o di più?
-6. Quali delle **domande mancanti** del punto 5 entrano nel wizard, e quali solo nel Pro?
+   **Non modellata l'eccedenza al 22%**, che serve per i lavori di soli serramenti. Richiede:
+   - il valore del bene per voce;
+   - il calcolo nella stima Free e nel dettaglio Pro;
+   - la riga IVA nel riepilogo, backend e frontend.
+
+   È proposta come lavoro a sé (README, sezione "IVA dei serramenti").
+
+   L'oracolo v1 passa da 47.985–70.575 € a 47.251–69.473 €; i test che lo fissano sono
+   aggiornati.
+4. **Listino**: massetto sabbia-cemento da 40 a **30 €/m²**, punto elettrico ex novo da 65 a
+   **60 €**. Il file `docs/computo-base-reggio-emilia.xlsx` ha ancora i prezzi vecchi.
+5. **Range**: la leggera passa da ±10% a **±15%**; moderata e totale restano invariate.
+6. **Voci a corpo**: si può fare meglio, soprattutto con domande Pro mirate su voci che il
+   listino ha già. Coprirebbero circa due terzi dello scarto residuo dei casi 02 e 04. Per le
+   voci di cantiere (allestimento, sicurezza) servono più computi, non più regole. Analisi nel
+   README, sezione "Voci a corpo".
+
+Esito finale:
+
+- edile 0% / −7% / +2% (negozio) / −11%;
+- tutti e quattro i casi nel range;
+- errore voce per voce −34% rispetto alla bozza.
+
+Durante la sessione ho corretto anche il report: per le voci in percentuale la colonna "a
+prezzi del file" moltiplicava la quantità per un importo a corpo.
+
+## Punti ancora aperti
+
+1. Eccedenza IVA al 22% dei beni significativi (proposta, non fatta).
+2. Domande Pro per i lavori a corpo, e "solo predisposizione" per il clima.
+3. Il 7% senza etichetta su (B+C+D) nel riepilogo del file (§7).
+4. Altri computi reali per le voci di cantiere e per decidere un eventuale range asimmetrico.
+5. PR della taratura e allineamento `stima` dopo il merge.
 
 ## Stato
 
-- TAR-01 è fatto in prima passata e **resta aperto** finché non arrivano le conferme sopra.
-  La fase 11 non è chiusa.
-- Il commit è sul branch `claude/great-wozniak-1ysani`. Nessuna PR aperta: non è stata chiesta
-  in questa sessione.
-- Dopo il merge su `renovio` va allineato `stima` (`CLAUDE.md`). La migrazione `0029` gira al
-  deploy e cambia i numeri mostrati agli utenti: Free/Pro dell'85 m² totale da 69,3 a 65,6 k€
-  imponibili.
+- TAR-01 è fatto. La fase 11 si chiude con il merge della taratura.
+- I commit sono sul branch `claude/great-wozniak-1ysani`. Nessuna PR aperta: non è stata
+  chiesta.
+- Al deploy la migrazione `0029` e il seed cambiano i numeri mostrati agli utenti: 85 m²
+  totale da 69,3 a 66,9 k€ imponibili, e IVA dei serramenti al 10%.

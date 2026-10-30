@@ -307,19 +307,18 @@ imponibile senza range; con la bozza erano 16,4 / 32,4 / 39,1 k€ di edile):
 
 | Tipo | Edile | Totale lavori |
 |---|---|---|
-| Leggera | 13,2 k€ | 16,8 k€ |
-| Moderata | 29,2 k€ | 37,8 k€ |
-| Totale | 35,9 k€ | 65,6 k€ |
+| Leggera | 13,6 k€ | 17,3 k€ |
+| Moderata | 30,1 k€ | 38,6 k€ |
+| Totale | 37,2 k€ | 66,9 k€ |
 
 Da fare:
 
-- **Taratura sui computi reali** (TAR-01): prima passata fatta il 2026-10-30 su quattro computi
-  (tinteggiatura, fondo, rasatura, battiscopa, punti acqua, voci bagno; migrazione `0029`). Report
-  e domande aperte in `.planning/prove/2026-11-taratura/`; restano da confermare le deduzioni degli
-  input dei casi.
-- I punti aperti del §7 (7% senza etichetta, A.9.1 al 30% o al 35%, movimentazione). I computi
-  reali scrivono A.9.1 e A.9.2 a corpo (39-45% e 47-55% nei lavori totali) e la movimentazione a
-  circa il 10-12% di A.6 × (piano + 1): lo scenario 40% / 45% / 12% è nel report.
+- **Taratura sui computi reali** (TAR-01): fatta il 2026-10-30 su quattro computi (tinteggiatura,
+  fondo, rasatura, battiscopa, punti acqua, voci bagno; migrazione `0029`). Report in
+  `.planning/prove/2026-11-taratura/`. Deduzioni degli input confermate da Riccardo.
+- Punti del §7 decisi il 2026-10-30 sui computi reali: A.9.1 al 40%, A.9.2 al 45%, movimentazione
+  al 12% di A.6 × (piano + 1) con minimo 100 €; serramenti al 10% di IVA (beni significativi:
+  l'eccedenza al 22% non è ancora modellata). Resta aperto il 7% senza etichetta su (B+C+D).
 - Domande non ancora poste: tipo di muro demolito, doccia o vasca, bagni ciechi, carta da parati.
 - Range per incertezza (banda stretta sulle quantità risposte).
 

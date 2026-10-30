@@ -17,7 +17,7 @@ questo confronto (vedi `HANDOVER.md`).
 |---|---|---|
 | v1.0 MVP | 01–04 | Chiusa il 2026-09-09. Stima Free a range, account Google, PDF, lead, pannello admin. |
 | v2.0 domande e motore parametrico | 05–10 | Chiusa il 2026-10-01. Catalogo domande, wizard unico, arredo, Excel admin, configuratore Pro, budget. |
-| v3.0 computo parametrico | 11 | Implementata e mergiata su `main` (PR #1–#4). Taratura sui casi reali **in prima passata** (2026-10-30). |
+| v3.0 computo parametrico | 11 | Implementata e mergiata su `main` (PR #1–#4). Taratura sui casi reali fatta (2026-10-30). |
 
 Fase 11, in sintesi (dettaglio in `docs/proposta-computo-parametrico.md` §10):
 
@@ -39,17 +39,18 @@ Numeri dopo la prima taratura (Reggio Emilia, 85 m², risposte di default, impon
 
 | Tipo | Edile | Totale lavori |
 |---|---|---|
-| Leggera | 13,2 k€ | 16,8 k€ |
-| Moderata | 29,2 k€ | 37,8 k€ |
-| Totale | 35,9 k€ | 65,6 k€ |
+| Leggera | 13,6 k€ | 17,3 k€ |
+| Moderata | 30,1 k€ | 38,6 k€ |
+| Totale | 37,2 k€ | 66,9 k€ |
 
 ## Cosa manca
 
-1. **Taratura sui computi reali (TAR-01)**: prima passata fatta il 2026-10-30 su quattro computi
-   veri (`docs/casi-reali/`). Report, scenario per i punti §7 e domande aperte in
-   `.planning/prove/2026-11-taratura/`. Mancano le conferme delle deduzioni e del tecnico.
+1. **Dopo la taratura (TAR-01, 2026-10-30)**: domande Pro per i lavori a corpo (terrazzi,
+   varchi, velette, carta da parati, bagno nuovo o cieco, clima solo predisposizione), eccedenza
+   IVA al 22% dei beni significativi, altri computi reali per le voci di cantiere. Dettaglio in
+   `.planning/prove/2026-11-taratura/README.md`.
 2. **Incoerenze del file da chiarire con il tecnico** (proposta §7): il 7% senza etichetta su
-   `(B+C+D)`, A.9.1 al 30% o al 35%, la regola della movimentazione A.0.18.
+   `(B+C+D)`. A.9.1, A.9.2 e movimentazione sono state decise sui computi reali (2026-10-30).
 3. **Domande non ancora poste**: tipo di muro demolito, doccia o vasca, bagni ciechi, carta da
    parati.
 4. **Range per incertezza**: oggi il range è un ±% fisso. L'obiettivo è una banda stretta sulle

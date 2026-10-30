@@ -12,7 +12,14 @@ in `.planning/prove/2026-11-taratura/`) cambia alcuni valori della bozza:
 - A.0.11 (linee idriche, a corpo) una per cantiere, non una per bagno;
   impermeabilizzazione 4 m² per bagno invece di 6; sanitari montati 3 per
   bagno invece di 4;
-- lampadari (A.10.11) e foro cappa (A.10.12) mai presenti: fattore 0.
+- lampadari (A.10.11) e foro cappa (A.10.12) mai presenti: fattore 0;
+- assistenze murarie al 40% degli impianti (A.9.1) e al 45% dell'elettrico
+  (A.9.2), movimentazione al 12% delle pose x (piano + 1) con minimo 100 EUR
+  (A.0.18): punti aperti del §7 della proposta, decisi da Riccardo il
+  2026-10-30 sui valori dei computi reali.
+
+IVA dei serramenti (10%), prezzi del massetto e del punto elettrico e ampiezza
+del range della leggera non sono qui: il seed li riscrive a ogni avvio.
 
 Il seed v3 ha gia' i valori nuovi, ma grandezze, termini e regole sono
 create-if-missing: sui DB gia' seminati serve questa migrazione. Si scrive
@@ -102,6 +109,9 @@ _REGOLE: tuple[tuple[str, dict, dict], ...] = (
     ("A.8.5", {"fattore": "4"}, {"fattore": "3"}),
     ("A.10.11", {"fattore": "1"}, {"fattore": "0"}),
     ("A.10.12", {"fattore": "1"}, {"fattore": "0"}),
+    ("A.9.1", {"fattore": "0.30"}, {"fattore": "0.40"}),
+    ("A.9.2", {"fattore": "0.35"}, {"fattore": "0.45"}),
+    ("A.0.18", {"fattore": "0.06", "importo_minimo": None}, {"fattore": "0.12", "importo_minimo": "100"}),
 )
 
 # voce -> (nota della bozza, nota tarata)
@@ -148,13 +158,35 @@ _NOTE: tuple[tuple[str, str | None, str], ...] = (
         "TAR-01: assente in tre cucine rifatte su tre; c'e' solo con un bagno cieco. Da legare "
         "alla domanda 'bagni ciechi' quando ci sara'.",
     ),
+    (
+        "A.9.1",
+        "30% di idrico, gas, termo e clima (formula del file; col. K dice 0,35).",
+        "TAR-01: 40% degli impianti idrico, gas, termo e clima (39-45% nei computi reali dei "
+        "lavori totali). Deciso da Riccardo il 2026-10-30.",
+    ),
+    (
+        "A.9.2",
+        "35% dell'elettrico (formula del file).",
+        "TAR-01: 45% dell'elettrico (47-55% nei computi reali dei lavori totali). Deciso da "
+        "Riccardo il 2026-10-30.",
+    ),
+    (
+        "A.0.18",
+        "Formula del file: 6% dei pavimenti x piano. Da confermare (T48: 2.000-2.500 per 100 m² per piano).",
+        "TAR-01: 12% delle pose (A.6) x (piano + 1), minimo 100 EUR (circa 2.000 EUR al primo "
+        "piano nei computi reali). Deciso da Riccardo il 2026-10-30.",
+    ),
 )
+
+
+#: Colonne numeriche: il confronto e l'assegnazione passano da un CAST.
+_NUMERICHE = frozenset({"fattore", "importo_minimo"})
 
 
 def _uguale(colonna: str, valore: str | None, nome_param: str) -> tuple[str, dict]:
     if valore is None:
         return f"{colonna} IS NULL", {}
-    if colonna == "fattore":
+    if colonna in _NUMERICHE:
         return f"{colonna} = CAST(:{nome_param} AS NUMERIC)", {nome_param: valore}
     return f"{colonna} = :{nome_param}", {nome_param: valore}
 
@@ -192,7 +224,7 @@ def _aggiorna(da: int, a: int) -> None:
             params.update(p)
         assegnazioni = []
         for i, (colonna, valore) in enumerate(nuovi.items()):
-            if colonna == "fattore":
+            if colonna in _NUMERICHE and valore is not None:
                 assegnazioni.append(f"{colonna} = CAST(:n{i} AS NUMERIC)")
             else:
                 assegnazioni.append(f"{colonna} = :n{i}")

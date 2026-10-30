@@ -139,11 +139,11 @@ def test_assistenze_murarie_non_valgono_zero(session, listino):
     assert voci["A.0.18"].importo > 0, "movimentazione: 6% dei pavimenti x piano"
 
 
-def test_assistenza_impianti_e_il_trenta_per_cento(session, listino):
+def test_assistenza_impianti_e_il_quaranta_per_cento(session, listino):
     _, voci = _voci(session, listino)
     sorgenti = [s.sorgente_codice for s in session.query(SorgenteRegola).filter_by(voce_codice="A.9.1")]
     base = sum((voci[c].importo for c in sorgenti if c in voci), Decimal("0"))
-    assert voci["A.9.1"].importo == pytest.approx(base * Decimal("0.30"))
+    assert voci["A.9.1"].importo == pytest.approx(base * Decimal("0.40"))  # TAR-01
 
 
 # --- 4. alternative ---------------------------------------------------------
@@ -264,7 +264,8 @@ def test_listino_senza_regole_torna_al_calcolo_eur_mq(session, listino):
     session.flush()
     assert computo_free(session, listino, mq=85, tipo="totale", risposte={}) is None
     result = EstimationService.compute(session, listino, mq=85, tipo="totale")
-    assert (result.totale_min, result.totale_max) == (Decimal("47985"), Decimal("70575"))
+    # oracolo v1 con C-SERRAMENTI al 10% di IVA (TAR-01; prima 47.985-70.575).
+    assert (result.totale_min, result.totale_max) == (Decimal("47251"), Decimal("69473"))
 
 
 # --- 8. Excel -------------------------------------------------------------------------

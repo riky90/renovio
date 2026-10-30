@@ -141,7 +141,8 @@ def confronta(session: Session, listino: Listino, caso: dict) -> Confronto:
         file_q[codice] += _d(v["quantita"])
         file_imp[codice] += _d(v["totale"])
         file_desc.setdefault(codice, v["descrizione"])
-        if v["um"] not in ("ac", "%") and v["prezzo"]:
+        # Solo prezzi unitari veri: "a corpo", percentuali e "piano" sono importi.
+        if v["um"] not in ("ac", "%", "piano") and v["prezzo"]:
             file_prezzo.setdefault(codice, _d(v["prezzo"]))
 
     motore_voci = {v.codice: v for v in computo.voci if v.codice}

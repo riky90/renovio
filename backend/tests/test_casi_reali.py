@@ -78,13 +78,7 @@ def test_edile_entro_la_soglia(confronti, nome):
 #: Casi in cui il totale reale cade fuori dal range, con la causa. Sono
 #: `xfail(strict=True)`: se una taratura li rimette dentro, il test lo dice e la
 #: voce va tolta da qui.
-FUORI_RANGE = {
-    "caso-02": (
-        "Parziale, range della leggera +/-10%: il reale (18.117) supera il massimo di circa il 2%. "
-        "Pesano lavori a corpo che il wizard non chiede (velette, posa di un pavimento parziale, "
-        "architrave, controtelaio scorrevole: circa 2.100 EUR) e i m2 dedotti."
-    ),
-}
+FUORI_RANGE: dict[str, str] = {}
 
 
 @pytest.mark.parametrize("nome", sorted(CASI))

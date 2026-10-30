@@ -30,14 +30,14 @@
     }
   },
   "range_pct_tipo": {
-    "leggera": 0.1,
+    "leggera": 0.15,
     "moderata": 0.15,
     "totale": 0.2
   },
   "iva_categoria": {
     "A-EDILE": 0.1,
     "B-FINITURE": 0.22,
-    "C-SERRAMENTI": 0.22,
+    "C-SERRAMENTI": 0.1,
     "D-PRODOTTI": 0.1,
     "E-ARREDO": 0.22
   },

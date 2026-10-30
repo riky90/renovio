@@ -1,6 +1,6 @@
 # Handover — taratura del motore sui computi reali
 
-> **Stato (2026-10-30):** eseguito in prima passata. Esito, cosa è stato tarato e domande aperte:
+> **Stato (2026-10-30):** eseguito, con le decisioni di Riccardo. Esito, cosa è stato tarato e punti aperti:
 > `.planning/prove/2026-11-taratura/README.md` e `NOTA-SESSIONE-2026-10-30.md`.
 
 **Data:** 2026-10-30 · **Base:** `main` a `c8785a7` + questo commit · **Requisito:** TAR-01

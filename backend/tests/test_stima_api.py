@@ -69,8 +69,8 @@ def test_reggio_emilia_85mq_totale_oracle(client):
     assert body["fallback"] is False
     assert not body["disclaimer"]
     assert len(body["categorie"]) == 4
-    assert Decimal(str(body["totale"]["totale_min"])) == Decimal("47985")
-    assert Decimal(str(body["totale"]["totale_max"])) == Decimal("70575")
+    assert Decimal(str(body["totale"]["totale_min"])) == Decimal("47251")
+    assert Decimal(str(body["totale"]["totale_max"])) == Decimal("69473")
 
 
 def test_extra_are_fixed_single_values(client):
@@ -146,7 +146,7 @@ def test_risposte_assenti_lasciano_loracolo_intatto(client):
 
     assert response.status_code == 200
     body = response.json()
-    assert Decimal(str(body["totale"]["totale_min"])) == Decimal("47985")
+    assert Decimal(str(body["totale"]["totale_min"])) == Decimal("47251")
     assert body["input"]["risposte"] is None
 
 
@@ -157,7 +157,7 @@ def test_risposte_vuote_non_muovono_il_totale(client):
     )
 
     assert response.status_code == 200
-    assert Decimal(str(response.json()["totale"]["totale_min"])) == Decimal("47985")
+    assert Decimal(str(response.json()["totale"]["totale_min"])) == Decimal("47251")
 
 
 def test_risposte_tornano_nelleco_per_finire_nello_snapshot(client):
@@ -172,7 +172,7 @@ def test_risposte_tornano_nelleco_per_finire_nello_snapshot(client):
     assert response.status_code == 200
     body = response.json()
     assert body["input"]["risposte"] == risposte
-    assert Decimal(str(body["totale"]["totale_min"])) > Decimal("47985")
+    assert Decimal(str(body["totale"]["totale_min"])) > Decimal("47251")
 
 
 def test_risposte_restano_input_non_fidato(client):

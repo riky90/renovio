@@ -10,7 +10,7 @@ Due cose sono piu' importanti dei numeri:
    cambiando la data di riferimento, senza toccare una riga di Python.
 
 Oracolo: 85 mq totale a Reggio Emilia, prima casa, 2026 — lo stesso caso su cui
-e' pinnato `test_estimation.py` (47.985-70.575), che deve restare intatto.
+e' pinnato `test_estimation.py` (47.251-69.473), che deve restare intatto.
 """
 
 from __future__ import annotations
