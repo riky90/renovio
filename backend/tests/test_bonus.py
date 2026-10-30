@@ -98,11 +98,11 @@ class TestOracolo:
         per_code = {b.code: b for b in result.bonus}
         assert set(per_code) == {"RISTRUTTURAZIONE", "ECOBONUS"}
         assert per_code["RISTRUTTURAZIONE"].aliquota_pct == Decimal("0.5000")
-        assert result.detrazione_min == Decimal("22590")
-        assert result.detrazione_max == Decimal("33885")
+        assert result.detrazione_min == Decimal("22223")  # 50% di (47.251 - 2.806 di extra)
+        assert result.detrazione_max == Decimal("33334")  # 50% di (69.473 - 2.806)
         # La rata annua e' la detrazione su 10 anni, per bonus.
-        assert result.rata_annua_min == Decimal("2259")
-        assert result.rata_annua_max == Decimal("3389")
+        assert result.rata_annua_min == Decimal("2223")
+        assert result.rata_annua_max == Decimal("3334")
 
     def test_seconda_casa_scende_al_36(self, session):
         prima = BonusService.compute(session, _categorie_reali(session), "prima_casa", "d", DAL_2026)
