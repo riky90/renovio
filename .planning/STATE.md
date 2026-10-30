@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: computo parametrico
 status: in_progress
-last_updated: "2026-10-21T00:00:00.000Z"
-last_activity: 2026-10-21 — fase 11 computo parametrico in implementazione
+last_updated: "2026-10-30T00:00:00.000Z"
+last_activity: 2026-10-30 — TAR-01 prima taratura sui quattro computi reali
 progress:
   total_phases: 1
   completed_phases: 0
@@ -19,30 +19,24 @@ progress:
 
 Phase: 11 — computo parametrico (milestone v3.0)
 Plan: —
-Status: implementazione in corso sul branch `claude/great-wozniak-1ysani`
-Last activity: 2026-10-21 — motore unico Free/Pro sul computo parametrico, migrazioni 0025-0026,
-domande d'intervento e preset, Excel del computo. Vedi `docs/proposta-computo-parametrico.md` §10.
+Status: implementata e in produzione (PR #1-#4 su `main`); taratura TAR-01 fatta in prima
+passata, in attesa delle conferme di Riccardo e del tecnico.
+Last activity: 2026-10-30 — confronto del motore con quattro computi reali
+(`docs/casi-reali/`), taratura di tinteggiatura, battiscopa, punti acqua e voci bagno (seed +
+migrazione 0029), casi d'oro in `backend/tests/test_casi_reali.py`. Report e domande aperte:
+`.planning/prove/2026-11-taratura/`.
+
+Per chiudere la fase 11:
+
+1. Conferma delle deduzioni degli input dei casi (fixture `backend/tests/fixtures/casi_reali/`).
+2. Decisione del tecnico su A.9.1 / A.9.2 / A.0.18 (scenario 40% / 45% / 12% nel report) e
+   sull'IVA dei serramenti (10% nei computi, 22% nell'app).
+3. Aggiornare §10 della proposta, poi PR e allineamento `stima`.
 
 ### v2.0 (storico)
 
-La v2.0 e' **chiusa ma non ancora in produzione**: `origin/main` e' fermo a `f011ed4`
-(v1.0), con circa 350 commit da pushare. Il push deploya su Render e migra il DB di
-produzione dalla `0013` alla `0024`. Prima del push:
-
-1. ~~Prova su Postgres delle migrazioni 0014-0024 e della validazione WR-06.~~ **Fatta il
-   2026-10-01**: passano da uno stato v1.0 con dati utente, smoke 39/39, valori identici a
-   `dev.db` (`.planning/prove/2026-10-01-postgres/README.md`). Da decidere prima del go-live:
-   il totale Pro e' circa 8 volte il Free per coefficienti in bozza su voci a corpo (non solo
-   A.6.11, osservazione 1 del report). **Decisione di Riccardo (2026-10-01): si va in
-   produzione con il Pro cosi' com'e'**; la taratura vera arriva dopo, con l'Excel di taratura
-   (migrazione 0025).
-2. Taratura di A.6.11 "Taglio porta blindata" (coefficiente per m² invece che a conteggio,
-   vedi `09-TARATURA-TODO.md`).
-3. `BACKEND_PUBLIC_URL` impostata su Render (storage avatar su DB).
-4. `git push origin master:main`, poi il collaudo dei PDF in produzione (sezione PDF di
-   `10-HUMAN-UAT.md`, voci 15-18 di `.planning/checklists/2026-10-01-collaudo-wiz-04.md`).
-
-Prossima milestone: `/gsd:new-milestone`.
+La v2.0 e' chiusa e in produzione, insieme alla v3.0 (fasi 01-04 v1.0, 05-10 v2.0, 11 v3.0;
+vedi `docs/stato-progetto.md`).
 
 ## Deferred Items
 
@@ -57,6 +51,16 @@ Items acknowledged and deferred at milestone close on 2026-10-01:
 | verification_gap | 10-VERIFICATION.md | human_needed (solo PDF, da collaudare al go-live su Render) |
 
 ## Last Session
+
+- **2026-10-30** — **TAR-01: taratura sui computi reali (prima passata).** Quattro computi
+  anonimizzati estratti in fixture (`scripts/estrai_casi_reali.py`), input del wizard dedotti
+  e motivati, confronto voce per voce (`scripts/confronta_casi_reali.py`). Edile dopo la
+  taratura: 0% / -9% / +2% (negozio, frontiera) / -12%; errore voce per voce -29%. Tarati
+  solo dati (seed + migrazione `0029`): tinteggiatura in una voce su 3,2 m²/m², fondo 40%,
+  rasatura senza intonaco, battiscopa 0,65, punti acqua 4/bagno + 3/cucina, A.0.11 a corpo,
+  impermeabilizzazione 4 m², sanitari 3/bagno, lampadari e foro cappa a 0. Non tarati e
+  segnalati: A.9.1, A.9.2, A.0.18 (punti §7). Caso 02 fuori range del 2% (`xfail` stretto).
+  Guide pubbliche rigenerate. Nota: `.planning/prove/2026-11-taratura/NOTA-SESSIONE-2026-10-30.md`.
 
 - **2026-10-21** — **Tipo di ristrutturazione come punto di partenza.** Il tipo scelto nel
   wizard precompila i lavori (preset); ampiezza del range ed etichetta (risultato, lead, PDF,

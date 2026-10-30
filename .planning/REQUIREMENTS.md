@@ -47,7 +47,7 @@ Fonte: `docs/proposta-computo-parametrico.md`.
 
 ### Taratura (TAR)
 
-- [ ] **TAR-01**: Casi d'oro da computi reali compilati: rimandato finché Riccardo non li ha (decisione 2026-10-21)
+- [ ] **TAR-01**: Casi d'oro da computi reali compilati. Prima passata il 2026-10-30 su quattro computi (`backend/tests/test_casi_reali.py`, report in `.planning/prove/2026-11-taratura/`); resta aperto per la conferma delle deduzioni e dei punti §7
 
 ## Fuori perimetro v3
 

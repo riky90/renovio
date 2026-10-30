@@ -1,5 +1,5 @@
 {
-  "nota": "BOZZA Fase 11 (2026-10-21), ragionata dalle colonne T/U e dalle note H del computo 2025. Curatela: il seed crea le righe che mancano e non riscrive quelle esistenti (D-41). Da tarare sui computi reali (TAR-01).",
+  "nota": "BOZZA Fase 11 (2026-10-21), ragionata dalle colonne T/U e dalle note H del computo 2025. Curatela: il seed crea le righe che mancano e non riscrive quelle esistenti (D-41). Tarata sui quattro computi reali di docs/casi-reali (TAR-01, 2026-10-30): report in .planning/prove/2026-11-taratura/.",
   "grandezze": [
     {
       "code": "superficie_calpestabile",
@@ -594,7 +594,7 @@
       "code": "mq_pareti",
       "nome": "Pareti",
       "um": "m²",
-      "descrizione": "Superficie delle pareti: circa 2,9 m² per m² calpestabile (altezza 2,70).",
+      "descrizione": "Pareti da tinteggiare, nette di rivestimenti e aperture: circa 2,2 m² per m² calpestabile (TAR-01: con 1 di soffitti fa 3,2 m² tinteggiati per m², mediana dei computi reali).",
       "ordine": 450,
       "costante": "0",
       "da_attesa": false,
@@ -604,7 +604,7 @@
       "termini": [
         {
           "sorgente": "superficie_calpestabile",
-          "fattore": "2.9",
+          "fattore": "2.2",
           "per": null
         }
       ]
@@ -632,7 +632,7 @@
       "code": "ml_battiscopa",
       "nome": "Battiscopa",
       "um": "ml",
-      "descrizione": "Perimetro dei locali, circa 1,1 ml per m².",
+      "descrizione": "Battiscopa posato, circa 0,65 ml per m² calpestabile (TAR-01: 0,86 e 0,46 nei due appartamenti totali).",
       "ordine": 470,
       "costante": "0",
       "da_attesa": false,
@@ -642,7 +642,7 @@
       "termini": [
         {
           "sorgente": "superficie_calpestabile",
-          "fattore": "1.1",
+          "fattore": "0.65",
           "per": null
         }
       ]
@@ -723,7 +723,7 @@
       "code": "punti_acqua",
       "nome": "Punti acqua",
       "um": "n",
-      "descrizione": "5 per bagno (lavabo, wc, bidet, doccia, lavatrice), 2 per la cucina.",
+      "descrizione": "4 per bagno (lavabo, wc, bidet, doccia), 3 per la cucina (lavello, lavastoviglie, lavatrice). TAR-01: 15, 11 e 4 punti nei computi reali.",
       "ordine": 510,
       "costante": "0",
       "da_attesa": false,
@@ -733,12 +733,12 @@
       "termini": [
         {
           "sorgente": "bagni_rifatti",
-          "fattore": "5",
+          "fattore": "4",
           "per": null
         },
         {
           "sorgente": "cucina",
-          "fattore": "2",
+          "fattore": "3",
           "per": null
         }
       ]
@@ -1486,9 +1486,9 @@
     },
     {
       "code": "superfici_fondo",
-      "nome": "Superfici con fondo",
+      "nome": "Superfici tinteggiate",
       "um": "m²",
-      "descrizione": null,
+      "descrizione": "Pareti e soffitti tinteggiati. Base della tinteggiatura (A.11.3) e del fondo (A.11.6).",
       "ordine": 860,
       "costante": "0",
       "da_attesa": false,
@@ -1512,7 +1512,7 @@
       "code": "rasatura_mq",
       "nome": "Rasatura",
       "um": "m²",
-      "descrizione": "30% delle pareti tinteggiate piu' tutto l'intonaco nuovo.",
+      "descrizione": "30% delle pareti tinteggiate, circa 0,66 m² per m² calpestabile (TAR-01: 0,5-0,7 nei computi reali, anche con molti muri nuovi). Il termine sull'intonaco nuovo e' a 0.",
       "ordine": 870,
       "costante": "0",
       "da_attesa": false,
@@ -1527,7 +1527,7 @@
         },
         {
           "sorgente": "intonaco_mq",
-          "fattore": "1",
+          "fattore": "0",
           "per": null
         }
       ]
@@ -1659,12 +1659,12 @@
     },
     {
       "voce": "A.0.11",
-      "tipo": "grandezza",
-      "grandezza": "bagni_rifatti",
+      "tipo": "fisso",
+      "grandezza": null,
       "fattore": "1",
-      "condizione": null,
+      "condizione": "bagni_rifatti",
       "importo_minimo": null,
-      "nota": "Una linea per bagno da rifare (nota H).",
+      "nota": "Voce a corpo: una per cantiere se si rifa' almeno un bagno (TAR-01: 300 EUR a corpo per due bagni).",
       "sorgenti": [],
       "scaglioni": []
     },
@@ -2291,10 +2291,10 @@
       "voce": "A.7.1",
       "tipo": "grandezza",
       "grandezza": "bagni_rifatti",
-      "fattore": "6",
+      "fattore": "4",
       "condizione": null,
       "importo_minimo": "200",
-      "nota": "6 m² per bagno; a corpo 200 € se pochi metri (nota H).",
+      "nota": "4 m² per bagno, minimo 200 EUR a corpo (TAR-01: 450 EUR per tre bagni, 200 per uno).",
       "sorgenti": [],
       "scaglioni": []
     },
@@ -2357,10 +2357,10 @@
       "voce": "A.8.5",
       "tipo": "grandezza",
       "grandezza": "bagni_rifatti",
-      "fattore": "4",
+      "fattore": "3",
       "condizione": null,
       "importo_minimo": null,
-      "nota": "Quattro apparecchi per bagno.",
+      "nota": "TAR-01: 10 apparecchi per tre bagni, 6 per due.",
       "sorgenti": [],
       "scaglioni": []
     },
@@ -2764,10 +2764,10 @@
       "voce": "A.10.11",
       "tipo": "grandezza",
       "grandezza": "punti_lampadari",
-      "fattore": "1",
+      "fattore": "0",
       "condizione": null,
       "importo_minimo": null,
-      "nota": null,
+      "nota": "TAR-01: mai presente nei computi reali, anche con l'elettrico rifatto. Da riattivare con una domanda Pro.",
       "sorgenti": [],
       "scaglioni": []
     },
@@ -2775,10 +2775,10 @@
       "voce": "A.10.12",
       "tipo": "grandezza",
       "grandezza": "cucina",
-      "fattore": "1",
+      "fattore": "0",
       "condizione": null,
       "importo_minimo": null,
-      "nota": "Foro per la cappa.",
+      "nota": "TAR-01: assente in tre cucine rifatte su tre; c'e' solo con un bagno cieco. Da legare alla domanda 'bagni ciechi' quando ci sara'.",
       "sorgenti": [],
       "scaglioni": []
     },
@@ -2818,11 +2818,11 @@
     {
       "voce": "A.11.3",
       "tipo": "grandezza",
-      "grandezza": "soffitti_tinteggiati",
+      "grandezza": "superfici_fondo",
       "fattore": "1",
       "condizione": null,
       "importo_minimo": null,
-      "nota": null,
+      "nota": "TAR-01: nei computi reali il tecnico tinteggia pareti e soffitti con questa sola voce (in un caso la descrizione dice 'soffitti e pareti').",
       "sorgenti": [],
       "scaglioni": []
     },
@@ -2830,10 +2830,10 @@
       "voce": "A.11.4",
       "tipo": "grandezza",
       "grandezza": "pareti_tinteggiate",
-      "fattore": "1",
+      "fattore": "0",
       "condizione": null,
       "importo_minimo": null,
-      "nota": null,
+      "nota": "TAR-01: lavabile su pareti mai usata nei computi reali (le pareti sono in A.11.3). Da riattivare con una domanda Pro sul tipo di pittura.",
       "sorgenti": [],
       "scaglioni": []
     },
@@ -2852,10 +2852,10 @@
       "voce": "A.11.6",
       "tipo": "grandezza",
       "grandezza": "superfici_fondo",
-      "fattore": "1",
+      "fattore": "0.4",
       "condizione": null,
       "importo_minimo": null,
-      "nota": null,
+      "nota": "TAR-01: fondo su circa il 40% delle superfici tinteggiate (150 m² su 140 m² di pavimento, 400 su 195; assente nei lavori parziali).",
       "sorgenti": [],
       "scaglioni": []
     },

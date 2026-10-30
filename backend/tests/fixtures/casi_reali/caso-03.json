@@ -1,0 +1,401 @@
+{
+  "caso": "caso-03",
+  "file": "docs/casi-reali/caso-03-negozio-nuovo-bagno-2026-10.xlsx",
+  "descrizione": "CREAZIONE NUOVO BAGNO IN NEGOZIO AL PIANO TERRA",
+  "totali_ivati": {
+    "A-EDILE": 19866.0,
+    "B-FINITURE": 0.0,
+    "C-SERRAMENTI": 0.0,
+    "D-PRODOTTI": 0.0,
+    "totale_lavori": 19866.0,
+    "pratiche": 0.0,
+    "da_pagare": 21378.0
+  },
+  "somme_imponibili_dalle_voci": {
+    "A-EDILE": 18060.0
+  },
+  "voci": [
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.0.1",
+      "riga": 27,
+      "impianto": "EDILE",
+      "descrizione": "Allestimento area di cantiere con protezione zone di passaggio a mezzo teli nylon e/o cartoni al fine di eseguire i lavori in oggetto a perf",
+      "um": "ac",
+      "quantita": 1.0,
+      "prezzo": 400.0,
+      "totale": 400.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.0.2",
+      "riga": 28,
+      "impianto": "ELETTRICO",
+      "descrizione": "Installazione di quadro elettrico di cantiere effettuato da operatore abilitato, e rilascio della certificazioni di installazione e conformi",
+      "um": "ac",
+      "quantita": 1.0,
+      "prezzo": 170.0,
+      "totale": 170.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.0.18",
+      "riga": 48,
+      "impianto": "EDILE",
+      "descrizione": "Movimentazione nell'area di cantiere di materiali di risulta e assistenza con personale per il carico di tutte le forniture  (quali ad esemp",
+      "um": "piano",
+      "quantita": null,
+      "prezzo": 300.0,
+      "totale": 300.0,
+      "quantita_testo": "T"
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.1.5",
+      "riga": 58,
+      "impianto": "EDILE",
+      "descrizione": "Demolizione di pavimento e battiscopa, compreso il sottofondo dello spessore fino a 8 cm, posto in opera a mezzo di malta o colla. Compreso ",
+      "um": "ac",
+      "quantita": 1.0,
+      "prezzo": 600.0,
+      "totale": 600.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.1.8",
+      "riga": 61,
+      "impianto": "EDILE",
+      "descrizione": "Demolizione di battiscopa in legno. Compreso l’accatastamento nei siti che verranno indicati dalla Direzione dei lavori nell'ambito del cant",
+      "um": "ml",
+      "quantita": 21.0,
+      "prezzo": 5.0,
+      "totale": 105.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.2.1",
+      "riga": 75,
+      "impianto": "EDILE",
+      "descrizione": "Relizzazione Massetto di sabbia e cemento nelle proporzioni di kg 350 di cemento 32.5 per mc di sabbia dato in opera ben costipato e livella",
+      "um": "ac",
+      "quantita": 1.0,
+      "prezzo": 600.0,
+      "totale": 600.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.3.1",
+      "riga": 83,
+      "impianto": "EDILE",
+      "descrizione": "Realizzazione di muratura di mattoni forati, da 8/10 cm posti in foglio con malta, mediante fornitura trasposto e posa, compresi oneri e mag",
+      "um": "mq",
+      "quantita": 27.0,
+      "prezzo": 50.0,
+      "totale": 1350.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.3.5",
+      "riga": 87,
+      "impianto": "EDILE",
+      "descrizione": "Fornitura e posa in opera di controtelaio in legno per porte interne standard (60-90cm), compresa la quadratura del vano e successiva intona",
+      "um": "cad",
+      "quantita": 2.0,
+      "prezzo": 150.0,
+      "totale": 300.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.4.1",
+      "riga": 94,
+      "impianto": "EDILE",
+      "descrizione": "Intonaco civile realizzato mediante messa a piombo e a squadro di pareti con l'ausilio di fasce guida",
+      "um": "mq",
+      "quantita": 55.0,
+      "prezzo": 30.0,
+      "totale": 1650.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.6.1",
+      "riga": 106,
+      "impianto": "EDILE",
+      "descrizione": "Posa in opera della pavimentazione con disegno a correre, compresa la stuccatura finale (restano escluse colle e stucchi, in quanto andranno",
+      "um": "mq",
+      "quantita": 47.0,
+      "prezzo": 35.0,
+      "totale": 1645.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.6.3",
+      "riga": 108,
+      "impianto": "EDILE",
+      "descrizione": "Posa in opera dei rivestimenti  e stuccatura finale (restano escluse colle e stucchi, in quanto andranno scelte e stabilite in funzione del ",
+      "um": "mq",
+      "quantita": 25.0,
+      "prezzo": 35.0,
+      "totale": 875.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.6.8",
+      "riga": 113,
+      "impianto": "EDILE",
+      "descrizione": "Posa in opera di battiscopa in ceramica mediante l'ausilio di colla, esclusa fornitura, di qualsiasi genere, escluse colle e stucchi.",
+      "um": "ml",
+      "quantita": 20.0,
+      "prezzo": 10.0,
+      "totale": 200.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.7.1",
+      "riga": 120,
+      "impianto": "EDILE",
+      "descrizione": "Fornitura e posa in opera di strato impermeabile con malta cementizia bicomponente elastica (tipo Mapelastic). Per l’impermeabilizzazione di",
+      "um": "ac",
+      "quantita": 1.0,
+      "prezzo": 200.0,
+      "totale": 200.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.8.1",
+      "riga": 126,
+      "impianto": "IDRAULICO",
+      "descrizione": "Realizzazione di nuova rete idrosanitaria mediante nuovi punti acqua idrosanitari  per gli impianti di bagno e cucina, comprendente la messa",
+      "um": "cad",
+      "quantita": 4.0,
+      "prezzo": 400.0,
+      "totale": 1600.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.8.2",
+      "riga": 127,
+      "impianto": "IDRAULICO",
+      "descrizione": "Modifica di braga di scarico per eventuali nuove diramazioni.",
+      "um": "cad",
+      "quantita": 1.0,
+      "prezzo": 400.0,
+      "totale": 400.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.8.5",
+      "riga": 130,
+      "impianto": "IDRAULICO",
+      "descrizione": "Montaggio e collaudo finale di ogni apparecchio sanitario comprensivo di rubinetterie e chiavi di arresto compresa la minuteria per i montag",
+      "um": "cad",
+      "quantita": 2.0,
+      "prezzo": 250.0,
+      "totale": 500.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.8.15",
+      "riga": 145,
+      "impianto": "ELETTRICO",
+      "descrizione": "Modifica di impianto elettrico esistente comprese placche e frutti linea Gewiss Bianca. Compresa certificazione delle modifiche effettuate r",
+      "um": "cad",
+      "quantita": 15.0,
+      "prezzo": 65.0,
+      "totale": 975.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.8.17",
+      "riga": 147,
+      "impianto": "ELETTRICO",
+      "descrizione": "Fornitura e posa in opera di quadro elettrico fino a 6Kw con sezioni come a norma di legge. CARATTERISTICHE QUADRO:  n° 1 Apparecchio sezion",
+      "um": "cad",
+      "quantita": 1.0,
+      "prezzo": 600.0,
+      "totale": 600.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.9.2",
+      "riga": 160,
+      "impianto": "EDILE",
+      "descrizione": "Assistenza muraria per realizzazione e/o modifica impianto elettrico relativa all'apertura e alla chiusura di tutte le tracce a parete e a p",
+      "um": "ac",
+      "quantita": 1.0,
+      "prezzo": 600.0,
+      "totale": 600.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.9.3",
+      "riga": 161,
+      "impianto": "EDILE",
+      "descrizione": "Assistenza muraria singolo ambiente (con o senza rifacimento massetto) relativa all'apertura e alla chiusura di tutte le tracce a parete e a",
+      "um": "ac",
+      "quantita": 1.0,
+      "prezzo": 600.0,
+      "totale": 600.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.9.6",
+      "riga": 164,
+      "impianto": "EDILE",
+      "descrizione": "Smaltimento di macerie e rifiuti inerenti alle demolizioni sopra descritte e all'ambito di cantiere ad impianti di stoccaggio, di recupero o",
+      "um": "ac",
+      "quantita": 1.0,
+      "prezzo": 300.0,
+      "totale": 300.0,
+      "codice_nel_file": "A.9.5"
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.10.4",
+      "riga": 171,
+      "impianto": "IDRAULICO",
+      "descrizione": "Posa in opera e collaudo di boiler elettrico (solo ACS) fornito dal committente compreso di collegamento alla schermatura idraulica, esclusa",
+      "um": "cad",
+      "quantita": 1.0,
+      "prezzo": 150.0,
+      "totale": 150.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.10.5",
+      "riga": 172,
+      "impianto": "IDRAULICO",
+      "descrizione": "Montaggio due porte interne",
+      "um": "cad",
+      "quantita": 2.0,
+      "prezzo": 100.0,
+      "totale": 200.0,
+      "descrizione_modificata": true
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.10.6",
+      "riga": 173,
+      "impianto": "ELETTRICO",
+      "descrizione": "Modifica/taglio della porta d'ingresso",
+      "um": "cad",
+      "quantita": 1.0,
+      "prezzo": 150.0,
+      "totale": 150.0,
+      "descrizione_modificata": true
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.10.7",
+      "riga": 174,
+      "impianto": "IDRAULICO",
+      "descrizione": "Posa di termoarredo per bagno elettrico",
+      "um": "cad",
+      "quantita": 1.0,
+      "prezzo": 150.0,
+      "totale": 150.0,
+      "descrizione_modificata": true
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.10.12",
+      "riga": 179,
+      "impianto": "EDILE",
+      "descrizione": "Realizzazione di foro areazione per cucina/cappa/ uscita areazione forzatabagno delle opportune dimensioni con carotatrice aspirante",
+      "um": "cad",
+      "quantita": 1.0,
+      "prezzo": 100.0,
+      "totale": 100.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.10.13",
+      "riga": 180,
+      "impianto": "ELETTRICO",
+      "descrizione": "Fornitura e posa di areazione forzata bagno, mediante installazione del motore tipo \"Vortice®\" e del tubo di uscita,opportunamente dimension",
+      "um": "cad",
+      "quantita": 1.0,
+      "prezzo": 400.0,
+      "totale": 400.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.11.2",
+      "riga": 185,
+      "impianto": "EDILE",
+      "descrizione": "Rasatura a gesso di intonaci civili, compresa la successiva scartavetratura ed ogni mezzo d'opera, con inserimento di rete e paraspigoli (ov",
+      "um": "mq",
+      "quantita": 25.0,
+      "prezzo": 20.0,
+      "totale": 500.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.11.3",
+      "riga": 186,
+      "impianto": "EDILE",
+      "descrizione": "Tinteggiatura di soffitti con pittura traspirante Bianca a due mani a coprire, esclusa la preparazione delle superfici con rasatura e stucca",
+      "um": "mq",
+      "quantita": 180.0,
+      "prezzo": 8.0,
+      "totale": 1440.0
+    },
+    {
+      "foglio": "A-EDILE",
+      "codice": "A.12.1",
+      "riga": 193,
+      "impianto": "EDILE",
+      "descrizione": "Oneri alla sicurezza come da Dgls 81/08",
+      "um": "ac",
+      "quantita": 1.0,
+      "prezzo": 1000.0,
+      "totale": 1000.0
+    }
+  ],
+  "soglia": {
+    "nella_soglia": false,
+    "motivo": "Negozio, non abitazione: un solo bagno nuovo in un locale commerciale. Il wizard e i preset sono pensati per un appartamento. Caso di frontiera: si misura e si riporta, ma non entra nella soglia del ±15%."
+  },
+  "input": {
+    "mq": 55,
+    "tipo": "leggera",
+    "risposte": {
+      "superficie_calpestabile": 47,
+      "piano": 0,
+      "bagni": 1,
+      "porte": 2,
+      "muri_lavori": "si",
+      "muri_da_creare_mq": 27,
+      "tipo_muri_nuovi": "forati",
+      "interv_pavimenti": "rifai",
+      "tipo_massetto": "sabbia_cemento",
+      "interv_bagni": "uno",
+      "interv_cucina": "no",
+      "interv_elettrico": "modifica",
+      "idrico_collettore": "no",
+      "interv_riscaldamento": "nessuno",
+      "interv_clima": "nessuno",
+      "interv_caldaia": "no",
+      "interv_porte": "battente",
+      "porta_blindata": "no",
+      "interv_serramenti": "mantieni",
+      "tapparelle": "nessuna",
+      "zanzariere": "no",
+      "tinteggiatura": "si",
+      "non_rifare": [
+        "serramenti",
+        "finiture",
+        "prodotti"
+      ]
+    }
+  },
+  "deduzioni": {
+    "superficie_calpestabile": "47: posa pavimento 47 m² (A.6.1). Certa.",
+    "mq": "55 commerciali = 47 / 0,85. Stimata.",
+    "bagni": "1 bagno creato da zero: nessuna rimozione di sanitari, 4 punti acqua, 2 apparecchi montati, boiler elettrico, areazione forzata (bagno cieco). Il wizard non ha 'bagno nuovo' ne' 'bagno cieco'.",
+    "pavimenti": "Rifai: demolizione e massetto a corpo 600 EUR l'uno, posa 47 m². Probabile.",
+    "muri": "27 m² di forati nuovi (A.3.1), intonaco 55 m² sui due lati (A.4.1). Certa.",
+    "elettrico": "Modifica: 15 punti (A.8.15) piu' quadro (A.8.17). Certa.",
+    "porte": "2 porte nuove: 2 controtelai (A.3.5) e 'montaggio due porte interne'. Nessuna porta rimossa. Certa.",
+    "non_rifare": "B, C e D a zero nel riepilogo: nel contratto c'e' solo l'edile."
+  }
+}

@@ -17,7 +17,7 @@ questo confronto (vedi `HANDOVER.md`).
 |---|---|---|
 | v1.0 MVP | 01–04 | Chiusa il 2026-09-09. Stima Free a range, account Google, PDF, lead, pannello admin. |
 | v2.0 domande e motore parametrico | 05–10 | Chiusa il 2026-10-01. Catalogo domande, wizard unico, arredo, Excel admin, configuratore Pro, budget. |
-| v3.0 computo parametrico | 11 | Implementata e mergiata su `main` (PR #1–#4). Taratura sui casi reali **da fare**. |
+| v3.0 computo parametrico | 11 | Implementata e mergiata su `main` (PR #1–#4). Taratura sui casi reali **in prima passata** (2026-10-30). |
 
 Fase 11, in sintesi (dettaglio in `docs/proposta-computo-parametrico.md` §10):
 
@@ -35,18 +35,19 @@ Fase 11, in sintesi (dettaglio in `docs/proposta-computo-parametrico.md` §10):
   costi, `vercel.json`, pagina 404.
 - `/health` riporta la versione della migrazione applicata.
 
-Numeri della bozza (Reggio Emilia, 85 m², risposte di default, imponibile):
+Numeri dopo la prima taratura (Reggio Emilia, 85 m², risposte di default, imponibile):
 
 | Tipo | Edile | Totale lavori |
 |---|---|---|
-| Leggera | 16,4 k€ | 20,5 k€ |
-| Moderata | 32,4 k€ | 41,5 k€ |
-| Totale | 39,1 k€ | 67,3 k€ |
+| Leggera | 13,2 k€ | 16,8 k€ |
+| Moderata | 29,2 k€ | 37,8 k€ |
+| Totale | 35,9 k€ | 65,6 k€ |
 
 ## Cosa manca
 
-1. **Taratura sui computi reali (TAR-01)**: è il prossimo passo. Quattro computi veri,
-   anonimizzati, sono in `docs/casi-reali/`. Piano operativo in `HANDOVER.md`.
+1. **Taratura sui computi reali (TAR-01)**: prima passata fatta il 2026-10-30 su quattro computi
+   veri (`docs/casi-reali/`). Report, scenario per i punti §7 e domande aperte in
+   `.planning/prove/2026-11-taratura/`. Mancano le conferme delle deduzioni e del tecnico.
 2. **Incoerenze del file da chiarire con il tecnico** (proposta §7): il 7% senza etichetta su
    `(B+C+D)`, A.9.1 al 30% o al 35%, la regola della movimentazione A.0.18.
 3. **Domande non ancora poste**: tipo di muro demolito, doccia o vasca, bagni ciechi, carta da
