@@ -1,20 +1,20 @@
 | Caso | Edile reale | Edile motore | Scarto edile | Errore voce per voce | Totale reale IVA | Range motore | Nel range | In soglia |
 |---|---:|---:|---:|---:|---:|---:|---|---|
-| caso-01 | 65.572 | 65.629 | +0% | 18.387 | 103.810 | 86.228–129.340 | sì | sì |
-| caso-02 | 13.970 | 14.718 | +5% | 11.902 | 18.117 | 15.450–20.903 | sì | sì |
-| caso-03 | 18.060 | 18.038 | -0% | 8.429 | 19.866 | 16.865–22.818 | sì | frontiera |
-| caso-04 | 82.340 | 76.565 | -7% | 24.066 | 92.224 | 73.361–99.252 | sì | sì |
+| caso-01 | 65.572 | 67.270 | +3% | 18.387 | 103.810 | 97.006–123.952 | sì | sì |
+| caso-02 | 13.970 | 15.086 | +8% | 11.902 | 18.117 | 16.359–20.903 | sì | sì |
+| caso-03 | 18.060 | 18.489 | +2% | 8.429 | 19.866 | 17.857–22.818 | sì | frontiera |
+| caso-04 | 82.340 | 78.479 | -5% | 24.066 | 92.224 | 77.676–99.252 | sì | sì |
 
 ### caso-01
 
 | Categoria | Reale (imponibile) | Motore | Scarto |
 |---|---:|---:|---:|
-| A-EDILE | 65.572 | 65.629 | +0% |
-| B-FINITURE | 12.893 | 13.469 | +4% |
-| C-SERRAMENTI | 14.500 | 17.418 | +20% |
-| **Totale lavori** | **92.966** | **96.516** | **+4%** |
+| A-EDILE | 65.572 | 67.270 | +3% |
+| B-FINITURE | 12.893 | 13.806 | +7% |
+| C-SERRAMENTI | 14.500 | 17.854 | +23% |
+| **Totale lavori** | **92.966** | **98.929** | **+6%** |
 
-Totale reale IVA inclusa 103.810 € — range del motore 86.228–129.340 € (tipo effettivo `totale`): **dentro**.
+Totale reale IVA inclusa 103.810 € — range del motore 97.006–123.952 € (tipo effettivo `totale`): **dentro**.
 
 Le 10 voci di A-EDILE più lontane (imponibile):
 
@@ -35,11 +35,11 @@ Le 10 voci di A-EDILE più lontane (imponibile):
 
 | Categoria | Reale (imponibile) | Motore | Scarto |
 |---|---:|---:|---:|
-| A-EDILE | 13.970 | 14.718 | +5% |
-| C-SERRAMENTI | 2.500 | 1.806 | -28% |
-| **Totale lavori** | **16.470** | **16.524** | **+0%** |
+| A-EDILE | 13.970 | 15.086 | +8% |
+| C-SERRAMENTI | 2.500 | 1.851 | -26% |
+| **Totale lavori** | **16.470** | **16.937** | **+3%** |
 
-Totale reale IVA inclusa 18.117 € — range del motore 15.450–20.903 € (tipo effettivo `leggera`): **dentro**.
+Totale reale IVA inclusa 18.117 € — range del motore 16.359–20.903 € (tipo effettivo `leggera`): **dentro**.
 
 Le 10 voci di A-EDILE più lontane (imponibile):
 
@@ -60,10 +60,10 @@ Le 10 voci di A-EDILE più lontane (imponibile):
 
 | Categoria | Reale (imponibile) | Motore | Scarto |
 |---|---:|---:|---:|
-| A-EDILE | 18.060 | 18.038 | -0% |
-| **Totale lavori** | **18.060** | **18.038** | **-0%** |
+| A-EDILE | 18.060 | 18.489 | +2% |
+| **Totale lavori** | **18.060** | **18.489** | **+2%** |
 
-Totale reale IVA inclusa 19.866 € — range del motore 16.865–22.818 € (tipo effettivo `moderata`): **dentro**.
+Totale reale IVA inclusa 19.866 € — range del motore 17.857–22.818 € (tipo effettivo `moderata`): **dentro**.
 
 Le 10 voci di A-EDILE più lontane (imponibile):
 
@@ -84,11 +84,11 @@ Le 10 voci di A-EDILE più lontane (imponibile):
 
 | Categoria | Reale (imponibile) | Motore | Scarto |
 |---|---:|---:|---:|
-| A-EDILE | 82.340 | 76.565 | -7% |
-| D-PRODOTTI | 1.500 | 1.896 | +26% |
-| **Totale lavori** | **83.840** | **78.460** | **-6%** |
+| A-EDILE | 82.340 | 78.479 | -5% |
+| D-PRODOTTI | 1.500 | 1.943 | +30% |
+| **Totale lavori** | **83.840** | **80.422** | **-4%** |
 
-Totale reale IVA inclusa 92.224 € — range del motore 73.361–99.252 € (tipo effettivo `moderata`): **dentro**.
+Totale reale IVA inclusa 92.224 € — range del motore 77.676–99.252 € (tipo effettivo `moderata`): **dentro**.
 
 Le 10 voci di A-EDILE più lontane (imponibile):
 

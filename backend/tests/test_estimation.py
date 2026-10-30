@@ -2,8 +2,9 @@
 docs/seed-listino-reggio-emilia.md and the range/reconciliation rule
 (binding, 01-02-PLAN.md <interfaces> / 01-RESEARCH.md Pitfall 4).
 
-Primary oracle (pinned exactly): 85 mq, tipo=totale -> 47251..69473.
-Fino al 2026-10-30 era 47251..69473: C-SERRAMENTI passa dal 22% al 10% di IVA
+Primary oracle (pinned exactly): 85 mq, tipo=totale -> 52807..66696.
+Fino al 2026-10-30 era 47985..70575: C-SERRAMENTI passa dal 22% al 10% di IVA
+e il range da +/-20% a -10% / +15%
 (ristrutturazione su abitazione, come nei computi reali del tecnico, TAR-01).
 """
 
@@ -38,15 +39,15 @@ def test_primary_oracle_85mq_totale(session):
 
     result = EstimationService.compute(session, listino, mq=85, tipo="totale")
 
-    assert result.totale_min == Decimal("47251")
-    assert result.totale_max == Decimal("69473")
+    assert result.totale_min == Decimal("52807")
+    assert result.totale_max == Decimal("66696")
 
 
 @pytest.mark.parametrize(
     "mq,tipo,expected_min,expected_max",
     [
-        (60, "totale", Decimal("34179"), Decimal("49865")),
-        (110, "totale", Decimal("60323"), Decimal("89081")),
+        (60, "totale", Decimal("38100"), Decimal("47904")),
+        (110, "totale", Decimal("67512"), Decimal("85487")),
     ],
 )
 def test_secondary_oracles_within_1_euro(session, mq, tipo, expected_min, expected_max):

@@ -7,21 +7,21 @@
       {
         "mq": 50,
         "tipo": "leggera",
-        "min": 10100,
+        "min": 10700,
         "max": 13700,
-        "eur_mq_min": 202,
+        "eur_mq_min": 214,
         "eur_mq_max": 274,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 8000,
+            "min": 8500,
             "max": 10900
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 2100,
+            "min": 2200,
             "max": 2800
           }
         ]
@@ -29,21 +29,21 @@
       {
         "mq": 70,
         "tipo": "leggera",
-        "min": 13700,
+        "min": 14500,
         "max": 18600,
-        "eur_mq_min": 196,
+        "eur_mq_min": 208,
         "eur_mq_max": 266,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 10800,
+            "min": 11400,
             "max": 14600
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 3000,
+            "min": 3200,
             "max": 4000
           }
         ]
@@ -51,21 +51,21 @@
       {
         "mq": 85,
         "tipo": "leggera",
-        "min": 16900,
+        "min": 17900,
         "max": 22800,
-        "eur_mq_min": 198,
+        "eur_mq_min": 210,
         "eur_mq_max": 268,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 13100,
+            "min": 13900,
             "max": 17700
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 3800,
+            "min": 4000,
             "max": 5100
           }
         ]
@@ -73,21 +73,21 @@
       {
         "mq": 100,
         "tipo": "leggera",
-        "min": 20200,
+        "min": 21400,
         "max": 27400,
-        "eur_mq_min": 202,
+        "eur_mq_min": 214,
         "eur_mq_max": 274,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 15600,
+            "min": 16500,
             "max": 21100
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 4600,
+            "min": 4900,
             "max": 6200
           }
         ]
@@ -95,21 +95,21 @@
       {
         "mq": 120,
         "tipo": "leggera",
-        "min": 23800,
+        "min": 25200,
         "max": 32200,
-        "eur_mq_min": 199,
+        "eur_mq_min": 210,
         "eur_mq_max": 269,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 18300,
+            "min": 19400,
             "max": 24800
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 5500,
+            "min": 5800,
             "max": 7400
           }
         ]
@@ -117,21 +117,21 @@
       {
         "mq": 150,
         "tipo": "leggera",
-        "min": 27400,
+        "min": 29000,
         "max": 37100,
-        "eur_mq_min": 183,
+        "eur_mq_min": 193,
         "eur_mq_max": 247,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 21100,
+            "min": 22300,
             "max": 28500
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 6300,
+            "min": 6700,
             "max": 8500
           }
         ]
@@ -141,21 +141,21 @@
       {
         "mq": 50,
         "tipo": "moderata",
-        "min": 27800,
+        "min": 29400,
         "max": 37600,
-        "eur_mq_min": 556,
+        "eur_mq_min": 589,
         "eur_mq_max": 752,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 21100,
+            "min": 22400,
             "max": 28600
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 5300,
+            "min": 5600,
             "max": 7200
           },
           {
@@ -169,21 +169,21 @@
       {
         "mq": 70,
         "tipo": "moderata",
-        "min": 33100,
+        "min": 35100,
         "max": 44800,
-        "eur_mq_min": 473,
+        "eur_mq_min": 501,
         "eur_mq_max": 640,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 25500,
+            "min": 27100,
             "max": 34600
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 6200,
+            "min": 6600,
             "max": 8400
           },
           {
@@ -197,27 +197,27 @@
       {
         "mq": 85,
         "tipo": "moderata",
-        "min": 38100,
+        "min": 40300,
         "max": 51500,
-        "eur_mq_min": 448,
+        "eur_mq_min": 474,
         "eur_mq_max": 606,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 29400,
+            "min": 31100,
             "max": 39700
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 7000,
+            "min": 7400,
             "max": 9500
           },
           {
             "code": "C-SERRAMENTI",
             "nome": "Serramenti/Porte",
-            "min": 1700,
+            "min": 1800,
             "max": 2300
           }
         ]
@@ -225,27 +225,27 @@
       {
         "mq": 100,
         "tipo": "moderata",
-        "min": 42600,
+        "min": 45100,
         "max": 57700,
-        "eur_mq_min": 426,
+        "eur_mq_min": 451,
         "eur_mq_max": 577,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 33100,
+            "min": 35000,
             "max": 44800
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 7800,
+            "min": 8300,
             "max": 10600
           },
           {
             "code": "C-SERRAMENTI",
             "nome": "Serramenti/Porte",
-            "min": 1700,
+            "min": 1800,
             "max": 2300
           }
         ]
@@ -253,27 +253,27 @@
       {
         "mq": 120,
         "tipo": "moderata",
-        "min": 48700,
+        "min": 51600,
         "max": 65900,
-        "eur_mq_min": 406,
+        "eur_mq_min": 430,
         "eur_mq_max": 549,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 37700,
+            "min": 39900,
             "max": 50900
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 8700,
+            "min": 9200,
             "max": 11800
           },
           {
             "code": "C-SERRAMENTI",
             "nome": "Serramenti/Porte",
-            "min": 2400,
+            "min": 2500,
             "max": 3200
           }
         ]
@@ -281,27 +281,27 @@
       {
         "mq": 150,
         "tipo": "moderata",
-        "min": 54100,
+        "min": 57300,
         "max": 73200,
-        "eur_mq_min": 360,
+        "eur_mq_min": 382,
         "eur_mq_max": 488,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 42200,
+            "min": 44600,
             "max": 57000
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 9500,
+            "min": 10100,
             "max": 12900
           },
           {
             "code": "C-SERRAMENTI",
             "nome": "Serramenti/Porte",
-            "min": 2400,
+            "min": 2500,
             "max": 3200
           }
         ]
@@ -311,204 +311,204 @@
       {
         "mq": 50,
         "tipo": "totale",
-        "min": 46400,
-        "max": 69600,
-        "eur_mq_min": 928,
-        "eur_mq_max": 1393,
+        "min": 52200,
+        "max": 66700,
+        "eur_mq_min": 1045,
+        "eur_mq_max": 1335,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 25000,
-            "max": 37500
+            "min": 28100,
+            "max": 35900
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 5600,
-            "max": 8500
+            "min": 6300,
+            "max": 8100
           },
           {
             "code": "C-SERRAMENTI",
             "nome": "Serramenti/Porte",
-            "min": 13200,
-            "max": 19800
+            "min": 14800,
+            "max": 19000
           },
           {
             "code": "D-PRODOTTI",
             "nome": "Prodotti",
-            "min": 2600,
-            "max": 3900
+            "min": 2900,
+            "max": 3800
           }
         ]
       },
       {
         "mq": 70,
         "tipo": "totale",
-        "min": 51400,
-        "max": 77100,
-        "eur_mq_min": 735,
-        "eur_mq_max": 1102,
+        "min": 57900,
+        "max": 73900,
+        "eur_mq_min": 826,
+        "eur_mq_max": 1056,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 29100,
-            "max": 43700
+            "min": 32800,
+            "max": 41900
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 6500,
-            "max": 9700
+            "min": 7300,
+            "max": 9300
           },
           {
             "code": "C-SERRAMENTI",
             "nome": "Serramenti/Porte",
-            "min": 13200,
-            "max": 19800
+            "min": 14800,
+            "max": 19000
           },
           {
             "code": "D-PRODOTTI",
             "nome": "Prodotti",
-            "min": 2600,
-            "max": 3900
+            "min": 2900,
+            "max": 3800
           }
         ]
       },
       {
         "mq": 85,
         "tipo": "totale",
-        "min": 60800,
-        "max": 91200,
-        "eur_mq_min": 715,
-        "eur_mq_max": 1073,
+        "min": 68400,
+        "max": 87400,
+        "eur_mq_min": 805,
+        "eur_mq_max": 1028,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 33900,
-            "max": 50800
+            "min": 38100,
+            "max": 48700
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 7400,
-            "max": 11100
+            "min": 8300,
+            "max": 10600
           },
           {
             "code": "C-SERRAMENTI",
             "nome": "Serramenti/Porte",
-            "min": 15800,
-            "max": 23600
+            "min": 17700,
+            "max": 22700
           },
           {
             "code": "D-PRODOTTI",
             "nome": "Prodotti",
-            "min": 3700,
-            "max": 5600
+            "min": 4200,
+            "max": 5400
           }
         ]
       },
       {
         "mq": 100,
         "tipo": "totale",
-        "min": 65100,
-        "max": 97600,
-        "eur_mq_min": 651,
-        "eur_mq_max": 976,
+        "min": 73200,
+        "max": 93600,
+        "eur_mq_min": 732,
+        "eur_mq_max": 936,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 37400,
-            "max": 56100
+            "min": 42100,
+            "max": 53800
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 8200,
-            "max": 12300
+            "min": 9200,
+            "max": 11800
           },
           {
             "code": "C-SERRAMENTI",
             "nome": "Serramenti/Porte",
-            "min": 15800,
-            "max": 23600
+            "min": 17700,
+            "max": 22700
           },
           {
             "code": "D-PRODOTTI",
             "nome": "Prodotti",
-            "min": 3700,
-            "max": 5600
+            "min": 4200,
+            "max": 5400
           }
         ]
       },
       {
         "mq": 120,
         "tipo": "totale",
-        "min": 89600,
-        "max": 134300,
-        "eur_mq_min": 746,
-        "eur_mq_max": 1119,
+        "min": 100800,
+        "max": 128700,
+        "eur_mq_min": 840,
+        "eur_mq_max": 1073,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 48500,
-            "max": 72700
+            "min": 54600,
+            "max": 69700
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 12200,
-            "max": 18300
+            "min": 13700,
+            "max": 17600
           },
           {
             "code": "C-SERRAMENTI",
             "nome": "Serramenti/Porte",
-            "min": 23800,
-            "max": 35700
+            "min": 26800,
+            "max": 34200
           },
           {
             "code": "D-PRODOTTI",
             "nome": "Prodotti",
-            "min": 5000,
-            "max": 7600
+            "min": 5700,
+            "max": 7200
           }
         ]
       },
       {
         "mq": 150,
         "tipo": "totale",
-        "min": 94600,
-        "max": 141900,
-        "eur_mq_min": 631,
-        "eur_mq_max": 946,
+        "min": 106400,
+        "max": 136000,
+        "eur_mq_min": 709,
+        "eur_mq_max": 906,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 52700,
-            "max": 79100
+            "min": 59300,
+            "max": 75800
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 13000,
-            "max": 19500
+            "min": 14600,
+            "max": 18700
           },
           {
             "code": "C-SERRAMENTI",
             "nome": "Serramenti/Porte",
-            "min": 23800,
-            "max": 35700
+            "min": 26800,
+            "max": 34200
           },
           {
             "code": "D-PRODOTTI",
             "nome": "Prodotti",
-            "min": 5000,
-            "max": 7600
+            "min": 5700,
+            "max": 7200
           }
         ]
       }
@@ -518,102 +518,102 @@
     "base": {
       "mq": 85,
       "tipo": "totale",
-      "min": 57700,
-      "max": 86500,
-      "eur_mq_min": 678,
-      "eur_mq_max": 1018,
+      "min": 64900,
+      "max": 82900,
+      "eur_mq_min": 763,
+      "eur_mq_max": 975,
       "categorie": [
         {
           "code": "A-EDILE",
           "nome": "Edile",
-          "min": 33900,
-          "max": 50800
+          "min": 38100,
+          "max": 48700
         },
         {
           "code": "B-FINITURE",
           "nome": "Finiture",
-          "min": 6500,
-          "max": 9800
+          "min": 7300,
+          "max": 9400
         },
         {
           "code": "C-SERRAMENTI",
           "nome": "Serramenti/Porte",
-          "min": 15800,
-          "max": 23600
+          "min": 17700,
+          "max": 22700
         },
         {
           "code": "D-PRODOTTI",
           "nome": "Prodotti",
-          "min": 1500,
-          "max": 2200
+          "min": 1700,
+          "max": 2100
         }
       ]
     },
     "medio": {
       "mq": 85,
       "tipo": "totale",
-      "min": 60800,
-      "max": 91200,
-      "eur_mq_min": 715,
-      "eur_mq_max": 1073,
+      "min": 68400,
+      "max": 87400,
+      "eur_mq_min": 805,
+      "eur_mq_max": 1028,
       "categorie": [
         {
           "code": "A-EDILE",
           "nome": "Edile",
-          "min": 33900,
-          "max": 50800
+          "min": 38100,
+          "max": 48700
         },
         {
           "code": "B-FINITURE",
           "nome": "Finiture",
-          "min": 7400,
-          "max": 11100
+          "min": 8300,
+          "max": 10600
         },
         {
           "code": "C-SERRAMENTI",
           "nome": "Serramenti/Porte",
-          "min": 15800,
-          "max": 23600
+          "min": 17700,
+          "max": 22700
         },
         {
           "code": "D-PRODOTTI",
           "nome": "Prodotti",
-          "min": 3700,
-          "max": 5600
+          "min": 4200,
+          "max": 5400
         }
       ]
     },
     "alto": {
       "mq": 85,
       "tipo": "totale",
-      "min": 69700,
-      "max": 104500,
-      "eur_mq_min": 820,
-      "eur_mq_max": 1229,
+      "min": 78400,
+      "max": 100100,
+      "eur_mq_min": 922,
+      "eur_mq_max": 1178,
       "categorie": [
         {
           "code": "A-EDILE",
           "nome": "Edile",
-          "min": 33900,
-          "max": 50800
+          "min": 38100,
+          "max": 48700
         },
         {
           "code": "B-FINITURE",
           "nome": "Finiture",
-          "min": 16300,
-          "max": 24400
+          "min": 18300,
+          "max": 23400
         },
         {
           "code": "C-SERRAMENTI",
           "nome": "Serramenti/Porte",
-          "min": 15800,
-          "max": 23600
+          "min": 17700,
+          "max": 22700
         },
         {
           "code": "D-PRODOTTI",
           "nome": "Prodotti",
-          "min": 3800,
-          "max": 5600
+          "min": 4200,
+          "max": 5400
         }
       ]
     }
@@ -625,21 +625,21 @@
         "etichetta": "Finiture base",
         "mq": 85,
         "tipo": "moderata",
-        "min": 9500,
+        "min": 10100,
         "max": 12900,
-        "eur_mq_min": 112,
+        "eur_mq_min": 119,
         "eur_mq_max": 152,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 7000,
+            "min": 7500,
             "max": 9500
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 2500,
+            "min": 2600,
             "max": 3400
           }
         ]
@@ -649,21 +649,21 @@
         "etichetta": "Finiture medie",
         "mq": 85,
         "tipo": "moderata",
-        "min": 10100,
+        "min": 10700,
         "max": 13700,
-        "eur_mq_min": 119,
+        "eur_mq_min": 126,
         "eur_mq_max": 161,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 7000,
+            "min": 7500,
             "max": 9500
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 3100,
+            "min": 3300,
             "max": 4200
           }
         ]
@@ -673,21 +673,21 @@
         "etichetta": "Finiture di pregio",
         "mq": 85,
         "tipo": "moderata",
-        "min": 11200,
+        "min": 11900,
         "max": 15200,
-        "eur_mq_min": 132,
+        "eur_mq_min": 140,
         "eur_mq_max": 178,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 7000,
+            "min": 7500,
             "max": 9500
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 4200,
+            "min": 4400,
             "max": 5600
           }
         ]
@@ -699,21 +699,21 @@
         "etichetta": "Impianti cucina, piano a induzione",
         "mq": 85,
         "tipo": "moderata",
-        "min": 3900,
+        "min": 4100,
         "max": 5300,
-        "eur_mq_min": 46,
+        "eur_mq_min": 48,
         "eur_mq_max": 62,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 3700,
+            "min": 4000,
             "max": 5100
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 100,
+            "min": 200,
             "max": 200
           }
         ]
@@ -723,21 +723,21 @@
         "etichetta": "Impianti cucina, piano a gas",
         "mq": 85,
         "tipo": "moderata",
-        "min": 4600,
+        "min": 4800,
         "max": 6200,
-        "eur_mq_min": 54,
+        "eur_mq_min": 57,
         "eur_mq_max": 72,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 4400,
+            "min": 4700,
             "max": 6000
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 100,
+            "min": 200,
             "max": 200
           }
         ]
@@ -749,15 +749,15 @@
         "etichetta": "Modifica, 50 m²",
         "mq": 50,
         "tipo": "moderata",
-        "min": 2500,
+        "min": 2700,
         "max": 3400,
-        "eur_mq_min": 51,
+        "eur_mq_min": 54,
         "eur_mq_max": 69,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 2500,
+            "min": 2700,
             "max": 3400
           }
         ]
@@ -767,15 +767,15 @@
         "etichetta": "Modifica, 85 m²",
         "mq": 85,
         "tipo": "moderata",
-        "min": 3200,
+        "min": 3300,
         "max": 4300,
-        "eur_mq_min": 37,
+        "eur_mq_min": 39,
         "eur_mq_max": 50,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 3200,
+            "min": 3300,
             "max": 4300
           }
         ]
@@ -785,15 +785,15 @@
         "etichetta": "Modifica, 120 m²",
         "mq": 120,
         "tipo": "moderata",
-        "min": 3900,
+        "min": 4100,
         "max": 5300,
-        "eur_mq_min": 33,
+        "eur_mq_min": 35,
         "eur_mq_max": 44,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 3900,
+            "min": 4100,
             "max": 5300
           }
         ]
@@ -803,15 +803,15 @@
         "etichetta": "Rifacimento, 50 m²",
         "mq": 50,
         "tipo": "moderata",
-        "min": 5100,
+        "min": 5400,
         "max": 6900,
-        "eur_mq_min": 102,
+        "eur_mq_min": 108,
         "eur_mq_max": 138,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 5100,
+            "min": 5400,
             "max": 6900
           }
         ]
@@ -821,15 +821,15 @@
         "etichetta": "Rifacimento, 85 m²",
         "mq": 85,
         "tipo": "moderata",
-        "min": 7300,
+        "min": 7800,
         "max": 9900,
-        "eur_mq_min": 86,
+        "eur_mq_min": 91,
         "eur_mq_max": 117,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 7300,
+            "min": 7800,
             "max": 9900
           }
         ]
@@ -839,15 +839,15 @@
         "etichetta": "Rifacimento, 120 m²",
         "mq": 120,
         "tipo": "moderata",
-        "min": 9400,
+        "min": 9900,
         "max": 12700,
-        "eur_mq_min": 78,
+        "eur_mq_min": 83,
         "eur_mq_max": 106,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 9400,
+            "min": 9900,
             "max": 12700
           }
         ]
@@ -859,21 +859,21 @@
         "etichetta": "Posa sopra l’esistente, gres",
         "mq": 85,
         "tipo": "moderata",
-        "min": 12200,
+        "min": 12900,
         "max": 16500,
-        "eur_mq_min": 143,
+        "eur_mq_min": 151,
         "eur_mq_max": 194,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 8400,
+            "min": 8900,
             "max": 11400
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 3800,
+            "min": 4000,
             "max": 5100
           }
         ]
@@ -883,21 +883,21 @@
         "etichetta": "Posa sopra l’esistente, parquet",
         "mq": 85,
         "tipo": "moderata",
-        "min": 20000,
+        "min": 21200,
         "max": 27000,
-        "eur_mq_min": 235,
+        "eur_mq_min": 249,
         "eur_mq_max": 318,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 9100,
+            "min": 9700,
             "max": 12400
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 10800,
+            "min": 11500,
             "max": 14700
           }
         ]
@@ -907,21 +907,21 @@
         "etichetta": "Posa sopra l’esistente, laminato",
         "mq": 85,
         "tipo": "moderata",
-        "min": 13700,
+        "min": 14500,
         "max": 18500,
-        "eur_mq_min": 161,
+        "eur_mq_min": 171,
         "eur_mq_max": 218,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 9100,
+            "min": 9700,
             "max": 12400
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 4500,
+            "min": 4800,
             "max": 6100
           }
         ]
@@ -931,21 +931,21 @@
         "etichetta": "Posa sopra l’esistente, vinilico LVT",
         "mq": 85,
         "tipo": "moderata",
-        "min": 13900,
+        "min": 14700,
         "max": 18800,
-        "eur_mq_min": 163,
+        "eur_mq_min": 173,
         "eur_mq_max": 221,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 9100,
+            "min": 9700,
             "max": 12400
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 4700,
+            "min": 5000,
             "max": 6400
           }
         ]
@@ -955,21 +955,21 @@
         "etichetta": "Demolizione, massetto e posa, gres",
         "mq": 85,
         "tipo": "moderata",
-        "min": 15400,
+        "min": 16300,
         "max": 20800,
-        "eur_mq_min": 181,
+        "eur_mq_min": 192,
         "eur_mq_max": 245,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 11600,
+            "min": 12300,
             "max": 15700
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 3800,
+            "min": 4000,
             "max": 5100
           }
         ]
@@ -979,21 +979,21 @@
         "etichetta": "Demolizione, massetto e posa, parquet",
         "mq": 85,
         "tipo": "moderata",
-        "min": 23200,
+        "min": 24600,
         "max": 31400,
-        "eur_mq_min": 273,
+        "eur_mq_min": 289,
         "eur_mq_max": 370,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 12400,
+            "min": 13100,
             "max": 16800
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 10800,
+            "min": 11500,
             "max": 14700
           }
         ]
@@ -1003,21 +1003,21 @@
         "etichetta": "Demolizione, massetto e posa, laminato",
         "mq": 85,
         "tipo": "moderata",
-        "min": 16900,
+        "min": 17900,
         "max": 22900,
-        "eur_mq_min": 199,
+        "eur_mq_min": 211,
         "eur_mq_max": 269,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 12400,
+            "min": 13100,
             "max": 16800
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 4500,
+            "min": 4800,
             "max": 6100
           }
         ]
@@ -1027,21 +1027,21 @@
         "etichetta": "Demolizione, massetto e posa, vinilico LVT",
         "mq": 85,
         "tipo": "moderata",
-        "min": 17100,
+        "min": 18100,
         "max": 23100,
-        "eur_mq_min": 201,
+        "eur_mq_min": 213,
         "eur_mq_max": 272,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 12400,
+            "min": 13100,
             "max": 16800
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 4700,
+            "min": 5000,
             "max": 6400
           }
         ]
@@ -1053,21 +1053,21 @@
         "etichetta": "Finestre e portefinestre in PVC",
         "mq": 85,
         "tipo": "moderata",
-        "min": 10700,
+        "min": 11400,
         "max": 14500,
-        "eur_mq_min": 126,
+        "eur_mq_min": 134,
         "eur_mq_max": 171,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 1700,
+            "min": 1800,
             "max": 2200
           },
           {
             "code": "C-SERRAMENTI",
             "nome": "Serramenti/Porte",
-            "min": 9100,
+            "min": 9600,
             "max": 12300
           }
         ]
@@ -1077,21 +1077,21 @@
         "etichetta": "Con tapparelle in PVC e cassonetti",
         "mq": 85,
         "tipo": "moderata",
-        "min": 16700,
+        "min": 17700,
         "max": 22600,
-        "eur_mq_min": 197,
+        "eur_mq_min": 208,
         "eur_mq_max": 266,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 1700,
+            "min": 1800,
             "max": 2200
           },
           {
             "code": "C-SERRAMENTI",
             "nome": "Serramenti/Porte",
-            "min": 15100,
+            "min": 15900,
             "max": 20400
           }
         ]
@@ -1101,21 +1101,21 @@
         "etichetta": "Con tapparelle in alluminio e cassonetti",
         "mq": 85,
         "tipo": "moderata",
-        "min": 17300,
+        "min": 18300,
         "max": 23400,
-        "eur_mq_min": 204,
+        "eur_mq_min": 215,
         "eur_mq_max": 275,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 1700,
+            "min": 1800,
             "max": 2200
           },
           {
             "code": "C-SERRAMENTI",
             "nome": "Serramenti/Porte",
-            "min": 15600,
+            "min": 16600,
             "max": 21200
           }
         ]
@@ -1127,15 +1127,15 @@
         "etichetta": "Radiatori nuovi e caldaia",
         "mq": 85,
         "tipo": "moderata",
-        "min": 8200,
+        "min": 8600,
         "max": 11000,
-        "eur_mq_min": 96,
+        "eur_mq_min": 102,
         "eur_mq_max": 130,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 5900,
+            "min": 6300,
             "max": 8000
           },
           {
@@ -1147,7 +1147,7 @@
           {
             "code": "D-PRODOTTI",
             "nome": "Prodotti",
-            "min": 1400,
+            "min": 1500,
             "max": 1900
           }
         ]
@@ -1157,21 +1157,21 @@
         "etichetta": "Riscaldamento a pavimento",
         "mq": 85,
         "tipo": "moderata",
-        "min": 28700,
+        "min": 30400,
         "max": 38900,
-        "eur_mq_min": 338,
+        "eur_mq_min": 358,
         "eur_mq_max": 457,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 24900,
+            "min": 26400,
             "max": 33800
           },
           {
             "code": "B-FINITURE",
             "nome": "Finiture",
-            "min": 3800,
+            "min": 4000,
             "max": 5100
           }
         ]
@@ -1181,21 +1181,21 @@
         "etichetta": "Climatizzazione con 2 split",
         "mq": 85,
         "tipo": "moderata",
-        "min": 5600,
+        "min": 5900,
         "max": 7600,
-        "eur_mq_min": 66,
+        "eur_mq_min": 70,
         "eur_mq_max": 89,
         "categorie": [
           {
             "code": "A-EDILE",
             "nome": "Edile",
-            "min": 3200,
+            "min": 3400,
             "max": 4400
           },
           {
             "code": "D-PRODOTTI",
             "nome": "Prodotti",
-            "min": 2400,
+            "min": 2500,
             "max": 3200
           }
         ]

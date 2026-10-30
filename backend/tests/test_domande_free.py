@@ -5,7 +5,7 @@ Tre cose vanno dimostrate, non sperate:
   1. NEUTRALITA' — il layer a riposo non muove un euro. `risposte=None` (layer
      spento) e `risposte={}` (layer acceso, tutte le domande sui loro default)
      devono produrre lo stesso identico numero dell'oracolo primario
-     47.251-69.473. Senza questo, ogni stima gia' salvata cambierebbe valore.
+     52.807-66.696. Senza questo, ogni stima gia' salvata cambierebbe valore.
   2. DISCIPLINA DEL DATO — la neutralita' regge solo se l'opzione di default di
      ogni domanda non porta effetti. E' una regola di curatela, quindi va
      verificata sul seed e non lasciata alla buona volonta' di chi lo modifica.
@@ -13,12 +13,13 @@ Tre cose vanno dimostrate, non sperate:
      SCOSTAMENTO e non sul valore assoluto, moltiplicatore 0 che azzera la
      categoria e ne salta la coda.
 
-Oracoli derivati dal seed RE (85 m2, tipo=totale), tutti esatti:
-    A-EDILE  300 x 1.00 x 85 = 25.500  + IVA 10%  -> 28.050  -> [22.440, 33.660]
-    B        130 x 1.00 x 85 = 11.050  + IVA 22%  -> 13.481  -> [10.785, 16.177]
-    C         90 x 1.00 x 85 =  7.650  + IVA 10%  ->  8.415  -> [ 6.732, 10.098]
-    D         60 x 1.00 x 85 =  5.100  + IVA 10%  ->  5.610  -> [ 4.488,  6.732]
-    extra fissi 2.806 -> totale [47.251, 69.473]
+Oracoli derivati dal seed RE (85 m2, tipo=totale), all'euro; range
+-10% / +15% (TAR-01):
+    A-EDILE  300 x 1.00 x 85 = 25.500  + IVA 10%  -> 28.050  -> [25.245, 32.258]
+    B        130 x 1.00 x 85 = 11.050  + IVA 22%  -> 13.481  -> [12.133, 15.503]
+    C         90 x 1.00 x 85 =  7.650  + IVA 10%  ->  8.415  -> [ 7.574,  9.677]
+    D         60 x 1.00 x 85 =  5.100  + IVA 10%  ->  5.610  -> [ 5.049,  6.452]
+    extra fissi 2.806 -> totale [52.807, 66.696]
 """
 
 from decimal import Decimal
@@ -76,8 +77,8 @@ def _stima(session, listino, *, mq=85, tipo="totale", risposte=None):
 def test_layer_spento_produce_loracolo_primario(session, listino):
     """`risposte=None` = come se il catalogo domande non esistesse."""
     result = _stima(session, listino)
-    assert result.totale_min == Decimal("47251")
-    assert result.totale_max == Decimal("69473")
+    assert result.totale_min == Decimal("52807")
+    assert result.totale_max == Decimal("66696")
 
 
 def test_risposte_vuote_sono_identiche_a_layer_spento(session, listino):
@@ -89,8 +90,8 @@ def test_risposte_vuote_sono_identiche_a_layer_spento(session, listino):
     spento = _stima(session, listino, risposte=None)
     acceso = _stima(session, listino, risposte={})
 
-    assert acceso.totale_min == spento.totale_min == Decimal("47251")
-    assert acceso.totale_max == spento.totale_max == Decimal("69473")
+    assert acceso.totale_min == spento.totale_min == Decimal("52807")
+    assert acceso.totale_max == spento.totale_max == Decimal("66696")
     for attesa, ottenuta in zip(spento.categorie, acceso.categorie):
         assert (attesa.code, attesa.totale_min, attesa.totale_max) == (
             ottenuta.code,
@@ -108,8 +109,8 @@ def test_risposte_pari_agli_attesi_non_muovono_nulla(session, listino):
     risposte = {attributo: int(valore) for attributo, valore in attese.items()}
     result = _stima(session, listino, risposte=risposte)
 
-    assert result.totale_min == Decimal("47251")
-    assert result.totale_max == Decimal("69473")
+    assert result.totale_min == Decimal("52807")
+    assert result.totale_max == Decimal("66696")
 
 
 # --- 2. disciplina del dato -------------------------------------------------
@@ -230,10 +231,10 @@ def test_scostamento_sui_bagni_muove_solo_le_categorie_bersaglio(session, listin
     base = _stima(session, listino, risposte={})
     result = _stima(session, listino, risposte={"bagni": 3})
 
-    assert _cat(result, "A-EDILE").totale_min == Decimal("25784")
-    assert _cat(result, "A-EDILE").totale_max == Decimal("38676")
-    assert _cat(result, "D-PRODOTTI").totale_min == Decimal("6952")
-    assert _cat(result, "D-PRODOTTI").totale_max == Decimal("10428")
+    assert _cat(result, "A-EDILE").totale_min == Decimal("29007")
+    assert _cat(result, "A-EDILE").totale_max == Decimal("37065")
+    assert _cat(result, "D-PRODOTTI").totale_min == Decimal("7821")
+    assert _cat(result, "D-PRODOTTI").totale_max == Decimal("9994")
 
     for code in ("B-FINITURE", "C-SERRAMENTI"):
         assert _cat(result, code).totale_min == _cat(base, code).totale_min
@@ -263,8 +264,8 @@ def test_moltiplicatore_su_categoria(session, listino):
         risposte={"anno_costruzione": "pre_1980", "classe_energetica_attuale": "c"},
     )
 
-    assert _cat(result, "A-EDILE").totale_min == Decimal("24684")
-    assert _cat(result, "A-EDILE").totale_max == Decimal("37026")
+    assert _cat(result, "A-EDILE").totale_min == Decimal("27770")
+    assert _cat(result, "A-EDILE").totale_max == Decimal("35483")
 
 
 def test_eur_mq_additivo(session, listino):
@@ -282,8 +283,8 @@ def test_eur_mq_additivo(session, listino):
         risposte={"efficientamento": "si", "classe_energetica_obiettivo": "b"},
     )
 
-    assert _cat(result, "A-EDILE").totale_min == Decimal("28424")
-    assert _cat(result, "A-EDILE").totale_max == Decimal("42636")
+    assert _cat(result, "A-EDILE").totale_min == Decimal("31977")
+    assert _cat(result, "A-EDILE").totale_max == Decimal("40860")
 
 
 def test_moltiplicatore_zero_azzera_e_salta_la_coda(session, listino):
@@ -323,8 +324,8 @@ def test_moltiplicatori_prima_degli_additivi(session, listino):
     )
 
     lordo_atteso = Decimal("34850") * Decimal("1.10")  # + IVA 10%
-    assert _cat(result, "A-EDILE").totale_min == Decimal("30668")  # 38335 x 0.8
-    assert _cat(result, "A-EDILE").totale_max == Decimal("46002")  # 38335 x 1.2
+    assert _cat(result, "A-EDILE").totale_min == Decimal("34502")  # 38335 x 0.9
+    assert _cat(result, "A-EDILE").totale_max == Decimal("44085")  # 38335 x 1.15
     assert lordo_atteso == Decimal("38335.00")
 
 
@@ -332,15 +333,15 @@ def test_effetto_per_tipo_di_ristrutturazione(session, listino):
     """`tipo_code` sull'effetto: rifare il riscaldamento pesa su una
     ristrutturazione leggera e non su una totale, dove e' gia' nel prezzo base.
 
-    leggera: 300 x 0.25 x 85 = 6.375 x 1.16 = 7.395 + IVA -> 8.134,5 -> [6.914, 9.355]
-    (range della leggera +/-15% dal 2026-10-30, TAR-01)
+    leggera: 300 x 0.25 x 85 = 6.375 x 1.16 = 7.395 + IVA -> 8.134,5 -> [7.321, 9.355]
+    (range -10% / +15% dal 2026-10-30, TAR-01)
     """
     leggera_base = _stima(session, listino, tipo="leggera", risposte={})
     leggera = _stima(session, listino, tipo="leggera", risposte={"impianti": ["termico"]})
     totale_base = _stima(session, listino, tipo="totale", risposte={})
     totale = _stima(session, listino, tipo="totale", risposte={"impianti": ["termico"]})
 
-    assert _cat(leggera, "A-EDILE").totale_min == Decimal("6914")
+    assert _cat(leggera, "A-EDILE").totale_min == Decimal("7321")
     assert _cat(leggera, "A-EDILE").totale_max == Decimal("9355")
     assert _cat(leggera, "A-EDILE").totale_min > _cat(leggera_base, "A-EDILE").totale_min
 
@@ -371,9 +372,9 @@ def test_attributo_senza_baseline_conta_dal_primo_metro(session, listino):
     )
 
     # 25.500 + 40 x 28 = 26.620 + IVA 10% -> 29.282 -> [23.426, 35.138]
-    assert _cat(result, "A-EDILE").totale_min == Decimal("23426")
-    assert _cat(result, "A-EDILE").totale_max == Decimal("35138")
-    assert _cat(base, "A-EDILE").totale_min == Decimal("22440")
+    assert _cat(result, "A-EDILE").totale_min == Decimal("26354")
+    assert _cat(result, "A-EDILE").totale_max == Decimal("33674")
+    assert _cat(base, "A-EDILE").totale_min == Decimal("25245")
 
 
 # --- traccia e casi degeneri ------------------------------------------------
@@ -403,14 +404,14 @@ def test_risposta_a_una_domanda_inesistente_viene_ignorata(session, listino):
     """Il client non e' fidato: una chiave sconosciuta non deve rompere nulla."""
     result = _stima(session, listino, risposte={"domanda_che_non_esiste": "qualunque"})
 
-    assert result.totale_min == Decimal("47251")
-    assert result.totale_max == Decimal("69473")
+    assert result.totale_min == Decimal("52807")
+    assert result.totale_max == Decimal("66696")
 
 
 def test_codice_opzione_inesistente_cade_sul_default(session, listino):
     result = _stima(session, listino, risposte={"anno_costruzione": "nel_futuro"})
 
-    assert result.totale_min == Decimal("47251")
+    assert result.totale_min == Decimal("52807")
 
 
 def test_toggle_mandato_come_booleano_non_diventa_una_quantita(session, listino):
@@ -418,7 +419,7 @@ def test_toggle_mandato_come_booleano_non_diventa_una_quantita(session, listino)
     sul default, non essere letto come il numero 1."""
     result = _stima(session, listino, risposte={"ascensore": True})
 
-    assert result.totale_min == Decimal("47251")
+    assert result.totale_min == Decimal("52807")
 
 
 def test_traccia_riporta_contributo_e_unita(session):
@@ -453,14 +454,14 @@ def test_domanda_gated_non_spara_se_il_gate_non_e_soddisfatto(session, listino):
         listino,
         risposte={"tipo_immobile": "appartamento", "efficientamento": "tre_piu"},
     )
-    assert gate_chiuso.totale_min == Decimal("47251")
+    assert gate_chiuso.totale_min == Decimal("52807")
 
     gate_aperto = _stima(
         session,
         listino,
         risposte={"tipo_immobile": "villetta_singola", "efficientamento": "tre_piu"},
     )
-    assert gate_aperto.totale_min > Decimal("47251")
+    assert gate_aperto.totale_min > Decimal("52807")
 
 
 # --- validazione admin ------------------------------------------------------
@@ -629,8 +630,8 @@ def test_derivazione_non_scatta_sul_default_dellanno(session, listino):
     che non ha mai dichiarato — cioe' il default smetterebbe di essere neutro e
     l'oracolo primario cambierebbe in silenzio.
     """
-    assert _stima(session, listino, risposte={}).totale_min == Decimal("47251")
-    assert _stima(session, listino, risposte={"locali": 3}).totale_min == Decimal("47251")
+    assert _stima(session, listino, risposte={}).totale_min == Decimal("52807")
+    assert _stima(session, listino, risposte={"locali": 3}).totale_min == Decimal("52807")
 
 
 def test_derivazione_non_sovrascrive_una_risposta_data(session, listino):

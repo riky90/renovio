@@ -222,7 +222,7 @@ def test_post_stima_con_arredo_espone_netto(client):
     for chiave in ("detrazione_lavori_min", "detrazione_lavori_max", "netto_min", "netto_max"):
         assert bonus[chiave] is not None
     assert Decimal(bonus["detrazione_lavori_max"]) < Decimal(bonus["detrazione_max"])
-    assert Decimal(bonus["netto_max"]) == Decimal("69473") - Decimal(bonus["detrazione_lavori_max"])
+    assert Decimal(bonus["netto_max"]) == Decimal("66696") - Decimal(bonus["detrazione_lavori_max"])
     mobili = [b for b in bonus["bonus"] if b["code"] == "MOBILI"]
     assert mobili and mobili[0]["su_arredo"] is True
     assert bonus["rata_annua_lavori_min"] is not None

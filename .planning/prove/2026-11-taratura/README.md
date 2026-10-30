@@ -25,22 +25,26 @@ cd backend
 
 | Caso | Edile reale | Scarto bozza | Scarto tarato | Totale lavori tarato | Errore voce per voce (bozza → tarato) | Totale reale nel range (bozza → tarato) |
 |---|---:|---:|---:|---:|---:|---|
-| 01 appartamento, totale | 65.572 | +16% | **0%** | +4% | 39.080 → 18.387 | sì → sì |
-| 02 appartamento, parziale | 13.970 | +2% | **+5%** | 0% | 15.024 → 11.902 | sì → sì |
-| 03 negozio, bagno nuovo (frontiera) | 18.060 | +21% | **0%** | 0% | 14.621 → 8.429 | no → sì |
-| 04 appartamento, totale, solo edile | 82.340 | 0% | **−7%** | −6% | 40.624 → 24.066 | sì → sì |
+| 01 appartamento, totale | 65.572 | +16% | **+3%** | +6% | 39.080 → 18.387 | sì → sì |
+| 02 appartamento, parziale | 13.970 | +2% | **+8%** | +3% | 15.024 → 11.902 | sì → sì |
+| 03 negozio, bagno nuovo (frontiera) | 18.060 | +21% | **+2%** | +2% | 14.621 → 8.429 | no → sì |
+| 04 appartamento, totale, solo edile | 82.340 | 0% | **−5%** | −4% | 40.624 → 24.066 | sì → sì |
+
+Lo scarto del motore è misurato sul **centro del range mostrato all'utente**. Con il range
+asimmetrico −10% / +15% il centro sta il 2,5% sopra il valore del computo: la stima mostrata
+tende a stare un po' sopra il reale, come vuole Riccardo.
 
 Imponibile in euro. L'"errore voce per voce" è la somma degli scarti assoluti delle voci di
 A-EDILE con le quantità del motore ai prezzi del file. Misura le quantità e non i prezzi, e un
 errore in più non compensa un errore in meno.
 
-- **Soglia ±15% sull'edile: rispettata** nei tre appartamenti. La stima sta sul reale o un
-  po' sopra nei casi 01 e 02; la preferenza di Riccardo è "meglio leggermente sopra, ma nel
-  range".
+- **Soglia ±15% sull'edile: rispettata** nei tre appartamenti, con la stima un po' sopra il
+  reale nei casi 01 e 02. La preferenza di Riccardo è "meglio leggermente sopra, ma nel
+  range"; da qui il range asimmetrico.
 - **Totale reale nel range in tutti e quattro i casi.**
 - **Le quantità migliorano in tutti e quattro i casi**: l'errore voce per voce scende del 43%
   complessivo (109 k€ → 63 k€).
-- **Il caso 04 resta sotto del 7%** per lavori che il file non spiega: soprattutto
+- **Il caso 04 resta sotto del 5%** per lavori che il file non spiega: soprattutto
   un'impermeabilizzazione a corpo da 4.000 € senza m² né indicazione di terrazzi, a cui non si
   può rispondere con la domanda Pro senza inventare.
 - **I totali della bozza tornavano in parte per compensazione.** La tinteggiatura sovrastimata
@@ -119,7 +123,7 @@ Valori sostenuti da almeno due casi concordi.
 | A.2.1 massetto sabbia-cemento | 40 €/m² | **30** | 30 in tutti e tre i computi 2025-26. |
 | A.8.16 punto elettrico ex novo | 65 € | **60** | 47 / 55 / 60 nei computi; 60 è il più recente (2026-05). |
 | IVA C-SERRAMENTI | 22% | **10%** | Ristrutturazione su abitazione: aliquota agevolata, come nei computi del tecnico. Vedi la sezione "IVA dei serramenti". |
-| Range della leggera | ±10% | **±15%** | I parziali hanno più lavori a corpo e meno prevedibili; il caso 02 stava a −11% sul totale. Moderata (±15%) e totale (±20%) invariati. |
+| Range | ±10% / ±15% / ±20% (leggera / moderata / totale) | **−10% / +15%** per tutti e tre | Prima la leggera è passata a ±15% (i parziali hanno più lavori a corpo). Poi Riccardo ha scelto un range asimmetrico: i lavori a corpo non chiesti spostano il reale verso l'alto, non verso il basso. Nuova colonna `tipo_ristrutturazione.range_pct_sotto` (migrazione `0031`), modificabile dal pannello Città. |
 
 Il file sorgente `docs/computo-base-reggio-emilia.xlsx` ha ancora 40 e 65. Se si rilancia
 `scripts/extract_dettaglio_pro.py`, i due prezzi vanno rimessi, oppure va aggiornato il file.
@@ -135,8 +139,11 @@ Reggio Emilia, 85 m², risposte di default, imponibile:
 | Totale | 39,1 → 38,5 k€ | 69,3 → 68,3 k€ |
 
 L'oracolo v1 (il calcolo €/m², usato solo da un listino senza regole) passa da
-47.985–70.575 € a **47.251–69.473 €** per effetto dell'IVA dei serramenti. I test che lo
-fissano sono aggiornati.
+47.985–70.575 € a **52.807–66.696 €**, per l'IVA dei serramenti e il range −10% / +15%. I test
+che lo fissano sono aggiornati.
+
+Fasce mostrate nelle guide per 85 m²: leggera 17.900–22.800 €, moderata 40.300–51.500 €,
+totale 68.400–87.400 € (IVA ed extra inclusi).
 
 Anche le cifre delle guide pubbliche (`frontend/src/data/guide-costi.json`) sono rigenerate.
 
@@ -205,7 +212,7 @@ Restano fuori, e servono altri computi per decidere:
 
 - le voci di cantiere a corpo (allestimento, sicurezza): nei quattro casi non seguono né i m²
   né l'importo dei lavori;
-- un eventuale range asimmetrico.
+- l'ampiezza del range asimmetrico, che va rivista con altri computi.
 
 ## Caso 03: perché è di frontiera
 

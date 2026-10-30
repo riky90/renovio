@@ -35,7 +35,8 @@ Fase 11, in sintesi (dettaglio in `docs/proposta-computo-parametrico.md` §10):
   costi, `vercel.json`, pagina 404.
 - `/health` riporta la versione della migrazione applicata.
 
-Numeri dopo la prima taratura (Reggio Emilia, 85 m², risposte di default, imponibile):
+Numeri dopo la taratura (Reggio Emilia, 85 m², risposte di default, imponibile senza range;
+il range mostrato è −10% / +15% dal 2026-10-30):
 
 | Tipo | Edile | Totale lavori |
 |---|---|---|

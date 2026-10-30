@@ -29,7 +29,7 @@ elettrico, IVA serramenti al 10%, range leggera ±15% (seed + migrazione 0029); 
 Per chiudere la fase 11: PR della taratura, merge e allineamento `stima` (`CLAUDE.md`).
 Fatte anche le domande Pro per i lavori a corpo e il clima "solo predisposizione"
 (migrazione 0030). Candidati al passo successivo (v3.1): eccedenza IVA al 22% dei beni
-significativi, range per incertezza.
+significativi, range per incertezza (oggi -10% / +15% fisso).
 
 ### v2.0 (storico)
 
@@ -62,6 +62,7 @@ Items acknowledged and deferred at milestone close on 2026-10-01:
   Terza passata: sei domande Pro (bagni nuovi e ciechi, varchi, velette, carta da parati,
   terrazzi), clima "solo predisposizione", rivestimenti in A.6.4, punti elettrici 0,65/m²
   (migrazione 0030): edile 0 / +5 / 0 / -7%, errore voce per voce -43%.
+  Quarta passata: range asimmetrico -10% / +15% (`range_pct_sotto`, migrazione 0031).
   Guide pubbliche rigenerate. Nota: `.planning/prove/2026-11-taratura/NOTA-SESSIONE-2026-10-30.md`.
 
 - **2026-10-21** — **Tipo di ristrutturazione come punto di partenza.** Il tipo scelto nel

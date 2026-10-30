@@ -179,9 +179,24 @@ Il caso 04 resta sotto per lavori che il file non spiega, soprattutto l'impermea
 corpo da 4.000 € senza m².
 
 Sulla preferenza "meglio un po' sopra", i dati non giustificano altri aumenti voce per voce:
-oggi il motore sta sul reale. Per spostare la stima verso l'alto senza inventare quantità, lo
-strumento giusto è un range asimmetrico (per esempio −10% / +20%), che tocca il codice del
-calcolo del range. È proposto, non fatto.
+il motore sta sul reale. Per spostare la stima verso l'alto senza inventare quantità serviva
+un range asimmetrico: è la quarta passata.
+
+## Quarta passata: range asimmetrico −10% / +15%
+
+Riccardo ha scelto un range asimmetrico, −10% / +15%, per tutti e tre i tipi.
+
+- **Dati**: nuova colonna `tipo_ristrutturazione.range_pct_sotto` (migrazione `0031`).
+  `range_pct` resta l'ampiezza sopra. NULL vuol dire range simmetrico, così un DB non ancora
+  riseminato si comporta come prima. Il seed scrive −10% / +15% a ogni avvio.
+- **Calcolo**: stima Free e dettaglio Pro usano le due ampiezze.
+- **Pannello Città**: mostra "−10% / +15%" e permette di modificare tutte e due le ampiezze.
+- **Compatibilità**: la colonna è `deferred` con `server_default` NULL. Così il seed gira anche
+  su un DB fermo prima della 0031, come succede nei test della 0023.
+- **Test**: gli oracoli sono aggiornati. Ogni valore nuovo è controllato sul rapporto col
+  vecchio (×1,125 sotto, ×0,958 sopra per la totale).
+  - Oracolo v1: 52.807–66.696 €.
+  - Casi reali: edile +3% / +8% / +2% / −5%, misurato sul centro del range; tutti nel range.
 
 ## Punti ancora aperti
 
@@ -189,7 +204,7 @@ calcolo del range. È proposto, non fatto.
 2. Limite di 99 sugli stepper del pannello Pro: basta per varchi, velette e terrazzi, ma una
    casa grande può avere più di 99 m² di carta da parati.
 3. Il 7% senza etichetta su (B+C+D) nel riepilogo del file (§7).
-4. Altri computi reali per le voci di cantiere e per decidere un eventuale range asimmetrico.
+4. Altri computi reali per le voci di cantiere e per rivedere l'ampiezza del range.
 5. PR della taratura e allineamento `stima` dopo il merge.
 
 ## Stato

@@ -72,13 +72,14 @@ def test_oracolo_per_voce_coefficiente_qta_per_mq(session):
         .filter_by(voce_id=voce_db.id, tipo_code="totale")
         .one()
     )
-    range_pct = session.query(TipoRistrutturazione).filter_by(code="totale").one().range_pct
+    tipo_row = session.query(TipoRistrutturazione).filter_by(code="totale").one()
+    range_pct, range_sotto = tipo_row.range_pct, tipo_row.range_sotto
 
     quantita_attesa = (coeff.coefficiente_qta_per_mq * Decimal(85)).quantize(
         Decimal("0.01"), rounding=ROUND_HALF_UP
     )
     totale_voce = quantita_attesa * voce_db.prezzo_unitario_cliente
-    prezzo_min_atteso = (totale_voce * (Decimal("1") - range_pct)).quantize(
+    prezzo_min_atteso = (totale_voce * (Decimal("1") - range_sotto)).quantize(
         Decimal("1"), rounding=ROUND_HALF_UP
     )
     prezzo_max_atteso = (totale_voce * (Decimal("1") + range_pct)).quantize(
@@ -113,8 +114,8 @@ def test_domanda_mirata_usa_risposta_esplicita_quando_presente(session):
 
     voce = _find_voce(result, "A.0.3")
     assert voce.quantita_stimata == Decimal("3.00")
-    assert voce.prezzo_min == Decimal("96")
-    assert voce.prezzo_max == Decimal("144")
+    assert voce.prezzo_min == Decimal("108")  # 120 x 0,90 (range -10% / +15%)
+    assert voce.prezzo_max == Decimal("138")  # 120 x 1,15
 
 
 def test_sottocategoria_senza_voci_stimate_compare_comunque(session):

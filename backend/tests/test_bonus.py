@@ -10,7 +10,7 @@ Due cose sono piu' importanti dei numeri:
    cambiando la data di riferimento, senza toccare una riga di Python.
 
 Oracolo: 85 mq totale a Reggio Emilia, prima casa, 2026 — lo stesso caso su cui
-e' pinnato `test_estimation.py` (47.251-69.473), che deve restare intatto.
+e' pinnato `test_estimation.py` (52.807-66.696), che deve restare intatto.
 """
 
 from __future__ import annotations
@@ -98,11 +98,11 @@ class TestOracolo:
         per_code = {b.code: b for b in result.bonus}
         assert set(per_code) == {"RISTRUTTURAZIONE", "ECOBONUS"}
         assert per_code["RISTRUTTURAZIONE"].aliquota_pct == Decimal("0.5000")
-        assert result.detrazione_min == Decimal("22223")  # 50% di (47.251 - 2.806 di extra)
-        assert result.detrazione_max == Decimal("33334")  # 50% di (69.473 - 2.806)
+        assert result.detrazione_min == Decimal("25001")  # 50% di (52.807 - 2.806 di extra)
+        assert result.detrazione_max == Decimal("31946")  # 50% di (66.696 - 2.806)
         # La rata annua e' la detrazione su 10 anni, per bonus.
-        assert result.rata_annua_min == Decimal("2223")
-        assert result.rata_annua_max == Decimal("3334")
+        assert result.rata_annua_min == Decimal("2500")
+        assert result.rata_annua_max == Decimal("3195")
 
     def test_seconda_casa_scende_al_36(self, session):
         prima = BonusService.compute(session, _categorie_reali(session), "prima_casa", "d", DAL_2026)

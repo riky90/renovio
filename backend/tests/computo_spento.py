@@ -4,7 +4,7 @@ Dalla Fase 11 il Free e il Pro calcolano col computo parametrico
 (`services/computo.py`). Il calcolo v1/v2 — EUR/m2 x moltiplicatore piu' gli
 effetti in euro per il Free, catena `CoefficienteQuantitaVoce` per il Pro —
 resta come ripiego per un listino senza regole (MOT-03). I test che fissano
-l'aritmetica di quel percorso (oracolo 47.251-69.473, era 47.985-70.575 prima dei serramenti al 10%, ordine degli effetti,
+l'aritmetica di quel percorso (oracolo 52.807-66.696; era 47.985-70.575 prima dei serramenti al 10% e del range -10% / +15%, ordine degli effetti,
 scostamento, oracolo per voce) lo verificano qui: con le regole disattivate
 il listino non ha regole e il motore prende il ripiego.
 

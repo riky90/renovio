@@ -25,7 +25,9 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     with op.batch_alter_table("tipo_ristrutturazione") as batch:
-        batch.add_column(sa.Column("range_pct_sotto", sa.Numeric(4, 3), nullable=True))
+        batch.add_column(
+            sa.Column("range_pct_sotto", sa.Numeric(4, 3), nullable=True, server_default=sa.text("NULL"))
+        )
 
 
 def downgrade() -> None:

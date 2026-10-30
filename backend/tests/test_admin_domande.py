@@ -658,7 +658,7 @@ class TestAnteprima:
 
         assert risposta.status_code == 200
         corpo = risposta.json()
-        assert corpo["base_totale_min"] == "47251"
+        assert corpo["base_totale_min"] == "52807"
         assert corpo["delta_min"] == "0"
         assert corpo["delta_max"] == "0"
         assert corpo["avvisi"] == []
@@ -705,7 +705,7 @@ class TestAnteprima:
 
         c = next(x for x in corpo["categorie"] if x["code"] == "C-SERRAMENTI")
         assert c["totale_min"] == "0"
-        assert c["delta_min"] == "-6732"  # 7.650 x 1,10 (IVA serramenti) x 0,8
+        assert c["delta_min"] == "-7574"  # 7.650 x 1,10 (IVA serramenti) x 0,9 (range -10%)
 
     def test_avvisa_quando_un_default_porta_effetti(self, client):
         """Si sporca deliberatamente la curatela e si verifica che l'anteprima
