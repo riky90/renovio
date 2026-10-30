@@ -194,7 +194,7 @@ def test_il_tipo_sceglie_cosa_si_fa(session, listino):
 
 def test_risposta_esplicita_vince_sul_preset(session, listino):
     _, voci = _voci(session, listino, tipo="leggera", risposte={"interv_bagni": "tutti", "bagni": 2})
-    assert voci["A.8.5"].quantita == 8, "quattro apparecchi per due bagni"
+    assert voci["A.8.5"].quantita == 6, "tre apparecchi per due bagni (TAR-01)"
 
 
 def test_grandezza_da_risposta_numerica(session):
