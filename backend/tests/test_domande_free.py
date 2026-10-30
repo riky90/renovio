@@ -332,15 +332,16 @@ def test_effetto_per_tipo_di_ristrutturazione(session, listino):
     """`tipo_code` sull'effetto: rifare il riscaldamento pesa su una
     ristrutturazione leggera e non su una totale, dove e' gia' nel prezzo base.
 
-    leggera: 300 x 0.25 x 85 = 6.375 x 1.16 = 7.395 + IVA -> 8.134,5 -> [7.321, 8.948]
+    leggera: 300 x 0.25 x 85 = 6.375 x 1.16 = 7.395 + IVA -> 8.134,5 -> [6.914, 9.355]
+    (range della leggera +/-15% dal 2026-10-30, TAR-01)
     """
     leggera_base = _stima(session, listino, tipo="leggera", risposte={})
     leggera = _stima(session, listino, tipo="leggera", risposte={"impianti": ["termico"]})
     totale_base = _stima(session, listino, tipo="totale", risposte={})
     totale = _stima(session, listino, tipo="totale", risposte={"impianti": ["termico"]})
 
-    assert _cat(leggera, "A-EDILE").totale_min == Decimal("7321")
-    assert _cat(leggera, "A-EDILE").totale_max == Decimal("8948")
+    assert _cat(leggera, "A-EDILE").totale_min == Decimal("6914")
+    assert _cat(leggera, "A-EDILE").totale_max == Decimal("9355")
     assert _cat(leggera, "A-EDILE").totale_min > _cat(leggera_base, "A-EDILE").totale_min
 
     assert _cat(totale, "A-EDILE").totale_min == _cat(totale_base, "A-EDILE").totale_min

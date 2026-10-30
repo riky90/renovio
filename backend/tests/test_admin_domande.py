@@ -705,7 +705,7 @@ class TestAnteprima:
 
         c = next(x for x in corpo["categorie"] if x["code"] == "C-SERRAMENTI")
         assert c["totale_min"] == "0"
-        assert c["delta_min"] == "-7466"
+        assert c["delta_min"] == "-6732"  # 7.650 x 1,10 (IVA serramenti) x 0,8
 
     def test_avvisa_quando_un_default_porta_effetti(self, client):
         """Si sporca deliberatamente la curatela e si verifica che l'anteprima
