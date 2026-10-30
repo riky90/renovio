@@ -768,9 +768,16 @@ def seed_domande(session: Session, data: dict | None = None) -> int:
     listino = session.query(Listino).filter_by(is_default=True).one_or_none()
     non_risolti = 0
 
+    # Una domanda puo' dipendere (visibilita') da una che nel JSON viene dopo:
+    # su Postgres la chiave esterna lo rifiuta. Il legame si scrive dopo,
+    # quando tutte le domande esistono.
+    visibilita_rinviate: list[tuple[Domanda, dict]] = []
+
     for d_data in data.get("domande", []):
         domanda = session.get(Domanda, d_data["code"])
         if domanda is None:
+            dipende_da = d_data.get("visibile_se_domanda_code")
+            rinvia = dipende_da is not None and session.get(Domanda, dipende_da) is None
             domanda = Domanda(
                 code=d_data["code"],
                 testo=d_data["testo"],
@@ -781,12 +788,14 @@ def seed_domande(session: Session, data: dict | None = None) -> int:
                 tier_minimo=d_data.get("tier_minimo", "free"),
                 attributo_code=d_data.get("attributo_code"),
                 obbligatoria=d_data.get("obbligatoria", False),
-                visibile_se_domanda_code=d_data.get("visibile_se_domanda_code"),
-                visibile_se_opzione_code=d_data.get("visibile_se_opzione_code"),
+                visibile_se_domanda_code=None if rinvia else d_data.get("visibile_se_domanda_code"),
+                visibile_se_opzione_code=None if rinvia else d_data.get("visibile_se_opzione_code"),
                 attiva=d_data.get("attiva", True),
             )
             session.add(domanda)
             session.flush()
+            if rinvia:
+                visibilita_rinviate.append((domanda, d_data))
         # else: gia' presente -> curatela del pannello, non si tocca.
 
         for o_data in d_data.get("opzioni", []):
@@ -821,6 +830,11 @@ def seed_domande(session: Session, data: dict | None = None) -> int:
                         continue
                     e_data = {**e_data, **campi_target}
                 _crea_effetto_se_manca(session, opzione, e_data)
+
+    for domanda, d_data in visibilita_rinviate:
+        domanda.visibile_se_domanda_code = d_data["visibile_se_domanda_code"]
+        domanda.visibile_se_opzione_code = d_data.get("visibile_se_opzione_code")
+    session.flush()
 
     for a_data in data.get("attese", []):
         attesa = (
