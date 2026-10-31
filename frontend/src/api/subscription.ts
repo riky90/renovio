@@ -53,10 +53,14 @@ export async function getAbbonamento(): Promise<Abbonamento> {
 }
 
 /** Crea la sessione di pagamento Stripe e restituisce l'URL a cui mandare l'utente. */
-export async function postCheckout(piano: PianoCode, accettaEsecuzioneImmediata: boolean): Promise<string> {
+export async function postCheckout(
+  piano: PianoCode,
+  consensi: { condizioni: boolean; esecuzioneImmediata: boolean },
+): Promise<string> {
   const { url } = await apiPost<{ url: string }>("/pro/checkout", {
     piano,
-    accetta_esecuzione_immediata: accettaEsecuzioneImmediata,
+    accetta_condizioni: consensi.condizioni,
+    accetta_esecuzione_immediata: consensi.esecuzioneImmediata,
   });
   return url;
 }

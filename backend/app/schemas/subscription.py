@@ -42,8 +42,11 @@ class PianiOut(BaseModel):
 
 class CheckoutIn(BaseModel):
     piano: str
-    #: Consenso all'esecuzione immediata del servizio digitale, con perdita del
-    #: diritto di recesso (Codice del Consumo, art. 59, lett. o). Obbligatorio.
+    #: Accettazione delle condizioni di vendita (`/condizioni-di-vendita`). Obbligatoria.
+    accetta_condizioni: bool
+    #: Richiesta espressa di attivare il Pro subito, durante i 14 giorni di
+    #: recesso (Codice del Consumo, art. 50, c. 3). Il recesso resta: con
+    #: rimborso pieno, come dicono le condizioni. Obbligatoria.
     accetta_esecuzione_immediata: bool
 
 

@@ -194,7 +194,7 @@ def _cliente_stripe(session: Session, user: User, tessera: Subscription) -> str:
 # --- checkout e portale ---------------------------------------------------------
 
 
-def crea_checkout(session: Session, user: User, piano_code: str, *, recesso_accettato_il: datetime) -> str:
+def crea_checkout(session: Session, user: User, piano_code: str, *, consensi_il: datetime) -> str:
     """URL della pagina di pagamento Stripe per il piano scelto."""
     piano = next((p for p in piani() if p.code == piano_code), None)
     if piano is None:
@@ -204,9 +204,11 @@ def crea_checkout(session: Session, user: User, piano_code: str, *, recesso_acce
     metadata = {
         "user_id": str(user.id),
         "piano": piano.code,
-        # Consenso all'esecuzione immediata del servizio digitale, con perdita
-        # del diritto di recesso (Codice del Consumo, art. 59, lett. o).
-        "recesso_rinunciato_il": recesso_accettato_il.isoformat(),
+        # Quando l'utente ha accettato le condizioni di vendita e chiesto
+        # l'attivazione immediata (art. 50, c. 3 Codice del Consumo): resta
+        # su Stripe come traccia del consenso.
+        "condizioni_accettate_il": consensi_il.isoformat(),
+        "attivazione_immediata_richiesta_il": consensi_il.isoformat(),
     }
     base = settings.FRONTEND_URL.rstrip("/")
     checkout = _client().v1.checkout.sessions.create(

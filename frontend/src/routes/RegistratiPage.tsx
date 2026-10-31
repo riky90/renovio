@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router";
 import { Button } from "@/components/ui/button";
+import { PATH_PRIVACY } from "@/content/legale";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -186,6 +187,13 @@ export function RegistratiPage() {
               >
                 {registrazione.isPending ? "Creazione in corso..." : "Crea account"}
               </Button>
+              <p className="text-center text-xs leading-relaxed text-muted-foreground">
+                Creando l'account dichiari di aver letto l'
+                <Link to={PATH_PRIVACY} className="font-medium text-primary underline underline-offset-4">
+                  informativa privacy
+                </Link>
+                .
+              </p>
             </form>
 
             <div className="flex items-center gap-3">

@@ -11,7 +11,8 @@ Cosa va dimostrato:
      CON LA CHIAVE l'attivazione dimostrativa e' chiusa (mai un Pro gratis
      con i pagamenti attivi).
   2. I PIANI vengono dai prezzi Stripe (lookup key), non dal codice.
-  3. IL CHECKOUT chiede il consenso all'esecuzione immediata, lega la sessione
+  3. IL CHECKOUT chiede l'accettazione delle condizioni e la richiesta di
+     attivazione immediata, lega la sessione
      all'utente e riusa il cliente Stripe.
   4. IL WEBHOOK verifica la firma, attiva il Pro, segue disdetta e fine
      dell'abbonamento, ed e' idempotente.
@@ -197,7 +198,7 @@ def _evento(tipo: str, oggetto: dict) -> tuple[bytes, dict]:
 
 
 def _paga(client, finto, *, piano="annuale") -> str:
-    r = client.post(CHECKOUT_URL, json={"piano": piano, "accetta_esecuzione_immediata": True})
+    r = client.post(CHECKOUT_URL, json={"piano": piano, "accetta_condizioni": True, "accetta_esecuzione_immediata": True})
     assert r.status_code == 200, r.text
     cs_id = r.json()["url"].rsplit("/", 1)[1]
     sub_id = finto.completa(cs_id, piano=piano)
@@ -213,7 +214,7 @@ def test_senza_chiave_pagamenti_spenti_e_demo_attiva(client, monkeypatch):
     monkeypatch.setattr(settings, "STRIPE_SECRET_KEY", "")
     assert client.get(PIANI_URL).json() == {"pagamenti_attivi": False, "piani": []}
     _registra(client)
-    assert client.post(CHECKOUT_URL, json={"piano": "annuale", "accetta_esecuzione_immediata": True}).status_code == 503
+    assert client.post(CHECKOUT_URL, json={"piano": "annuale", "accetta_condizioni": True, "accetta_esecuzione_immediata": True}).status_code == 503
     assert client.post(ATTIVA_DEMO_URL).status_code == 200
     assert client.get(ME_URL).json()["pro"] is True
 
@@ -243,16 +244,17 @@ def test_piani_dai_prezzi_stripe(client, finto_stripe):
 
 
 def test_checkout_richiede_login_e_consenso(client, finto_stripe):
-    assert client.post(CHECKOUT_URL, json={"piano": "annuale", "accetta_esecuzione_immediata": True}).status_code == 401
+    assert client.post(CHECKOUT_URL, json={"piano": "annuale", "accetta_condizioni": True, "accetta_esecuzione_immediata": True}).status_code == 401
     _registra(client)
-    assert client.post(CHECKOUT_URL, json={"piano": "annuale", "accetta_esecuzione_immediata": False}).status_code == 422
-    assert client.post(CHECKOUT_URL, json={"piano": "settimanale", "accetta_esecuzione_immediata": True}).status_code == 422
+    assert client.post(CHECKOUT_URL, json={"piano": "annuale", "accetta_condizioni": True, "accetta_esecuzione_immediata": False}).status_code == 422
+    assert client.post(CHECKOUT_URL, json={"piano": "annuale", "accetta_condizioni": False, "accetta_esecuzione_immediata": True}).status_code == 422
+    assert client.post(CHECKOUT_URL, json={"piano": "settimanale", "accetta_condizioni": True, "accetta_esecuzione_immediata": True}).status_code == 422
 
 
 def test_checkout_lega_la_sessione_all_utente_e_riusa_il_cliente(client, finto_stripe):
     user_id = _registra(client)
     for _ in range(2):
-        r = client.post(CHECKOUT_URL, json={"piano": "mensile", "accetta_esecuzione_immediata": True})
+        r = client.post(CHECKOUT_URL, json={"piano": "mensile", "accetta_condizioni": True, "accetta_esecuzione_immediata": True})
         assert r.status_code == 200
         assert r.json()["url"].startswith("https://checkout.stripe.test/")
     creati = [p for nome, p in finto_stripe.richieste if nome == "customers.create"]
@@ -263,7 +265,8 @@ def test_checkout_lega_la_sessione_all_utente_e_riusa_il_cliente(client, finto_s
     assert params["client_reference_id"] == str(user_id)
     assert params["line_items"] == [{"price": "price_mensile", "quantity": 1}]
     assert params["subscription_data"]["metadata"]["user_id"] == str(user_id)
-    assert "recesso_rinunciato_il" in params["metadata"]
+    assert "condizioni_accettate_il" in params["metadata"]
+    assert "attivazione_immediata_richiesta_il" in params["metadata"]
     assert "{CHECKOUT_SESSION_ID}" in params["success_url"]
 
 
@@ -336,7 +339,7 @@ def test_rinnovo_fallito_e_poi_pagato(client, finto_stripe):
 def test_checkout_rifiutato_se_gia_abbonato(client, finto_stripe):
     _registra(client)
     _paga(client, finto_stripe)
-    r = client.post(CHECKOUT_URL, json={"piano": "mensile", "accetta_esecuzione_immediata": True})
+    r = client.post(CHECKOUT_URL, json={"piano": "mensile", "accetta_condizioni": True, "accetta_esecuzione_immediata": True})
     assert r.status_code == 409
 
 
@@ -345,7 +348,7 @@ def test_checkout_rifiutato_se_gia_abbonato(client, finto_stripe):
 
 def test_conferma_attiva_senza_aspettare_il_webhook(client, finto_stripe):
     _registra(client)
-    r = client.post(CHECKOUT_URL, json={"piano": "annuale", "accetta_esecuzione_immediata": True})
+    r = client.post(CHECKOUT_URL, json={"piano": "annuale", "accetta_condizioni": True, "accetta_esecuzione_immediata": True})
     cs_id = r.json()["url"].rsplit("/", 1)[1]
     assert client.post(CONFERMA_URL, json={"session_id": cs_id}).json()["pro"] is False  # non ancora pagato
     finto_stripe.completa(cs_id)
@@ -354,7 +357,7 @@ def test_conferma_attiva_senza_aspettare_il_webhook(client, finto_stripe):
 
 def test_conferma_non_vale_per_la_sessione_di_un_altro(client, finto_stripe):
     _registra(client, "a@example.com")
-    cs_id = client.post(CHECKOUT_URL, json={"piano": "annuale", "accetta_esecuzione_immediata": True}).json()["url"].rsplit("/", 1)[1]
+    cs_id = client.post(CHECKOUT_URL, json={"piano": "annuale", "accetta_condizioni": True, "accetta_esecuzione_immediata": True}).json()["url"].rsplit("/", 1)[1]
     finto_stripe.completa(cs_id)
     client.post("/api/v1/auth/logout")
     client.cookies.clear()

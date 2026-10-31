@@ -92,8 +92,10 @@ def crea_checkout(
         raise HTTPException(503, NON_CONFIGURATI)
     if payload.piano not in pagamenti.PIANI:
         raise HTTPException(422, "Piano non valido.")
+    if not payload.accetta_condizioni:
+        raise HTTPException(422, "Per procedere bisogna accettare le condizioni di vendita.")
     if not payload.accetta_esecuzione_immediata:
-        raise HTTPException(422, "Per procedere serve il consenso all'attivazione immediata del servizio.")
+        raise HTTPException(422, "Per procedere serve la richiesta di attivazione immediata del servizio.")
     with SessionLocal() as session:
         tessera = session.query(Subscription).filter_by(user_id=current_user.id).one_or_none()
         if (
@@ -104,7 +106,7 @@ def crea_checkout(
             raise HTTPException(409, "Hai già un abbonamento Pro attivo: puoi gestirlo dalle impostazioni.")
         try:
             url = pagamenti.crea_checkout(
-                session, current_user, payload.piano, recesso_accettato_il=datetime.now(timezone.utc)
+                session, current_user, payload.piano, consensi_il=datetime.now(timezone.utc)
             )
         except pagamenti.PianoNonDisponibile:
             raise HTTPException(422, "Piano non disponibile.")

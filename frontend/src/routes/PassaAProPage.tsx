@@ -15,6 +15,7 @@ import {
   type PianoPro,
 } from "@/api/subscription";
 import { useAuth, AUTH_QUERY_KEY } from "@/hooks/useAuth";
+import { PATH_CONDIZIONI, PATH_PRIVACY } from "@/content/legale";
 
 const SUBHEADING =
   "Sblocca il dettaglio per voci e quantità di ogni sottocategoria, con un PDF completo da portare in cantiere.";
@@ -29,8 +30,8 @@ const ERROR_COPY = "Non siamo riusciti a completare l'operazione. Riprova tra qu
 const ANNULLATO_COPY = "Pagamento annullato: non ti abbiamo addebitato nulla.";
 const IN_ATTESA_COPY =
   "Pagamento ricevuto. L'attivazione può richiedere qualche secondo: se il Pro non compare, ricarica la pagina tra poco.";
-const RECESSO_COPY =
-  "Chiedo l'attivazione immediata del Pro e prendo atto che, trattandosi di un servizio digitale fornito subito, perdo il diritto di recesso di 14 giorni. Puoi disdire il rinnovo quando vuoi.";
+const ESECUZIONE_COPY =
+  "Chiedo di attivare il Pro subito. Resta il diritto di recesso entro 14 giorni con rimborso completo.";
 
 function formatEuro(importo: number): string {
   return new Intl.NumberFormat("it-IT", {
@@ -62,7 +63,8 @@ export function PassaAProPage() {
 
   const pianiQuery = useQuery({ queryKey: ["pro-piani"], queryFn: getPianiPro, staleTime: 5 * 60 * 1000 });
   const [piano, setPiano] = useState<PianoCode>("annuale");
-  const [recesso, setRecesso] = useState(false);
+  const [condizioni, setCondizioni] = useState(false);
+  const [esecuzione, setEsecuzione] = useState(false);
 
   const demoMutation = useMutation({
     mutationFn: postAttivaPro,
@@ -70,7 +72,7 @@ export function PassaAProPage() {
   });
 
   const checkoutMutation = useMutation({
-    mutationFn: () => postCheckout(piano, recesso),
+    mutationFn: () => postCheckout(piano, { condizioni, esecuzioneImmediata: esecuzione }),
     onSuccess: (url) => {
       window.location.assign(url);
     },
@@ -191,20 +193,41 @@ export function PassaAProPage() {
                   ))}
                 </RadioGroup>
 
-                <label className="flex items-start gap-3 text-sm text-foreground">
-                  <input
-                    type="checkbox"
-                    checked={recesso}
-                    onChange={(e) => setRecesso(e.target.checked)}
-                    className="mt-1 size-4 shrink-0 accent-primary"
-                  />
-                  <span>{RECESSO_COPY}</span>
-                </label>
+                <div className="flex flex-col gap-3">
+                  <label className="flex items-start gap-3 text-sm text-foreground">
+                    <input
+                      type="checkbox"
+                      checked={condizioni}
+                      onChange={(e) => setCondizioni(e.target.checked)}
+                      className="mt-1 size-4 shrink-0 accent-primary"
+                    />
+                    <span>
+                      Ho letto e accetto le{" "}
+                      <Link to={PATH_CONDIZIONI} target="_blank" className="font-medium text-primary underline underline-offset-4">
+                        condizioni di vendita
+                      </Link>{" "}
+                      e ho preso visione dell'
+                      <Link to={PATH_PRIVACY} target="_blank" className="font-medium text-primary underline underline-offset-4">
+                        informativa privacy
+                      </Link>
+                      .
+                    </span>
+                  </label>
+                  <label className="flex items-start gap-3 text-sm text-foreground">
+                    <input
+                      type="checkbox"
+                      checked={esecuzione}
+                      onChange={(e) => setEsecuzione(e.target.checked)}
+                      className="mt-1 size-4 shrink-0 accent-primary"
+                    />
+                    <span>{ESECUZIONE_COPY}</span>
+                  </label>
+                </div>
 
                 <Button
                   type="button"
                   onClick={() => checkoutMutation.mutate()}
-                  disabled={!recesso || checkoutMutation.isPending || checkoutMutation.isSuccess}
+                  disabled={!condizioni || !esecuzione || checkoutMutation.isPending || checkoutMutation.isSuccess}
                   className="h-11 w-full bg-primary text-base font-semibold text-primary-foreground hover:bg-primary/90"
                 >
                   {checkoutMutation.isPending || checkoutMutation.isSuccess ? (

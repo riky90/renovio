@@ -4,6 +4,8 @@ import { EstimatePage } from "@/pages/EstimatePage";
 import { GuidaCostiPage } from "@/pages/GuidaCostiPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { SupportoPage } from "@/routes/SupportoPage";
+import { PaginaLegalePage } from "@/pages/PaginaLegalePage";
+import { DOCUMENTI_LEGALI } from "@/content/legale";
 import { PATH_GUIDE, GUIDE } from "@/content/guide";
 import { Seo } from "@/lib/seo";
 
@@ -40,6 +42,7 @@ export const routes: RouteObject[] = [
   { path: PATH_GUIDE, element: <GuidaCostiPage /> },
   { path: `${PATH_GUIDE}/:slug`, element: <GuidaCostiPage /> },
   { path: "/supporto", element: <SupportoPage /> },
+  ...DOCUMENTI_LEGALI.map((d) => ({ path: d.path, element: <PaginaLegalePage documento={d} /> })),
 
   privata("/registrati", "Registrati", async () => (await import("@/routes/RegistratiPage")).RegistratiPage),
   privata("/accedi", "Accedi", async () => (await import("@/routes/AccediPage")).AccediPage),
@@ -75,4 +78,5 @@ export const PAGINE_PUBBLICHE: string[] = [
   PATH_GUIDE,
   ...GUIDE.map((g) => `${PATH_GUIDE}/${g.slug}`),
   "/supporto",
+  ...DOCUMENTI_LEGALI.map((d) => d.path),
 ];
