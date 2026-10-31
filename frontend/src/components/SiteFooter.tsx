@@ -1,6 +1,9 @@
 import { Link } from "react-router";
 import { BrandMark } from "@/components/BrandMark";
 import { GUIDA_GENERALE, GUIDE, pathGuida } from "@/content/guide";
+import { DATI_LEGALI } from "@/content/datiLegali";
+import { PATH_CONDIZIONI, PATH_COOKIE, PATH_PRIVACY } from "@/content/legale";
+import { apriPreferenzeCookie, tracciamentoConfigurato } from "@/lib/tracciamento";
 
 interface FooterLink {
   label: string;
@@ -29,7 +32,13 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
   },
   {
     title: "Risorse",
-    links: [{ label: "Domande frequenti", to: "/supporto" }],
+    links: [
+      { label: "Domande frequenti", to: "/supporto" },
+      { label: "Privacy", to: PATH_PRIVACY },
+      { label: "Cookie", to: PATH_COOKIE },
+      { label: "Condizioni di vendita", to: PATH_CONDIZIONI },
+      { label: "Recesso dal contratto", to: "/impostazioni/abbonamento" },
+    ],
   },
 ];
 
@@ -76,7 +85,26 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-10 flex flex-col gap-1 border-t border-border/70 pt-6 text-xs text-muted-foreground">
-          <p>© {YEAR} Renovio. Tutti i diritti riservati.</p>
+          <p>
+            © {YEAR} Renovio. Tutti i diritti riservati.
+            {DATI_LEGALI.titolare && DATI_LEGALI.partitaIva && (
+              <>
+                {" "}
+                {DATI_LEGALI.titolare} · {DATI_LEGALI.sede} · P. IVA {DATI_LEGALI.partitaIva}
+              </>
+            )}
+          </p>
+          {tracciamentoConfigurato() && (
+            <p>
+              <button
+                type="button"
+                onClick={() => void apriPreferenzeCookie()}
+                className="underline underline-offset-4 hover:text-primary"
+              >
+                Preferenze cookie
+              </button>
+            </p>
+          )}
           <p>
             Le stime sono indicative e pre-sopralluogo. L'importo definitivo dipende dallo stato
             dell'immobile e dai materiali scelti.

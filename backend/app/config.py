@@ -66,6 +66,19 @@ class Settings(BaseSettings):
     # src>` renderizzato dal frontend, che gira su un'altra origine.
     BACKEND_PUBLIC_URL: str = "http://localhost:8000"
 
+    # Pagamenti Pro con Stripe (abbonamento mensile e annuale). Senza
+    # STRIPE_SECRET_KEY i pagamenti sono spenti: la pagina "Passa a Pro" usa
+    # l'attivazione dimostrativa gratuita, che si spegne da sola appena la
+    # chiave c'e'. Chiavi di test (`sk_test_...`) e live (`sk_live_...`)
+    # vanno solo nelle variabili d'ambiente, mai nel codice.
+    STRIPE_SECRET_KEY: str = ""
+    # Segreto di firma del webhook (`whsec_...`), dalla pagina del webhook.
+    STRIPE_WEBHOOK_SECRET: str = ""
+    # I prezzi si cercano per `lookup_key`: importi e valuta stanno solo su
+    # Stripe, e cambiarli non richiede un deploy.
+    STRIPE_LOOKUP_KEY_MENSILE: str = "renovio_pro_mensile"
+    STRIPE_LOOKUP_KEY_ANNUALE: str = "renovio_pro_annuale"
+
     @field_validator("DATABASE_URL")
     @classmethod
     def _use_psycopg3(cls, url: str) -> str:

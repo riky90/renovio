@@ -8,6 +8,7 @@ import {
   type RegistrazioneInput,
   type UserOut,
 } from "@/api/auth";
+import { tracciaEvento } from "@/lib/tracciamento";
 
 export const AUTH_QUERY_KEY = ["me"] as const;
 
@@ -27,6 +28,7 @@ export function useAuth() {
   const registrazioneMutation = useMutation({
     mutationFn: (input: RegistrazioneInput) => postRegistrazione(input),
     onSuccess: (user) => {
+      tracciaEvento({ tipo: "registrazione" });
       queryClient.setQueryData(AUTH_QUERY_KEY, user);
       void queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEY });
     },

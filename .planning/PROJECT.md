@@ -71,7 +71,7 @@ indirizzo e geocoding, AI come parser del testo libero.
 - Simulazione finanziamento a rate — presente nel file, escluso da v1
 - Moltiplicatori prezzo per zona geografica — fase 2, servono i dati
 - Portale completo rete professionisti (assegnazione, gestione partner) — visione futura
-- Prezzo esatto abbonamento Pro — da definire prima del go-live
+- Prezzo abbonamento Pro: 3 €/mese o 29 €/anno IVA inclusa, pagamento con Stripe (2026-10-30, `docs/pagamenti-stripe.md`); da accendere con le chiavi Stripe su Render
 
 ## Key Decisions
 

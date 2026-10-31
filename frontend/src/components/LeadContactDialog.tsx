@@ -1,3 +1,5 @@
+import { PATH_PRIVACY } from "@/content/legale";
+import { Link } from "react-router";
 import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
@@ -25,6 +27,7 @@ import { formatEurRange } from "@/lib/currency";
 import { postLead, type FasciaOraria, type PreferenzaContatto } from "@/api/lead";
 import { useAuth } from "@/hooks/useAuth";
 import { tipoMostrato, type StimaResponse } from "@/api/stima";
+import { tracciaEvento } from "@/lib/tracciamento";
 
 const TIPO_LABELS: Record<StimaResponse["input"]["tipo"], string> = {
   leggera: "Leggera",
@@ -122,6 +125,7 @@ export function LeadContactDialog({ open, onOpenChange, result }: LeadContactDia
       {
         onSuccess: () => {
           toast.success(SUCCESS_TOAST);
+          tracciaEvento({ tipo: "richiesta_contatto" });
         },
       }
     );
@@ -255,6 +259,14 @@ export function LeadContactDialog({ open, onOpenChange, result }: LeadContactDia
                   "Invia richiesta"
                 )}
               </Button>
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                Inviamo la tua richiesta e la stima al professionista che segue la tua zona, che ti
+                ricontatterà per un preventivo. Dettagli nell'
+                <Link to={PATH_PRIVACY} target="_blank" className="font-medium text-primary underline underline-offset-4">
+                  informativa privacy
+                </Link>
+                .
+              </p>
 
               {mutation.isError && (
                 <p className="text-center text-sm text-destructive">{ERROR_COPY}</p>
