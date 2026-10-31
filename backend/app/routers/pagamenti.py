@@ -21,13 +21,15 @@ from app.models.subscription import Subscription
 from app.models.user import User
 from app.schemas.subscription import (
     AbbonamentoOut,
+    RecessoOut,
     CheckoutIn,
     ConfermaCheckoutIn,
     PianiOut,
     PianoOut,
     UrlOut,
 )
-from app.services import pagamenti
+from app.services import email_pro, pagamenti
+from app.services.email_service import send_email
 
 router = APIRouter(tags=["pagamenti"])
 log = logging.getLogger(__name__)
@@ -56,7 +58,32 @@ def _abbonamento_out(session, user: User) -> AbbonamentoOut:
         scade_il=scade_il,
         rinnovo_automatico=pro and con_stripe and not tessera.cancella_a_fine_periodo,
         gestibile=bool(tessera.stripe_customer_id) and pagamenti.pagamenti_attivi(),
+        recesso_fino_al=pagamenti.recesso_possibile_fino_al(tessera),
     )
+
+
+async def _invia_conferma_acquisto(session, applicato: pagamenti.Applicato | None) -> None:
+    """Email di conferma alla prima attivazione di un abbonamento. Un errore di
+    invio non deve far fallire webhook o conferma: si registra e basta."""
+    if applicato is None or not applicato.nuovo_acquisto:
+        return
+    tessera = applicato.tessera
+    user = session.get(User, tessera.user_id)
+    if user is None:
+        return
+    rinnovo = tessera.scaduta_il - pagamenti.TOLLERANZA_RINNOVO if tessera.scaduta_il else None
+    oggetto, html = email_pro.conferma_acquisto(
+        nome=user.nome,
+        piano_code=tessera.piano_code,
+        importo=applicato.importo,
+        intervallo=applicato.intervallo,
+        rinnovo_il=rinnovo,
+        recesso_fino_al=pagamenti.recesso_possibile_fino_al(tessera),
+    )
+    try:
+        await send_email(to=user.email, subject=oggetto, html_body=html)
+    except Exception:
+        log.exception("Email di conferma del Pro non inviata (user_id=%s)", user.id)
 
 
 @router.get("/pro/piani", response_model=PianiOut)
@@ -118,18 +145,52 @@ def crea_checkout(
 
 @router.post("/pro/checkout/conferma", response_model=AbbonamentoOut)
 @limiter.limit("20/minute")
-def conferma_checkout(
+async def conferma_checkout(
     request: Request, payload: ConfermaCheckoutIn, current_user: User = Depends(get_current_user)
 ) -> AbbonamentoOut:
     if not pagamenti.pagamenti_attivi():
         raise HTTPException(503, NON_CONFIGURATI)
     with SessionLocal() as session:
         try:
-            pagamenti.conferma_checkout(session, current_user, payload.session_id)
+            applicato = pagamenti.conferma_checkout(session, current_user, payload.session_id)
         except stripe.StripeError:
             log.exception("Stripe: conferma del checkout non riuscita")
             raise HTTPException(503, STRIPE_KO)
+        await _invia_conferma_acquisto(session, applicato)
         return _abbonamento_out(session, current_user)
+
+
+@router.post("/pro/recesso", response_model=RecessoOut)
+@limiter.limit("5/minute")
+async def recedi(request: Request, current_user: User = Depends(get_current_user)) -> RecessoOut:
+    """"Recedi dal contratto qui" -> "Conferma recesso" (art. 54-bis Codice
+    del Consumo): rimborso integrale, abbonamento chiuso subito, ricevuta via
+    email. Possibile entro 14 giorni dal primo acquisto."""
+    if not pagamenti.pagamenti_attivi():
+        raise HTTPException(503, NON_CONFIGURATI)
+    with SessionLocal() as session:
+        tessera = session.query(Subscription).filter_by(user_id=current_user.id).one_or_none()
+        try:
+            rimborsato = pagamenti.recedi(session, tessera) if tessera is not None else None
+        except pagamenti.RecessoNonPossibile:
+            rimborsato = None
+        except stripe.StripeError:
+            log.exception("Stripe: recesso non riuscito (user_id=%s)", current_user.id)
+            raise HTTPException(503, STRIPE_KO)
+        if rimborsato is None:
+            raise HTTPException(
+                409,
+                "Il recesso non è più disponibile: è possibile entro 14 giorni dal primo acquisto. "
+                "Puoi sempre disdire il rinnovo da «Gestisci abbonamento».",
+            )
+        oggetto, html = email_pro.ricevuta_recesso(
+            nome=current_user.nome, rimborsato=rimborsato, receduto_il=tessera.receduto_il
+        )
+        try:
+            await send_email(to=current_user.email, subject=oggetto, html_body=html)
+        except Exception:
+            log.exception("Email di ricevuta del recesso non inviata (user_id=%s)", current_user.id)
+        return RecessoOut(rimborsato=rimborsato, abbonamento=_abbonamento_out(session, current_user))
 
 
 @router.post("/pro/portale", response_model=UrlOut)
@@ -159,9 +220,10 @@ async def webhook_stripe(request: Request) -> dict:
         raise HTTPException(400, "Firma non valida.")
     with SessionLocal() as session:
         try:
-            esito = pagamenti.gestisci_evento(session, evento)
+            esito, applicato = pagamenti.gestisci_evento(session, evento)
         except stripe.StripeError:
             # 5xx: Stripe ritentera' la consegna dell'evento.
             log.exception("Stripe: gestione dell'evento %s non riuscita", evento.get("type"))
             raise HTTPException(503, STRIPE_KO)
+        await _invia_conferma_acquisto(session, applicato)
     return {"ricevuto": True, "esito": esito}

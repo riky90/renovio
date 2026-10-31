@@ -22,7 +22,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AUTH_QUERY_KEY, useAuth } from "@/hooks/useAuth";
 import { patchProfilo, type UserOut } from "@/api/auth";
-import { getAbbonamento, postPortale } from "@/api/subscription";
+import { ApiError } from "@/api/client";
+import { getAbbonamento, postPortale, postRecesso } from "@/api/subscription";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 /**
  * Le tre tab, nell'ordine in cui compaiono anche nel menu account. Lo slug e'
@@ -302,6 +314,56 @@ function formatData(iso: string): string {
   return new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "long", year: "numeric" }).format(new Date(iso));
 }
 
+/**
+ * Recesso entro 14 giorni dal primo acquisto (art. 54-bis Codice del Consumo):
+ * "Recedi dal contratto qui" apre la conferma, "Conferma recesso" rimborsa
+ * tutto e chiude l'abbonamento; la ricevuta arriva via email.
+ */
+function RecessoAbbonamento({ fino: finoAl }: { fino: string }) {
+  const queryClient = useQueryClient();
+  const recesso = useMutation({
+    mutationFn: postRecesso,
+    onSuccess: (esito) => {
+      toast.success(
+        `Recesso confermato: ti rimborsiamo ${new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format(esito.rimborsato)}. Ti abbiamo mandato la ricevuta via email.`,
+      );
+      void queryClient.invalidateQueries({ queryKey: ["abbonamento"] });
+      void queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEY });
+    },
+    onError: (errore) =>
+      toast.error(errore instanceof ApiError && errore.detail ? errore.detail : "Recesso non riuscito. Riprova tra poco."),
+  });
+  return (
+    <div className="flex flex-col gap-2 border-t border-border pt-3">
+      <p className="text-sm text-muted-foreground">
+        Hai cambiato idea? Puoi recedere entro il {formatData(finoAl)}: ti rimborsiamo l'intero importo.
+      </p>
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button type="button" variant="outline" className="self-start">
+            Recedi dal contratto qui
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Vuoi recedere da Renovio Pro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              L'abbonamento si chiude subito, il Pro si disattiva e ti rimborsiamo l'intero importo sullo
+              stesso metodo di pagamento. Le stime salvate restano. Ti mandiamo la ricevuta via email.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogAction onClick={() => recesso.mutate()} disabled={recesso.isPending}>
+              Conferma recesso
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
+
 /** Piano, rinnovo o scadenza e accesso al portale clienti Stripe. */
 function DettaglioAbbonamento() {
   const abbonamentoQuery = useQuery({ queryKey: ["abbonamento"], queryFn: getAbbonamento });
@@ -336,6 +398,7 @@ function DettaglioAbbonamento() {
           </p>
         </div>
       )}
+      {abb.recesso_fino_al && <RecessoAbbonamento fino={abb.recesso_fino_al} />}
     </div>
   );
 }

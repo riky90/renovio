@@ -19,13 +19,19 @@ Sono **bozze da far verificare a un legale**. Descrivono i trattamenti che il co
 Se il sito aggiunge un trattamento (analytics, newsletter, pubblicità), questi testi vanno
 aggiornati nello stesso cambio.
 
-## Prima di accendere i pagamenti
+## Cosa promettono le condizioni, e dove sta nel codice
 
-Le condizioni di vendita promettono tre cose che il codice non fa ancora:
+1. **Recesso entro 14 giorni con rimborso pieno**: il pulsante "Recedi dal contratto qui" in
+   Impostazioni → Abbonamento apre la finestra con "Conferma recesso" (art. 54-bis Codice del
+   Consumo, D.lgs. 209/2025). Il backend (`POST /api/v1/pro/recesso`):
+   - rimborsa su Stripe tutte le fatture pagate dell'abbonamento;
+   - chiude subito l'abbonamento;
+   - manda la ricevuta via email.
 
-1. il pulsante "Recedi dal contratto qui" in Impostazioni → Abbonamento, obbligatorio dal 19
-   giugno 2026 (art. 54-bis Codice del Consumo, D.lgs. 209/2025), con "Conferma recesso",
-   chiusura dell'abbonamento, rimborso pieno via Stripe e ricevuta via email;
-2. l'email di conferma dell'acquisto, con il riepilogo e le condizioni (supporto durevole);
-3. il promemoria prima del rinnovo annuale: si attiva su Stripe, in Impostazioni → Billing →
-   Subscriptions and emails.
+   Vale una sola volta, sul primo acquisto. Nel footer c'è il link "Recesso dal contratto".
+2. **Email di conferma dell'acquisto** (supporto durevole): parte una sola volta per abbonamento
+   e contiene piano, prezzo, rinnovo, scadenza del recesso e i link alle condizioni.
+   Testi in `backend/app/services/email_pro.py`.
+3. **Promemoria prima del rinnovo annuale**: non sta nel codice, va attivato su Stripe
+   (Impostazioni → Billing → Subscriptions and emails → "Send emails about upcoming
+   renewals").

@@ -63,6 +63,12 @@ deploy.
    Copia il **Signing secret** (`whsec_...`).
 5. **Email ai clienti**: in Impostazioni → Email clienti attiva le ricevute dei pagamenti
    riusciti e i rimborsi.
+6. **Promemoria di rinnovo**, promesso dalle condizioni di vendita: in Impostazioni → Billing →
+   Subscriptions and emails attiva "Send emails about upcoming renewals".
+
+Il **recesso** (pulsante "Recedi dal contratto qui", 14 giorni dal primo acquisto) rimborsa da
+Stripe: il saldo Stripe deve poter coprire i rimborsi, altrimenti Stripe li addebita sul conto
+collegato.
 
 ## Variabili d'ambiente su Render (servizio backend)
 
@@ -85,7 +91,10 @@ servono solo se le cambi su Stripe.
    rinnovo.
 4. "Gestisci abbonamento" → disdici: il Pro resta attivo e la pagina dice "Disdetto: resta
    attivo fino al …".
-5. In Stripe → Sviluppatori → Webhook gli eventi devono risultare consegnati con risposta 200.
+5. Con un altro utente: compra, poi "Recedi dal contratto qui" → "Conferma recesso". Il Pro si
+   disattiva, su Stripe compare il rimborso e arriva la ricevuta. Senza SMTP configurato, l'email
+   finisce nel log del backend.
+6. In Stripe → Sviluppatori → Webhook gli eventi devono risultare consegnati con risposta 200.
 
 Carte per i casi di errore: `4000 0000 0000 9995` (fondi insufficienti), `4000 0025 0000 3155`
 (autenticazione 3D Secure).

@@ -42,3 +42,8 @@ class Subscription(Base):
     cancella_a_fine_periodo: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default=false()
     )
+    # Primo acquisto pagato: da qui partono i 14 giorni di recesso
+    # (condizioni di vendita, punto 6). Non cambia con i rinnovi.
+    acquistato_il: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    # Quando l'utente ha esercitato il recesso ("Recedi dal contratto qui").
+    receduto_il: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

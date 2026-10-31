@@ -284,7 +284,29 @@ def _tessera_per_abbonamento(session: Session, abbonamento: Any) -> Subscription
     return tessera
 
 
-def applica_abbonamento(session: Session, abbonamento: Any) -> Subscription | None:
+@dataclass(frozen=True)
+class Applicato:
+    """Esito di `applica_abbonamento`."""
+
+    tessera: Subscription
+    #: True la prima volta che questo abbonamento Stripe risulta pagato: e' il
+    #: momento di mandare l'email di conferma dell'acquisto (una sola volta,
+    #: anche se webhook e conferma al ritorno arrivano tutti e due).
+    nuovo_acquisto: bool
+    #: Prezzo del piano, IVA inclusa, e intervallo ("month" | "year").
+    importo: Decimal | None
+    intervallo: str | None
+
+
+def _prezzo_di(abbonamento: Any) -> tuple[Decimal | None, str | None]:
+    for voce in _get(_get(abbonamento, "items"), "data", []):
+        prezzo = _get(voce, "price")
+        if _get(prezzo, "unit_amount") is not None:
+            return Decimal(_get(prezzo, "unit_amount")) / 100, _get(_get(prezzo, "recurring"), "interval")
+    return None, None
+
+
+def applica_abbonamento(session: Session, abbonamento: Any) -> Applicato | None:
     """Porta la tessera allo stato dell'abbonamento Stripe. Idempotente.
     `None` se l'abbonamento non e' di nessun nostro utente."""
     tessera = _tessera_per_abbonamento(session, abbonamento)
@@ -292,6 +314,8 @@ def applica_abbonamento(session: Session, abbonamento: Any) -> Subscription | No
         return None
     stato = _get(abbonamento, "status")
     sub_id = _get(abbonamento, "id")
+    importo, intervallo = _prezzo_di(abbonamento)
+    gia_attivo_su_questo = tessera.stripe_subscription_id == sub_id and tessera.stato == "attivo"
     # Un abbonamento vecchio e chiuso non deve spegnere quello nuovo: se la
     # tessera segue gia' un altro abbonamento ancora vivo, si ignora.
     if (
@@ -300,7 +324,7 @@ def applica_abbonamento(session: Session, abbonamento: Any) -> Subscription | No
         and stato in STATI_CHIUSI
         and tessera.stato == "attivo"
     ):
-        return tessera
+        return Applicato(tessera, False, importo, intervallo)
     fine = _fine_periodo(abbonamento)
     if stato in STATI_ATTIVI:
         tessera.stato = "attivo"
@@ -318,8 +342,11 @@ def applica_abbonamento(session: Session, abbonamento: Any) -> Subscription | No
     tessera.stripe_subscription_id = sub_id
     tessera.piano_code = _piano_di(abbonamento) or tessera.piano_code
     tessera.cancella_a_fine_periodo = bool(_get(abbonamento, "cancel_at_period_end", False))
+    nuovo_acquisto = stato in STATI_ATTIVI and not gia_attivo_su_questo
+    if nuovo_acquisto and tessera.acquistato_il is None:
+        tessera.acquistato_il = datetime.now(timezone.utc)
     session.flush()
-    return tessera
+    return Applicato(tessera, nuovo_acquisto, importo, intervallo)
 
 
 def recupera_abbonamento(sub_id: str) -> Any:
@@ -330,7 +357,7 @@ def recupera_checkout(session_id: str) -> Any:
     return _client().v1.checkout.sessions.retrieve(session_id)
 
 
-def conferma_checkout(session: Session, user: User, checkout_id: str) -> Subscription | None:
+def conferma_checkout(session: Session, user: User, checkout_id: str) -> Applicato | None:
     """Al ritorno dal pagamento: se la sessione di checkout e' di questo
     utente ed e' completa, applica subito l'abbonamento (il webhook potrebbe
     arrivare dopo). `None` se la sessione non e' sua o non e' completa."""
@@ -342,9 +369,9 @@ def conferma_checkout(session: Session, user: User, checkout_id: str) -> Subscri
     sub_id = _get(checkout, "subscription")
     if not isinstance(sub_id, str):
         sub_id = _get(sub_id, "id")
-    tessera = applica_abbonamento(session, recupera_abbonamento(sub_id))
+    applicato = applica_abbonamento(session, recupera_abbonamento(sub_id))
     session.commit()
-    return tessera
+    return applicato
 
 
 # --- webhook ------------------------------------------------------------------------
@@ -358,11 +385,12 @@ def verifica_evento(payload: bytes, firma: str | None) -> Any:
     return stripe.Webhook.construct_event(payload, firma, settings.STRIPE_WEBHOOK_SECRET)
 
 
-def gestisci_evento(session: Session, evento: Any) -> str:
-    """Applica un evento Stripe. Ritorna un'etichetta per il log/i test."""
+def gestisci_evento(session: Session, evento: Any) -> tuple[str, Applicato | None]:
+    """Applica un evento Stripe. Ritorna un'etichetta per il log/i test e
+    l'esito, se l'evento riguardava un abbonamento di un nostro utente."""
     tipo = _get(evento, "type")
     if tipo not in EVENTI_ABBONAMENTO:
-        return "ignorato"
+        return "ignorato", None
     oggetto = _get(_get(evento, "data"), "object")
     if tipo == "checkout.session.completed":
         sub_id = _get(oggetto, "subscription")
@@ -375,7 +403,91 @@ def gestisci_evento(session: Session, evento: Any) -> str:
     if sub_id and not isinstance(sub_id, str):
         sub_id = _get(sub_id, "id")
     if not sub_id:
-        return "senza abbonamento"
-    tessera = applica_abbonamento(session, recupera_abbonamento(sub_id))
+        return "senza abbonamento", None
+    applicato = applica_abbonamento(session, recupera_abbonamento(sub_id))
     session.commit()
-    return "applicato" if tessera is not None else "utente sconosciuto"
+    return ("applicato" if applicato is not None else "utente sconosciuto"), applicato
+
+
+# --- recesso (art. 54-bis Codice del Consumo) ------------------------------------------
+
+GIORNI_RECESSO = timedelta(days=14)
+
+
+def _utc(valore: datetime) -> datetime:
+    return valore if valore.tzinfo is not None else valore.replace(tzinfo=timezone.utc)
+
+
+def recesso_possibile_fino_al(tessera: Subscription | None, adesso: datetime | None = None) -> datetime | None:
+    """Fine dei 14 giorni di recesso, se l'utente puo' ancora recedere; altrimenti
+    `None`. Il recesso vale per il primo acquisto (condizioni, punto 6), per un
+    abbonamento Stripe attivo, una sola volta."""
+    if (
+        tessera is None
+        or tessera.acquistato_il is None
+        or tessera.receduto_il is not None
+        or tessera.stato != "attivo"
+        or not tessera.stripe_subscription_id
+    ):
+        return None
+    scadenza = _utc(tessera.acquistato_il) + GIORNI_RECESSO
+    return scadenza if (adesso or datetime.now(timezone.utc)) < scadenza else None
+
+
+class RecessoNonPossibile(ValueError):
+    """Fuori dai 14 giorni, gia' esercitato o nessun abbonamento pagato."""
+
+
+def _pagamento_di(fattura: Any) -> dict[str, str] | None:
+    """Il PaymentIntent (o il Charge) con cui e' stata pagata una fattura. Nelle
+    API Stripe vecchie sta sulla fattura, da quelle del 2025 in `payments`."""
+    for campo in ("payment_intent", "charge"):
+        valore = _get(fattura, campo)
+        if valore:
+            return {campo: valore if isinstance(valore, str) else _get(valore, "id")}
+    for pagamento in _get(_get(fattura, "payments"), "data", []):
+        dettaglio = _get(pagamento, "payment")
+        for campo in ("payment_intent", "charge"):
+            valore = _get(dettaglio, campo)
+            if valore:
+                return {campo: valore if isinstance(valore, str) else _get(valore, "id")}
+    return None
+
+
+def recedi(session: Session, tessera: Subscription) -> Decimal:
+    """Recesso entro 14 giorni: rimborso integrale di quanto pagato per
+    l'abbonamento, poi chiusura immediata. Ritorna l'importo rimborsato.
+
+    Prima i rimborsi e poi la chiusura: se Stripe si ferma a meta', si puo'
+    riprovare. Ogni rimborso ha una chiave di idempotenza per fattura, quindi
+    un secondo tentativo non rimborsa due volte."""
+    if recesso_possibile_fino_al(tessera) is None:
+        raise RecessoNonPossibile()
+    client = _client()
+    sub_id = tessera.stripe_subscription_id
+    fatture = client.v1.invoices.list(
+        params={"subscription": sub_id, "status": "paid", "limit": 20, "expand": ["data.payments"]}
+    )
+    rimborsato = Decimal("0")
+    for fattura in _get(fatture, "data", []):
+        importo = int(_get(fattura, "amount_paid", 0) or 0)
+        pagamento = _pagamento_di(fattura)
+        if importo <= 0 or pagamento is None:
+            continue
+        client.v1.refunds.create(
+            params={
+                **pagamento,
+                "reason": "requested_by_customer",
+                "metadata": {"motivo": "recesso entro 14 giorni", "user_id": str(tessera.user_id)},
+            },
+            options={"idempotency_key": f"recesso-{_get(fattura, 'id')}"},
+        )
+        rimborsato += Decimal(importo) / 100
+    client.v1.subscriptions.cancel(sub_id)
+    adesso = datetime.now(timezone.utc)
+    tessera.stato = "cancellato"
+    tessera.scaduta_il = adesso
+    tessera.receduto_il = adesso
+    tessera.cancella_a_fine_periodo = False
+    session.commit()
+    return rimborsato

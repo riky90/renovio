@@ -36,6 +36,7 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
       { label: "Privacy", to: PATH_PRIVACY },
       { label: "Cookie", to: PATH_COOKIE },
       { label: "Condizioni di vendita", to: PATH_CONDIZIONI },
+      { label: "Recesso dal contratto", to: "/impostazioni/abbonamento" },
     ],
   },
 ];

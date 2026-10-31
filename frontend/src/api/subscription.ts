@@ -39,6 +39,8 @@ export interface Abbonamento {
   scade_il: string | null;
   rinnovo_automatico: boolean;
   gestibile: boolean;
+  /** Fine dei 14 giorni di recesso, se si può ancora recedere. */
+  recesso_fino_al: string | null;
 }
 
 export async function getPianiPro(): Promise<PianiPro> {
@@ -74,4 +76,10 @@ export async function postConfermaCheckout(sessionId: string): Promise<Abbonamen
 export async function postPortale(): Promise<string> {
   const { url } = await apiPost<{ url: string }>("/pro/portale", undefined);
   return url;
+}
+
+/** "Recedi dal contratto qui" → "Conferma recesso": rimborso integrale e chiusura immediata. */
+export async function postRecesso(): Promise<{ rimborsato: number; abbonamento: Abbonamento }> {
+  const raw = await apiPost<{ rimborsato: unknown; abbonamento: Abbonamento }>("/pro/recesso", undefined);
+  return { ...raw, rimborsato: Number(raw.rimborsato) };
 }

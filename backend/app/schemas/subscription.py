@@ -69,3 +69,11 @@ class AbbonamentoOut(BaseModel):
     rinnovo_automatico: bool
     #: True se l'utente puo' aprire il portale clienti Stripe.
     gestibile: bool
+    #: Fine dei 14 giorni di recesso se l'utente puo' ancora recedere
+    #: ("Recedi dal contratto qui"), altrimenti None.
+    recesso_fino_al: datetime | None = None
+
+
+class RecessoOut(BaseModel):
+    rimborsato: Decimal
+    abbonamento: AbbonamentoOut

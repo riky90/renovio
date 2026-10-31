@@ -19,6 +19,9 @@ Cosa va dimostrato:
   5. LA CONFERMA al ritorno dal pagamento attiva il Pro solo per la sessione
      dell'utente stesso.
   6. NESSUN identificativo Stripe esce verso il client.
+  7. IL RECESSO (art. 54-bis) entro 14 giorni rimborsa tutto, chiude subito
+     l'abbonamento, manda la ricevuta; fuori tempo o una seconda volta no.
+  8. L'EMAIL DI CONFERMA parte una sola volta per acquisto.
 """
 
 from __future__ import annotations
@@ -72,7 +75,9 @@ class FintoStripe:
                 sessions=SimpleNamespace(create=self._crea_checkout, retrieve=self._leggi_checkout)
             ),
             billing_portal=SimpleNamespace(sessions=SimpleNamespace(create=self._portale)),
-            subscriptions=SimpleNamespace(retrieve=self._leggi_abbonamento),
+            subscriptions=SimpleNamespace(retrieve=self._leggi_abbonamento, cancel=self._annulla),
+            invoices=SimpleNamespace(list=self._fatture),
+            refunds=SimpleNamespace(create=self._rimborso),
         )
         self.v1 = v1
 
@@ -130,6 +135,24 @@ class FintoStripe:
     def _leggi_abbonamento(self, sub_id, params=None, options=None):
         return self.abbonamenti[sub_id]
 
+    def _annulla(self, sub_id, params=None, options=None):
+        self.richieste.append(("subscriptions.cancel", {"id": sub_id}))
+        self.abbonamenti[sub_id].update(status="canceled", ended_at=int(time.time()))
+        return self.abbonamenti[sub_id]
+
+    def _fatture(self, params=None, options=None):
+        self.richieste.append(("invoices.list", params))
+        sub_id = params["subscription"]
+        sub = self.abbonamenti[sub_id]
+        importo = 2900 if sub["items"]["data"][0]["price"]["lookup_key"].endswith("annuale") else 300
+        # Forma delle API 2025+: il pagamento sta in `payments`.
+        return {"data": [{"id": f"in_{sub_id}", "amount_paid": importo,
+                          "payments": {"data": [{"payment": {"payment_intent": f"pi_{sub_id}"}}]}}]}
+
+    def _rimborso(self, params=None, options=None):
+        self.richieste.append(("refunds.create", {**params, "_options": options}))
+        return {"id": self._id("re")}
+
     # --- aiuti per i test: Stripe che "completa" un pagamento -----------
 
     def completa(self, cs_id: str, *, piano: str = "annuale", status: str = "active") -> str:
@@ -143,7 +166,18 @@ class FintoStripe:
             "cancel_at_period_end": False,
             "metadata": cs["params"]["subscription_data"]["metadata"],
             # API 2025+: la fine del periodo sta sulle voci.
-            "items": {"data": [{"current_period_end": FINE_PERIODO, "price": {"lookup_key": lookup}}]},
+            "items": {
+                "data": [
+                    {
+                        "current_period_end": FINE_PERIODO,
+                        "price": {
+                            "lookup_key": lookup,
+                            "unit_amount": 2900 if piano == "annuale" else 300,
+                            "recurring": {"interval": "year" if piano == "annuale" else "month"},
+                        },
+                    }
+                ]
+            },
         }
         cs["status"] = "complete"
         cs["subscription"] = sub_id
@@ -159,6 +193,19 @@ def finto_stripe(monkeypatch):
     pagamenti.svuota_cache_piani()
     yield finto
     pagamenti.svuota_cache_piani()
+
+
+@pytest.fixture()
+def email_inviate(monkeypatch):
+    inviate: list[dict] = []
+
+    async def finta_send_email(to, subject, html_body):
+        inviate.append({"to": to, "subject": subject, "html": html_body})
+
+    import app.routers.pagamenti as pagamenti_router
+
+    monkeypatch.setattr(pagamenti_router, "send_email", finta_send_email)
+    return inviate
 
 
 @pytest.fixture()
@@ -385,3 +432,98 @@ def test_nessun_identificativo_stripe_verso_il_client(client, finto_stripe):
         testo = client.get(url).text
         for vietato in ("cus_", "sub_", "price_", "stripe"):
             assert vietato not in testo, (url, vietato)
+
+
+# --- 7. recesso --------------------------------------------------------------------
+
+RECESSO_URL = "/api/v1/pro/recesso"
+
+
+def test_recesso_entro_14_giorni(client, finto_stripe, email_inviate):
+    _registra(client)
+    sub_id = _paga(client, finto_stripe, piano="annuale")
+    abb = client.get(ABBONAMENTO_URL).json()
+    fino_al = datetime.fromisoformat(abb["recesso_fino_al"]).replace(tzinfo=timezone.utc)
+    assert timedelta(days=13) < fino_al - datetime.now(timezone.utc) <= timedelta(days=14)
+
+    r = client.post(RECESSO_URL)
+    assert r.status_code == 200, r.text
+    assert r.json()["rimborsato"] == "29"
+    assert r.json()["abbonamento"]["pro"] is False
+    assert r.json()["abbonamento"]["recesso_fino_al"] is None
+
+    rimborsi = [p for nome, p in finto_stripe.richieste if nome == "refunds.create"]
+    assert len(rimborsi) == 1
+    assert rimborsi[0]["payment_intent"] == f"pi_{sub_id}"
+    assert rimborsi[0]["_options"]["idempotency_key"] == f"recesso-in_{sub_id}"
+    assert ("subscriptions.cancel", {"id": sub_id}) in finto_stripe.richieste
+    assert client.get(ME_URL).json()["pro"] is False
+
+    ricevute = [e for e in email_inviate if "recesso" in e["subject"].lower()]
+    assert len(ricevute) == 1 and "29 €" in ricevute[0]["html"]
+
+    # Una seconda volta no.
+    assert client.post(RECESSO_URL).status_code == 409
+
+    # Il webhook di Stripe che segue la chiusura non riaccende niente.
+    payload, headers = _evento("customer.subscription.deleted", {"id": sub_id})
+    client.post(WEBHOOK_URL, content=payload, headers=headers)
+    assert client.get(ME_URL).json()["pro"] is False
+
+
+def test_recesso_dopo_14_giorni_non_si_puo(client, finto_stripe, db_session_local):
+    _registra(client)
+    _paga(client, finto_stripe, piano="mensile")
+    with db_session_local() as s:
+        tessera = s.query(Subscription).one()
+        tessera.acquistato_il = datetime.now(timezone.utc) - timedelta(days=15)
+        s.commit()
+    assert client.get(ABBONAMENTO_URL).json()["recesso_fino_al"] is None
+    assert client.post(RECESSO_URL).status_code == 409
+    assert not [n for n, _ in finto_stripe.richieste if n == "refunds.create"]
+    assert client.get(ME_URL).json()["pro"] is True
+
+
+def test_recesso_richiede_login_e_un_acquisto(client, finto_stripe):
+    assert client.post(RECESSO_URL).status_code == 401
+    _registra(client)
+    assert client.post(RECESSO_URL).status_code == 409
+
+
+def test_recesso_solo_sul_primo_acquisto(client, finto_stripe, db_session_local):
+    _registra(client)
+    sub_id = _paga(client, finto_stripe)
+    finto_stripe.abbonamenti[sub_id].update(status="canceled", ended_at=int(time.time()))
+    payload, headers = _evento("customer.subscription.deleted", {"id": sub_id})
+    client.post(WEBHOOK_URL, content=payload, headers=headers)
+    with db_session_local() as s:
+        tessera = s.query(Subscription).one()
+        tessera.acquistato_il = datetime.now(timezone.utc) - timedelta(days=40)
+        s.commit()
+    _paga(client, finto_stripe)  # riacquisto
+    assert client.get(ME_URL).json()["pro"] is True
+    assert client.get(ABBONAMENTO_URL).json()["recesso_fino_al"] is None
+
+
+# --- 8. email di conferma ----------------------------------------------------------
+
+
+def test_conferma_d_acquisto_una_volta_sola(client, finto_stripe, email_inviate):
+    _registra(client)
+    r = client.post(CHECKOUT_URL, json={"piano": "annuale", "accetta_condizioni": True, "accetta_esecuzione_immediata": True})
+    cs_id = r.json()["url"].rsplit("/", 1)[1]
+    sub_id = finto_stripe.completa(cs_id)
+    client.post(CONFERMA_URL, json={"session_id": cs_id})
+    for tipo, oggetto in (
+        ("checkout.session.completed", {"id": cs_id, "subscription": sub_id}),
+        ("customer.subscription.created", {"id": sub_id}),
+        ("invoice.paid", {"id": "in_1", "subscription": sub_id}),
+    ):
+        payload, headers = _evento(tipo, oggetto)
+        client.post(WEBHOOK_URL, content=payload, headers=headers)
+    conferme = [e for e in email_inviate if "attivo" in e["subject"]]
+    assert len(conferme) == 1
+    html = conferme[0]["html"]
+    assert conferme[0]["to"] == "pro@example.com"
+    for atteso in ("annuale", "29 €", "IVA inclusa", "Recedi dal contratto qui", "/condizioni-di-vendita"):
+        assert atteso in html, atteso
