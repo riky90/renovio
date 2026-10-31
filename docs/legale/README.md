@@ -14,7 +14,8 @@ Sono **bozze da far verificare a un legale**. Descrivono i trattamenti che il co
 - stime;
 - richieste di contatto inviate al professionista della zona;
 - pagamenti Stripe;
-- due soli cookie tecnici.
+- cookie tecnici, più statistiche (Google Analytics 4) e marketing (Google Ads, Meta) solo
+  con il consenso del banner (`docs/tracciamento.md`).
 
 Se il sito aggiunge un trattamento (analytics, newsletter, pubblicità), questi testi vanno
 aggiornati nello stesso cambio.

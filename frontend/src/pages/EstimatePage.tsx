@@ -26,6 +26,7 @@ import { GUIDA_GENERALE, GUIDE, PATH_GUIDE } from "@/content/guide";
 import { formatEurRange, formatRangeEurMq } from "@/lib/currency";
 import { anno, fasciaDi, meseAnno, useDatiGuide } from "@/lib/guideCosti";
 import { ORGANIZATION_LD, SITE_URL, Seo, WEBSITE_LD } from "@/lib/seo";
+import { tracciaEvento } from "@/lib/tracciamento";
 
 const TIPO_LABELS: Record<EstimateFormValues["tipo"], string> = {
   leggera: "Leggera",
@@ -86,6 +87,7 @@ const STEPS: { n: string; title: string; body: string }[] = [
 export function EstimatePage() {
   const mutation = useMutation<StimaResponse, Error, StimaRequest>({
     mutationFn: postStima,
+    onSuccess: () => tracciaEvento({ tipo: "stima_completata" }),
   });
   const { user } = useAuth();
   // Il budget non entra in POST /stima ne' in `risposte`: sta nello stato della

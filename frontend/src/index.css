@@ -125,3 +125,16 @@
     letter-spacing: -0.02em;
   }
 }
+
+/* Banner dei cookie (vanilla-cookieconsent) con i colori del sito. */
+#cc-main {
+  --cc-font-family: inherit;
+  --cc-modal-border-radius: var(--radius);
+  --cc-btn-border-radius: calc(var(--radius) - 2px);
+  --cc-btn-primary-bg: var(--primary);
+  --cc-btn-primary-border-color: var(--primary);
+  --cc-btn-primary-color: var(--primary-foreground);
+  --cc-btn-primary-hover-bg: #d4621d;
+  --cc-btn-primary-hover-border-color: #d4621d;
+  --cc-toggle-on-bg: var(--primary);
+}

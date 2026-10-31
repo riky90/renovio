@@ -9,7 +9,8 @@
  *   **testo**          grassetto.
  *
  * I testi descrivono i trattamenti che il codice fa DAVVERO (account, stime,
- * richieste di contatto, pagamenti Stripe, cookie tecnici). Se il sito
+ * richieste di contatto, pagamenti Stripe, cookie tecnici, e con il consenso del
+ * banner Google Analytics, Google Ads e Meta: `lib/tracciamento.ts`). Se il sito
  * aggiunge un trattamento (analytics, newsletter, pubblicita'), questi testi
  * vanno aggiornati nello stesso cambio. Bozza da far verificare a un legale.
  */
@@ -72,10 +73,9 @@ export const PRIVACY: DocumentoLegale = {
           "**Dati della richiesta di contatto** con un professionista: nome, email, telefono (facoltativo), come e quando preferisci essere contattato, eventuale messaggio, e il riepilogo della stima a cui si riferisce la richiesta.",
           "**Dati dell'abbonamento Pro**: piano scelto, stato e scadenza dell'abbonamento, identificativi del cliente e dell'abbonamento presso Stripe. **I dati della carta li tratta solo Stripe**: noi non li vediamo e non li conserviamo.",
           "**Dati tecnici**: indirizzo IP, browser e orari di accesso nei log dei server, il cookie di sessione che ti tiene connesso.",
+          "**Dati di navigazione, solo con il tuo consenso**: pagine visitate, provenienza, dispositivo, eventi come «stima completata» o «acquisto del Pro», raccolti da Google Analytics (statistiche) e da Google Ads e Meta (misura delle pubblicità e remarketing). Si basano su cookie e identificativi del browser.",
         ),
-        p(
-          "Non usiamo strumenti di analisi del traffico, pubblicità mirata o profilazione, e non vendiamo i tuoi dati a nessuno.",
-        ),
+        p("Non vendiamo i tuoi dati a nessuno."),
       ],
     },
     {
@@ -120,6 +120,18 @@ export const PRIVACY: DocumentoLegale = {
             "Come i dati dell'account",
           ],
           [
+            "Statistiche sull'uso del sito (Google Analytics 4)",
+            "Dati di navigazione",
+            "Consenso (art. 6.1.a GDPR), dal banner dei cookie",
+            "14 mesi in Google Analytics; cookie fino a 2 anni o fino alla revoca",
+          ],
+          [
+            "Misurare le pubblicità e mostrarti i nostri annunci su altri siti (Google Ads, Meta)",
+            "Dati di navigazione, eventi di conversione",
+            "Consenso (art. 6.1.a), dal banner dei cookie",
+            "Cookie fino a 90 giorni o fino alla revoca",
+          ],
+          [
             "Sicurezza del servizio e prevenzione degli abusi",
             "Dati tecnici",
             "Legittimo interesse (art. 6.1.f) a proteggere il servizio e gli utenti",
@@ -133,7 +145,7 @@ export const PRIVACY: DocumentoLegale = {
           ],
         ),
         box(
-          "**Conferire i dati è necessario** per creare l'account, salvare le stime, ricevere il contatto e acquistare il Pro: senza questi dati non possiamo fornirti il servizio. La stima gratuita senza account non richiede dati personali, a parte i dati tecnici.",
+          "**Conferire i dati è necessario** per creare l'account, salvare le stime, ricevere il contatto e acquistare il Pro: senza questi dati non possiamo fornirti il servizio. La stima gratuita senza account non richiede dati personali, a parte i dati tecnici. **Statistiche e marketing sono facoltativi**: se rifiuti, il sito funziona allo stesso modo. Puoi revocare il consenso quando vuoi da «Preferenze cookie» in fondo a ogni pagina, senza effetti sui trattamenti già fatti.",
         ),
       ],
     },
@@ -148,7 +160,10 @@ export const PRIVACY: DocumentoLegale = {
           "Render Services, Inc.: hosting del backend e del database ({{regioneHosting}});",
           "Vercel Inc.: pubblicazione del sito web;",
           "{{fornitoreEmail}}: invio delle email di servizio;",
-          "Google Ireland Limited / Google LLC: accesso con Google, solo se lo scegli.",
+          "Google Ireland Limited / Google LLC: accesso con Google, solo se lo scegli; Google Analytics, solo con il tuo consenso.",
+        ),
+        p(
+          "**Google Ads (Google Ireland Limited) e Meta Platforms Ireland Ltd.** (Facebook, Instagram), solo con il tuo consenso al marketing: ricevono i dati di navigazione e gli eventi di conversione per misurare le nostre pubblicità e mostrarti i nostri annunci. Per la misura degli annunci sono contitolari con noi (art. 26 GDPR) e trattano i dati anche per finalità proprie, secondo le loro informative: [Google](https://policies.google.com/privacy), [Meta](https://www.facebook.com/privacy/policy).",
         ),
         p(
           "**Stripe Payments Europe, Ltd.** (Irlanda) gestisce i pagamenti del Pro come titolare autonomo, secondo la [sua informativa](https://stripe.com/it/privacy).",
@@ -157,7 +172,7 @@ export const PRIVACY: DocumentoLegale = {
           "Possiamo comunicare dati alle autorità solo quando la legge lo impone (per esempio alle autorità fiscali o giudiziarie).",
         ),
         box(
-          "**Trasferimenti fuori dallo Spazio economico europeo.** Alcuni fornitori (Render, Vercel, Google) hanno sede negli Stati Uniti. I trasferimenti avvengono sulla base del Data Privacy Framework UE-USA, per i fornitori aderenti, o delle Clausole contrattuali standard approvate dalla Commissione europea (artt. 45-46 GDPR).",
+          "**Trasferimenti fuori dallo Spazio economico europeo.** Alcuni fornitori (Render, Vercel, Google, Meta) hanno sede o server negli Stati Uniti. I trasferimenti avvengono sulla base del Data Privacy Framework UE-USA, per i fornitori aderenti, o delle Clausole contrattuali standard approvate dalla Commissione europea (artt. 45-46 GDPR).",
         ),
       ],
     },
@@ -165,7 +180,7 @@ export const PRIVACY: DocumentoLegale = {
       titolo: "5. Cookie",
       blocchi: [
         p(
-          "Usiamo solo cookie tecnici, necessari a farti restare connesso: per questo non ti chiediamo il consenso e non vedi un banner. I dettagli sono nella [cookie policy](/cookie).",
+          "Usiamo cookie tecnici, necessari a farti restare connesso, e, solo se li accetti dal banner, cookie di statistica (Google Analytics) e di marketing (Google Ads, Meta). I dettagli sono nella [cookie policy](/cookie).",
         ),
       ],
     },
@@ -195,7 +210,8 @@ export const PRIVACY: DocumentoLegale = {
           "**cancellarli** (art. 17), salvo i dati che la legge ci obbliga a conservare;",
           "**limitarne** il trattamento (art. 18);",
           "**riceverli** in un formato strutturato per trasferirli ad altri (art. 20);",
-          "**opporti** al trattamento basato sul nostro legittimo interesse (art. 21).",
+          "**opporti** al trattamento basato sul nostro legittimo interesse (art. 21);",
+          "**revocare il consenso** a statistiche e marketing in qualsiasi momento, da «Preferenze cookie» in fondo a ogni pagina.",
         ),
         p(
           "Per esercitare i tuoi diritti scrivi a **{{email}}**. Rispondiamo entro un mese. Potremmo chiederti qualche informazione per verificare la tua identità.",
@@ -229,19 +245,54 @@ export const PRIVACY: DocumentoLegale = {
 export const COOKIE: DocumentoLegale = {
   path: PATH_COOKIE,
   titolo: "Cookie policy",
-  descrizione: "Quali cookie usa Renovio: solo cookie tecnici, necessari a tenerti connesso.",
+  descrizione:
+    "Quali cookie usa Renovio: tecnici, sempre attivi, e di statistica e marketing (Google, Meta) solo con il tuo consenso.",
   introduzione:
-    "I cookie sono piccoli file di testo che un sito salva nel tuo browser. Renovio usa solo cookie tecnici, indispensabili per farti accedere al tuo account: per questi la legge non richiede il consenso (art. 122 del Codice privacy e Linee guida del Garante del 10 giugno 2021).",
+    "I cookie sono piccoli file di testo che un sito salva nel tuo browser. Renovio usa cookie tecnici, indispensabili per farti accedere al tuo account, e, solo se li accetti, cookie di statistica e di marketing. Segue il Codice privacy (art. 122) e le Linee guida del Garante del 10 giugno 2021.",
   sezioni: [
     {
-      titolo: "Cookie che usiamo",
+      titolo: "Il banner e le tue scelte",
+      blocchi: [
+        lista(
+          "Alla prima visita un banner ti chiede se accetti i cookie di statistica e di marketing. **Finché non scegli, non ne usiamo nessuno**: gli script di Google e Meta non vengono nemmeno caricati.",
+          "«Accetta tutto» e «Rifiuta» hanno lo stesso peso; chiudere il banner con la X vale come rifiuto. Con «Scegli» decidi categoria per categoria.",
+          "Puoi cambiare idea quando vuoi da **«Preferenze cookie»** in fondo a ogni pagina. Se revochi un consenso cancelliamo i cookie di quella categoria.",
+          "Ti richiediamo il consenso dopo 6 mesi, o prima se cambiamo i cookie che usiamo.",
+        ),
+      ],
+    },
+    {
+      titolo: "Cookie tecnici (sempre attivi)",
       blocchi: [
         tabella(
-          ["Nome", "A cosa serve", "Tipo", "Durata"],
-          ["session_id", "Ti tiene connesso al tuo account dopo l'accesso.", "Tecnico, nostro", "30 giorni o fino all'uscita"],
-          ["session", "Solo durante l'accesso con Google: protegge il passaggio da Google al nostro sito.", "Tecnico, nostro", "Fine della sessione del browser"],
+          ["Nome", "A cosa serve", "Di chi", "Durata"],
+          ["session_id", "Ti tiene connesso al tuo account dopo l'accesso.", "Renovio", "30 giorni o fino all'uscita"],
+          ["session", "Solo durante l'accesso con Google: protegge il passaggio da Google al nostro sito.", "Renovio", "Fine della sessione del browser"],
+          ["cc_renovio", "Ricorda le tue scelte sui cookie.", "Renovio", "6 mesi"],
         ),
-        p("Non usiamo cookie di analisi, di profilazione o pubblicitari, né nostri né di terze parti."),
+      ],
+    },
+    {
+      titolo: "Cookie di statistica (con il tuo consenso)",
+      blocchi: [
+        tabella(
+          ["Nome", "A cosa serve", "Di chi", "Durata"],
+          ["_ga, _ga_<ID>", "Google Analytics 4: conta visite e utenti, pagine viste e passaggi del wizard, in forma aggregata.", "Google Ireland Limited", "Fino a 2 anni"],
+        ),
+        p("I dati di Google Analytics sono conservati per 14 mesi e non li usiamo per profilarti."),
+      ],
+    },
+    {
+      titolo: "Cookie di marketing (con il tuo consenso)",
+      blocchi: [
+        tabella(
+          ["Nome", "A cosa serve", "Di chi", "Durata"],
+          ["_gcl_au", "Google Ads: misura se un annuncio ha portato a una stima, a un contatto o a un acquisto.", "Google Ireland Limited", "90 giorni"],
+          ["_fbp, _fbc", "Meta Pixel: misura le pubblicità su Facebook e Instagram e permette di mostrarti i nostri annunci.", "Meta Platforms Ireland Ltd.", "90 giorni"],
+        ),
+        p(
+          "Google e Meta possono usare questi dati anche per finalità proprie, secondo le loro informative: [Google](https://policies.google.com/technologies/cookies), [Meta](https://www.facebook.com/privacy/policies/cookies/).",
+        ),
       ],
     },
     {
@@ -253,10 +304,10 @@ export const COOKIE: DocumentoLegale = {
       ],
     },
     {
-      titolo: "Come gestire i cookie",
+      titolo: "Altri modi di gestire i cookie",
       blocchi: [
         p(
-          "Puoi cancellare o bloccare i cookie dalle impostazioni del browser. Se blocchi il cookie di sessione non potrai accedere al tuo account; la stima gratuita continua a funzionare.",
+          "Puoi anche cancellare o bloccare i cookie dalle impostazioni del browser. Se blocchi il cookie di sessione non potrai accedere al tuo account; la stima gratuita continua a funzionare.",
         ),
         p("Per tutto il resto vale l'[informativa privacy](/privacy)."),
       ],

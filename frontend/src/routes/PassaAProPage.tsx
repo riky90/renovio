@@ -16,6 +16,7 @@ import {
 } from "@/api/subscription";
 import { useAuth, AUTH_QUERY_KEY } from "@/hooks/useAuth";
 import { PATH_CONDIZIONI, PATH_PRIVACY } from "@/content/legale";
+import { tracciaEvento } from "@/lib/tracciamento";
 
 const SUBHEADING =
   "Sblocca il dettaglio per voci e quantità di ogni sottocategoria, con un PDF completo da portare in cantiere.";
@@ -80,7 +81,19 @@ export function PassaAProPage() {
 
   const confermaMutation = useMutation({
     mutationFn: (id: string) => postConfermaCheckout(id),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEY }),
+    onSuccess: (abbonamento, id) => {
+      void queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEY });
+      const pianoPagato = pianiQuery.data?.piani.find((p) => p.code === abbonamento.piano_code);
+      if (abbonamento.pro && pianoPagato) {
+        tracciaEvento({
+          tipo: "acquisto_pro",
+          valore: pianoPagato.importo,
+          valuta: pianoPagato.valuta,
+          piano: pianoPagato.code,
+          idTransazione: id,
+        });
+      }
+    },
   });
   const confermaInviata = useRef(false);
   useEffect(() => {

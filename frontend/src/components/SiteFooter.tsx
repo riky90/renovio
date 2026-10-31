@@ -3,6 +3,7 @@ import { BrandMark } from "@/components/BrandMark";
 import { GUIDA_GENERALE, GUIDE, pathGuida } from "@/content/guide";
 import { DATI_LEGALI } from "@/content/datiLegali";
 import { PATH_CONDIZIONI, PATH_COOKIE, PATH_PRIVACY } from "@/content/legale";
+import { apriPreferenzeCookie, tracciamentoConfigurato } from "@/lib/tracciamento";
 
 interface FooterLink {
   label: string;
@@ -93,6 +94,17 @@ export function SiteFooter() {
               </>
             )}
           </p>
+          {tracciamentoConfigurato() && (
+            <p>
+              <button
+                type="button"
+                onClick={() => void apriPreferenzeCookie()}
+                className="underline underline-offset-4 hover:text-primary"
+              >
+                Preferenze cookie
+              </button>
+            </p>
+          )}
           <p>
             Le stime sono indicative e pre-sopralluogo. L'importo definitivo dipende dallo stato
             dell'immobile e dai materiali scelti.
