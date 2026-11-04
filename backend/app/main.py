@@ -8,6 +8,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import settings
 from app.limiter import limiter
+from app.security import BodySizeLimitMiddleware, OriginCheckMiddleware, SecurityHeadersMiddleware
 from app.routers import (
     admin,
     auth,
@@ -23,7 +24,15 @@ from app.routers import (
     subscription,
 )
 
-app = FastAPI(title="ristruttura-stima API")
+# In produzione (COOKIE_SECURE) niente /docs, /redoc, /openapi.json: la
+# mappa completa dell'API admin non deve essere pubblica.
+_IN_PRODUZIONE = settings.COOKIE_SECURE
+app = FastAPI(
+    title="ristruttura-stima API",
+    docs_url=None if _IN_PRODUZIONE else "/docs",
+    redoc_url=None if _IN_PRODUZIONE else "/redoc",
+    openapi_url=None if _IN_PRODUZIONE else "/openapi.json",
+)
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
@@ -42,7 +51,19 @@ app.add_middleware(
 # `session_id` gestito a mano da AuthService — mai lo stesso secret/nome,
 # altrimenti cookie-clobbering silenzioso tra i due meccanismi
 # (02-RESEARCH.md Pitfall 1, T-05-02).
-app.add_middleware(SessionMiddleware, secret_key=settings.OAUTH_SESSION_SECRET)
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=settings.OAUTH_SESSION_SECRET,
+    https_only=settings.COOKIE_SECURE,
+    max_age=15 * 60,  # serve solo per il giro di andata e ritorno da Google
+)
+
+# Ultimi aggiunti = primi eseguiti. Ordine effettivo di una richiesta:
+# header di sicurezza (avvolge tutto, anche i 403/413) -> tetto al body ->
+# controllo Origin (CSRF) -> CORS -> sessione OAuth -> app.
+app.add_middleware(OriginCheckMiddleware)
+app.add_middleware(BodySizeLimitMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
 
 app.include_router(health.router, prefix="/api/v1")
 app.include_router(stima.router, prefix="/api/v1")

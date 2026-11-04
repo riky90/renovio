@@ -203,8 +203,19 @@ export async function apriPreferenzeCookie(): Promise<void> {
   CookieConsent.showPreferences();
 }
 
+/** Parametri che non devono mai uscire verso GA4, Google Ads o Meta: il
+ * `session_id` del checkout Stripe e il token di reset password. */
+const PARAMETRI_RISERVATI = ["session_id", "token"];
+
+function senzaParametriRiservati(percorso: string): string {
+  const url = new URL(percorso, window.location.origin);
+  for (const nome of PARAMETRI_RISERVATI) url.searchParams.delete(nome);
+  return url.pathname + url.search;
+}
+
 /** Pagina vista, a ogni cambio di rotta. */
-export function tracciaPagina(percorso: string): void {
+export function tracciaPagina(percorsoCompleto: string): void {
+  const percorso = senzaParametriRiservati(percorsoCompleto);
   if (statisticheAttive && GA4_ID && window.gtag) {
     window.gtag("event", "page_view", {
       page_path: percorso,

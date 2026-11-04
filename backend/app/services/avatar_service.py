@@ -53,6 +53,7 @@ def process_avatar(content: bytes) -> bytes:
         try:
             with Image.open(io.BytesIO(content)) as probe:
                 formato = probe.format
+                larghezza, altezza = probe.size
                 probe.verify()
         except (UnidentifiedImageError, OSError, ValueError) as exc:
             raise AvatarValidationError("File non riconosciuto come immagine") from exc
@@ -60,10 +61,20 @@ def process_avatar(content: bytes) -> bytes:
         if formato not in FORMATI_AMMESSI:
             raise AvatarValidationError("Formato non ammesso: usa JPEG, PNG o WEBP")
 
+        # Pillow alza l'errore solo oltre il DOPPIO di MAX_IMAGE_PIXELS (fra 1x
+        # e 2x emette solo un warning): un PNG di pochi KB da 9.999x9.999
+        # passerebbe e la conversione in RGB chiederebbe ~300 MB. Il controllo
+        # esplicito sulle dimensioni dichiarate chiude quella fascia.
+        if larghezza * altezza > MAX_PIXELS:
+            raise AvatarValidationError("Immagine troppo grande in pixel")
+
         # `verify()` consuma il file object: per lavorare sui pixel serve una
         # riapertura da capo (comportamento documentato di Pillow).
         try:
             with Image.open(io.BytesIO(content)) as img:
+                # JPEG: decodifica gia' ridotta (fino a 1/8), la memoria resta
+                # bassa anche per le foto da 48 megapixel dei telefoni.
+                img.draft("RGB", (LATO_MAX * 2, LATO_MAX * 2))
                 img = ImageOps.exif_transpose(img)
                 img = img.convert("RGB")
                 img.thumbnail((LATO_MAX, LATO_MAX))

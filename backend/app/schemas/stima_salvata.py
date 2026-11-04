@@ -16,7 +16,7 @@ from __future__ import annotations
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from app.schemas.stima import (
     ArredoOut,
@@ -29,6 +29,10 @@ from app.schemas.stima import (
     TipoEnum,
     TotaleOut,
 )
+
+
+#: Una stima reale serializzata sta sotto i 20 KB.
+MAX_SNAPSHOT_BYTES = 100_000
 
 
 class RisposteProIn(BaseModel):
@@ -85,10 +89,12 @@ class StimaSalvataCreate(BaseModel):
     # il dettaglio Pro ricalcola da li'. In lettura resta `StimaInputEcho`.
     input: StimaInputSalvataIn
     fallback: bool
-    disclaimer: str | None = None
-    valuta: str
-    categorie: list[CategoriaOut]
-    extra: list[ExtraOut]
+    # Limiti di FORMA (ASVS V5): lo snapshot arriva dal client, e senza tetti
+    # un loop di POST con liste o testi enormi gonfia il database e il PDF.
+    disclaimer: str | None = Field(default=None, max_length=2000)
+    valuta: str = Field(max_length=8)
+    categorie: list[CategoriaOut] = Field(max_length=20)
+    extra: list[ExtraOut] = Field(max_length=20)
     totale: TotaleOut
     bonus: BonusOut | None = None
     # Risultato del motore come `bonus`: entra nello snapshot. Prima di G9 pydantic
@@ -102,6 +108,15 @@ class StimaSalvataCreate(BaseModel):
     # Come `preferenze_pro`: parametro, non risultato. Va nella colonna
     # `budget_eur`, mai nello snapshot.
     budget_eur: int | None = Field(default=None, ge=1, le=999_999_999)
+
+    @model_validator(mode="after")
+    def _snapshot_di_dimensione_ragionevole(self) -> "StimaSalvataCreate":
+        """Tetto complessivo: una stima vera pesa pochi KB. Copre anche le
+        liste annidate (bonus, arredo, confronto finiture) senza toccare gli
+        schemi di risposta condivisi con `POST /stima`."""
+        if len(self.model_dump_json()) > MAX_SNAPSHOT_BYTES:
+            raise ValueError("Stima troppo grande per essere salvata")
+        return self
 
 
 class StimaSalvataListItem(BaseModel):

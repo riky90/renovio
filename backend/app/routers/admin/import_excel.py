@@ -107,7 +107,7 @@ async def preview_import(
 
     content = await file.read()
     try:
-        validate_upload(file.filename, len(content))
+        validate_upload(file.filename, len(content), content)
     except UploadValidationError as exc:
         raise HTTPException(400, str(exc)) from exc
 

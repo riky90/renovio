@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -22,6 +22,7 @@ from sqlalchemy.orm import Session
 
 from app.db import SessionLocal
 from app.dependencies.auth import get_current_user, subscription_is_active
+from app.limiter import limiter
 from app.models.stima_salvata import StimaSalvata
 from app.models.user import User
 from app.schemas.stima import ArredoOut, BonusOut, CategoriaOut, ConfrontoFinitureOut, ExtraOut, StimaInputEcho, TotaleOut
@@ -110,8 +111,10 @@ def _colonne_preferenze(
 
 
 @router.post("/stime", response_model=StimaSalvataCreatedOut, status_code=201)
+@limiter.limit("60/hour")
 def salva_stima(
     payload: StimaSalvataCreate,
+    request: Request,
     current_user: User = Depends(get_current_user),
 ) -> StimaSalvataCreatedOut:
     with SessionLocal() as session:
@@ -145,9 +148,11 @@ def salva_stima(
 
 
 @router.put("/stime/{stima_id}", response_model=StimaSalvataCreatedOut)
+@limiter.limit("120/hour")
 def aggiorna_stima(
     stima_id: int,
     payload: StimaSalvataCreate,
+    request: Request,
     current_user: User = Depends(get_current_user),
 ) -> StimaSalvataCreatedOut:
     """G14: "Modifica" aggiorna la stima attuale invece di crearne una nuova.

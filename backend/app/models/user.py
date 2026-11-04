@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, false as sa_false, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -46,6 +46,13 @@ class User(Base):
     # aprirebbe a SSRF e hotlinking.
     avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     role: Mapped[str] = mapped_column(String(16), nullable=False, default="user", server_default="user")
+    # True quando l'utente ha dimostrato di possedere la casella: login Google
+    # con `email_verified`, oppure un reset password andato a buon fine (il
+    # link arriva solo li'). Decide la promozione ad admin e se una password
+    # trovata su un account agganciato via Google e' affidabile.
+    email_verificata: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=sa_false()
+    )
     created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.now())
 
     sessions: Mapped[list["UserSession"]] = relationship(back_populates="user")

@@ -14,6 +14,7 @@ enumeration (T-03-02).
 from __future__ import annotations
 
 import hashlib
+import logging
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, UploadFile, status
@@ -32,11 +33,13 @@ from app.schemas.auth import (
     ReimpostaPasswordRequest,
     UserOut,
 )
-from app.services.auth_service import SESSION_COOKIE_NAME, AuthService
+from app.services.auth_service import SESSION_COOKIE_NAME, AuthService, normalizza_email
+from app.services.login_guard import login_guard
 from app.services.email_service import send_email
 from app.services.reset_token import RESET_TOKEN_MAX_AGE_SECONDS, make_reset_token, read_reset_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+logger = logging.getLogger(__name__)
 
 LOGIN_ERROR_DETAIL = "Email o password non corretti"
 RESET_REQUEST_MESSAGE = "Ti abbiamo inviato un'email con le istruzioni per reimpostare la password."
@@ -77,16 +80,17 @@ def registrati(payload: RegistrazioneRequest, request: Request, response: Respon
     from app.models.user import User
 
     with SessionLocal() as session:
-        existing = session.query(User).filter_by(email=payload.email).one_or_none()
-        if existing is not None:
+        if AuthService.find_user_by_email(session, payload.email) is not None:
             raise HTTPException(status.HTTP_409_CONFLICT, "Email gia' registrata")
 
         user = User(
-            email=payload.email,
+            email=normalizza_email(payload.email),
             nome=payload.nome,
             role="user",
             password_hash=AuthService.hash_password(payload.password),
         )
+        # Promossa solo con ADMIN_PROMUOVI_SENZA_VERIFICA (test/dev): una
+        # registrazione non dimostra di possedere la casella.
         AuthService.promote_admin_if_configured(user)
         session.add(user)
         session.commit()
@@ -100,15 +104,24 @@ def registrati(payload: RegistrazioneRequest, request: Request, response: Respon
 @router.post("/login", response_model=UserOut)
 @limiter.limit("5/minute")
 def login(payload: LoginRequest, request: Request, response: Response) -> UserOut:
-    from app.models.user import User
+    """Stesso 401 per email inesistente e password errata, e stesso tempo
+    (hash fittizio). Oltre al limite per IP, un tetto di tentativi falliti
+    per EMAIL ferma il password spraying distribuito su molti IP."""
+    email = normalizza_email(payload.email)
+    if login_guard.bloccato(email):
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            "Troppi tentativi per questo account. Riprova tra qualche minuto.",
+        )
 
     with SessionLocal() as session:
-        user = session.query(User).filter_by(email=payload.email).one_or_none()
-        if user is None or user.password_hash is None or not AuthService.verify_password(
-            payload.password, user.password_hash
-        ):
+        user = AuthService.find_user_by_email(session, email)
+        hashed = user.password_hash if user is not None else None
+        if not AuthService.verify_password_or_dummy(payload.password, hashed):
+            login_guard.fallito(email)
             raise HTTPException(status.HTTP_401_UNAUTHORIZED, LOGIN_ERROR_DETAIL)
 
+        login_guard.riuscito(email)
         AuthService.create_session(session, user, response)
 
         return _to_user_out(session, user)
@@ -183,9 +196,15 @@ async def carica_avatar(request: Request, file: UploadFile, user=Depends(get_cur
         upload_avatar,
     )
 
-    content = await file.read()
+    from fastapi.concurrency import run_in_threadpool
+
+    from app.services.avatar_service import MAX_AVATAR_BYTES
+
+    # Mai piu' del limite in memoria: un byte in piu' basta a dire "troppo
+    # grande". La decodifica e' sincrona e pesante: fuori dall'event loop.
+    content = await file.read(MAX_AVATAR_BYTES + 1)
     try:
-        webp = process_avatar(content)
+        webp = await run_in_threadpool(process_avatar, content)
     except AvatarValidationError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
 
@@ -200,7 +219,9 @@ async def carica_avatar(request: Request, file: UploadFile, user=Depends(get_cur
         except StorageNotConfigured as exc:
             raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, STORAGE_OFF_DETAIL) from exc
         except StorageError as exc:
-            raise HTTPException(status.HTTP_502_BAD_GATEWAY, str(exc)) from exc
+            # Il dettaglio (endpoint, bucket) va nei log, non al client.
+            logger.exception("Upload avatar fallito per l'utente %s", db_user.id)
+            raise HTTPException(status.HTTP_502_BAD_GATEWAY, "Caricamento non riuscito, riprova.") from exc
 
         db_user.avatar_url = url
         session.commit()
@@ -258,7 +279,7 @@ async def password_dimenticata(payload: PasswordDimenticataRequest, request: Req
     from app.models.user import PasswordResetToken, User
 
     with SessionLocal() as session:
-        user = session.query(User).filter_by(email=payload.email).one_or_none()
+        user = AuthService.find_user_by_email(session, payload.email)
         if user is not None:
             token = make_reset_token(user.id)
             expires_at = datetime.now(timezone.utc) + timedelta(seconds=RESET_TOKEN_MAX_AGE_SECONDS)
@@ -318,8 +339,15 @@ def reimposta_password(payload: ReimpostaPasswordRequest, request: Request) -> d
             raise HTTPException(status.HTTP_400_BAD_REQUEST, RESET_INVALID_MESSAGE)
 
         user.password_hash = AuthService.hash_password(payload.password)
-        row.used = True
+        # Il link e' arrivato nella casella: l'email e' dimostrata.
+        user.email_verificata = True
+        AuthService.promote_admin_if_configured(user)
+        # Monouso per davvero: anche gli altri link di reset ancora validi
+        # muoiono, e chi aveva una sessione aperta (magari rubata) esce.
+        session.query(PasswordResetToken).filter_by(user_id=user.id, used=False).update({"used": True})
+        AuthService.revoke_all_sessions(session, user.id)
         session.commit()
+        login_guard.riuscito(user.email)
 
     return {"detail": "Password aggiornata."}
 
@@ -347,7 +375,9 @@ async def google_callback(request: Request):
 
     userinfo = token.get("userinfo") or {}
     email = userinfo.get("email")
-    if not email:
+    # Senza `email_verified` chiunque potrebbe creare un account Google con
+    # l'indirizzo di un altro (non Gmail) e agganciarsi al suo account qui.
+    if not email or userinfo.get("email_verified") is not True:
         return RedirectResponse(url=f"{settings.FRONTEND_URL}?google_auth=errore")
 
     with SessionLocal() as session:
