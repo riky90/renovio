@@ -17,6 +17,7 @@ import {
 import { useAuth, AUTH_QUERY_KEY } from "@/hooks/useAuth";
 import { PATH_CONDIZIONI, PATH_PRIVACY } from "@/content/legale";
 import { tracciaEvento } from "@/lib/tracciamento";
+import { dimenticaSessionIdCheckout, prendiSessionIdCheckout } from "@/lib/checkoutSession";
 
 const SUBHEADING =
   "Sblocca il dettaglio per voci e quantità di ogni sottocategoria, con un PDF completo da portare in cantiere.";
@@ -60,7 +61,9 @@ export function PassaAProPage() {
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const esito = searchParams.get("esito");
-  const sessionId = searchParams.get("session_id");
+  // Il parametro e' gia' stato tolto dall'URL all'avvio (lib/checkoutSession):
+  // si legge da li', con l'URL come ripiego.
+  const sessionId = searchParams.get("session_id") ?? (esito === "ok" ? prendiSessionIdCheckout() : null);
 
   const pianiQuery = useQuery({ queryKey: ["pro-piani"], queryFn: getPianiPro, staleTime: 5 * 60 * 1000 });
   const [piano, setPiano] = useState<PianoCode>("annuale");
@@ -82,6 +85,7 @@ export function PassaAProPage() {
   const confermaMutation = useMutation({
     mutationFn: (id: string) => postConfermaCheckout(id),
     onSuccess: (abbonamento, id) => {
+      dimenticaSessionIdCheckout();
       void queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEY });
       const pianoPagato = pianiQuery.data?.piani.find((p) => p.code === abbonamento.piano_code);
       if (abbonamento.pro && pianoPagato) {

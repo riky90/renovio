@@ -28,13 +28,13 @@ router = APIRouter(tags=["subscription"])
 
 
 def _attiva_subscription_per_user_id(session, user_id: int) -> Subscription:
-    sub = session.query(Subscription).filter_by(user_id=user_id).one_or_none()
-    if sub is None:
-        sub = Subscription(user_id=user_id, stato="attivo", scaduta_il=None)
-        session.add(sub)
-    else:
-        sub.stato = "attivo"
-        sub.scaduta_il = None
+    from app.services.pagamenti import tessera_di
+
+    # `tessera_di` gestisce la corsa fra due richieste simultanee (vincolo
+    # UNIQUE su user_id): mai due tessere per lo stesso utente.
+    sub = tessera_di(session, user_id)
+    sub.stato = "attivo"
+    sub.scaduta_il = None
     session.commit()
     session.refresh(sub)
     return sub

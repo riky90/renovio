@@ -217,3 +217,7 @@ class StimaResponse(BaseModel):
     # vengono ampiezza del range ed etichetta. `input.tipo` resta quello scelto.
     # None negli snapshot salvati prima di questa modifica.
     tipo_effettivo: TipoEnum | None = None
+    # Firma HMAC del risultato (services/firma_stima.py): il client la
+    # rimanda col salvataggio e il server rifiuta uno snapshot modificato.
+    # Non fa parte dello snapshot congelato.
+    firma: str | None = None

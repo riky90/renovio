@@ -58,6 +58,19 @@ class StimaSalvataCreatedOut(BaseModel):
     created_at: datetime
 
 
+FIRMA_NON_VALIDA = "La stima non corrisponde a un calcolo del server: ricalcolala e salvala di nuovo."
+
+
+def _verifica_firma(payload: StimaSalvataCreate) -> None:
+    """Lo snapshot deve essere esattamente un risultato di `POST /stima`:
+    senza questo controllo un utente poteva salvare numeri inventati e
+    scaricarne il PDF col nostro marchio."""
+    from app.services.firma_stima import firma_valida
+
+    if not firma_valida(payload, payload.firma):
+        raise HTTPException(400, FIRMA_NON_VALIDA)
+
+
 def _snapshot(payload: StimaSalvataCreate) -> dict:
     """Snapshot immutabile di cio' che l'utente ha visto.
 
@@ -66,7 +79,7 @@ def _snapshot(payload: StimaSalvataCreate) -> dict:
     la forma di `StimaResponse`. Idem `budget_eur`: e' un parametro modificabile
     con PATCH, se restasse nello snapshot ci sarebbero due verita' dopo la
     prima modifica."""
-    risultato_json = payload.model_dump(mode="json", exclude={"preferenze_pro", "budget_eur"})
+    risultato_json = payload.model_dump(mode="json", exclude={"preferenze_pro", "budget_eur", "firma"})
     risultato_json["schema_version"] = SCHEMA_VERSION
     return risultato_json
 
@@ -117,6 +130,7 @@ def salva_stima(
     request: Request,
     current_user: User = Depends(get_current_user),
 ) -> StimaSalvataCreatedOut:
+    _verifica_firma(payload)
     with SessionLocal() as session:
         risultato_json = _snapshot(payload)
 
@@ -176,6 +190,7 @@ def aggiorna_stima(
             raise HTTPException(404, "Stima non trovata")
 
         # Validazione PRIMA di toccare la riga: un 400 non lascia modifiche.
+        _verifica_firma(payload)
         colonne_pro = (
             _colonne_preferenze(session, payload.preferenze_pro)
             if payload.preferenze_pro is not None

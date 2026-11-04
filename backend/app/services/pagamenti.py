@@ -170,12 +170,23 @@ def svuota_cache_piani() -> None:
 
 
 def tessera_di(session: Session, user_id: int) -> Subscription:
-    """La tessera dell'utente; la crea inattiva se non c'e'."""
+    """La tessera dell'utente; la crea inattiva se non c'e'.
+
+    Webhook e conferma del checkout possono arrivare insieme su un utente
+    senza tessera: entrambi la creano, il vincolo UNIQUE ne lascia passare
+    una sola. Chi perde la corsa annulla solo il proprio inserimento
+    (savepoint) e rilegge quella dell'altro."""
+    from sqlalchemy.exc import IntegrityError
+
     tessera = session.query(Subscription).filter_by(user_id=user_id).one_or_none()
-    if tessera is None:
-        tessera = Subscription(user_id=user_id, stato="inattivo")
-        session.add(tessera)
-        session.flush()
+    if tessera is not None:
+        return tessera
+    try:
+        with session.begin_nested():
+            tessera = Subscription(user_id=user_id, stato="inattivo")
+            session.add(tessera)
+    except IntegrityError:
+        tessera = session.query(Subscription).filter_by(user_id=user_id).one()
     return tessera
 
 

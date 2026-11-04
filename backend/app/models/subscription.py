@@ -1,7 +1,7 @@
 """`Subscription`: tessera abbonamento Pro (D-06), non un semplice flag.
 
-Una riga per utente (1:1 applicativo, non vincolato a livello di schema per
-restare compatibile con futuri rinnovi/storico): `stato` di default
+Una riga per utente, imposta dallo schema (indice UNIQUE su `user_id`,
+migrazione 0036): `stato` di default
 "inattivo"; una riga con `stato="attivo"` e `scaduta_il` None e' considerata
 sempre attiva (nessuna scadenza), mentre `scaduta_il` nel passato rende la
 tessera non attiva anche se `stato="attivo"` (si veda
@@ -28,7 +28,9 @@ class Subscription(Base):
     __tablename__ = "subscription"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False, index=True)
+    # UNICO (migrazione 0036): due tessere per lo stesso utente mandavano in
+    # 500 ogni `one_or_none()` sui pagamenti.
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False, index=True, unique=True)
     stato: Mapped[str] = mapped_column(String(16), nullable=False, default="inattivo", server_default="inattivo")
     scaduta_il: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     piano_code: Mapped[str | None] = mapped_column(String(32), nullable=True)

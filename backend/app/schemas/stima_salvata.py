@@ -108,6 +108,9 @@ class StimaSalvataCreate(BaseModel):
     # Come `preferenze_pro`: parametro, non risultato. Va nella colonna
     # `budget_eur`, mai nello snapshot.
     budget_eur: int | None = Field(default=None, ge=1, le=999_999_999)
+    # Firma ricevuta da `POST /stima` (services/firma_stima.py): il router la
+    # verifica e rifiuta lo snapshot se non torna. Mai nello snapshot.
+    firma: str | None = Field(default=None, max_length=128)
 
     @model_validator(mode="after")
     def _snapshot_di_dimensione_ragionevole(self) -> "StimaSalvataCreate":

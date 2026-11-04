@@ -35,6 +35,7 @@ from app.schemas.stima import (
     TotaleOut,
 )
 from app.services.arredo import ArredoService
+from app.services.firma_stima import firma as firma_stima
 from app.services.bonus_stima import bonus_out_per_stima
 from app.services.city_resolver import resolve_listino
 from app.models.domanda import Domanda, OpzioneDomanda
@@ -145,7 +146,7 @@ def crea_stima(payload: StimaRequest, request: Request) -> StimaResponse:
 
         confronto, finiture_al_minimo = _confronto_finiture(session, listino, payload, result)
 
-        return StimaResponse(
+        risposta = StimaResponse(
             input=StimaInputEcho(
                 citta=payload.citta,
                 mq=payload.mq,
@@ -165,6 +166,8 @@ def crea_stima(payload: StimaRequest, request: Request) -> StimaResponse:
             finiture_al_minimo=finiture_al_minimo,
             tipo_effettivo=result.tipo_effettivo or payload.tipo,
         )
+        risposta.firma = firma_stima(risposta)
+        return risposta
 
 
 def _confronto_finiture(
