@@ -28,12 +28,18 @@ def _seeded_db(tmp_path_factory):
 
     original = db_module.SessionLocal
     db_module.SessionLocal = testing_session_local
+    import app.routers.domande as domande_router
     import app.routers.stima as stima_router
 
+    # Anche `domande`: il test G3 legge il catalogo da GET /domande. Senza
+    # questa riga quel router importa il SessionLocal vero e legge il dev.db
+    # locale, che puo' essere indietro di migrazioni (no such table).
     stima_router.SessionLocal = testing_session_local
+    domande_router.SessionLocal = testing_session_local
     yield
     db_module.SessionLocal = original
     stima_router.SessionLocal = original
+    domande_router.SessionLocal = original
 
 
 @pytest.fixture()
