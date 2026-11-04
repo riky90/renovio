@@ -467,7 +467,7 @@ const guidaSerramenti: Guida = {
 const guidaRiscaldamento: Guida = {
   slug: "riscaldamento-climatizzazione",
   nome: "Riscaldamento e clima",
-  sottotitolo: "Radiatori, caldaia, pompa di calore, pavimento radiante, split",
+  sottotitolo: "Radiatori, caldaia, pompa di calore, ibrido, pavimento radiante, split",
   titolo: (d) => `Quanto costa rifare il riscaldamento nel ${anno(d.aggiornato_il)}`,
   h1: () => "Quanto costa rifare riscaldamento e climatizzazione",
   descrizione: (d) => {
@@ -491,7 +491,11 @@ const guidaRiscaldamento: Guida = {
     },
     {
       tipo: "p",
-      testo: "La pompa di calore aria-acqua sostituisce la caldaia a gas: il prezzo comprende la macchina esterna, il bollitore per l'acqua calda, l'accumulo, la posa, la linea elettrica dedicata, l'aumento di potenza del contatore e lo smontaggio della vecchia caldaia.",
+      testo: "La pompa di calore aria-acqua sostituisce la caldaia a gas: il prezzo comprende la macchina esterna, il bollitore per l'acqua calda, l'accumulo, la posa, la linea elettrica dedicata, l'aumento di potenza del contatore e lo smontaggio della vecchia caldaia. La taglia della macchina segue i metri quadri (6, 8 o 12 kW); se si tengono i radiatori esistenti, circa uno su tre diventa un ventilradiatore adatto alla bassa temperatura.",
+    },
+    {
+      tipo: "p",
+      testo: "Il sistema ibrido affianca a una caldaia a condensazione nuova una piccola pompa di calore che lavora quando conviene: è la scelta più semplice se si tengono i radiatori esistenti, perché nei giorni più freddi scalda la caldaia.",
     },
     ...metodo(d),
   ],

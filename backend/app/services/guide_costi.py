@@ -123,6 +123,7 @@ GUIDE: tuple[Guida, ...] = (
         (
             Scenario("riscaldamento_radiatori", "Radiatori nuovi e caldaia", _solo(interv_riscaldamento="radiatori", interv_caldaia="si")),
             Scenario("riscaldamento_pompa_calore", "Pompa di calore al posto della caldaia", _solo(interv_caldaia="pompa_calore")),
+            Scenario("riscaldamento_ibrido", "Sistema ibrido caldaia e pompa di calore", _solo(interv_caldaia="ibrido")),
             Scenario("riscaldamento_pavimento", "Riscaldamento a pavimento", _solo(interv_riscaldamento="pavimento", interv_pavimenti="rifai")),
             Scenario("climatizzazione_split", "Climatizzazione con 2 split", _solo(interv_clima="split", condizionatori=2)),
         ),
