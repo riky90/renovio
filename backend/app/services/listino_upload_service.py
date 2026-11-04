@@ -102,16 +102,36 @@ class UploadValidationError(ValueError):
     — sempre gestito dal router come 400, mai come 500 (Pitfall 1)."""
 
 
-def validate_upload(filename: str | None, size_bytes: int) -> None:
+#: Tetto alla dimensione DECOMPRESSA dell'.xlsx (uno zip): 10 MB compressi
+#: possono diventare gigabyte di XML (zip bomb) e mandare l'istanza fuori
+#: memoria al `load_workbook`. Un computo vero sta sotto i 20 MB espansi.
+MAX_XLSX_ESPANSO_BYTES = 150 * 1024 * 1024
+MAX_XLSX_VOCI_ZIP = 5_000
+
+
+def validate_upload(filename: str | None, size_bytes: int, content: bytes | None = None) -> None:
     """Valida SOLO `.xlsx` e dimensione <= 10MB, PRIMA di aprire il
     workbook (D-20). Nessuna eccezione openpyxl deve raggiungere questo
-    punto: qui operiamo solo su nome file e byte grezzi."""
+    punto: qui operiamo solo su nome file e byte grezzi.
+
+    Con `content` controlla anche lo zip senza decomprimerlo: numero di
+    voci e somma delle dimensioni dichiarate."""
     if not filename or not filename.lower().endswith(".xlsx"):
         raise UploadValidationError("Solo file .xlsx sono ammessi")
     if size_bytes <= 0:
         raise UploadValidationError("File vuoto")
     if size_bytes > MAX_UPLOAD_BYTES:
         raise UploadValidationError("File troppo grande (limite 10MB)")
+    if content is not None:
+        import zipfile
+
+        try:
+            with zipfile.ZipFile(io.BytesIO(content)) as archivio:
+                voci = archivio.infolist()
+        except zipfile.BadZipFile as exc:
+            raise UploadValidationError("File .xlsx non leggibile") from exc
+        if len(voci) > MAX_XLSX_VOCI_ZIP or sum(v.file_size for v in voci) > MAX_XLSX_ESPANSO_BYTES:
+            raise UploadValidationError("File .xlsx troppo grande una volta decompresso")
 
 
 def _sotto_key(riga: VoceRigaIn) -> tuple[str, str | None, str | None]:

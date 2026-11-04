@@ -14,6 +14,7 @@ from datetime import datetime, timedelta, timezone
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 from fastapi import Response
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.config import settings
@@ -23,6 +24,17 @@ SESSION_COOKIE_NAME = "session_id"
 SESSION_TTL = timedelta(days=30)
 
 _ph = PasswordHasher()
+
+# Hash di una password casuale e mai usata: il login di un'email inesistente
+# verifica contro questo, cosi' impiega lo stesso tempo di un'email vera e il
+# tempo di risposta non dice quali email sono registrate.
+_DUMMY_HASH = _ph.hash(secrets.token_urlsafe(32))
+
+
+def normalizza_email(email: str) -> str:
+    """Le email si confrontano e si salvano in minuscolo: `Mario@x.it` e
+    `mario@x.it` sono la stessa casella, quindi lo stesso account."""
+    return email.strip().lower()
 
 
 class AuthService:
@@ -38,6 +50,31 @@ class AuthService:
             return _ph.verify(hashed, plain)
         except VerifyMismatchError:
             return False
+
+    @staticmethod
+    def verify_password_or_dummy(plain: str, hashed: str | None) -> bool:
+        """Come `verify_password`, ma senza hash (utente inesistente o solo
+        Google) verifica comunque contro un hash fittizio e ritorna False:
+        tempo costante, nessuna enumerazione via timing."""
+        if hashed is None:
+            AuthService.verify_password(plain, _DUMMY_HASH)
+            return False
+        return AuthService.verify_password(plain, hashed)
+
+    @staticmethod
+    def find_user_by_email(session: Session, email: str) -> User | None:
+        return (
+            session.query(User)
+            .filter(func.lower(User.email) == normalizza_email(email))
+            .one_or_none()
+        )
+
+    @staticmethod
+    def revoke_all_sessions(session: Session, user_id: int) -> None:
+        """Chiude ogni sessione dell'utente: dopo un cambio password o una
+        presa di possesso dell'account via Google, chi aveva un cookie
+        valido resta fuori."""
+        session.query(UserSession).filter_by(user_id=user_id).delete()
 
     @staticmethod
     def create_session(session: Session, user: User, response: Response) -> str:
@@ -71,11 +108,26 @@ class AuthService:
     @staticmethod
     def get_or_create_user_by_email(session: Session, email: str, nome: str) -> User:
         """D-05: un solo account per email. Se esiste gia' (via password o
-        Google), converge sullo stesso record — nessun doppione."""
-        user = session.query(User).filter_by(email=email).one_or_none()
+        Google), converge sullo stesso record — nessun doppione.
+
+        Si chiama SOLO con un'email verificata dal provider (Google
+        `email_verified`). Se l'account esistente non aveva mai dimostrato di
+        possedere la casella e ha una password, quella password puo' essere
+        di chiunque l'abbia registrato prima (pre-hijacking): si azzera e si
+        chiudono le sessioni aperte. Il proprietario vero entra con Google o
+        si rifa' la password dal reset."""
+        user = AuthService.find_user_by_email(session, email)
         if user is not None:
+            if not user.email_verificata:
+                if user.password_hash is not None:
+                    user.password_hash = None
+                    AuthService.revoke_all_sessions(session, user.id)
+                user.email_verificata = True
+            AuthService.promote_admin_if_configured(user)
+            session.commit()
+            session.refresh(user)
             return user
-        user = User(email=email, nome=nome, role="user")
+        user = User(email=normalizza_email(email), nome=nome, role="user", email_verificata=True)
         AuthService.promote_admin_if_configured(user)
         session.add(user)
         session.commit()
@@ -84,6 +136,14 @@ class AuthService:
 
     @staticmethod
     def promote_admin_if_configured(user: User) -> None:
-        """D-03: il primo admin e' promosso via ADMIN_EMAIL."""
-        if settings.ADMIN_EMAIL and user.email == settings.ADMIN_EMAIL:
+        """D-03: il primo admin e' promosso via ADMIN_EMAIL, ma solo quando la
+        casella e' dimostrata (login Google verificato o reset password):
+        altrimenti chiunque si registri per primo con quell'indirizzo
+        diventerebbe admin. `ADMIN_PROMUOVI_SENZA_VERIFICA` esiste per i test
+        e lo sviluppo locale, mai in produzione."""
+        if not settings.ADMIN_EMAIL:
+            return
+        if normalizza_email(user.email) != normalizza_email(settings.ADMIN_EMAIL):
+            return
+        if user.email_verificata or settings.ADMIN_PROMUOVI_SENZA_VERIFICA:
             user.role = "admin"

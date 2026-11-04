@@ -158,6 +158,12 @@ export interface StimaResponse {
    */
   tipo_effettivo: TipoRistrutturazione | null;
   /**
+   * Firma del server sul risultato di POST /stima. Va rimandata INTATTA col
+   * salvataggio (POST/PUT /me/stime): il backend rifiuta uno snapshot che non
+   * corrisponde a un suo calcolo. Assente (undefined) sulle stime salvate.
+   */
+  firma?: string | null;
+  /**
    * Solo client: NON arriva da POST /stima. Lo aggiunge la pagina prima del
    * salvataggio (piano 10-05).
    */
@@ -235,6 +241,8 @@ interface RawStimaResponse {
   confronto_finiture?: RawConfrontoFinitureOut | null;
   finiture_al_minimo?: boolean;
   tipo_effettivo?: TipoRistrutturazione | null;
+  /** Firma del server sul risultato: assente sugli snapshot salvati. */
+  firma?: string | null;
 }
 
 const NUMERIC_CATEGORIA_FIELDS = [
@@ -396,6 +404,8 @@ function normalizeResponse(raw: RawStimaResponse): StimaResponse {
     confronto_finiture: normalizeConfronto(raw.confronto_finiture),
     finiture_al_minimo: raw.finiture_al_minimo ?? false,
     tipo_effettivo: raw.tipo_effettivo ?? null,
+    // Senza questa riga la firma sparirebbe qui e ogni salvataggio darebbe 400.
+    firma: raw.firma ?? undefined,
   };
 }
 

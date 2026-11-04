@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -22,6 +22,7 @@ from sqlalchemy.orm import Session
 
 from app.db import SessionLocal
 from app.dependencies.auth import get_current_user, subscription_is_active
+from app.limiter import limiter
 from app.models.stima_salvata import StimaSalvata
 from app.models.user import User
 from app.schemas.stima import ArredoOut, BonusOut, CategoriaOut, ConfrontoFinitureOut, ExtraOut, StimaInputEcho, TotaleOut
@@ -57,6 +58,19 @@ class StimaSalvataCreatedOut(BaseModel):
     created_at: datetime
 
 
+FIRMA_NON_VALIDA = "La stima non corrisponde a un calcolo del server: ricalcolala e salvala di nuovo."
+
+
+def _verifica_firma(payload: StimaSalvataCreate) -> None:
+    """Lo snapshot deve essere esattamente un risultato di `POST /stima`:
+    senza questo controllo un utente poteva salvare numeri inventati e
+    scaricarne il PDF col nostro marchio."""
+    from app.services.firma_stima import firma_valida
+
+    if not firma_valida(payload, payload.firma):
+        raise HTTPException(400, FIRMA_NON_VALIDA)
+
+
 def _snapshot(payload: StimaSalvataCreate) -> dict:
     """Snapshot immutabile di cio' che l'utente ha visto.
 
@@ -65,7 +79,7 @@ def _snapshot(payload: StimaSalvataCreate) -> dict:
     la forma di `StimaResponse`. Idem `budget_eur`: e' un parametro modificabile
     con PATCH, se restasse nello snapshot ci sarebbero due verita' dopo la
     prima modifica."""
-    risultato_json = payload.model_dump(mode="json", exclude={"preferenze_pro", "budget_eur"})
+    risultato_json = payload.model_dump(mode="json", exclude={"preferenze_pro", "budget_eur", "firma"})
     risultato_json["schema_version"] = SCHEMA_VERSION
     return risultato_json
 
@@ -110,10 +124,13 @@ def _colonne_preferenze(
 
 
 @router.post("/stime", response_model=StimaSalvataCreatedOut, status_code=201)
+@limiter.limit("60/hour")
 def salva_stima(
     payload: StimaSalvataCreate,
+    request: Request,
     current_user: User = Depends(get_current_user),
 ) -> StimaSalvataCreatedOut:
+    _verifica_firma(payload)
     with SessionLocal() as session:
         risultato_json = _snapshot(payload)
 
@@ -145,9 +162,11 @@ def salva_stima(
 
 
 @router.put("/stime/{stima_id}", response_model=StimaSalvataCreatedOut)
+@limiter.limit("120/hour")
 def aggiorna_stima(
     stima_id: int,
     payload: StimaSalvataCreate,
+    request: Request,
     current_user: User = Depends(get_current_user),
 ) -> StimaSalvataCreatedOut:
     """G14: "Modifica" aggiorna la stima attuale invece di crearne una nuova.
@@ -171,6 +190,7 @@ def aggiorna_stima(
             raise HTTPException(404, "Stima non trovata")
 
         # Validazione PRIMA di toccare la riga: un 400 non lascia modifiche.
+        _verifica_firma(payload)
         colonne_pro = (
             _colonne_preferenze(session, payload.preferenze_pro)
             if payload.preferenze_pro is not None

@@ -20,13 +20,15 @@ un 500 per un problema SMTP, il record in dashboard è la rete di sicurezza.
 from __future__ import annotations
 
 import logging
+from html import escape
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.db import SessionLocal
 from app.dependencies.auth import get_current_user
+from app.limiter import limiter
 from app.models.lead import Lead
 from app.models.user import User
 from app.schemas.lead import LeadCreate, LeadCreatedOut
@@ -38,28 +40,35 @@ router = APIRouter(prefix="/lead", tags=["lead"])
 logger = logging.getLogger(__name__)
 
 
+def _e(valore: object) -> str:
+    """Ogni valore scritto dall'utente passa da qui prima di entrare
+    nell'HTML dell'email: senza, un `<a href=...>` nel messaggio o nella
+    citta' finirebbe come link vero in un'email partita dal nostro dominio."""
+    return escape(str(valore), quote=True)
+
+
 def _riepilogo_html(payload: LeadCreate) -> str:
     """Riepilogo SOLO a range (D-23) — mai coefficiente/prezzo impresa (D-22)."""
     return (
-        f"<p><strong>Città:</strong> {payload.citta}</p>"
-        f"<p><strong>Superficie:</strong> {payload.mq} m²</p>"
-        f"<p><strong>Tipo intervento:</strong> {payload.tipo}</p>"
-        f"<p><strong>Stima:</strong> € {payload.totale_min} – € {payload.totale_max}</p>"
+        f"<p><strong>Città:</strong> {_e(payload.citta)}</p>"
+        f"<p><strong>Superficie:</strong> {_e(payload.mq)} m²</p>"
+        f"<p><strong>Tipo intervento:</strong> {_e(payload.tipo)}</p>"
+        f"<p><strong>Stima:</strong> € {_e(payload.totale_min)} – € {_e(payload.totale_max)}</p>"
     )
 
 
 def _contatto_html(payload: LeadCreate) -> str:
     righe = [
-        f"<p><strong>Nome:</strong> {payload.nome}</p>",
-        f"<p><strong>Email:</strong> {payload.email}</p>",
+        f"<p><strong>Nome:</strong> {_e(payload.nome)}</p>",
+        f"<p><strong>Email:</strong> {_e(payload.email)}</p>",
     ]
     if payload.telefono:
-        righe.append(f"<p><strong>Telefono:</strong> {payload.telefono}</p>")
-    righe.append(f"<p><strong>Preferenza di contatto:</strong> {payload.preferenza_contatto.value}</p>")
+        righe.append(f"<p><strong>Telefono:</strong> {_e(payload.telefono)}</p>")
+    righe.append(f"<p><strong>Preferenza di contatto:</strong> {_e(payload.preferenza_contatto.value)}</p>")
     if payload.fascia_oraria:
-        righe.append(f"<p><strong>Fascia oraria:</strong> {payload.fascia_oraria}</p>")
+        righe.append(f"<p><strong>Fascia oraria:</strong> {_e(payload.fascia_oraria)}</p>")
     if payload.messaggio:
-        righe.append(f"<p><strong>Messaggio:</strong> {payload.messaggio}</p>")
+        righe.append(f"<p><strong>Messaggio:</strong> {_e(payload.messaggio)}</p>")
     return "".join(righe)
 
 
@@ -81,7 +90,9 @@ def _email_conferma_utente_body(payload: LeadCreate) -> str:
     )
 
 
-async def _invia_email_lead(session: Session, lead: Lead, payload: LeadCreate) -> None:
+async def _invia_email_lead(
+    session: Session, lead: Lead, payload: LeadCreate, email_account: str
+) -> None:
     """Risolve il referente, invia le due email (D-06/D-08) e aggiorna
     `referente_id`/`email_inviata`. Chiamata SOLO dopo che `lead` è già
     stato committato (D-07)."""
@@ -97,8 +108,11 @@ async def _invia_email_lead(session: Session, lead: Lead, payload: LeadCreate) -
                 subject="Nuova richiesta di contatto",
                 html_body=_email_referente_body(payload),
             )
+        # La conferma va all'email dell'ACCOUNT, non a quella scritta nel
+        # modulo: altrimenti chiunque potrebbe farci spedire email a un
+        # indirizzo a sua scelta.
         await send_email(
-            to=payload.email,
+            to=email_account,
             subject="Abbiamo ricevuto la tua richiesta",
             html_body=_email_conferma_utente_body(payload),
         )
@@ -112,8 +126,10 @@ async def _invia_email_lead(session: Session, lead: Lead, payload: LeadCreate) -
 
 
 @router.post("", status_code=201, response_model=LeadCreatedOut)
+@limiter.limit("5/hour")
 async def crea_lead(
     payload: LeadCreate,
+    request: Request,
     current_user: User = Depends(get_current_user),
 ) -> LeadCreatedOut:
     with SessionLocal() as session:
@@ -135,6 +151,6 @@ async def crea_lead(
         session.commit()
         session.refresh(lead)
 
-        await _invia_email_lead(session, lead, payload)
+        await _invia_email_lead(session, lead, payload, current_user.email)
 
         return LeadCreatedOut(id=lead.id)

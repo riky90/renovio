@@ -13,15 +13,19 @@ from datetime import datetime
 from pydantic import BaseModel, EmailStr, Field
 
 
+# Tetto alla lunghezza: argon2 su una password di megabyte e' un DoS.
+PASSWORD_MAX = 128
+
+
 class RegistrazioneRequest(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=8)
+    password: str = Field(min_length=8, max_length=PASSWORD_MAX)
     nome: str = Field(min_length=1, max_length=200)
 
 
 class LoginRequest(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(max_length=PASSWORD_MAX)
 
 
 class UserOut(BaseModel):
@@ -54,5 +58,5 @@ class PasswordDimenticataRequest(BaseModel):
 
 
 class ReimpostaPasswordRequest(BaseModel):
-    token: str
-    password: str = Field(min_length=8)
+    token: str = Field(max_length=512)
+    password: str = Field(min_length=8, max_length=PASSWORD_MAX)

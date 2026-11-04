@@ -1,3 +1,6 @@
+// PRIMA di tutto, e prima di `App` (che crea il router): toglie il
+// `session_id` di Stripe dall'URL prima che lo vedano router e tracciamento.
+import "@/lib/checkoutSession";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";

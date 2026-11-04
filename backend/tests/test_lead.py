@@ -257,7 +257,10 @@ class TestLeadPersistedAndEmailSent:
         assert len(calls) == 2
         destinatari = {c["to"] for c in calls}
         assert "referente.citta@example.com" in destinatari
-        assert "mario.rossi@example.com" in destinatari
+        # La conferma va all'email dell'account loggato, non a quella del
+        # modulo: niente email verso indirizzi scelti dal chiamante.
+        assert "utente.lead@example.com" in destinatari
+        assert "mario.rossi@example.com" not in destinatari
 
 
 class TestResolveReferenteFallback:

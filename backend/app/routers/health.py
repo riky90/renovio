@@ -11,6 +11,12 @@ solo il nome del ramo scelto, mai le credenziali ne' gli URL.
 `migrazione` e `migrazione_head` dicono se il database di produzione e' allo
 schema del codice: le migrazioni girano al boot del container e, se una fallisce,
 Render lascia online la versione vecchia. `aggiornato: false` va guardato.
+
+Chi vede cosa: `status` e `aggiornato` sono pubblici (un booleano non dice
+nulla a un attaccante e basta a controllare un deploy). Numero di listini,
+storage e revisioni delle migrazioni li vede solo un admin loggato: sono
+dettagli sull'infrastruttura che a un estraneo servono solo per mirare.
+Aprire l'URL dell'API nel browser con la sessione admin attiva basta.
 """
 
 from functools import lru_cache
@@ -18,12 +24,13 @@ from pathlib import Path
 
 from alembic.config import Config
 from alembic.script import ScriptDirectory
-from fastapi import APIRouter
+from fastapi import APIRouter, Cookie
 from sqlalchemy import func, select, text
 
 from app.config import settings
 from app.db import SessionLocal
 from app.models import Listino
+from app.services.auth_service import SESSION_COOKIE_NAME
 
 router = APIRouter(prefix="/health", tags=["health"])
 
@@ -38,9 +45,28 @@ def _migrazione_head() -> str | None:
     return ScriptDirectory.from_config(config).get_current_head()
 
 
+def _e_admin(session, session_id: str | None) -> bool:
+    """Admin loggato? Mai un 401 qui: senza sessione valida si rispondono solo
+    i campi pubblici."""
+    if not session_id:
+        return False
+    from datetime import datetime, timezone
+
+    from app.models.user import UserSession
+
+    riga = session.query(UserSession).filter_by(id=session_id).one_or_none()
+    if riga is None:
+        return False
+    scadenza = riga.expires_at
+    if scadenza.tzinfo is None:
+        scadenza = scadenza.replace(tzinfo=timezone.utc)
+    return scadenza > datetime.now(timezone.utc) and riga.user.role == "admin"
+
+
 @router.get("/db")
-def health_db() -> dict:
+def health_db(session_id: str | None = Cookie(default=None, alias=SESSION_COOKIE_NAME)) -> dict:
     with SessionLocal() as session:
+        admin = _e_admin(session, session_id)
         listini = session.scalar(select(func.count()).select_from(Listino)) or 0
         try:
             migrazione = session.scalar(text("SELECT version_num FROM alembic_version"))
@@ -49,11 +75,13 @@ def health_db() -> dict:
             session.rollback()
             migrazione = None
     head = _migrazione_head()
+    pubblico = {"status": "ok", "aggiornato": migrazione == head}
+    if not admin:
+        return pubblico
     return {
-        "status": "ok",
+        **pubblico,
         "listini": listini,
         "storage": settings.storage_backend,
         "migrazione": migrazione,
         "migrazione_head": head,
-        "aggiornato": migrazione == head,
     }

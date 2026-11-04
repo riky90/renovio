@@ -10,8 +10,16 @@ environment — no real secret is ever hardcoded here. See backend/.env.example
 for how to generate them locally.
 """
 
-from pydantic import field_validator
+import logging
+import secrets
+
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+logger = logging.getLogger(__name__)
+
+#: Sotto questa lunghezza un segreto di firma non e' un segreto.
+MIN_SECRET_LEN = 32
 
 
 class Settings(BaseSettings):
@@ -46,8 +54,13 @@ class Settings(BaseSettings):
     # URL pubblico del frontend (link nelle email, redirect post-login Google)
     FRONTEND_URL: str = "http://localhost:5173"
 
-    # Email del primo admin, promosso a role="admin" da seed/bootstrap (D-03)
+    # Email del primo admin, promosso a role="admin" da seed/bootstrap (D-03).
+    # La promozione avviene solo quando la casella e' dimostrata (login Google
+    # verificato o reset password), mai alla semplice registrazione.
     ADMIN_EMAIL: str = ""
+    # SOLO test e sviluppo locale: promuove ADMIN_EMAIL anche alla
+    # registrazione senza verifica. In produzione deve restare False.
+    ADMIN_PROMUOVI_SENZA_VERIFICA: bool = False
 
     # Object storage S3-compatibile (Cloudflare R2) per gli avatar profilo.
     # Tutti default "" come SMTP/SECRET_KEY: senza credenziali l'app resta
@@ -93,6 +106,27 @@ class Settings(BaseSettings):
             if url.startswith(prefix):
                 return "postgresql+psycopg://" + url[len(prefix):]
         return url
+
+    @model_validator(mode="after")
+    def _segreti_mai_vuoti(self) -> "Settings":
+        """Un segreto di firma vuoto o corto rende falsificabili il cookie
+        di stato OAuth e i token di reset. Non si blocca l'avvio (il sito
+        resterebbe giu'): si genera un segreto casuale per questo processo e
+        lo si dice forte nei log. Effetto collaterale accettabile: a ogni
+        riavvio i link di reset gia' inviati e i login Google a meta'
+        scadono. La cura vera e' impostare la variabile su Render."""
+        for nome in ("SECRET_KEY", "OAUTH_SESSION_SECRET"):
+            if len(getattr(self, nome)) < MIN_SECRET_LEN:
+                setattr(self, nome, secrets.token_urlsafe(48))
+                if self.COOKIE_SECURE:
+                    logger.critical(
+                        "%s assente o piu' corto di %d caratteri: uso un segreto casuale "
+                        "valido solo fino al prossimo riavvio. Impostalo nelle variabili "
+                        "d'ambiente.",
+                        nome,
+                        MIN_SECRET_LEN,
+                    )
+        return self
 
     @property
     def storage_configured(self) -> bool:
