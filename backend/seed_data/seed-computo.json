@@ -557,7 +557,7 @@
       "code": "caldaia_nuova",
       "nome": "Caldaia nuova",
       "um": "flag",
-      "descrizione": "Da 'Cambi caldaia o pompa di calore?' (caldaia a condensazione) o dall'efficientamento 'caldaia a condensazione'.",
+      "descrizione": "Da 'Cambi caldaia o pompa di calore?' (caldaia a condensazione o sistema ibrido) o dall'efficientamento (caldaia a condensazione o sistema ibrido).",
       "ordine": 430,
       "costante": "0",
       "da_attesa": false,
@@ -600,6 +600,139 @@
           "sorgente": "pompa_calore",
           "fattore": "-1",
           "per": null
+        }
+      ]
+    },
+    {
+      "code": "sistema_ibrido",
+      "nome": "Sistema ibrido",
+      "um": "flag",
+      "descrizione": "Da 'Cambi caldaia o pompa di calore?' o dall'efficientamento 'sistema ibrido'.",
+      "ordine": 433,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": "1",
+      "termini": []
+    },
+    {
+      "code": "ibrido_effettivo",
+      "nome": "Sistema ibrido (senza pompa di calore pura)",
+      "um": "flag",
+      "descrizione": "Il sistema ibrido, ma solo se l'utente non ha scelto anche la pompa di calore pura: quella vince.",
+      "ordine": 434,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": "0",
+      "massimo": "1",
+      "termini": [
+        {
+          "sorgente": "sistema_ibrido",
+          "fattore": "1",
+          "per": null
+        },
+        {
+          "sorgente": "pompa_calore",
+          "fattore": "-1",
+          "per": null
+        }
+      ]
+    },
+    {
+      "code": "pdc_esterna",
+      "nome": "Unita' esterna in pompa di calore",
+      "um": "flag",
+      "descrizione": "Pompa di calore pura o modulo del sistema ibrido: linea elettrica e assistenza muraria.",
+      "ordine": 435,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": "0",
+      "massimo": "1",
+      "termini": [
+        {
+          "sorgente": "pompa_calore",
+          "fattore": "1",
+          "per": null
+        },
+        {
+          "sorgente": "ibrido_effettivo",
+          "fattore": "1",
+          "per": null
+        }
+      ]
+    },
+    {
+      "code": "generatore_nuovo",
+      "nome": "Generatore di calore nuovo",
+      "um": "flag",
+      "descrizione": "Caldaia, ibrido o pompa di calore: la vecchia caldaia si smonta.",
+      "ordine": 436,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": "0",
+      "massimo": "1",
+      "termini": [
+        {
+          "sorgente": "caldaia_nuova",
+          "fattore": "1",
+          "per": null
+        },
+        {
+          "sorgente": "pompa_calore",
+          "fattore": "1",
+          "per": null
+        }
+      ]
+    },
+    {
+      "code": "pdc_su_radiatori_esistenti",
+      "nome": "Pompa di calore sui radiatori esistenti",
+      "um": "flag",
+      "descrizione": "Pompa di calore pura senza radiatori nuovi ne' pavimento radiante: alcuni terminali vanno adeguati alla bassa temperatura.",
+      "ordine": 437,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": "0",
+      "massimo": "1",
+      "termini": [
+        {
+          "sorgente": "pompa_calore",
+          "fattore": "1",
+          "per": null
+        },
+        {
+          "sorgente": "pompa_calore",
+          "fattore": "-1",
+          "per": "risc_radiatori"
+        },
+        {
+          "sorgente": "pompa_calore",
+          "fattore": "-1",
+          "per": "risc_pavimento"
+        }
+      ]
+    },
+    {
+      "code": "terminali_da_adeguare",
+      "nome": "Radiatori da sostituire con ventilradiatori",
+      "um": "n",
+      "descrizione": "Circa un radiatore su tre, arrotondato in su: i locali piu' freddi.",
+      "ordine": 438,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "su",
+      "minimo": "0",
+      "massimo": null,
+      "termini": [
+        {
+          "sorgente": "n_radiatori",
+          "fattore": "0.3",
+          "per": "pdc_su_radiatori_esistenti"
         }
       ]
     },
@@ -2171,11 +2304,11 @@
     {
       "voce": "A.1.17",
       "tipo": "grandezza",
-      "grandezza": "pompa_calore",
+      "grandezza": "generatore_nuovo",
       "fattore": "1",
       "condizione": null,
       "importo_minimo": null,
-      "nota": "Pompa di calore: prezzi da indagine di mercato 2026, da tarare su preventivi reali.",
+      "nota": "Smontaggio della vecchia caldaia con ogni generatore nuovo (gas, ibrido o pompa).",
       "sorgenti": [],
       "scaglioni": []
     },
@@ -2794,11 +2927,11 @@
     {
       "voce": "A.8.23",
       "tipo": "grandezza",
-      "grandezza": "pompa_calore",
+      "grandezza": "pdc_esterna",
       "fattore": "1",
       "condizione": null,
       "importo_minimo": null,
-      "nota": "Pompa di calore: prezzi da indagine di mercato 2026, da tarare su preventivi reali.",
+      "nota": "Pompa di calore pura o sistema ibrido. Prezzi da indagine di mercato 2026, da tarare su preventivi reali.",
       "sorgenti": [],
       "scaglioni": []
     },
@@ -2907,11 +3040,11 @@
     {
       "voce": "A.9.7",
       "tipo": "grandezza",
-      "grandezza": "pompa_calore",
+      "grandezza": "pdc_esterna",
       "fattore": "1",
       "condizione": null,
       "importo_minimo": null,
-      "nota": "Pompa di calore: prezzi da indagine di mercato 2026, da tarare su preventivi reali.",
+      "nota": "Pompa di calore pura o sistema ibrido. Prezzi da indagine di mercato 2026, da tarare su preventivi reali.",
       "sorgenti": [],
       "scaglioni": []
     },
@@ -3079,6 +3212,28 @@
       "condizione": null,
       "importo_minimo": null,
       "nota": "Pompa di calore: prezzi da indagine di mercato 2026, da tarare su preventivi reali.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.10.16",
+      "tipo": "grandezza",
+      "grandezza": "ibrido_effettivo",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Posa del modulo ibrido; la posa caldaia e' A.10.3. Prezzi da indagine di mercato 2026, da tarare su preventivi reali.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.10.17",
+      "tipo": "grandezza",
+      "grandezza": "terminali_da_adeguare",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Posa dei ventilradiatori. Prezzi da indagine di mercato 2026, da tarare su preventivi reali.",
       "sorgenti": [],
       "scaglioni": []
     },
@@ -4013,25 +4168,47 @@
     },
     {
       "voce": "D.1.11",
-      "tipo": "grandezza",
-      "grandezza": "pompa_calore",
+      "tipo": "scaglioni",
+      "grandezza": "mq",
       "fattore": "1",
-      "condizione": null,
+      "condizione": "pompa_calore",
       "importo_minimo": null,
-      "nota": "Pompa di calore: prezzi da indagine di mercato 2026, da tarare su preventivi reali.",
+      "nota": "Taglia 8 kW: da 81 a 120 m². Prezzi da indagine di mercato 2026, da tarare su preventivi reali.",
       "sorgenti": [],
-      "scaglioni": []
+      "scaglioni": [
+        {
+          "fino_a": "80",
+          "valore": "0"
+        },
+        {
+          "fino_a": "120",
+          "valore": "1"
+        },
+        {
+          "fino_a": null,
+          "valore": "0"
+        }
+      ]
     },
     {
       "voce": "D.1.12",
-      "tipo": "grandezza",
-      "grandezza": "pompa_calore",
+      "tipo": "scaglioni",
+      "grandezza": "mq",
       "fattore": "1",
-      "condizione": null,
+      "condizione": "pompa_calore",
       "importo_minimo": null,
-      "nota": "Pompa di calore: prezzi da indagine di mercato 2026, da tarare su preventivi reali.",
+      "nota": "Bollitore 200 l fino a 120 m². Prezzi da indagine di mercato 2026, da tarare su preventivi reali.",
       "sorgenti": [],
-      "scaglioni": []
+      "scaglioni": [
+        {
+          "fino_a": "120",
+          "valore": "1"
+        },
+        {
+          "fino_a": null,
+          "valore": "0"
+        }
+      ]
     },
     {
       "voce": "D.1.13",
@@ -4041,6 +4218,88 @@
       "condizione": null,
       "importo_minimo": null,
       "nota": "Pompa di calore: prezzi da indagine di mercato 2026, da tarare su preventivi reali.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "D.1.14",
+      "tipo": "scaglioni",
+      "grandezza": "mq",
+      "fattore": "1",
+      "condizione": "pompa_calore",
+      "importo_minimo": null,
+      "nota": "Taglia 6 kW: fino a 80 m². Prezzi da indagine di mercato 2026, da tarare su preventivi reali.",
+      "sorgenti": [],
+      "scaglioni": [
+        {
+          "fino_a": "80",
+          "valore": "1"
+        },
+        {
+          "fino_a": null,
+          "valore": "0"
+        }
+      ]
+    },
+    {
+      "voce": "D.1.15",
+      "tipo": "scaglioni",
+      "grandezza": "mq",
+      "fattore": "1",
+      "condizione": "pompa_calore",
+      "importo_minimo": null,
+      "nota": "Taglia 12 kW: oltre 120 m². Prezzi da indagine di mercato 2026, da tarare su preventivi reali.",
+      "sorgenti": [],
+      "scaglioni": [
+        {
+          "fino_a": "120",
+          "valore": "0"
+        },
+        {
+          "fino_a": null,
+          "valore": "1"
+        }
+      ]
+    },
+    {
+      "voce": "D.1.16",
+      "tipo": "scaglioni",
+      "grandezza": "mq",
+      "fattore": "1",
+      "condizione": "pompa_calore",
+      "importo_minimo": null,
+      "nota": "Bollitore 300 l oltre 120 m². Prezzi da indagine di mercato 2026, da tarare su preventivi reali.",
+      "sorgenti": [],
+      "scaglioni": [
+        {
+          "fino_a": "120",
+          "valore": "0"
+        },
+        {
+          "fino_a": null,
+          "valore": "1"
+        }
+      ]
+    },
+    {
+      "voce": "D.1.17",
+      "tipo": "grandezza",
+      "grandezza": "ibrido_effettivo",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Modulo pompa del sistema ibrido; la caldaia e' D.1.7. Prezzi da indagine di mercato 2026, da tarare su preventivi reali.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "D.1.18",
+      "tipo": "grandezza",
+      "grandezza": "terminali_da_adeguare",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Ventilradiatori per la pompa sui radiatori esistenti. Prezzi da indagine di mercato 2026, da tarare su preventivi reali.",
       "sorgenti": [],
       "scaglioni": []
     }
@@ -4176,6 +4435,30 @@
       "domanda": "interventi_efficientamento",
       "opzione": "pompa_calore",
       "grandezza": "pompa_calore",
+      "valore": "1"
+    },
+    {
+      "domanda": "interv_caldaia",
+      "opzione": "ibrido",
+      "grandezza": "caldaia_nuova",
+      "valore": "1"
+    },
+    {
+      "domanda": "interv_caldaia",
+      "opzione": "ibrido",
+      "grandezza": "sistema_ibrido",
+      "valore": "1"
+    },
+    {
+      "domanda": "interventi_efficientamento",
+      "opzione": "ibrido",
+      "grandezza": "caldaia_nuova",
+      "valore": "1"
+    },
+    {
+      "domanda": "interventi_efficientamento",
+      "opzione": "ibrido",
+      "grandezza": "sistema_ibrido",
       "valore": "1"
     },
     {

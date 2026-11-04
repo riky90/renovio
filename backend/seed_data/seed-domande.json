@@ -1742,6 +1742,14 @@
           "is_default": false,
           "effetti": [],
           "descrizione": "Aria-acqua al posto della caldaia a gas, con bollitore per l'acqua calda. Costo una tantum."
+        },
+        {
+          "code": "ibrido",
+          "etichetta": "Sistema ibrido",
+          "ordine": 6,
+          "is_default": false,
+          "effetti": [],
+          "descrizione": "Caldaia a condensazione più piccola pompa di calore. Consigliato con i radiatori esistenti. Costo una tantum."
         }
       ],
       "help": "Puoi sceglierne più di uno.",
@@ -4482,7 +4490,7 @@
       "gruppo": "ristrutturazione",
       "ordine": 100,
       "tipo_controllo": "scelta_singola",
-      "help": "La caldaia a gas comprende fornitura, posa e allaccio gas. La pompa di calore comprende macchina esterna, bollitore per l'acqua calda, posa, linea elettrica e smontaggio della vecchia caldaia.",
+      "help": "La caldaia a gas comprende fornitura, posa e allaccio gas. La pompa di calore comprende macchina esterna dimensionata sui metri quadri, bollitore, posa, linea elettrica e smontaggio della vecchia caldaia. Il sistema ibrido affianca una piccola pompa di calore a una caldaia nuova.",
       "opzioni": [
         {
           "code": "no",
@@ -4502,8 +4510,16 @@
         {
           "code": "pompa_calore",
           "etichetta": "Pompa di calore",
-          "descrizione": "Aria-acqua, al posto della caldaia a gas, con bollitore per l'acqua calda.",
+          "descrizione": "Aria-acqua, al posto della caldaia a gas, con bollitore per l'acqua calda. Con i radiatori esistenti include l'adeguamento di alcuni terminali.",
           "ordine": 3,
+          "is_default": false,
+          "effetti": []
+        },
+        {
+          "code": "ibrido",
+          "etichetta": "Sistema ibrido",
+          "descrizione": "Caldaia a condensazione nuova più una piccola pompa di calore che lavorano insieme. Consigliato se tieni i radiatori esistenti.",
+          "ordine": 4,
           "is_default": false,
           "effetti": []
         }

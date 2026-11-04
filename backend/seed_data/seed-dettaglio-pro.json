@@ -2221,6 +2221,42 @@
               "default_conteggio": 0
             }
           }
+        },
+        {
+          "codice": "A.10.16",
+          "descrizione": "Posa in opera e collaudo di modulo pompa di calore per sistema ibrido, esclusa fornitura: unita' esterna su staffe con antivibranti, collegamenti idraulici e di comunicazione con la caldaia, scarico condensa, configurazione del gestore di sistema e messa in servizio.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 1200.0,
+          "ordine": 108,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 0
+            },
+            "totale": {
+              "default_conteggio": 0
+            }
+          }
+        },
+        {
+          "codice": "A.10.17",
+          "descrizione": "Sostituzione di radiatore esistente con ventilradiatore per bassa temperatura, esclusa fornitura: smontaggio del radiatore, adattamento degli attacchi, posa, collegamento elettrico e smaltimento del vecchio corpo scaldante.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 250.0,
+          "ordine": 108,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 0
+            },
+            "totale": {
+              "default_conteggio": 0
+            }
+          }
         }
       ]
     },
@@ -3898,7 +3934,7 @@
         },
         {
           "codice": "D.1.11",
-          "descrizione": "Fornitura di pompa di calore aria-acqua monoblocco inverter fino a 8 kW, gas R290 o R32, classe A+++ a 35 °C, con comando ambiente e kit idronico (circolatore, vaso d'espansione, resistenza di integrazione).",
+          "descrizione": "Fornitura di pompa di calore aria-acqua monoblocco inverter da 8 kW (case da 81 a 120 m²), gas R290 o R32, classe A+++ a 35 °C, con comando ambiente e kit idronico (circolatore, vaso d'espansione, resistenza di integrazione).",
           "um": "cad",
           "prezzo_unitario_cliente": 5500.0,
           "ordine": 11,
@@ -3938,6 +3974,96 @@
           "um": "cad",
           "prezzo_unitario_cliente": 600.0,
           "ordine": 13,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 0
+            },
+            "totale": {
+              "default_conteggio": 0
+            }
+          }
+        },
+        {
+          "codice": "D.1.14",
+          "descrizione": "Fornitura di pompa di calore aria-acqua monoblocco inverter da 6 kW (case fino a 80 m²), gas R290 o R32, classe A+++ a 35 °C, con comando ambiente e kit idronico (circolatore, vaso d'espansione, resistenza di integrazione).",
+          "um": "cad",
+          "prezzo_unitario_cliente": 4800.0,
+          "ordine": 14,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 0
+            },
+            "totale": {
+              "default_conteggio": 0
+            }
+          }
+        },
+        {
+          "codice": "D.1.15",
+          "descrizione": "Fornitura di pompa di calore aria-acqua monoblocco inverter da 12 kW (case oltre 120 m²), gas R290 o R32, classe A+++ a 35 °C, con comando ambiente e kit idronico (circolatore, vaso d'espansione, resistenza di integrazione).",
+          "um": "cad",
+          "prezzo_unitario_cliente": 7200.0,
+          "ordine": 15,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 0
+            },
+            "totale": {
+              "default_conteggio": 0
+            }
+          }
+        },
+        {
+          "codice": "D.1.16",
+          "descrizione": "Fornitura di bollitore per acqua calda sanitaria da 300 litri a serpentino maggiorato per pompa di calore, completo di vaso d'espansione sanitario e valvola deviatrice a tre vie.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 2100.0,
+          "ordine": 16,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 0
+            },
+            "totale": {
+              "default_conteggio": 0
+            }
+          }
+        },
+        {
+          "codice": "D.1.17",
+          "descrizione": "Fornitura di modulo pompa di calore aria-acqua da 4 kW per sistema ibrido factory made, abbinato alla caldaia a condensazione, con gestore di sistema e kit di collegamento idraulico (separatore, valvole, sonde).",
+          "um": "cad",
+          "prezzo_unitario_cliente": 4000.0,
+          "ordine": 17,
+          "coefficienti": {
+            "leggera": {
+              "default_conteggio": 0
+            },
+            "moderata": {
+              "default_conteggio": 0
+            },
+            "totale": {
+              "default_conteggio": 0
+            }
+          }
+        },
+        {
+          "codice": "D.1.18",
+          "descrizione": "Fornitura di ventilradiatore per impianti a bassa temperatura (resa fino a 1,5 kW con acqua a 45 °C), con termostato ambiente a bordo.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 750.0,
+          "ordine": 18,
           "coefficienti": {
             "leggera": {
               "default_conteggio": 0
