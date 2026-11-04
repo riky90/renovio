@@ -1729,11 +1729,19 @@
         },
         {
           "code": "cambio_caldaia",
-          "etichetta": "Cambio caldaia o pompa di calore",
+          "etichetta": "Caldaia a condensazione",
           "ordine": 4,
           "is_default": false,
           "effetti": [],
-          "descrizione": "Costo una tantum: una caldaia costa quel che costa, non 45 euro al metro quadro."
+          "descrizione": "Caldaia a gas nuova. Costo una tantum, non proporzionale ai metri quadri."
+        },
+        {
+          "code": "pompa_calore",
+          "etichetta": "Pompa di calore",
+          "ordine": 5,
+          "is_default": false,
+          "effetti": [],
+          "descrizione": "Aria-acqua al posto della caldaia a gas, con bollitore per l'acqua calda. Costo una tantum."
         }
       ],
       "help": "Puoi sceglierne più di uno.",
@@ -4470,11 +4478,11 @@
     },
     {
       "code": "interv_caldaia",
-      "testo": "Sostituisci la caldaia?",
+      "testo": "Cambi caldaia o pompa di calore?",
       "gruppo": "ristrutturazione",
       "ordine": 100,
-      "tipo_controllo": "toggle",
-      "help": "Fornitura, posa e allaccio gas della caldaia.",
+      "tipo_controllo": "scelta_singola",
+      "help": "La caldaia a gas comprende fornitura, posa e allaccio gas. La pompa di calore comprende macchina esterna, bollitore per l'acqua calda, posa, linea elettrica e smontaggio della vecchia caldaia.",
       "opzioni": [
         {
           "code": "no",
@@ -4485,8 +4493,17 @@
         },
         {
           "code": "si",
-          "etichetta": "Sì",
+          "etichetta": "Caldaia a condensazione",
           "ordine": 2,
+          "is_default": false,
+          "effetti": [],
+          "descrizione": "Caldaia a gas nuova al posto della vecchia."
+        },
+        {
+          "code": "pompa_calore",
+          "etichetta": "Pompa di calore",
+          "descrizione": "Aria-acqua, al posto della caldaia a gas, con bollitore per l'acqua calda.",
+          "ordine": 3,
           "is_default": false,
           "effetti": []
         }

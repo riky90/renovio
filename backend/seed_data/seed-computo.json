@@ -557,7 +557,7 @@
       "code": "caldaia_nuova",
       "nome": "Caldaia nuova",
       "um": "flag",
-      "descrizione": "Da 'Sostituisci la caldaia?' o dall'efficientamento 'cambio caldaia'.",
+      "descrizione": "Da 'Cambi caldaia o pompa di calore?' (caldaia a condensazione) o dall'efficientamento 'caldaia a condensazione'.",
       "ordine": 430,
       "costante": "0",
       "da_attesa": false,
@@ -565,6 +565,43 @@
       "minimo": null,
       "massimo": "1",
       "termini": []
+    },
+    {
+      "code": "pompa_calore",
+      "nome": "Pompa di calore",
+      "um": "flag",
+      "descrizione": "Da 'Cambi caldaia o pompa di calore?' o dall'efficientamento 'pompa di calore'.",
+      "ordine": 431,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": null,
+      "massimo": "1",
+      "termini": []
+    },
+    {
+      "code": "caldaia_gas",
+      "nome": "Caldaia a gas nuova",
+      "um": "flag",
+      "descrizione": "Caldaia nuova, ma solo se non c'e' una pompa di calore: la pompa la sostituisce. Evita di contarle entrambe quando il preset della ristrutturazione totale dice 'caldaia' e l'utente sceglie la pompa.",
+      "ordine": 432,
+      "costante": "0",
+      "da_attesa": false,
+      "arrotondamento": "nessuno",
+      "minimo": "0",
+      "massimo": "1",
+      "termini": [
+        {
+          "sorgente": "caldaia_nuova",
+          "fattore": "1",
+          "per": null
+        },
+        {
+          "sorgente": "pompa_calore",
+          "fattore": "-1",
+          "per": null
+        }
+      ]
     },
     {
       "code": "mq_pavimento_posa",
@@ -2132,6 +2169,17 @@
       "scaglioni": []
     },
     {
+      "voce": "A.1.17",
+      "tipo": "grandezza",
+      "grandezza": "pompa_calore",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pompa di calore: prezzi da indagine di mercato 2026, da tarare su preventivi reali.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
       "voce": "A.2.1",
       "tipo": "da_voci",
       "grandezza": null,
@@ -2564,7 +2612,7 @@
     {
       "voce": "A.8.8",
       "tipo": "grandezza",
-      "grandezza": "caldaia_nuova",
+      "grandezza": "caldaia_gas",
       "fattore": "1",
       "condizione": null,
       "importo_minimo": null,
@@ -2744,6 +2792,28 @@
       "scaglioni": []
     },
     {
+      "voce": "A.8.23",
+      "tipo": "grandezza",
+      "grandezza": "pompa_calore",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pompa di calore: prezzi da indagine di mercato 2026, da tarare su preventivi reali.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.8.24",
+      "tipo": "grandezza",
+      "grandezza": "pompa_calore",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pompa di calore: prezzi da indagine di mercato 2026, da tarare su preventivi reali.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
       "voce": "A.9.1",
       "tipo": "percentuale",
       "grandezza": null,
@@ -2835,6 +2905,17 @@
       "scaglioni": []
     },
     {
+      "voce": "A.9.7",
+      "tipo": "grandezza",
+      "grandezza": "pompa_calore",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pompa di calore: prezzi da indagine di mercato 2026, da tarare su preventivi reali.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
       "voce": "A.10.1",
       "tipo": "grandezza",
       "grandezza": "n_split",
@@ -2859,7 +2940,7 @@
     {
       "voce": "A.10.3",
       "tipo": "grandezza",
-      "grandezza": "caldaia_nuova",
+      "grandezza": "caldaia_gas",
       "fattore": "1",
       "condizione": null,
       "importo_minimo": null,
@@ -2976,6 +3057,28 @@
       "condizione": null,
       "importo_minimo": null,
       "nota": "Un'areazione forzata per bagno cieco.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.10.14",
+      "tipo": "grandezza",
+      "grandezza": "pompa_calore",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pompa di calore: prezzi da indagine di mercato 2026, da tarare su preventivi reali.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "A.10.15",
+      "tipo": "grandezza",
+      "grandezza": "pompa_calore",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pompa di calore: prezzi da indagine di mercato 2026, da tarare su preventivi reali.",
       "sorgenti": [],
       "scaglioni": []
     },
@@ -3867,7 +3970,7 @@
     {
       "voce": "D.1.7",
       "tipo": "grandezza",
-      "grandezza": "caldaia_nuova",
+      "grandezza": "caldaia_gas",
       "fattore": "1",
       "condizione": null,
       "importo_minimo": null,
@@ -3905,6 +4008,39 @@
       "condizione": null,
       "importo_minimo": null,
       "nota": null,
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "D.1.11",
+      "tipo": "grandezza",
+      "grandezza": "pompa_calore",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pompa di calore: prezzi da indagine di mercato 2026, da tarare su preventivi reali.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "D.1.12",
+      "tipo": "grandezza",
+      "grandezza": "pompa_calore",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pompa di calore: prezzi da indagine di mercato 2026, da tarare su preventivi reali.",
+      "sorgenti": [],
+      "scaglioni": []
+    },
+    {
+      "voce": "D.1.13",
+      "tipo": "grandezza",
+      "grandezza": "pompa_calore",
+      "fattore": "1",
+      "condizione": null,
+      "importo_minimo": null,
+      "nota": "Pompa di calore: prezzi da indagine di mercato 2026, da tarare su preventivi reali.",
       "sorgenti": [],
       "scaglioni": []
     }
@@ -4028,6 +4164,18 @@
       "domanda": "interventi_efficientamento",
       "opzione": "cambio_caldaia",
       "grandezza": "caldaia_nuova",
+      "valore": "1"
+    },
+    {
+      "domanda": "interv_caldaia",
+      "opzione": "pompa_calore",
+      "grandezza": "pompa_calore",
+      "valore": "1"
+    },
+    {
+      "domanda": "interventi_efficientamento",
+      "opzione": "pompa_calore",
+      "grandezza": "pompa_calore",
       "valore": "1"
     },
     {
