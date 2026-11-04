@@ -656,7 +656,7 @@ const RIEPILOGO: Record<string, string> = {
   interv_elettrico: "Impianto elettrico",
   interv_riscaldamento: "Riscaldamento",
   interv_clima: "Climatizzazione",
-  interv_caldaia: "Caldaia nuova",
+  interv_caldaia: "Caldaia o pompa di calore",
   interv_porte: "Porte interne",
   interv_serramenti: "Finestre",
   tinteggiatura: "Tinteggiatura",

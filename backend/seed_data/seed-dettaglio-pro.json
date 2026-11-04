@@ -697,6 +697,13 @@
               "coefficiente_qta_per_mq": 0.5
             }
           }
+        },
+        {
+          "codice": "A.1.17",
+          "descrizione": "Smontaggio di caldaia murale esistente: scollegamento da gas, acqua e scarico fumi, chiusura e messa in sicurezza degli attacchi gas, rimozione del condotto fumi. Compreso il trasporto a discarica e gli oneri di smaltimento.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 200.0,
+          "ordine": 36
         }
       ]
     },
@@ -1741,6 +1748,20 @@
               "default_conteggio": 1
             }
           }
+        },
+        {
+          "codice": "A.8.23",
+          "descrizione": "Realizzazione di linea elettrica dedicata alla pompa di calore dal quadro elettrico all'unita' esterna, con cavo di sezione adeguata alla potenza, interruttore magnetotermico differenziale dedicato, sezionatore in prossimita' della macchina e collegamento del comando ambiente.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 450.0,
+          "ordine": 89
+        },
+        {
+          "codice": "A.8.24",
+          "descrizione": "Pratica di aumento della potenza impegnata del contatore fino a 6 kW, necessaria per l'alimentazione della pompa di calore: gestione della richiesta al fornitore e contributo al distributore di rete.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 250.0,
+          "ordine": 89
         }
       ]
     },
@@ -1858,6 +1879,13 @@
               "default_conteggio": 1
             }
           }
+        },
+        {
+          "codice": "A.9.7",
+          "descrizione": "Assistenza muraria per installazione di pompa di calore: carotaggio della muratura esterna per il passaggio delle tubazioni, tracce per tubazioni e linea elettrica, fissaggio di staffe o realizzazione di basamento per l'unita' esterna, ripristini.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 450.0,
+          "ordine": 95
         }
       ]
     },
@@ -2113,6 +2141,20 @@
               "default_conteggio": 1
             }
           }
+        },
+        {
+          "codice": "A.10.14",
+          "descrizione": "Posa in opera e collaudo di pompa di calore aria-acqua monoblocco, esclusa fornitura: unita' esterna su staffe o basamento con supporti antivibranti, collegamenti idraulici fino a 10 m con coibentazione, scarico condensa, riempimento e lavaggio dell'impianto, configurazione della centralina e prima messa in servizio.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 1800.0,
+          "ordine": 108
+        },
+        {
+          "codice": "A.10.15",
+          "descrizione": "Posa e collegamento idraulico di bollitore per acqua calda sanitaria e di accumulo inerziale al circuito della pompa di calore e all'impianto di riscaldamento esistente, compresi valvola deviatrice, vasi d'espansione e raccorderia.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 700.0,
+          "ordine": 108
         }
       ]
     },
@@ -3787,6 +3829,27 @@
               "default_conteggio": 1
             }
           }
+        },
+        {
+          "codice": "D.1.11",
+          "descrizione": "Fornitura di pompa di calore aria-acqua monoblocco inverter fino a 8 kW, gas R290 o R32, classe A+++ a 35 °C, con comando ambiente e kit idronico (circolatore, vaso d'espansione, resistenza di integrazione).",
+          "um": "cad",
+          "prezzo_unitario_cliente": 5500.0,
+          "ordine": 11
+        },
+        {
+          "codice": "D.1.12",
+          "descrizione": "Fornitura di bollitore per acqua calda sanitaria da 200 litri a serpentino maggiorato per pompa di calore, completo di vaso d'espansione sanitario e valvola deviatrice a tre vie.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 1600.0,
+          "ordine": 12
+        },
+        {
+          "codice": "D.1.13",
+          "descrizione": "Fornitura di accumulo inerziale (puffer) da 50 litri con vaso d'espansione impianto, defangatore magnetico e kit antigelo per pompa di calore.",
+          "um": "cad",
+          "prezzo_unitario_cliente": 600.0,
+          "ordine": 13
         }
       ]
     }

@@ -467,7 +467,7 @@ const guidaSerramenti: Guida = {
 const guidaRiscaldamento: Guida = {
   slug: "riscaldamento-climatizzazione",
   nome: "Riscaldamento e clima",
-  sottotitolo: "Radiatori, caldaia, pavimento radiante, split",
+  sottotitolo: "Radiatori, caldaia, pompa di calore, pavimento radiante, split",
   titolo: (d) => `Quanto costa rifare il riscaldamento nel ${anno(d.aggiornato_il)}`,
   h1: () => "Quanto costa rifare riscaldamento e climatizzazione",
   descrizione: (d) => {
@@ -488,6 +488,10 @@ const guidaRiscaldamento: Guida = {
     {
       tipo: "p",
       testo: "Il riscaldamento a pavimento costa di più perché richiede di demolire i pavimenti e rifare massetto e posa: conviene quando si rifanno comunque i pavimenti.",
+    },
+    {
+      tipo: "p",
+      testo: "La pompa di calore aria-acqua sostituisce la caldaia a gas: il prezzo comprende la macchina esterna, il bollitore per l'acqua calda, l'accumulo, la posa, la linea elettrica dedicata, l'aumento di potenza del contatore e lo smontaggio della vecchia caldaia.",
     },
     ...metodo(d),
   ],
