@@ -49,4 +49,7 @@ async def send_email(to: str, subject: str, html_body: str) -> None:
         username=settings.SMTP_USER or None,
         password=settings.SMTP_PASSWORD or None,
         start_tls=True,
+        # A blocked port hangs until the timeout: keep it short so the
+        # request does not stall for the aiosmtplib default of 60 s.
+        timeout=15,
     )

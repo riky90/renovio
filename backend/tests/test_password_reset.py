@@ -148,6 +148,27 @@ class TestPasswordDimenticataAntiEnumeration:
         assert len(sent_emails) == 1
         assert sent_emails[0]["to"] == "esiste@example.com"
 
+    def test_smtp_in_errore_non_rivela_che_l_account_esiste(self, client, monkeypatch):
+        """If SMTP fails (e.g. Render free blocks port 587) the endpoint must
+        still answer the same 200: a 500 only for existing accounts would be
+        an enumeration oracle, and the user would see a generic error."""
+        import app.routers.auth as auth_router_module
+
+        _registra(client, email="esiste@example.com")
+
+        async def smtp_rotto(to, subject, html_body):
+            raise TimeoutError("connessione SMTP scaduta")
+
+        monkeypatch.setattr(auth_router_module, "send_email", smtp_rotto)
+
+        risposta_esistente = client.post(PASSWORD_DIMENTICATA_URL, json={"email": "esiste@example.com"})
+        risposta_inesistente = client.post(
+            PASSWORD_DIMENTICATA_URL, json={"email": "non.esiste@example.com"}
+        )
+
+        assert risposta_esistente.status_code == 200
+        assert risposta_esistente.json() == risposta_inesistente.json()
+
 
 class TestReimpostaPasswordFlow:
     def test_token_valido_aggiorna_password_e_permette_login(self, client, sent_emails):

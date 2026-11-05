@@ -293,15 +293,20 @@ async def password_dimenticata(payload: PasswordDimenticataRequest, request: Req
             session.commit()
 
             reset_link = f"{settings.FRONTEND_URL}/reimposta-password?token={token}"
-            await send_email(
-                to=user.email,
-                subject="Reimposta la tua password",
-                html_body=(
-                    f"<p>Clicca il link per reimpostare la password: "
-                    f'<a href="{reset_link}">{reset_link}</a></p>'
-                    f"<p>Il link scade tra un'ora.</p>"
-                ),
-            )
+            # A failed send must not change the response: a 500 only for
+            # existing accounts would reveal which emails are registered.
+            try:
+                await send_email(
+                    to=user.email,
+                    subject="Reimposta la tua password",
+                    html_body=(
+                        f"<p>Clicca il link per reimpostare la password: "
+                        f'<a href="{reset_link}">{reset_link}</a></p>'
+                        f"<p>Il link scade tra un'ora.</p>"
+                    ),
+                )
+            except Exception:
+                logger.exception("Invio email di reset password fallito (user_id=%s)", user.id)
 
     return {"detail": RESET_REQUEST_MESSAGE}
 
